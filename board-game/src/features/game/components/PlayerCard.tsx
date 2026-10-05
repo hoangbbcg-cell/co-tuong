@@ -5,16 +5,15 @@ import { formatClock } from '../../../lib/format'
 import { TURN_TIME_LIMIT_MS } from '../../../game/state/initial'
 import { buttonInteraction } from '../../../lib/uiClasses'
 import avatar from '../../../assets/icons/avatar.svg'
+import defaultAvatarFrame from '../../../assets/30dfa56b-d9f3-4129-b9fd-aaf0ea884188.png'
+import { AvatarFrameOverlay } from './AvatarFrameOverlay'
+import { AvatarRankBadge } from './AvatarRankBadge'
 import likeIcon from '../../../assets/icons/like-white.png'
 import { useSessionStore } from '../../../store/sessionStore'
-import noviceRank from '../../../assets/ranks/rank-01-novice-clean.png'
 import readyRibbon from '../../../assets/buttons/ready-avatar-ribbon.png'
 import nameFrame from '../../../assets/player/name-frame.png'
 import eloFrame from '../../../assets/player/elo-frame.png'
 import takebackDecline from '../../../assets/takeback/takeback-decline.png'
-import { AVATA_TITLE_BADGE_STYLE } from './playerIdentityLayout'
-import { AvatarFrameOverlay } from './AvatarFrameOverlay'
-import defaultAvatarFrame from '../../../assets/player/fb7341c5-be02-45ac-846c-f085eebc50ee.png'
 
 interface Props { entranceHidden?: boolean; fillHeight?: boolean; side: Side; name: string; started: boolean; active: boolean; timerExpired?: boolean; ready?: boolean; remaining: number; turnElapsed: number; outcome?: 'win' | 'loss'; takebackDeclineKey?: string | number | null; likeVisible?: boolean; likePosition?: 'left' | 'right'; likeMatchId: string; likeActorId: string; onAvatarClick?: () => void; children?: ReactNode }
 const LIKE_BUBBLE_INTERVAL_MS = 100
@@ -121,7 +120,7 @@ function remainingArcPath(radius: number, elapsedAngle: number): string {
 }
 function ResultFace({ outcome }: { outcome: 'win' | 'loss' }) {
   const win = outcome === 'win'
-  return <div role="img" aria-label={win ? 'Người thắng vui mừng' : 'Người thua khóc'} className={`pointer-events-none absolute top-1/2 left-1/2 z-4 grid size-[122px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[5px] shadow-[0_5px_18px_#071c1bcc] ${win ? 'animate-bounce border-[#ffe69a] bg-[#f5bd35]' : 'animate-pulse border-[#bce5ff] bg-[#70bce8]'} compact:size-[50px] compact:border-[3px] short-desktop:size-[78px]`}>
+  return <div role="img" aria-label={win ? 'Người thắng vui mừng' : 'Người thua khóc'} className={`pointer-events-none absolute top-1/2 left-1/2 z-[100] grid size-[122px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[5px] shadow-[0_5px_18px_#071c1bcc] ${win ? 'animate-bounce border-[#ffe69a] bg-[#f5bd35]' : 'animate-pulse border-[#bce5ff] bg-[#70bce8]'} compact:size-[50px] compact:border-[3px] short-desktop:size-[78px]`}>
     <svg viewBox="0 0 100 100" className="size-[88%]" aria-hidden="true">
       <circle cx="50" cy="50" r="45" fill={win ? '#ffd75a' : '#8ed5f5'} />
       <path d="M30 38q8-8 16 0M54 38q8-8 16 0" fill="none" stroke="#493218" strokeWidth="6" strokeLinecap="round" />
@@ -135,19 +134,18 @@ export function PlayerCard({ entranceHidden = false, fillHeight = false, side, n
   const turnAngle = turnRatio * 360
   const timerVisible = active || timerExpired
   return <section data-active={active} className={`mx-auto flex min-w-0 flex-col desktop:w-40 items-center pt-3 compact:grid compact:grid-cols-[60px_minmax(0,1fr)] compact:gap-x-2 compact:gap-y-[3px] compact:p-0 compact:text-left short-desktop:pt-0 ${fillHeight ? 'h-full compact:h-auto' : 'flex-none desktop:self-center'} ${side === 'red' ? 'compact:-translate-y-[10px]' : ''}`} id={`player-${side}`} aria-label={`Người chơi quân ${side === 'red' ? 'đỏ' : 'đen'}`} style={{ visibility: entranceHidden ? 'hidden' : undefined } as CSSProperties}>
-    <div data-active={active} data-testid={`avatar-${side}`} className="relative size-[132px] shrink-0 rounded-full bg-[linear-gradient(135deg,#fff2b8,#ac7933_45%,#ffe5a1_75%,#8e642d)] p-2 shadow-[0_5px_18px_#071c1b99] compact:size-[60px] compact:p-[5px] short-desktop:size-[88px]">
+    <div data-active={active} data-testid={`avatar-${side}`} className="relative size-[132px] shrink-0 rounded-full bg-transparent p-2 shadow-[0_5px_18px_#071c1b99] compact:size-[60px] compact:p-[5px] short-desktop:size-[88px]">
       {likeVisible && <PlayerLikeButton name={name} position={likePosition} matchId={likeMatchId} actorId={likeActorId} targetSide={side} avatarBubbleLayerRef={likeBubbleLayerRef} />}
       <button type="button" aria-label={`Xem hồ sơ ${name}`} onClick={onAvatarClick} className={`${buttonInteraction} relative block size-full rounded-full border-0 bg-transparent p-0`}>
-        <img src={avatar} alt="" className={`block size-full rounded-full object-cover ${side === 'black' ? 'hue-rotate-[35deg]' : ''}`} />
-        <AvatarFrameOverlay src={defaultAvatarFrame} />
-        <img src={noviceRank} alt="Danh hiệu Tân Binh" className="pointer-events-none absolute z-20 max-w-none -translate-x-1/2 drop-shadow-[0_3px_3px_#281307aa]" style={AVATA_TITLE_BADGE_STYLE} />
+        <img src={avatar} alt="" className="block size-full rounded-full object-cover" /><span aria-hidden="true" className={`pointer-events-none absolute inset-0 z-2 rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: `conic-gradient(from 0deg, transparent 0deg ${turnAngle}deg, #187b1299 ${turnAngle}deg 360deg)` }} />
+        <AvatarFrameOverlay src={defaultAvatarFrame} dimmed={timerVisible} />
+        <svg aria-hidden="true" viewBox="0 0 100 100" className={`pointer-events-none absolute top-1/2 left-1/2 z-[11] size-[107%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`}>
+          <path d={remainingArcPath(47, turnAngle)} fill="none" stroke="#48e600" strokeWidth="5.5" strokeLinecap="butt" />
+          <path d={remainingArcPath(46.8, turnAngle)} fill="none" stroke="#d6d45a" strokeWidth="1.1" strokeLinecap="butt" />
+        </svg><AvatarRankBadge />
+
       </button>
       <span ref={likeBubbleLayerRef} aria-hidden="true" className="pointer-events-none absolute inset-0 z-8 overflow-visible" />
-      <span aria-hidden="true" className={`pointer-events-none absolute inset-0 z-2 rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: `conic-gradient(from 0deg, transparent 0deg ${turnAngle}deg, #187b1299 ${turnAngle}deg 360deg)` }} />
-      <svg aria-hidden="true" viewBox="0 0 100 100" className={`pointer-events-none absolute inset-0 z-3 size-full overflow-visible transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`}>
-        <path d={remainingArcPath(47, turnAngle)} fill="none" stroke="#48e600" strokeWidth="5.5" strokeLinecap="butt" style={{ filter: 'drop-shadow(0 0 2px #64ec79aa)' }} />
-        <path d={remainingArcPath(46.8, turnAngle)} fill="none" stroke="#d6d45a" strokeWidth="1.1" strokeLinecap="butt" />
-      </svg>
       {takebackDeclineKey != null && <span key={takebackDeclineKey} role="status" className="pointer-events-none absolute top-1/2 left-1/2 z-7 w-[126px] -translate-x-1/2 -translate-y-1/2 brightness-125 animate-[bounce_450ms_ease-in-out_2] motion-reduce:animate-none compact:w-[78px] short-desktop:w-[96px]"><img src={takebackDecline} alt="Từ chối" className="m-0 block h-auto w-full border-0 p-0" /></span>}
       {ready && <img src={readyRibbon} alt="Sẵn sàng" className="pointer-events-none absolute top-1/2 left-1/2 z-5 m-0 block h-auto w-[158px] -translate-x-1/2 -translate-y-1/2 border-0 p-0 drop-shadow-[0_2px_3px_#17200899] compact:w-[72px] short-desktop:w-[106px]" />}
       {outcome && <ResultFace outcome={outcome} />}

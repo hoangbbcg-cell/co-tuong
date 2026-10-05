@@ -1,15 +1,14 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import avatarSelectionSprite from '../../../assets/profile/avatar-selection-sprite.png'
-import defaultAvatarFrame from '../../../assets/player/fb7341c5-be02-45ac-846c-f085eebc50ee.png'
-import noviceRank from '../../../assets/ranks/rank-01-novice-clean.png'
+import { AVATAR_FRAMES, getAvatarFrame } from '../../../lib/avatarFrames'
+import { AvatarRankBadge } from '../../game/components/AvatarRankBadge'
+import { AvatarFrameOverlay } from '../../game/components/AvatarFrameOverlay'
 import tabFrameIcon from '../../../assets/profile/customization-tab-frame.png'
 import tabAvatarIcon from '../../../assets/profile/customization-tab-avatar.png'
 import tabEffectIcon from '../../../assets/profile/customization-tab-effect.png'
 import tabSkinIcon from '../../../assets/icons/2ddf00c5-60e9-4f2f-a241-07fb7a91a980.png'
-import { AVATA_TITLE_BADGE_STYLE } from '../../game/components/playerIdentityLayout'
 import { buttonInteraction, selectionPalette } from '../../../lib/uiClasses'
-import { AvatarFrameOverlay } from '../../game/components/AvatarFrameOverlay'
 
 const AVATAR_SPRITE_COLUMN_POSITIONS = [2.78, 26.41, 49.96, 73.55, 97.22]
 const AVATAR_SPRITE_ROW_POSITIONS = [4.2, 48.83, 93.15]
@@ -39,7 +38,7 @@ function CustomizationTabIcon({ name }: { name: CustomizationTabIconName }) {
     effect: tabEffectIcon,
   }
 
-  return <img aria-hidden="true" src={icons[name]} alt="" className={`relative z-10 size-7 shrink-0 object-contain ${name === 'skin' ? 'scale-125' : ''}`} />
+  return <span aria-hidden="true" className={`relative z-10 grid shrink-0 place-items-center ${name === 'skin' ? 'translate-y-[2px] size-9' : name === 'avatar' ? '-translate-y-[4px] size-6' : 'size-7'}`}><img src={icons[name]} alt="" className="block size-full object-contain" /></span>
 }
 
 export function AvatarPortrait({ avatarIndex, className }: { avatarIndex: number; className: string }) {
@@ -49,19 +48,19 @@ export function AvatarPortrait({ avatarIndex, className }: { avatarIndex: number
   return <span aria-hidden="true" className={`block bg-no-repeat ${className}`} style={{ backgroundImage: `url(${avatarSelectionSprite})`, backgroundSize: '550% 330%', backgroundPosition: `${AVATAR_SPRITE_COLUMN_POSITIONS[column]}% ${AVATAR_SPRITE_ROW_POSITIONS[row]}%` }} />
 }
 
-export function AvatarCustomization({ onCancel, onUse, previewPanel, selectedAvatarIndex }: { onCancel: () => void; onUse: (avatarIndex: number) => void; previewPanel: ReactNode; selectedAvatarIndex: number }) {
+export function AvatarCustomization({ onCancel, onUse, previewPanel, selectedAvatarIndex, selectedFrameIndex }: { onCancel: () => void; onUse: (avatarIndex: number, frameIndex: number) => void; previewPanel: ReactNode; selectedAvatarIndex: number; selectedFrameIndex: number }) {
   const [activeTab, setActiveTab] = useState<CustomizationTabIconName>('avatar')
-  const [frameSelected, setFrameSelected] = useState(true)
   const [draftAvatarIndex, setDraftAvatarIndex] = useState(selectedAvatarIndex)
+  const [draftFrameIndex, setDraftFrameIndex] = useState(selectedFrameIndex)
+  const [appliedSelection, setAppliedSelection] = useState<{ avatarIndex: number; frameIndex: number } | null>(null)
+  const selectionApplied = appliedSelection?.avatarIndex === draftAvatarIndex && appliedSelection.frameIndex === draftFrameIndex
 
   return <div className="flex min-h-0 flex-1 flex-col gap-2 text-[#f8dea6]">
-    <section aria-label="Xem trước avatar" className="relative isolate grid h-[170px] shrink-0 grid-cols-[0.82fr_1fr] gap-3 rounded-[10px]">
+    <section aria-label="Xem trước avatar" className="relative isolate grid h-[190px] shrink-0 grid-cols-[0.82fr_1fr] gap-3 rounded-[10px]">
       <div className="relative flex h-[188px] min-h-0 shrink-0 self-center -translate-y-[18px] flex-col items-center justify-center">
         <div className="relative h-[183px] w-[136px] shrink-0">
           <span className="absolute top-0 left-0 grid size-[136px] place-items-center">
-            <span className="absolute size-full overflow-hidden rounded-full bg-[#123334]"><AvatarPortrait avatarIndex={draftAvatarIndex} className="size-full rounded-full" /></span>
-            {frameSelected && <AvatarFrameOverlay src={defaultAvatarFrame} />}
-            <img src={noviceRank} alt="Danh hiệu Tân Binh" className="pointer-events-none absolute z-20 max-w-none -translate-x-1/2 drop-shadow-[0_3px_3px_#281307aa]" style={AVATA_TITLE_BADGE_STYLE} />
+            <span className="absolute size-full overflow-hidden rounded-full bg-[#123334]"><AvatarPortrait avatarIndex={draftAvatarIndex} className="size-full rounded-full" /></span><AvatarFrameOverlay src={getAvatarFrame(draftFrameIndex).image} /><AvatarRankBadge />
           </span>
         </div>
       </div>
@@ -71,11 +70,17 @@ export function AvatarCustomization({ onCancel, onUse, previewPanel, selectedAva
     <nav aria-label="Danh mục tùy chỉnh avatar" className="grid h-[50px] shrink-0 grid-cols-4 gap-2">
       {[
         { label: 'Chọn avatar', icon: 'avatar' as const },
-        { label: 'Chọn khung', icon: 'frame' as const },
+        { label: 'Chọn viền', icon: 'frame' as const },
         { label: 'Skin', icon: 'skin' as const },
         { label: 'Hiệu ứng', icon: 'effect' as const },
-      ].map(tab => <button key={tab.icon} type="button" onClick={() => setActiveTab(tab.icon)} aria-current={activeTab === tab.icon ? 'page' : undefined} className={`${buttonInteraction} relative flex min-w-0 items-center justify-center gap-2 rounded-[10px] [corner-shape:scoop] border-2 p-0 font-cormorant text-[22px] font-semibold ${activeTab === tab.icon ? `${selectionPalette.selected.border} ${selectedTabSurface} ${selectionPalette.selected.text} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface} ${selectionPalette.unselected.text} opacity-80`}`}>
-        {activeTab === tab.icon && <SelectionCornerGlints />}<CustomizationTabIcon name={tab.icon} /><span className="relative z-10 truncate leading-[1.25]">{tab.label}</span>
+      ].map(tab => <button key={tab.icon} type="button" onClick={() => {
+        if (activeTab !== tab.icon) {
+          if (tab.icon === 'avatar') setDraftAvatarIndex(selectedAvatarIndex)
+          if (tab.icon === 'frame') setDraftFrameIndex(selectedFrameIndex)
+        }
+        setActiveTab(tab.icon)
+      }} aria-current={activeTab === tab.icon ? 'page' : undefined} className={`${buttonInteraction} relative flex h-full min-w-0 items-center justify-center gap-2 rounded-[10px] [corner-shape:scoop] border-2 p-0 font-cormorant text-[22px] font-semibold ${activeTab === tab.icon ? `${selectionPalette.selected.border} ${selectedTabSurface} ${selectionPalette.selected.text} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface} ${selectionPalette.unselected.text} opacity-80`}`}>
+        {activeTab === tab.icon && <SelectionCornerGlints />}<CustomizationTabIcon name={tab.icon} /><span className="relative z-10 inline-flex h-7 min-w-0 items-center truncate leading-none">{tab.label}</span>
       </button>)}
     </nav>
 
@@ -83,21 +88,25 @@ export function AvatarCustomization({ onCancel, onUse, previewPanel, selectedAva
       {AVATAR_DISPLAY_ORDER.map(avatarIndex => <button key={`avatar-${avatarIndex}`} type="button" aria-label={`Chọn avatar nhân vật ${avatarIndex + 1}`} aria-pressed={draftAvatarIndex === avatarIndex} onClick={() => setDraftAvatarIndex(avatarIndex)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[9px] border-2 ${draftAvatarIndex === avatarIndex ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
         <AvatarPortrait avatarIndex={avatarIndex} className="h-[calc(100%-8px)] aspect-square rounded-full" />
         {draftAvatarIndex === avatarIndex && <SelectionCornerGlints />}
-        {draftAvatarIndex === avatarIndex && <span aria-hidden="true" className="absolute right-1 bottom-1 grid size-6 place-items-center rounded-full border-2 border-[#d4f387] bg-[#285a24] text-base font-bold leading-none text-[#eaffb5] shadow-[0_1px_3px_#170c04]">✓</span>}
+        {selectedAvatarIndex === avatarIndex && <span aria-hidden="true" className="absolute right-1 bottom-1 grid size-6 place-items-center rounded-full border-2 border-[#d4f387] bg-[#285a24] text-base font-bold leading-none text-[#eaffb5] shadow-[0_1px_3px_#170c04]">✓</span>}
       </button>)}
     </div> : activeTab === 'frame' ? <div aria-label="Khung avatar, 6 cột và 3 hàng" className="grid min-h-0 flex-1 grid-cols-6 grid-rows-3 gap-2 rounded-[10px] border border-[#9f6025] bg-[#1c0d07aa] p-2 shadow-[inset_0_0_12px_#0d0503]">
-      {Array.from({ length: 18 }, (_, index) => index === 0
-        ? <button key="default-frame" type="button" aria-label="Khung viền vàng mặc định" aria-pressed={frameSelected} onClick={() => setFrameSelected(true)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[9px] border-2 ${frameSelected ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`} `}>
-          <span className="relative grid h-full max-h-full aspect-square place-items-center"><span className="relative grid size-[77.1%] place-items-center"><AvatarFrameOverlay src={defaultAvatarFrame} /></span></span>
-          {frameSelected && <SelectionCornerGlints />}
-          {frameSelected && <span aria-hidden="true" className="absolute right-1 bottom-1 grid size-6 place-items-center rounded-full border-2 border-[#d4f387] bg-[#285a24] text-base font-bold leading-none text-[#eaffb5] shadow-[0_1px_3px_#170c04]">✓</span>}
+      {Array.from({ length: 18 }, (_, index) => index < AVATAR_FRAMES.length
+        ? <button key={`frame-${index}`} type="button" aria-label={AVATAR_FRAMES[index].label} aria-pressed={draftFrameIndex === index} onClick={() => setDraftFrameIndex(index)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[9px] border-2 ${draftFrameIndex === index ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
+          <span className="relative grid h-full max-h-full aspect-square place-items-center"><span className="relative grid size-[77.1%] place-items-center"><AvatarFrameOverlay src={AVATAR_FRAMES[index].image} /></span></span>
+          {draftFrameIndex === index && <SelectionCornerGlints />}
+          {selectedFrameIndex === index && <span aria-hidden="true" className="absolute right-1 bottom-1 grid size-6 place-items-center rounded-full border-2 border-[#d4f387] bg-[#285a24] text-base font-bold leading-none text-[#eaffb5] shadow-[0_1px_3px_#170c04]">✓</span>}
         </button>
         : <div key={`locked-frame-${index}`} role="img" aria-label={`Ô khung mẫu ${index + 1} đang khóa`} className={`relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[9px] border ${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}><LockIcon /></div>)}
     </div> : <div aria-hidden="true" className="min-h-0 flex-1" />}
 
     <footer className="flex h-[50px] shrink-0 items-center justify-center gap-4">
       <button type="button" onClick={onCancel} className={actionButton}>Hủy</button>
-      <button type="button" onClick={() => onUse(draftAvatarIndex)} className={selectedButton}>Sử dụng</button>
+      <button type="button" aria-disabled={selectionApplied} onClick={() => {
+        if (selectionApplied) return
+        onUse(draftAvatarIndex, draftFrameIndex)
+        setAppliedSelection({ avatarIndex: draftAvatarIndex, frameIndex: draftFrameIndex })
+      }} className={selectedButton} style={{ filter: selectionApplied ? 'brightness(0.65)' : undefined }}>Sử dụng</button>
     </footer>
   </div>
 }

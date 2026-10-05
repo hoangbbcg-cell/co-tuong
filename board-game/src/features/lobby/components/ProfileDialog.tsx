@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react'
 import type { useProfileLayout } from '../hooks/useProfileLayout'
+import { useSessionStore } from '../../../store/sessionStore'
 import profileTitle from '../../../assets/profile/info-title-friends-frame.png'
 import avatarCustomizationTitle from '../../../assets/profile/avatar-customization-title.png'
 import xiangqiMode from '../../../assets/profile/mode-xiangqi.png'
 import hiddenMode from '../../../assets/profile/mode-hidden.png'
-import noviceRank from '../../../assets/ranks/rank-01-novice-clean.png'
 import redGeneral from '../../../assets/pieces/red-general.png'
-import blackGeneral from '../../../assets/pieces/black-general.png'
+import concealedPiece from '../../../assets/history/history-hidden-user.png'
 import profileScene from '../../../assets/profile/0ee91cbb-26f8-4bb8-bc0d-2fe1b86ad68b.png'
 import honorsFrame from '../../../assets/profile/honors/honors-frame-tight.png'
 import allHonorsIcon from '../../../assets/profile/honors/e3aedd93-2970-4bae-86c6-4b1937e9a288.png'
@@ -24,13 +24,13 @@ import lienThangFrameSprite from '../../../assets/awarded-honors/f1c6f373-f803-4
 import totalGamesFrameSprite from '../../../assets/awarded-honors/6fc3cfba-04f1-4337-8430-8377074835f5.png'
 import attendanceFrameSprite from '../../../assets/awarded-honors/bbceb019-6ed9-498e-aac8-30b90167f7b8.png'
 import selectedHonorGlow from '../../../assets/profile/honors/189fd0e1-1168-4016-9dc0-6ec6124d03f9.png'
-import defaultAvatarFrame from '../../../assets/player/fb7341c5-be02-45ac-846c-f085eebc50ee.png'
 import editIcon from '../../../assets/icons/903174a3-cfa1-4f7c-badc-1dd24d62c991.png'
 import { buttonInteraction } from '../../../lib/uiClasses'
 import { AvatarCustomization, AvatarPortrait } from './AvatarCustomization'
-import { VietnamAddressPicker } from './VietnamAddressPicker'
+import { getAvatarFrame } from '../../../lib/avatarFrames'
+import { AvatarRankBadge } from '../../game/components/AvatarRankBadge'
 import { AvatarFrameOverlay } from '../../game/components/AvatarFrameOverlay'
-import { AVATA_TITLE_BADGE_STYLE } from '../../game/components/playerIdentityLayout'
+import { VietnamAddressPicker } from './VietnamAddressPicker'
 import { getHonorTitleFontSize, normalizeHonorTitle } from '../honorTitleText'
 
 const panel = 'relative rounded-[14px] border-2 border-[#c58a35] bg-[linear-gradient(135deg,#3b1d0b,#1b100b)] shadow-[inset_0_0_0_2px_#7d451b,inset_0_0_22px_#120904,0_2px_4px_#14080499]'
@@ -206,7 +206,7 @@ function getProgressHonorGlowIntensity(levelOneFrame: boolean) {
 
 function ArenaHonorTitle({ honor }: { honor: ArenaHonor }) {
   const normalizedTitle = normalizeHonorTitle(honor.title)
-  return <span aria-label={normalizedTitle} className={`relative z-50 inline-block whitespace-nowrap py-[0.04em] ${HONOR_TITLE_FONT_CLASS} text-[clamp(10px,9cqw,29px)] leading-[1.2] drop-shadow-[0_1px_0_#5f1c00]`} style={HONOR_TITLE_GOLD_TEXT_STYLE}>{normalizedTitle}</span>
+  return <span aria-label={normalizedTitle} className={`relative z-50 inline-block whitespace-nowrap py-[0.04em] ${HONOR_TITLE_FONT_CLASS} text-[clamp(10px,9cqw,29px)] leading-[1.2] drop-shadow-[0_1px_0_#5f1c00] ${honor.level === 3 || honor.rank === 2 && honor.level === 1 ? 'translate-y-px' : honor.rank === 3 && honor.level === 2 ? '-translate-y-px' : ''}`} style={HONOR_TITLE_GOLD_TEXT_STYLE}>{normalizedTitle}</span>
 }
 
 function ArenaHonorBadge({ honor, isSelected, onSelect }: { honor: ArenaHonor; isSelected: boolean; onSelect: (honor: ArenaHonor) => void }) {
@@ -401,14 +401,14 @@ function HonorDetailSprite({ honor, isSelected = false }: { honor: SpriteHonor; 
 
 function ProfileHonorPreviewBadge({ honor, onSelect }: { honor: ProfileHonorPreview; onSelect: (honor: HonorDetail, trigger: HTMLButtonElement) => void }) {
   const buttonClass = titleFrameButtonClass(false, '!cursor-pointer scale-[1.06]')
-  if ('rank' in honor) return <button type="button" data-profile-honor-preview-badge="true" aria-label={`Xem thông tin ${normalizeHonorTitle(honor.title)}`} title={`${normalizeHonorTitle(honor.title)} · minh họa`} onClick={event => onSelect(honor, event.currentTarget)} className={buttonClass}>
+  if ('rank' in honor) return <button type="button" data-profile-honor-preview-badge="true" aria-label={`Xem thông tin ${normalizeHonorTitle(honor.title)}`} onClick={event => onSelect(honor, event.currentTarget)} className={buttonClass}>
     <img src={honor.image} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 block size-full scale-y-[1.16] object-contain" />
     <span className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center overflow-hidden whitespace-nowrap px-[15%] text-center">
       <ArenaHonorTitle honor={honor} />
     </span>
   </button>
 
-  if ('frame' in honor) return <button type="button" data-profile-honor-preview-badge="true" aria-label={`Xem thông tin ${normalizeHonorTitle(honor.name)}`} title={`${normalizeHonorTitle(honor.name)} · minh họa`} onClick={event => onSelect(honor, event.currentTarget)} className={buttonClass}>
+  if ('frame' in honor) return <button type="button" data-profile-honor-preview-badge="true" aria-label={`Xem thông tin ${normalizeHonorTitle(honor.name)}`} onClick={event => onSelect(honor, event.currentTarget)} className={buttonClass}>
     <HonorDetailSprite honor={honor} />
     <span className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center overflow-hidden whitespace-nowrap px-[15%] text-center">
       <StreakHonorTitle displayName={honor.displayName} />
@@ -417,7 +417,7 @@ function ProfileHonorPreviewBadge({ honor, onSelect }: { honor: ProfileHonorPrev
 
   const artworkScaleX = honor.level === 2 || honor.level === 3 ? 'scale-x-[1.7]' : honor.level === 5 ? 'scale-x-[1.58]' : 'scale-x-[1.52]'
   const titleTop = honor.level === 1 ? 'calc(53% + 4px)' : honor.level === 3 ? 'calc(53% + 1px)' : honor.level === 4 ? 'calc(53% - 2px)' : honor.level === 5 ? 'calc(53% - 3px)' : '53%'
-  return <button type="button" data-profile-honor-preview-badge="true" aria-label={`Xem thông tin ${normalizeHonorTitle(honor.name)}`} title={`${normalizeHonorTitle(honor.name)} · minh họa`} onClick={event => onSelect(honor, event.currentTarget)} className={buttonClass}>
+  return <button type="button" data-profile-honor-preview-badge="true" aria-label={`Xem thông tin ${normalizeHonorTitle(honor.name)}`} onClick={event => onSelect(honor, event.currentTarget)} className={buttonClass} style={{ translate: `0 calc(50% - ${titleTop})` }}>
     <img src={honor.image} alt="" aria-hidden="true" style={{ filter: UNSELECTED_TITLE_FRAME_FILTER }} className={`pointer-events-none absolute inset-0 z-10 block size-full ${artworkScaleX} scale-y-[1.36] object-contain`} />
     <span style={{ top: titleTop }} className="pointer-events-none absolute left-1/2 z-20 flex h-full w-[70%] -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-hidden whitespace-nowrap text-center">
       <AwardedHonorTitle displayName={honor.displayName} />
@@ -445,7 +445,7 @@ function HonorCatalogBadge({ honor, isSelected, onSelect }: { honor: HonorDetail
 
 function ProfileHonorSelectionButton({ honorName, isSelected, canSelect, onToggle }: { honorName: string; isSelected: boolean; canSelect: boolean; onToggle: () => void }) {
   return <span className="absolute left-[3%] top-[2%] z-40 grid size-[clamp(18px,2cqw,24px)] place-items-center">
-    <button type="button" aria-label={`${isSelected ? 'Bỏ khỏi' : 'Hiển thị'} hồ sơ: ${normalizeHonorTitle(honorName)}`} aria-pressed={isSelected} title={isSelected ? 'Bỏ danh hiệu khỏi hồ sơ' : canSelect ? 'Chọn hiển thị trên hồ sơ' : 'Mỗi tab chỉ chọn tối đa 3 danh hiệu'} disabled={!isSelected && !canSelect} onClick={event => { event.stopPropagation(); onToggle() }} className={`relative z-10 grid size-full place-items-center rounded-full border border-[#e1b359] p-0 shadow-[0_1px_4px_#120803] transition-colors ${isSelected ? 'bg-[#2f9b58] text-white' : 'bg-[linear-gradient(135deg,#75471c,#321909)] text-[#ffe5a6]'} ${!isSelected && !canSelect ? 'cursor-not-allowed opacity-45' : 'cursor-pointer hover:brightness-125'}`}>
+    <button type="button" aria-label={`${isSelected ? 'Bỏ khỏi' : 'Hiển thị'} hồ sơ: ${normalizeHonorTitle(honorName)}`} aria-pressed={isSelected} disabled={!isSelected && !canSelect} onClick={event => { event.stopPropagation(); onToggle() }} className={`relative z-10 grid size-full place-items-center rounded-full border border-[#e1b359] p-0 shadow-[0_1px_4px_#120803] transition-colors ${isSelected ? 'bg-[#2f9b58] text-white' : 'bg-[linear-gradient(135deg,#75471c,#321909)] text-[#ffe5a6]'} ${!isSelected && !canSelect ? 'cursor-not-allowed opacity-45' : 'cursor-pointer hover:brightness-125'}`}>
       <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isSelected ? 'size-[82%]' : 'size-[72%]'}>
         {isSelected ? <path d="m5 12 4 4L19 6" /> : <path d="M12 5v14M5 12h14" />}
       </svg>
@@ -456,7 +456,7 @@ function ProfileHonorSelectionButton({ honorName, isSelected, canSelect, onToggl
 function HonorHiddenToggle({ isHidden, onToggle, className = 'absolute right-[10.5%] top-[10%] z-20 translate-y-[10px]' }: { isHidden: boolean; onToggle: () => void; className?: string }) {
   return <div className={`${className} flex items-center gap-2`}>
     <span className="font-cormorant text-[clamp(11px,1.3vw,16px)] font-bold text-[#ffe5a6]">Ẩn</span>
-    <button type="button" role="switch" aria-label="Ẩn thông tin danh hiệu" aria-checked={isHidden} title={isHidden ? 'Thông tin danh hiệu đang bị ẩn' : 'Thông tin danh hiệu đang hiển thị'} onClick={onToggle} className={`relative h-[20px] w-[38px] cursor-pointer rounded-full border border-[#dfbc7a] p-0 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe08b] ${isHidden ? 'bg-[#2f9b58]' : 'bg-[#777777]'}`}>
+    <button type="button" role="switch" aria-label="Ẩn thông tin danh hiệu" aria-checked={isHidden} onClick={onToggle} className={`relative h-[20px] w-[38px] cursor-pointer rounded-full border border-[#dfbc7a] p-0 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe08b] ${isHidden ? 'bg-[#2f9b58]' : 'bg-[#777777]'}`}>
       <span aria-hidden="true" className={`absolute left-[2px] top-1/2 size-[14px] -translate-y-1/2 rounded-full bg-[#fff4d4] shadow-[0_1px_3px_#190b04] transition-transform duration-150 ${isHidden ? 'translate-x-[18px]' : 'translate-x-0'}`} />
     </button>
   </div>
@@ -611,7 +611,13 @@ export function ProfileDialog({ dialogRef, name, onClose, primaryActionLabel, on
   const [previewHonorDetailOpen, setPreviewHonorDetailOpen] = useState(false)
   const [previewDetailPosition, setPreviewDetailPosition] = useState<{ side: 'left' | 'right'; anchorX: number } | null>(null)
   const [selectedHonor, setSelectedHonor] = useState<HonorDetail | null>(null)
-  const [selectedAvatarIndex, setSelectedAvatarIndex] = useState(0)
+  const ownAvatarIndex = useSessionStore(state => state.avatarIndex)
+  const setSelectedAvatarIndex = useSessionStore(state => state.setAvatarIndex)
+  const selectedAvatarIndex = editable ? ownAvatarIndex : 0
+  const ownFrameIndex = useSessionStore(state => state.avatarFrameIndex)
+  const setSelectedFrameIndex = useSessionStore(state => state.setAvatarFrameIndex)
+  const selectedFrameIndex = editable ? ownFrameIndex : 0
+  const ownedHonorCount = getUnlockedProfileHonors().length
   const previewHonors = getSelectedProfileHonors(selectedProfileHonorIds)
   const orderedPreviewHonors = [...previewHonors].sort((a, b) => {
     const categoryA = getProfileHonorCategory(a)
@@ -711,28 +717,28 @@ export function ProfileDialog({ dialogRef, name, onClose, primaryActionLabel, on
     setPreviewDetailPosition(null)
     setSelectedHonor(null)
   }
-  const renderPhotoPanel = (sizeClass: string) => <div className={`${photoPanel} flex ${sizeClass} min-w-0 flex-col justify-center gap-y-0.5 p-4 text-[#f8dea6]`}>
+  const renderPhotoPanel = (sizeClass: string, spreadRows = false) => <div className={`${photoPanel} flex ${sizeClass} min-w-0 flex-col justify-center text-[#f8dea6] ${spreadRows ? 'gap-y-1.5 px-4 py-2' : 'gap-y-0.5 p-4'}`}>
     <div className="flex min-w-0 items-center gap-2">
-      <h3 className="min-w-0 flex-1 truncate text-3xl font-bold" title={name}>{name}</h3>
+      <h3 className="min-w-0 flex-1 truncate font-cormorant text-[34px] leading-tight font-semibold">{name}</h3>
     </div>
     <div className="grid grid-cols-2 gap-3" aria-label="Chỉ số minh họa">
-      {[{ alt: 'Quân Tướng đỏ', image: redGeneral }, { alt: 'Quân cờ úp', image: blackGeneral }].map(rank => <div key={rank.alt} className="flex flex-wrap items-center justify-start gap-2 rounded-lg border-2 border-[#bc893d] bg-[linear-gradient(120deg,#c4985d,#f3dba7,#b78343)] px-3 py-[2px] text-left shadow-[inset_0_0_0_1px_#fff2b9,0_2px_2px_#6b3a1244]">
-        <img src={rank.image} alt={rank.alt} className="size-9 shrink-0 object-contain" /><span className="text-2xl font-bold text-[#ba191b]">1234</span>
+      {[{ alt: 'Quân Tướng đỏ', image: redGeneral }, { alt: 'Quân cờ úp', image: concealedPiece }].map(rank => <div key={rank.alt} className="flex flex-wrap items-center justify-start gap-2 rounded-lg border-2 border-[#bc893d] bg-[linear-gradient(120deg,#c4985d,#f3dba7,#b78343)] px-3 py-0 text-left shadow-[inset_0_0_0_1px_#fff2b9,0_2px_2px_#6b3a1244]">
+        <span className="grid size-9 shrink-0 place-items-center"><img src={rank.image} alt={rank.alt} className={`${rank.alt === 'Quân cờ úp' ? 'size-8' : 'size-9'} object-contain`} /></span><span className="font-[Times_New_Roman,serif] text-2xl font-bold text-[#ba191b] lining-nums tabular-nums">1234</span>
       </div>)}
     </div>
     <div className="relative top-[3px] flex w-full items-center gap-5 text-[19px] leading-6 font-medium text-[#f8dea6]">
-      <span className="whitespace-nowrap">Bạn bè: <b className="ml-1 text-[22px] font-semibold">10</b></span>
-      <span className="whitespace-nowrap">Theo dõi: <b className="ml-1 text-[22px] font-semibold">120</b></span>
-      <span className="flex whitespace-nowrap items-center gap-1"><svg aria-hidden="true" viewBox="0 0 24 24" className="size-[22px] fill-[#e74343]"><path d="M12 21.1 10.55 19.8C5.4 15.15 2 12.05 2 8.25 2 5.15 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09A6.01 6.01 0 0 1 16.5 3C19.58 3 22 5.15 22 8.25c0 3.8-3.4 6.9-8.55 11.56L12 21.1Z" /></svg>Lượt thích: <b className="text-[22px] font-semibold">2.4K</b></span>
+      <span className="whitespace-nowrap">Bạn bè: <b className="ml-1 font-[Times_New_Roman,serif] text-[22px] font-semibold lining-nums tabular-nums">10</b></span>
+      <span className="whitespace-nowrap">Theo dõi: <b className="ml-1 font-[Times_New_Roman,serif] text-[22px] font-semibold lining-nums tabular-nums">120</b></span>
+      <span className="flex whitespace-nowrap items-center gap-1"><svg aria-hidden="true" viewBox="0 0 24 24" className="size-[22px] fill-[#e74343]"><path d="M12 21.1 10.55 19.8C5.4 15.15 2 12.05 2 8.25 2 5.15 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09A6.01 6.01 0 0 1 16.5 3C19.58 3 22 5.15 22 8.25c0 3.8-3.4 6.9-8.55 11.56L12 21.1Z" /></svg>Lượt thích: <b className="font-[Times_New_Roman,serif] text-[22px] font-semibold lining-nums tabular-nums">2.4K</b></span>
     </div>
     <p className="flex w-full items-center gap-2 text-[19px] leading-6 font-medium text-[#f8dea6]"><svg aria-hidden="true" viewBox="0 0 24 24" className="size-[22px] shrink-0 fill-[#f1bd58]"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 10.25A3.25 3.25 0 1 1 12 5.75a3.25 3.25 0 0 1 0 6.5Z" /></svg>
       <span className="min-w-0 flex-1 truncate">{address}</span>
       {editable && !avatarCustomizationOpen && editControl()}
     </p>
     {editable && !avatarCustomizationOpen && <div className="flex w-full items-center justify-end gap-1.5 text-[15px] leading-5 text-[#aaa39a]">
-      <span>ID:</span><span className="font-mono tracking-wide">{profileId}</span>
+      <span>ID:</span><span className="font-[Times_New_Roman,serif] tracking-wide lining-nums tabular-nums">{profileId}</span>
       <span className="relative grid size-5 shrink-0 place-items-center">
-        <button type="button" aria-label={profileIdCopied ? 'Đã sao chép ID' : 'Sao chép ID'} title={profileIdCopied ? 'Đã sao chép' : 'Sao chép ID'} onClick={() => { void copyProfileIdAndShowFeedback() }} className={`grid size-5 place-items-center transition-colors ${profileIdCopied ? 'text-[#ffe8ad]' : 'text-[#a4a4a4] hover:text-[#dedede]'}`}><svg aria-hidden="true" viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="12" height="12" rx="2" fill={profileIdCopied ? 'currentColor' : 'none'} /><rect x="8" y="8" width="12" height="12" rx="2" fill={profileIdCopied ? 'currentColor' : 'none'} /></svg></button>
+        <button type="button" aria-label={profileIdCopied ? 'Đã sao chép ID' : 'Sao chép ID'} onClick={() => { void copyProfileIdAndShowFeedback() }} className={`grid size-5 place-items-center transition-colors ${profileIdCopied ? 'text-[#ffe8ad]' : 'text-[#a4a4a4] hover:text-[#dedede]'}`}><svg aria-hidden="true" viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="12" height="12" rx="2" fill={profileIdCopied ? 'currentColor' : 'none'} /><rect x="8" y="8" width="12" height="12" rx="2" fill={profileIdCopied ? 'currentColor' : 'none'} /></svg></button>
         {profileIdCopied && <span role="status" className="pointer-events-none absolute right-0 bottom-full z-50 mb-1 whitespace-nowrap rounded-[3px] border border-[#b9ad91] bg-[#fff9e9] px-2 py-1 font-sans text-xs font-medium text-[#2c2417] shadow-[0_1px_3px_#0006]">Đã sao chép</span>}
       </span>
     </div>}
@@ -756,7 +762,7 @@ export function ProfileDialog({ dialogRef, name, onClose, primaryActionLabel, on
       else onClose()
     }
   }} onCancel={event => { event.preventDefault(); if (previewHonorDetailOpen) closePreviewHonorDetail(); else if (selectedHonor) setSelectedHonor(null); else if (honorsOpen) setHonorsOpen(false); else if (locationPickerOpen) setLocationPickerOpen(false); else if (avatarCustomizationOpen) setAvatarCustomizationOpen(false); else onClose() }} onClose={() => { setSelectedHonor(null); setPreviewHonorDetailOpen(false); setPreviewDetailPosition(null); setAvatarCustomizationOpen(false); setLocationPickerOpen(false); setHonorsOpen(false) }} className="m-auto max-h-none max-w-none overflow-visible border-0 bg-transparent p-0 text-[#43240f] backdrop:bg-black/50" style={(honorsOpen || previewHonorDetailOpen ? { position: 'fixed', inset: 0, margin: 0, width: '100vw', height: '100dvh', display: 'grid', placeItems: 'center', transform: 'none' } : { width: dialogWidth * dialogScale, height: dialogHeight * dialogScale, transform: 'translateY(0px)' }) as CSSProperties}>
-    {honorsOpen ? <div style={{ width: 'min(90vw, 123.06dvh)' }}><HonorsFrame onClose={() => { setSelectedHonor(null); setHonorsOpen(false) }} selectedHonor={selectedHonor} onSelectHonor={setSelectedHonor} onBack={() => setSelectedHonor(null)} selectedProfileHonors={selectedProfileHonorIds} onToggleProfileHonor={toggleProfileHonor} honorDetailsHidden={honorDetailsHidden} onToggleHonorDetailsHidden={toggleHonorDetailsHidden} /></div> : <div className="absolute origin-top-left rounded-[22px] border-[5px] border-[#5e3014] bg-[linear-gradient(135deg,#7a431c,#2d160a)] p-4 shadow-[inset_0_0_0_2px_#e0b466,inset_0_0_0_7px_#875026,inset_0_0_0_9px_#160904]" style={{ left: previewHonorDetailOpen ? `calc(50% - ${dialogWidth * dialogScale / 2}px)` : 0, top: previewHonorDetailOpen ? `calc(50% - ${dialogHeight * dialogScale / 2}px)` : 0, width: dialogWidth, height: dialogHeight, transform: `scale(${dialogScale})` }}>
+    {honorsOpen ? <div style={{ width: 'min(90vw, 123.06dvh)' }}><HonorsFrame onClose={() => { setSelectedHonor(null); setHonorsOpen(false) }} selectedHonor={selectedHonor} onSelectHonor={setSelectedHonor} onBack={() => setSelectedHonor(null)} selectedProfileHonors={selectedProfileHonorIds} onToggleProfileHonor={toggleProfileHonor} honorDetailsHidden={honorDetailsHidden} onToggleHonorDetailsHidden={toggleHonorDetailsHidden} /></div> : <div onDragStart={event => { if (event.target instanceof HTMLImageElement) event.preventDefault() }} className="absolute origin-top-left rounded-[22px] border-[5px] border-[#5e3014] bg-[linear-gradient(135deg,#7a431c,#2d160a)] p-4 shadow-[inset_0_0_0_2px_#e0b466,inset_0_0_0_7px_#875026,inset_0_0_0_9px_#160904] [&_img]:select-none [&_svg]:select-none" style={{ left: previewHonorDetailOpen ? `calc(50% - ${dialogWidth * dialogScale / 2}px)` : 0, top: previewHonorDetailOpen ? `calc(50% - ${dialogHeight * dialogScale / 2}px)` : 0, width: dialogWidth, height: dialogHeight, transform: `scale(${dialogScale})` }}>
     <div className="relative flex h-full flex-col rounded-xl border-[3px] border-[#d39a42] bg-[radial-gradient(ellipse_at_50%_20%,#b87a3344,transparent_43%),linear-gradient(135deg,#6e3718,#2b160b_48%,#5d2e14)] px-4 pb-3 shadow-[0_0_0_2px_#48220e,inset_0_0_18px_#160904]">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[10px]">
         <img src={profileScene} alt="" className={`absolute top-0 object-cover object-[left_top] ${avatarCustomizationOpen ? 'left-0 h-[226px] w-full' : 'left-0 h-[238px] w-full'}`} />
@@ -770,17 +776,16 @@ export function ProfileDialog({ dialogRef, name, onClose, primaryActionLabel, on
         <h2 id="profile-title" className="sr-only">{avatarCustomizationOpen ? 'Tùy chỉnh avatar' : 'Thông tin'}</h2>
       </header>
       <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-3">
-        {avatarCustomizationOpen ? <AvatarCustomization previewPanel={renderPhotoPanel('h-[185px] self-center -translate-y-[30px]')} selectedAvatarIndex={selectedAvatarIndex} onCancel={() => setAvatarCustomizationOpen(false)} onUse={index => { setSelectedAvatarIndex(index); setAvatarCustomizationOpen(false) }} /> : locationPickerOpen ? <VietnamAddressPicker onCancel={() => setLocationPickerOpen(false)} onSave={value => { setAddress(value); setLocationPickerOpen(false) }} /> : <>
+        {avatarCustomizationOpen ? <AvatarCustomization previewPanel={renderPhotoPanel('h-[185px] self-center -translate-y-[30px]')} selectedAvatarIndex={selectedAvatarIndex} selectedFrameIndex={selectedFrameIndex} onCancel={() => setAvatarCustomizationOpen(false)} onUse={(index, frameIndex) => { setSelectedAvatarIndex(index); setSelectedFrameIndex(frameIndex) }} /> : locationPickerOpen ? <VietnamAddressPicker onCancel={() => setLocationPickerOpen(false)} onSave={value => { setAddress(value); setLocationPickerOpen(false) }} /> : <>
         <section aria-label="Hồ sơ người chơi" className="relative isolate grid h-[190px] shrink-0 grid-cols-[145px_1fr] gap-3 rounded-[10px]">
           <div className="relative z-10 flex min-h-0 flex-col items-center gap-1 pt-1 text-center">
-            <button type="button" disabled={!editable} onClick={() => setAvatarCustomizationOpen(true)} aria-label={editable ? 'Tùy chỉnh avatar' : 'Avatar kỳ sĩ'} className={`${buttonInteraction} relative size-[128px] shrink-0 rounded-full border-[5px] border-[#e7a944] bg-[#163638] p-1 shadow-[inset_0_0_0_3px_#f9d98c,0_0_0_2px_#77451d,0_4px_8px_#16080499] disabled:cursor-default disabled:opacity-100`}>
-              <span className="relative grid size-full place-items-center"><AvatarPortrait avatarIndex={selectedAvatarIndex} className="size-full rounded-full" />
-                <AvatarFrameOverlay src={defaultAvatarFrame} alt="Khung avatar mặc định" />
+            <button type="button" disabled={!editable} onClick={() => setAvatarCustomizationOpen(true)} aria-label={editable ? 'Tùy chỉnh avatar' : 'Avatar kỳ sĩ'} className={`${buttonInteraction} relative size-[128px] shrink-0 rounded-full border-0 bg-transparent p-0 shadow-none disabled:cursor-default disabled:opacity-100`}>
+              <span className="relative grid size-full place-items-center"><AvatarPortrait avatarIndex={selectedAvatarIndex} className="size-full rounded-full" /><AvatarFrameOverlay src={getAvatarFrame(selectedFrameIndex).image} alt={getAvatarFrame(selectedFrameIndex).label} /><AvatarRankBadge />
+
               </span>
-              <img src={noviceRank} alt="Danh hiệu Tân Binh" className="pointer-events-none absolute z-20 max-w-none -translate-x-1/2 drop-shadow-[0_3px_3px_#281307aa]" style={AVATA_TITLE_BADGE_STYLE} />
             </button>
           </div>
-          {renderPhotoPanel(editable ? 'h-full self-center -translate-y-[21px]' : 'h-[90%] self-center -translate-y-[21px]')}
+          {renderPhotoPanel(editable ? 'h-full self-center -translate-y-[21px]' : 'h-[90%] self-center -translate-y-[21px]', true)}
         </section>
         <section aria-label="Thống kê ván đấu minh họa" className="grid h-[132px] shrink-0 grid-cols-2 gap-5">
           {[{ name: 'Cờ Tướng', image: xiangqiMode }, { name: 'Cờ Úp', image: hiddenMode }].map(mode => <div key={mode.name} className="rounded-[12px] border-2 border-[#b8782d] bg-[linear-gradient(135deg,#f8d99e,#efbd6b)] px-3 py-2 text-[#54270d] shadow-[inset_0_0_0_2px_#fff0bd,inset_0_0_0_4px_#ce9648,0_3px_4px_#2b120755]">
@@ -791,7 +796,7 @@ export function ProfileDialog({ dialogRef, name, onClose, primaryActionLabel, on
           </div>)}
         </section>
         <section aria-labelledby="profile-honors" className={`${panel} min-h-[240px] flex-1 p-4`}>
-          <h3 id="profile-honors" className="mb-4 flex items-center gap-3 font-georgia text-2xl font-bold italic text-[#ffe1a0] [text-shadow:0_1px_0_#321604]"><span aria-hidden="true" className="text-[#e8ae50]">⚑</span>Danh hiệu<span aria-hidden="true" className="h-px flex-1 bg-gradient-to-r from-[#d99a42] to-transparent" /><span aria-label={`Sở hữu: ${orderedPreviewHonors.length}`} className="inline-flex shrink-0 items-baseline gap-1 not-italic font-medium"><span>Sở hữu:</span><span>{orderedPreviewHonors.length}</span></span>{editable && <button type="button" aria-label="Mở danh hiệu" onClick={() => { setSelectedHonor(null); setHonorsOpen(true) }} className={`${buttonInteraction} grid size-6 shrink-0 place-items-center rounded-md p-0 text-[#f1bd58] hover:bg-[#f3dba71a] hover:text-[#ffe8ad]`}><svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" /></svg></button>}</h3>
+          <h3 id="profile-honors" className="mb-4 flex items-center gap-3 font-georgia text-2xl font-bold italic text-[#ffe1a0] [text-shadow:0_1px_0_#321604]"><span aria-hidden="true" className="text-[#e8ae50]">⚑</span>Danh hiệu<span aria-hidden="true" className="h-px flex-1 bg-gradient-to-r from-[#d99a42] to-transparent" /><span aria-label={`Sở hữu: ${ownedHonorCount}`} className="inline-flex shrink-0 items-baseline gap-1 text-[22px] not-italic font-medium"><span>Sở hữu:</span><span className="lining-nums tabular-nums">{ownedHonorCount}</span></span>{editable && <button type="button" aria-label="Mở danh hiệu" onClick={() => { setSelectedHonor(null); setHonorsOpen(true) }} className={`${buttonInteraction} grid size-6 shrink-0 place-items-center rounded-md p-0 text-[#f1bd58] hover:bg-[#f3dba71a] hover:text-[#ffe8ad]`}><svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" /></svg></button>}</h3>
           <div className="relative h-[220px] overflow-hidden" aria-label="Danh hiệu đã chọn để hiển thị" onMouseEnter={() => setPreviewHonorCarouselPaused(true)} onMouseLeave={() => setPreviewHonorCarouselPaused(false)}>
             {previewHonorPages.length > 0 ? <div className="flex h-full w-full transition-transform duration-700 ease-in-out motion-reduce:transition-none" style={{ transform: `translateX(-${previewHonorPage * 100}%)` }}>
               {previewHonorPages.map((page, pageIndex) => <div key={pageIndex} className="grid h-full w-full shrink-0 grid-cols-3 grid-rows-3 content-start gap-x-3 gap-y-2">

@@ -1,5 +1,6 @@
 // Complete class names let Tailwind detect shared styles at build time.
 export const buttonInteraction = 'cursor-pointer disabled:cursor-default disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe2a1]'
+export const selectedImageTabGlow = '[filter:brightness(1.1)_saturate(1.3)_drop-shadow(0_0_2px_#ffcf38)_drop-shadow(0_0_7px_#ffad16)]'
 export const selectionPalette = {
   selected: {
     border: 'border-[#ffe08b]',

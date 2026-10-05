@@ -605,3 +605,223 @@
 2026-10-01: Raised the eye/count badges on the three level-5 bestowed-honor cards to align with the other awarded tiers.
 2026-10-01: Lowered the main honors visibility switch 10px further and raised the detail-panel switch 5px.
 2026-10-01: Increased honor catalog row spacing from 2% to 3% across categories to match the Vinh Quang Kỳ Đài row rhythm.
+
+2026-10-03: Đã gỡ khung danh hiệu bên dưới avatar ở Home, hồ sơ và phần xem trước tùy chỉnh; vẫn giữ khung tròn mặc định. Build/typecheck PASS, dist cập nhật.
+
+2026-10-03: Gỡ viền vàng và shadow bên trong avatar hồ sơ gây chồng vòng với khung mặc định; chỉ còn asset khung avatar. Build/typecheck PASS, dist cập nhật.
+
+2026-10-03: Bỏ lớp khung phủ ảnh trong vùng xem trước tùy chỉnh avatar để chỉ còn chân dung; ô chọn khung vẫn giữ nguyên lựa chọn mặc định. Build/typecheck PASS, dist cập nhật.
+
+2026-10-03: Gỡ asset khung vàng mặc định khỏi avatar hồ sơ, bàn cờ, chat và danh sách người xem; bỏ ô khung mặc định khỏi tab Chọn khung, các ô khung mẫu còn lại giữ trạng thái khóa. Build/typecheck PASS, dist cập nhật.
+
+2026-10-03: Khôi phục 30dfa56b… ở ô đầu Chọn khung và làm mặc định. Căn tâm và tỷ lệ theo vùng rỗng của PNG để khung mới đè kín viền gốc trong ảnh; loại bỏ viền CSS phụ ở Home/bàn cờ/chat/danh sách người xem. Build/typecheck PASS, dist cập nhật; browser QA chưa thực hiện được vì tab IAB không kết nối.
+
+2026-10-03: Hiện lại danh hiệu Tân Binh dưới avatar trong hồ sơ và xem trước tùy chỉnh, dùng asset cùng Home, tỷ lệ và vị trí đã chốt; badge nằm trên lớp khung tròn. Build/typecheck PASS, dist cập nhật.
+
+2026-10-03: Đưa avatar đã chọn vào session store; nhấn Sử dụng cập nhật đồng thời avatar hồ sơ và Home, giữ lựa chọn khi đổi màn hình. Đặt danh hiệu Home ở z-20 trên avatar/khung z-10, đồng bộ thứ tự lớp với hồ sơ và xem trước. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Chốt mẫu Home 106px làm chuẩn tỷ lệ avatar/danh hiệu. Gộp tỷ lệ, độ dịch và scale hiện tại vào playerIdentityLayout; Home, hồ sơ, xem trước tùy chỉnh và thẻ người chơi bàn cờ dùng chung vị trí/kích thước danh hiệu, luôn nằm trên khung avatar. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+2026-10-04: Thay icon Tướng đen ở chỉ số hồ sơ/tùy chỉnh bằng ảnh quân cờ úp có sẵn history-hidden-user.png, đồng bộ ảnh với Home. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Gỡ 14 thuộc tính title gây tooltip mặc định trên Home, hồ sơ/danh hiệu, danh sách phòng và lịch sử; gỡ tooltip năng lượng khi hover/focus, giữ mô tả aria và phản hồi thao tác. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Đổi font các số mã phòng sang Times New Roman như số điểm trong ảnh tham chiếu thứ hai, giữ nguyên cỡ/chữ đậm và khoảng cách. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Căn kích thước SVG vòng báo lượt xanh trên avatar theo viền ngoài asset khung vàng ở desktop, compact và short-desktop để hai mép trùng nhau.
+Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Chuẩn kích thước nhìn thấy của icon cờ úp theo quân đỏ: cờ úp 32px vì phủ kín canvas, quân đỏ vẫn 36px do asset có viền trong suốt; giữ ô icon 36px để căn hàng không đổi. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Thu ngang bảng mã phòng 190→174px, tăng chiều cao 80→88px và giữ tâm ngang; giảm khoảng ô chữ số 1→0.85em, bỏ letter-spacing để mã phòng bớt dãn. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Đưa lớp phủ xanh và vòng báo lượt vào cùng neo kích thước avatar; lớp xanh nằm dưới khung, vòng xanh nằm trong mép vàng và bỏ quầng sáng ngoài. Làm khung vàng đậm hơn (brightness 0.72) khi báo lượt, danh hiệu vẫn ở trên. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+2026-10-04: Tăng số mã phòng từ 16px lên 18px theo yêu cầu, giữ vị trí và khung hiện tại. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Thu khoảng ô số mã phòng từ 0.85em xuống 0.65em, giữ cả dãy căn giữa khung và cỡ số 18px. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Thêm ba asset khung đỏ, xanh lá, xanh dương sau khung vàng mặc định trong Chọn khung; thumbnail chỉ chứa viền. Chọn để xem trước, Sử dụng lưu khung vào session và cập nhật Home/hồ sơ; Hủy giữ lựa chọn cũ. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+2026-10-04: Căn tab tùy chỉnh cùng chiều cao, icon/chữ trong ô 28px căn giữa; bỏ scale riêng của icon Skin. Đổi nhãn Chọn khung thành Chọn viền. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Chữ Mã phòng có sẵn trong ảnh khung; tăng bảng 174x88 lên 184x94px, giữ tâm ngang. Nới ô số từ 0.65em lên 0.75em cho dãy số bớt co sát. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Cắt phần ngoài asset viền avatar theo vòng tròn ngoài của khung để bỏ quầng/chi tiết dư vượt mép. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+2026-10-04: Thu icon Chọn avatar 28→26px và nâng 1px; tăng icon Skin 28→32px, giữ tâm các tab thẳng hàng. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Nới bảng mã phòng ngang 184→196px, giữ chiều cao 94px và tâm ngang; thu ô số 0.75→0.7em. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Siết clip tròn ảnh khung avatar 44.8%→42.5% để cắt thêm quầng sáng ngoài viền theo ảnh mới. Build/typecheck PASS; chưa browser QA.
+
+2026-10-04: Thu icon Chọn avatar 26→24px và nâng 2px; tăng icon Skin 32→36px. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Khôi phục clip khung avatar 44.8% vì mức 42.5% cắt vào viền khiến khung mỏng; giữ tỷ lệ khung ban đầu. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Nâng icon Chọn avatar thêm 2px (tổng -4px), hạ icon Skin 2px. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Cho avatar bên phải dùng cùng hình/màu như bên trái bằng cách bỏ hue-rotate riêng phe đen; viền và danh hiệu hai bên dùng chung PlayerCard. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Nút Sử dụng trong tùy chỉnh avatar cập nhật lựa chọn nhưng giữ nguyên trang tùy chỉnh mở; đổi nút sang tông vàng nâu tối hơn. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Hoàn tác riêng màu tối của nút Sử dụng, khôi phục gradient vàng sáng ban đầu; thao tác vẫn áp dụng và ở lại trang tùy chỉnh. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Sau khi bấm Sử dụng, nút giảm sáng còn 65%, aria-disabled và bỏ qua lần bấm lại, giữ cursor-pointer. Chọn avatar/viền khác làm nút sáng và áp dụng được lại; vẫn ở trang tùy chỉnh. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Tick xanh ở avatar/viền bám lựa chọn đang sử dụng (selected props), không bám draft xem thử; tick chuyển khi Sử dụng, khung sáng vẫn đánh dấu mục xem trước. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Khi mở lại tab Chọn avatar/Chọn viền, khôi phục draft của tab theo mục đang sử dụng để khung vàng mặc định trùng với tick xanh. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Thay danh hiệu bạn Facebook theo bộ danh hiệu đang dùng ở danh sách thường: AnhTuan86 dùng Tân Binh, HoaPhongLan dùng Kỳ Sĩ; ảnh/tên/sao đồng bộ. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Đồng bộ Thêm bạn/Lời mời với cột danh hiệu 376px và cột nút 244px của Danh sách, kéo danh hiệu về trái. Toàn bộ gợi ý/lời mời dùng ảnh bộ danh hiệu đã gửi, đổi Đại Sư→Đại Kỳ Sư, Danh Thủ→Kỳ Tướng, Trạng Nguyên→Kỳ Thánh; giữ Kỳ Vương. Bỏ biểu tượng quân cờ cũ; cặp nút nhận/từ chối rộng 160px và căn phải không đè danh hiệu. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+2026-10-04: Đã gửi lời mời lấy cùng state với nút Kết bạn tại Thêm bạn; bỏ dữ liệu gửi mẫu. Gửi thêm người vào danh sách và cập nhật bộ đếm, chống trùng; hủy gỡ người và mở lại nút Kết bạn. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Dịch icon Facebook ở trạng thái bạn bè sang trái 8px, giữ nguyên chấm online và chữ. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Chuẩn hóa các khung danh sách bằng friendListClass chung; Lời mời đã nhận/đã gửi dùng ul cùng viền và khoảng cách như Danh sách/Thêm bạn, tiêu đề nằm ngoài vùng cuộn. Khóa chiều cao hàng 85px; giữ avatar chung 72px và khoảng cách ngang tới viền 38px. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+2026-10-04: Thông báo gửi lời mời kết bạn dùng nền xanh lá, chữ trắng và tick SVG xanh lá đậm cuối dòng. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Bỏ các toast khi tìm tên/ID ở Thêm bạn (nhập trống, tìm thấy/không thấy, đã tìm); giữ lọc tìm kiếm. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Bỏ toàn bộ toast/feedback trong Bạn bè, dọn state/timer và lời gọi thông báo ở gửi/chấp nhận/từ chối/hủy lời mời và nhắn tin. Các cập nhật lời mời/nút giữ nguyên. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Khi gửi lời mời kết bạn chỉ hiện chữ Đã gửi trong khung xanh lá/chữ trắng ở giữa viewport, tự ẩn sau 3 giây; không tick hoặc nội dung khác. Thông báo nằm ngoài wrapper transform để căn đúng màn hình. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Thêm hover brightness 110%/150ms cho nút vàng trong Bạn bè: Mời chơi, Nhắn tin, Kết bạn, Chấp nhận, Tìm và bộ lọc. Chỉ chạy khi nút enabled, giữ trạng thái nút đã gửi/đã mời. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Thu nút Kết bạn ở trạng thái Đã gửi còn 160×54px, chừa lề phải 8px và thu khoảng đệm để khung nằm gọn trong hàng. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Thông báo Đã gửi giữa màn hình bo góc 5px và chuyển sang Cormorant Garamond đậm, tracking nhẹ. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Rút thời gian hiển thị thông báo Đã gửi ở giữa màn hình từ 3 giây xuống 1,3 giây. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Ưu tiên bạn bè đang online/đang chơi lên đầu danh sách; giữ nguyên thứ tự giữa nhóm cùng trạng thái và không đổi tab Facebook. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Khóa translate/scale hover và active cho nút Bạn bè; hover chỉ đổi độ sáng/màu, giữ nguyên vị trí và kích thước. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Sửa hover nút vàng Bạn bè bằng lớp trắng alpha 10% bên trong nút, bỏ filter/transition/translate/scale phát sinh khi hover gây đổi lớp vẽ chữ trên dialog thu phóng. Kiểm tra trực tiếp trình duyệt hai nút đầu Danh sách và Thêm bạn: hover lần lượt giữ nguyên tọa độ/kích thước chữ, computed filter/transform/translate/scale đều none. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Thêm lớp màu hover alpha 10% dùng chung cho nút Từ chối và Hủy lời mời trong Bạn bè, giữ nguyên vị trí chữ và không dùng filter/transform. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Thông báo Đã gửi mở rộng min-width 250px, màu xanh sáng, bo 3px; vào trong 500ms, giữ 300ms, rồi bay lên 80px và mờ 500ms. Toast cũ chuyển thẳng sang pha bay khi gửi toast mới. Build/typecheck PASS.
+
+2026-10-04: Nút Kết bạn giữ cố định 173×60px trước và sau khi gửi, tiếp tục dùng cùng khung; trạng thái Đã gửi chỉ tối màu, không giảm opacity/kích thước. Build/typecheck PASS.
+
+2026-10-04: Thẻ Đã gửi đặt ngoài wrapper thu phóng và dùng wrapper cố định giữa viewport; bỏ hoạt ảnh vào, hiện yên 300ms rồi bay lên 80px/mờ 120ms. Toast mới làm toast cũ bay ngay; ID tăng ngoài state updater. Build/typecheck PASS.
+
+2026-10-04: Tăng chữ Đã gửi từ 20px lên 24px, thu min-width khung xanh 250px xuống 230px và giảm padding để khung thấp gọn hơn. Build/typecheck PASS.
+
+2026-10-04: Tăng độ đậm nền thông báo Đã gửi từ green-500 lên green-600. Build/typecheck PASS.
+
+2026-10-04: Ba tab Bạn bè dùng selectedImageTabGlow chung với Xếp hạng, giữ cùng ảnh nền khi chuyển tab để chữ/icon không nhích. Transition filter 200ms. Build/typecheck PASS, dist có hiệu ứng.
+
+2026-10-04: Kéo dài hiệu ứng thẻ Đã gửi thêm 0,2 giây: thời gian đứng yên 300→500ms và bay mờ 120→320ms. Build/typecheck PASS, dist đã cập nhật.
+
+2026-10-04: Thu chiều ngang tối thiểu thẻ Đã gửi từ 230px xuống 190px. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Khôi phục đủ 7 ảnh danh hiệu gốc vào FriendRank dùng chung cho Danh sách, Facebook, Thêm bạn và cả hai nhóm Lời mời. Đồng bộ tên và sao theo cấp; thay huy hiệu quân cờ tròn, cột danh hiệu 320px chứa ảnh 180×72px. Build/typecheck PASS; đủ 7 asset trong dist.
+
+2026-10-04: Sửa chữ Đã gửi giật kích thước ở lần đầu: tải Cormorant Garamond theo đúng weight/size và chuỗi tiếng Việt khi mount, đợi font sẵn sàng trước khi hiện toast và bắt đầu thời gian hiển thị. Hủy cập nhật sau unmount. Build/typecheck PASS; dist có fonts.load. Chưa browser QA.
+
+2026-10-04: Khôi phục hover đổi độ sáng 150ms cho nút Bạn bè (vàng, phụ, chat, lọc và tab), không translate/scale. Mời chơi/Nhắn tin dùng phản hồi riêng thay vì updateFeedback vốn bỏ qua các hành động này; panel nói rõ hai tính năng chưa được hỗ trợ, không giả lập gửi thành công. Build/typecheck PASS; dist xác nhận có thay đổi. Chưa browser QA.
+
+2026-10-04: Tách nền/cắt sát viền asset tiêu đề Bạn bè bằng imagegen và crop alpha sau xử lý; dùng friend-section-title-frame-tight.png (2170×112), alpha góc 0 và tâm 255. Áp dụng chung Gợi ý/Lời mời nhận/Lời mời gửi, bỏ dải kem và phần thừa ngoài viền. Build/typecheck PASS, dist chứa asset mới; đã xem ảnh, chưa browser QA.
+
+2026-10-04: Chuẩn hóa FriendRow cao cố định 85px, avatar 76px dùng chung, padding hàng 16px ngang/0 dọc và lề avatar 22px. Cột danh hiệu 320px, thao tác 330px cố định giữa mọi tab. Mọi danh sách dùng friendListClass với scrollbar-gutter stable, bỏ grid chia đều 5 hàng; lời mời dùng ul và tiêu đề nằm ngoài vùng cuộn. Cặp nút nhận/từ chối 160×60px. Build/typecheck PASS; dist xác nhận bố cục mới, chưa browser QA.
+
+2026-10-04: Đổi giá trị vàng thử nghiệm trong sessionStore từ 1000 thành 100000 theo yêu cầu xem ô vàng Home. Build/typecheck PASS; dist có giá trị mới.
+
+2026-10-04: Nối nút Kết bạn với sentInvites; nút Đã gửi và danh sách/bộ đếm dùng cùng nguồn state, chống trùng và hủy mở lại nút kết bạn. Thêm badge đỏ tròn 28px góc phải tab Lời mời, đếm received và giảm khi chấp nhận/từ chối, ẩn khi bằng 0. Build/typecheck PASS; dist có badge, chưa browser QA.
+
+2026-10-04: Thu cột danh hiệu 320→270px để nền nâu ngắn hơn 50px từ mép trái và danh hiệu dịch phải 50px, tăng chỗ cho tên/trạng thái. PresenceLabel flex-nowrap/whitespace-nowrap kể cả Facebook online. Giữ ảnh danh hiệu 180×72 và hàng85/avatar76; cặp nút lời mời145×60/font18 để chừa khoảng cho danh hiệu không đè nút. Build/typecheck PASS; dist cập nhật, chưa browser QA.
+
+2026-10-04: Chuẩn hóa Presence Friends còn online/offline; Facebook là cờ phân loại riêng. Người Facebook hiện chấm xanh/xám + Đang online/Offline trên hàng đầu, icon f ở hàng dưới; tab Facebook vẫn lọc theo cờ riêng. Đổi trạng thái mẫu playing thành online. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+2026-10-04: Tạo docs/FRIENDS-UI-RULES.md ghi lại quy tắc bố cục, avatar, trạng thái, Facebook, danh hiệu, hover, lời mời, toast và checklist QA; thêm yêu cầu bắt buộc đọc tài liệu vào AGENTS.md trước khi sửa Bạn bè.
+
+2026-10-04: Chốt lại phân loại danh sách Bạn bè theo yêu cầu: Tất cả chỉ bạn trong game; Đang online chỉ bạn trong game online; Bạn Facebook chỉ contact Facebook có chơi game. Cập nhật bộ lọc và FRIENDS-UI-RULES.md.
+
+2026-10-04: Chỉnh PresenceLabel: chấm xanh/xám, chữ online/offline và icon Facebook nằm cùng hàng ngang; cập nhật quy tắc Bạn bè. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Làm rõ quy tắc Bạn Facebook: contact đã kết bạn Facebook, chơi game và đăng nhập/liên kết Facebook; bộ lọc độc lập online/offline. Đặt fixture HoaPhongLan offline để thể hiện người Facebook offline vẫn ở tab này. Build/typecheck PASS.
+
+2026-10-04: Thêm sortOnlineFirst áp dụng cho danh sách bạn game/Facebook, gợi ý, lời mời nhận và lời mời đã gửi; sắp xếp ổn định trong cùng trạng thái sau khi lọc/tìm kiếm. Lưu quy tắc ưu tiên online trong FRIENDS-UI-RULES.md. Build/typecheck PASS.
+
+2026-10-04: Thu icon Facebook 25→21px và khoảng cách tới chữ trạng thái 12→6px; lưu kích thước vào FRIENDS-UI-RULES.md. Build/typecheck PASS, dist cập nhật.
+
+2026-10-04: Lấy Danh sách làm chuẩn bố cục: Danh sách/Thêm bạn dùng chung friendDirectoryClass và các mốc54+14+48+14=130px trước vùng cuộn, giữ cùng kích thước/vị trí khung. Thêm bạn đặt Gợi ý trên tìm kiếm để trùng mốc. Lời mời chỉ đồng bộ FriendRow, vị trí hai nhóm giữ riêng. Lưu quy tắc mới. Build/typecheck PASS, dist có bố cục chung; chưa browser QA.
+
+2026-10-04: Gom chấm trạng thái/chữ/icon Facebook vào cùng một inline-flex row-nowrap, không dùng khối p riêng; bổ sung quy tắc không được xuống dòng. Build/typecheck PASS. Browser QA tại localhost5173: cả online/offline đều có cùng tâm dọc giữa ba phần tử (sai số <0,001px); lưu ảnh xác nhận facebook-status-inline.png.
+
+2026-10-04: Thu nền nâu Danh sách/Thêm bạn thêm30px từ trái bằng cột danh hiệu270→240px, danh hiệu dịch phải30px. Lời mời giữ vị trí cũ để không đè cặp nút; mọi hàng/avatar/padding vẫn dùng chung. Cập nhật quy tắc. Build/typecheck PASS.
+
+2026-10-04: Cố định FriendIdentity cao76px, cột tên/trạng thái grid53px với hàng24/21px cách8px; loại bỏ margin/linebox biến thiên của trạng thái inline-flex. Tên/trạng thái luôn cùng tọa độ trong hàng cho mọi tab kể cả Facebook. Lưu quy tắc. Build/typecheck PASS, dist xác nhận; chưa browser QA.
+
+2026-10-04: Sửa last:border-b-0 thành last:border-b-transparent để hàng cuối không tăng vùng nội dung và lệch tâm ~0,4px. Lưu quy tắc giữ độ dày viền hàng. Build/typecheck PASS; browser đo Danh sách và Thêm bạn: mọi hàng có cùng độ lệch tên13,26px/trạng thái40,46px sau scale, sai số<0,001px. Ảnh friends-fixed-row-offsets.png.
+2026-10-04: Triển khai rankProgression dùng chung theo Elo (bậc 1–4: 3 sao; 5–6: 4; 7: 5), các ngưỡng lên bậc 1300/1600/1900/2200/2600/3000 và giới hạn 3200. Bậc 7 tăng 1–5 sao tại 3000/3050/3100/3150/3200. Mọi hàng Bạn bè tính ảnh/tên/sao từ Elo thay sao cố định, giữ hình học hàng. Lưu docs/RANK-SYSTEM.md và cập nhật FRIENDS-UI-RULES.md. Build/typecheck PASS, xác nhận logic trong dist; chưa browser QA. Chưa triển khai cộng/trừ Elo sau trận hoặc persistence.
+2026-10-04: Thêm hàng sao ảnh ab9a1b7f dưới danh hiệu Home; trim alpha ảnh thành player/rank-star.png, dùng RankStars chia đều/căn giữa theo tâm và chiều rộng khung danh hiệu, sao chưa đạt grayscale/opacity. Giữ bản xem trước Tân Binh 1/3 sao. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Browser QA Home: 3 ô sao tải thành công, cùng chiều cao 20.8px sau scale, khoảng cách đều; tâm hàng sao lệch 0px so với tâm danh hiệu, cách đáy 2.84px sau scale. Ảnh kiểm chứng lưu ở outputs/home-rank-stars.png của chat.
+2026-10-04: Chuẩn hóa mốc bắt đầu 7 bậc thành 1000/1300/1600/1900/2300/2700/3200; mọi bậc mỗi 100 Elo thêm 1 sao. Số ô sao theo độ dài bậc là 3/3/3/4/4/5/5. Cập nhật tài liệu rank và Bạn bè; build/typecheck PASS, xác nhận mốc mới trong dist. Đang chờ người dùng chốt giới hạn 3600 để bậc 7 tăng tới 5 sao hoặc ngoại lệ đủ 5 sao tại 3200; hiện giữ giới hạn cũ 3200.
+2026-10-04: Theo phản hồi, tăng ô sao Home từ 22px lên 28px và nâng hàng sao để chồng lên đáy khung danh hiệu 2px; vẫn chia đều/căn tâm. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Tăng tiếp kích thước mỗi ô sao Home từ 28px lên 36px; giữ vị trí, chia đều và căn giữa. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Nâng hàng sao Home thêm 6px so với vị trí trước, chồng lên đáy danh hiệu 8px; giữ size 36px và căn giữa. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Thu khoảng cách sao Home: justify-evenly thành căn giữa với gap 4px; nâng hàng lên thêm 6px (chồng vào khung 14px), giữ size 36px. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Nâng cụm danh hiệu Home và hàng sao cùng 4px, giữ nguyên khoảng cách tương đối; không đổi vị trí danh hiệu trong các màn hồ sơ khác. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Hạ cụm danh hiệu Home và hàng sao xuống 3px so với lần trước; giữ nguyên khoảng cách tương đối. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Trên Home thay khung bậc Tân Binh bằng khung Danh Hiệu Phong Tặng cấp 1 màu tím-vàng, thêm nhãn Huyền Thoại ở giữa; giữ cụm sao phía dưới. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Dịch riêng chữ Á Quân của Vinh Quang Kỳ Đài cấp 1 và 3 xuống 1px; các chữ/cấp khác giữ vị trí. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Căn riêng Hạng Ba Vinh Quang Kỳ Đài: cấp 2 lên 1px, cấp 3 xuống 1px; giữ các chỉnh lệch Á Quân trước đó. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Hạ thêm chữ Quán Quân của Vinh Quang Kỳ Đài cấp 3 xuống 1px; giữ các căn chỉnh Á Quân và Hạng Ba đã có. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Thay khung Huyền Thoại dưới avatar Home bằng danh hiệu thứ 7 Kỳ Thánh (asset 0473928b), bỏ chữ Huyền Thoại; bản xem trước bậc 7 dùng Elo 3200 và sao từ getRankProgress. Giữ kích thước/vị trí khung đã chốt. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Giới hạn vùng sao Home theo chiều rộng danh hiệu, cao 36px; tự tính size min(36px, (width - gaps)/số ô sao) để 4/5 sao thu nhỏ, không tràn. Giữ căn giữa/gap 4px, cập nhật quy tắc. Build/typecheck PASS, dist cập nhật.
+2026-10-04: Đổi danh hiệu Home từ Kỳ Thánh về danh hiệu đầu tiên Tân Binh theo ảnh; cập nhật xem trước Elo1000 và 1/3 sao, giữ vị trí/vùng sao đã chốt. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Cập nhật hệ sao theo chốt mới: bảy bậc đều 3 sao; mỗi 100 Elo tăng sao; ngưỡng bậc 1000/1300/1600/1900/2200/2500/2800; sao khóa mức tại 2800 nhưng Elo vẫn giữ/tăng không giới hạn. Đồng bộ Friends và docs/RANK-SYSTEM.md. Build/typecheck PASS, dist cập nhật.
+2026-10-04: Đổi danh hiệu Home về bậc cuối Kỳ Thánh, xem trước Elo2800 theo hệ sao mới; build/typecheck PASS, dist cập nhật.
+2026-10-04: Đổi danh hiệu Home từ Kỳ Thánh về bậc đầu Tân Binh (Elo1000), giữ hệ sao chung; build/typecheck PASS, dist cập nhật.
+2026-10-04: Chuẩn hóa sao dưới avatar theo danh hiệu 1 Tân Binh: dùng rankArtwork cho đủ 7 asset, bù mép alpha dưới mỗi ảnh để khoảng cách tới sao đồng nhất; giữ sao36px/gap4px/vùng khung. Đổi Home xem trước danh hiệu 6 Đại Kỳ Sư Elo2500. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+2026-10-04: Hạ hàng sao dưới avatar thêm 3px, áp dụng chung cả 7 danh hiệu qua công thức bù alpha; giữ kích thước sao. Build/typecheck PASS, dist cập nhật.
+2026-10-04: Bật xem thử UI danh hiệu Home theo yêu cầu: bắt đầu bậc1, cứ2000ms chuyển bậc kế tiếp, sau7 quay lại1. State xem trước cục bộ, timer hủy khi rời Home; dùng catalog ảnh và quy tắc sao chung. Build/typecheck PASS, dist cập nhật.
+2026-10-04: Khóa vị trí danh hiệu/sao Home theo bậc1: khung ảnh có chiều cao/rộng cố định, sao dùng vị trí cố định; gỡ bottomInsetRatio gây dịch hàng sao theo asset. Giữ vòng xem thử2s. Build/typecheck PASS, dist cập nhật.
+2026-10-04: Tắt luân phiên danh hiệu2s, xem trước bậc4 Kỳ Tướng Elo1900. Thêm AvatarRankBadge chung cho Home, ProfileDialog, AvatarCustomization, PlayerCard để đồng bộ danh hiệu và sao dưới avatar; kích thước sao theo tỷ lệ avatar. Chỉ render sao đạt tại cả AvatarRankBadge và FriendsDialog. Tăng khu vực tùy chỉnh avatar20px để đủ chỗ hàng sao. Build/typecheck PASS, dist cập nhật.
+2026-10-04: Browser QA Home, Hồ sơ, Tùy chỉnh avatar: cùng hiện Kỳ Tướng1 sao, chỉ1 ảnh sao trong DOM và tâm sao lệch dưới0.001px; tùy chỉnh không đè hàng nút. PlayerCard đã tích hợp/build, chưa kiểm tra trong bàn chơi.
+2026-10-04: Đổi hàng sao AvatarRankBadge từ căn giữa sang căn trái, sao đạt xếp từ trái qua phải ở tất cả các cụm avatar/danh hiệu. Build/typecheck PASS, dist cập nhật.
+2026-10-04: Nâng Elo xem trước dùng chung AvatarRankBadge từ1900 lên2100 để Kỳ Tướng hiển thị3 sao tại Home, Hồ sơ, tùy chỉnh và bàn chơi. Build/typecheck PASS, dist cập nhật.
+2026-10-04: Bỏ hẳn họa tiết cuộn nâu bên trái avatar FriendRow; chỉnh lề container từ trái16/phải16 sang trái0/phải38, identity lề16, làm avatar/tên/danh hiệu/nút đều dịch trái22px và lấp chỗ trống. Build/typecheck PASS, dist cập nhật.
+2026-10-04: Thay đủ bảy danh hiệu bằng bộ ảnh mới người dùng cung cấp, trim đúng bounding box alpha và lưu tại src/assets/ranks/rank-01..07-*-v2.png. Bạn bè và AvatarRankBadge dùng chung rankArtwork; giữ ô ảnh/vùng sao hiện có. Gỡ đúng bảy ảnh cũ khỏi project, chuyển bản khôi phục vào work/removed-old-rank-assets của chat. Nguồn/crop ghi tại rank-artwork-v2.md. Build/typecheck PASS; xác nhận đủ bảy ảnh mới trong dist. Chưa browser QA.
+2026-10-04: Tăng nhẹ kích thước bảy danh hiệu mới: khung dưới avatar tăng 8% qua AVATA_RATIO dùng chung; hàng Bạn bè từ180×72 thành194×78px. Cập nhật quy tắc kích thước; build/typecheck PASS và dist có kích thước mới. Chưa browser QA.
+2026-10-04: Căn giữa cụm sao đã đạt dưới danh hiệu trong AvatarRankBadge dùng chung; giảm kích thước sao từ29.289cqw xuống25cqw, gap từ3.254cqw xuống1.5cqw và nâng vùng sao3px theo anchor106px. Áp dụng Home/Hồ sơ/Tùy chỉnh/PlayerCard; cập nhật RANK-SYSTEM.md. Build/typecheck PASS; xác nhận thông số mới trong dist. Chưa browser QA.
+2026-10-04: Dịch tâm vùng sao AvatarRankBadge sang phải3px theo anchor106px; áp dụng chung các cụm avatar/danh hiệu và ghi vào RANK-SYSTEM.md. Build/typecheck PASS; xác nhận offset trong dist. Chưa browser QA.
+2026-10-04: Bật cycleRanks cho danh hiệu Home: lần lượt bậc1→7 mỗi2000ms rồi lặp; preload bảy ảnh, timer cleanup khi unmount. Giữ geometry danh hiệu/sao và dùng getRankProgress cho sao, các nơi khác giữ preview Kỳ Tướng. Build/typecheck PASS; xác nhận cycle trong dist. Chưa browser QA.
+2026-10-04: Gỡ timer/cycleRanks; AvatarRankBadge mặc định Tân Binh1 sao với DEFAULT_PLAYER_ELO=1000. Session khởi tạo Elo1000; Home đọc cùng Elo cho điểm Cờ Tướng và danh hiệu, thay điểm mẫu2066. Ghi quy tắc khởi tạo người chơi mới vào RANK-SYSTEM.md (chưa có backend tài khoản). Build/typecheck PASS; xác nhận dist bỏ cycleRanks/2066. Chưa browser QA.
+2026-10-04: Đổi thứ tự bậc5 thành Đại Sư (2200–2499 Elo), bậc6 thành Kỳ Vương (2500–2799 Elo); đồng bộ catalog ảnh/tên và tài liệu Bạn bè/hệ bậc. Build/typecheck PASS; xác nhận hai bậc trong dist. Chưa browser QA.
+2026-10-04: Khôi phục quy tắc sao luôn xếp trái→phải bằng justify-start trong RankStars, kể cả1 sao. Giữ kích thước/gap/vùng và offset hiện có; ghi rõ sao đầu cố định và không căn giữa theo số sao trong RANK-SYSTEM.md. Build/typecheck PASS; xác nhận trong dist. Chưa browser QA.
+2026-10-04: Home bật previewStars=3 trên AvatarRankBadge để xem thử Tân Binh đủ3 sao, giữ xếp trái→phải. Không đổi Elo khởi tạo1000 hoặc quy tắc sao thật; ghi rõ preview trong RANK-SYSTEM.md. Build/typecheck PASS; xác nhận previewStars:3 trong dist. Chưa browser QA.
+2026-10-04: Tạo docs/PROJECT-MEMORY.md làm ghi nhớ quy tắc người dùng và lỗi cần tránh; ghi các chốt hiện tại về bậc/Elo/sao/Bạn bè, tách preview3 sao khỏi mặc định, ghi nguyên nhân lỗi chỉ khi có bằng chứng và mẫu cập nhật. AGENTS.md bắt buộc đọc ghi nhớ trước khi sửa và đối chiếu trước bàn giao. Build/typecheck PASS; dist đã cập nhật. Task chỉ đổi tài liệu.
+2026-10-05: Căn giữa vùng đủ3 ô sao (78% bề rộng khung) dưới danh hiệu, wrapper cùng tâm ngang danh hiệu và bỏ offset phải3px. Sao đạt điền từ ô trái sang phải, không dịch khi số sao thay đổi; giữ kích thước/gap/vị trí dọc. Cập nhật RANK-SYSTEM và PROJECT-MEMORY, ghi lỗi STAR-02 do vùng78% nằm lệch trái trong wrapper100%. Build/typecheck PASS; xác nhận grid ô sao cố định trong dist. Chưa browser QA.
+2026-10-05: Dịch vùng sao AvatarRankBadge sang phải3px theo anchor106px và khóa tọa độ theo yêu cầu. Gom offset/tỷ lệ vào RANK_STAR_LAYOUT, AVATA_RANK_STARS_STYLE; mọi consumer dùng chung. Thay sao ký tự trong FriendRank bằng RankStars ảnh trong vùng103px; không còn sao ký tự trong src. Ghi khóa tại PROGRESS gốc và PROJECT-MEMORY, cập nhật RANK-SYSTEM/FRIENDS-UI-RULES. Build/typecheck PASS; xác nhận token và vùng Bạn bè trong dist. Chưa browser QA.
+
+2026-10-05: Thêm AvatarRankBadge dưới avatar84px trong mọi hàng Xếp hạng, cả tab Cờ Tướng/Cờ Úp; danh hiệu và sao lấy từ Elo của hàng, giữ tọa độ chung đã khóa. Tăng hàng lên156px và gap8px, vùng avatar132px để đủ cụm, danh sách cuộn dọc thay chia cứng5 hàng. Cập nhật PROJECT-MEMORY. Build/typecheck PASS; xác nhận kích thước và binding Elo trong dist. Chưa browser QA.
+
+2026-10-05: Giảm padding dọc hàng Xếp hạng từ12 xuống6px, chiều cao156 xuống148px; giữ vùng avatar/danh hiệu/sao132px và tọa độ đã khóa. Huy hiệu thứ hạng dùng ô90×90 căn giữa cột/hàng, số hạng4+ neo tâm50%/50%. Cập nhật PROJECT-MEMORY. Build/typecheck PASS; xác nhận kích thước và căn giữa trong dist. Chưa browser QA.
+
+2026-10-05: Thu hàng Xếp hạng148→138px, bỏ padding dọc6px→0. Đặt toàn cụm avatar xuống5px trong khối132px để vương miện không chạm viền và cân khoảng trống trên/dưới; tọa độ sao/danh hiệu tương đối avatar đã khóa giữ nguyên. Cập nhật PROJECT-MEMORY. Build/typecheck PASS; xác nhận thông số trong dist. Chưa browser QA.
+
+## Phạm vi đang khóa
+
+- 2026-10-05: Người dùng cho phép mở khóa, nâng riêng sao Home thêm3px (starsYPx=-6 tổng), rồi khóa lại HOME_RANK_BADGE_OFFSETS/HOME_AVATA_RANK_STARS_STYLE. Danh hiệu Home titleYPx=-2; phần khác giữ nguyên. Cập nhật docs/project memory và RANK-SYSTEM. Build/typecheck PASS; xác nhận starsYPx:-6 trong dist. Chưa browser QA.
+ 
+
+- 2026-10-05: Người dùng đồng ý mở khóa để nâng riêng danh hiệu Home2px, sao tổng6px theo anchor106px (bản đầu nâng3px, lượt sau nâng thêm3px), rồi khóa lại HOME_RANK_BADGE_OFFSETS/HOME_AVATA_RANK_STARS_STYLE. Home dùng placement=home; các nơi khác giữ tọa độ chung. Cập nhật PROJECT-MEMORY/RANK-SYSTEM. Build/typecheck PASS; xác nhận starsYPx:-6 trong dist. Chưa browser QA.
+
+
+- 2026-10-05: Vị trí vùng sao dưới danh hiệu theo RANK_STAR_LAYOUT/AVATA_RANK_STARS_STYLE trong playerIdentityLayout.ts: anchor106px, offsetX3px, bottomInset14px, clusterOffsetY-1px, starWidth25cqw, gap1.5cqw. Riêng Home khóa HOME_RANK_BADGE_OFFSETS (titleY-2px, starsY-6px) và HOME_AVATA_RANK_STARS_STYLE. Không tự dịch/ghi đè tọa độ hoặc tỷ lệ; chỉ sửa sau khi người dùng đồng ý mở khóa theo AGENTS.md.
+
+- 2026-10-05 (cập nhật): Người dùng cho phép nâng sao Home thêm5px sau khi phản hồi lần dịch3px khó thấy. Tọa độ khóa mới: HOME_RANK_BADGE_OFFSETS starsYPx=-11 (tổng nâng11px); titleYPx=-2. Build/typecheck PASS và screenshot Home từ bản build mới đã xác nhận.
+
+- 2026-10-05: Theo đồng ý mở khóa, hạ riêng sao Home2px (`starsYPx=-9`), giữ danh hiệu `titleYPx=-2` và mọi vị trí chung khác. Khóa lại tọa độ Home sau chỉnh. Build/typecheck PASS; xác nhận asset dist có `starsYPx:-9` và không còn `starsYPx:-11`. Browser QA tại localhost:5173/?rankPreview=20261005d hiển thị cụm sao dưới danh hiệu Home.
+
+- 2026-10-05: Người dùng cho phép thay đổi vị trí sao Home và yêu cầu hạ thêm2px: `starsYPx=-9→-7`, giữ `titleYPx=-2` và mọi tọa độ chung khác. Phạm vi offset sao Home vẫn mở để tiếp tục thay đổi theo yêu cầu; kiểm tra build/browser sẽ ghi sau.

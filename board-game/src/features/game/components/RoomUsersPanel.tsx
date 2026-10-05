@@ -1,11 +1,11 @@
 import type { CSSProperties } from 'react'
 import avatar from '../../../assets/icons/avatar.svg'
+import defaultAvatarFrame from '../../../assets/30dfa56b-d9f3-4129-b9fd-aaf0ea884188.png'
+import { AvatarFrameOverlay } from './AvatarFrameOverlay'
 import viewerCardFrame from '../../../assets/room-users/viewer-card-frame-tight.png'
 import waitingCardFrame from '../../../assets/room-users/waiting-card-frame-tight.png'
 import queueJoinButton from '../../../assets/room-users/queue-join-swapped.png'
 import queueLeaveButton from '../../../assets/room-users/queue-leave-swapped.png'
-import defaultAvatarFrame from '../../../assets/player/fb7341c5-be02-45ac-846c-f085eebc50ee.png'
-import { AvatarFrameOverlay } from './AvatarFrameOverlay'
 
 type RoomUser = { id: string; name: string; side?: 'red' | 'black'; ready?: boolean; queued?: boolean; queueNumber?: number }
 
@@ -27,7 +27,7 @@ function WaitingCard({ player, queueNumber, onAvatarClick }: { player: RoomUser;
   return <li data-user-status="waiting" style={waitingFrameStyle} className="flex h-10 w-fit max-w-full shrink-0 items-center justify-center border-[8px] border-solid border-transparent px-2.5 drop-shadow-[0_3px_4px_#0009]">
     <span className="flex min-w-0 items-center gap-1.5">
       <span aria-label={`Thứ tự chờ ${queueNumber}`} className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-[#ffc53d] bg-[linear-gradient(145deg,#9b4c13,#4d1d08)] font-georgia text-base/none font-bold text-white shadow-[inset_0_0_0_1px_#6c2c0d,0_0_5px_#ffac33]">{queueNumber}</span>
-      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#fff0b5,#9e7132_50%,#f7d988)] p-0.5 shadow-[0_1px_3px_#000b]">
+      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-transparent p-0.5">
         <button type="button" aria-label={`Xem hồ sơ ${player.name}`} onClick={() => onAvatarClick?.(player.name)} className="relative m-0 block size-full cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#ffe2a1]"><img src={avatar} alt="" className="block size-full rounded-full border-0 object-cover" /><AvatarFrameOverlay src={defaultAvatarFrame} /></button>
       </span>
       <span className="min-w-0 truncate font-arial text-sm/none text-white [text-shadow:0_2px_2px_#170600]">{player.name}</span>
@@ -37,7 +37,7 @@ function WaitingCard({ player, queueNumber, onAvatarClick }: { player: RoomUser;
 
 function ViewerCard({ player, onAvatarClick }: { player: RoomUser; onAvatarClick?: (name: string) => void }) {
   return <li data-user-status="watching" style={viewerFrameStyle} className="flex h-10 w-fit max-w-full shrink-0 items-center gap-1.5 border-[8px] border-solid border-transparent px-2.5 drop-shadow-[0_3px_4px_#0009]">
-    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#ffe69b,#9d6b27_52%,#f4cf72)] p-0.5 shadow-[0_1px_3px_#000b]">
+    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-transparent p-0.5">
       <button type="button" aria-label={`Xem hồ sơ ${player.name}`} onClick={() => onAvatarClick?.(player.name)} className="relative m-0 block size-full cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#ffe2a1]"><img src={avatar} alt="" className="block size-full rounded-full border-0 object-cover" /><AvatarFrameOverlay src={defaultAvatarFrame} /></button>
     </span>
     <span className="min-w-0 truncate font-arial text-sm/none text-white [text-shadow:0_2px_2px_#071116]">{player.name}</span>

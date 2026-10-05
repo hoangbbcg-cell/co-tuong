@@ -22,7 +22,7 @@ export function useGame() {
   const computer = session.mode === 'computer'
   const game = online ? session.room!.game : local.game
   const moveCount = online ? session.room?.moveCount ?? 0 : local.history.length
-  const { playMatchIntro, playCheckmateSound } = useMoveSound(game.lastMove, game.board, moveCount, game.phase, game.result)
+  const { playMatchIntro } = useMoveSound(game.lastMove, game.board, moveCount, game.phase, game.result)
   const player = session.room?.players.find(player => player.id === socket.id)
   const viewer = session.room?.viewers?.find(viewer => viewer.id === socket.id)
   const selected = online ? onlineSelected : local.selected
@@ -107,7 +107,7 @@ export function useGame() {
   const canTakeback = game.phase === 'playing' && moveCount >= 1 && (!computer || computerHasMoved)
   const takebacksLeft = online ? player ? session.room?.takebackRemaining?.[player.side] ?? 2 : 0 : computer ? local.takebacksRemaining : 0
   return {
-    game, moveCount, online, computer, humanSide: session.humanSide, computerEngine: session.computerEngine, computerState, room: session.room, player, viewer, toggleQueue, selected, legalMoves, animation, select, playCheckmateSound,
+    game, moveCount, online, computer, humanSide: session.humanSide, computerEngine: session.computerEngine, computerState, room: session.room, player, viewer, toggleQueue, selected, legalMoves, animation, select,
     animationVersion: local.animationVersion, canTakeback, takebacksLeft, takebackDeclineVersion: local.takebackDeclineVersion,
     status: computerState.error || session.notice || (computerState.thinking ? `${session.computerEngine === 'pikafish' ? 'Pikafish' : 'Máy'} đang suy nghĩ…` : gameStatus(game)), pending,
     start,

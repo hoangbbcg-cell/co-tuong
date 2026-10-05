@@ -7,7 +7,7 @@ import type { RoomSnapshot } from '../types/room'
 export function useRoomConnection() {
   const client = useQueryClient()
   useEffect(() => {
-    const receive = (room: RoomSnapshot) => useSessionStore.getState().receiveRoom(room)
+    const receive = (room: RoomSnapshot) => useSessionStore.getState().receiveRoom(room, socket.id)
     const disconnect = (reason: string) => {
       if (reason === 'io client disconnect') return
       socket.disconnect()

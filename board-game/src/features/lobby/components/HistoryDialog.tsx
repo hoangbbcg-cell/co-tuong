@@ -1,12 +1,14 @@
 import { useState, type RefObject } from 'react'
-import redGeneral from '../../../assets/pieces/red-general.png'
-import blackGeneral from '../../../assets/pieces/black-general.png'
+import redGeneral from '../../../assets/history/history-red-user.png'
+import blackGeneral from '../../../assets/history/history-black-user.png'
+import concealedPiece from '../../../assets/history/history-hidden-user.png'
 import historyBanner from '../../../assets/history/history-banner.png'
 import historyParchmentBackground from '../../../assets/history/history-parchment-background.png'
 import playedTab from '../../../assets/history/history-tab-played.png'
-import watchedTab from '../../../assets/history/history-tab-watched.png'
+import playedTabUnselected from '../../../assets/history/history-tab-played-unselected.png'
+import savedTab from '../../../assets/history/history-tab-saved.png'
+import savedTabSelected from '../../../assets/history/history-tab-saved-selected.png'
 import replayButtonFrame from '../../../assets/history/history-replay-button-frame.png'
-import concealedPiece from '../../../assets/history/history-concealed-piece.png'
 import winResult from '../../../assets/history/history-result-win-v2.png'
 import lossResult from '../../../assets/history/history-result-loss-v2.png'
 import socialHeaderLandscape from '../../../assets/rankings/social-header-landscape.png'
@@ -27,14 +29,14 @@ const matches: { date: string; time: string; opponent: string; result: MatchResu
   { date: '18/09/2026', time: '11:41', opponent: 'Thaiduy9...', result: 'Thắng', variant: 'xiangqi' },
 ]
 
-function ConcealedPiece({ className = 'size-[43px]' }: { className?: string }) {
-  return <img src={concealedPiece} alt="Quân úp" className={`shrink-0 object-contain ${className}`} />
+function ConcealedPiece({ className = 'size-[47px]' }: { className?: string }) {
+  return <img src={concealedPiece} alt="Quân úp" className={`m-0 block shrink-0 border-0 p-0 object-contain ${className}`} />
 }
 
-function Player({ name, result }: { name: string; result: MatchResult }) {
+function Player({ name, result, onOpenProfile }: { name: string; result: MatchResult; onOpenProfile: (name: string) => void }) {
   const win = result === 'Thắng'
   return <div className="flex min-w-0 items-center">
-    <span className="relative z-10 grid size-[51px] shrink-0 place-items-center [&>span]:size-[51px]"><SocialAvatar /></span>
+    <button type="button" onClick={() => onOpenProfile(name)} className={`${buttonInteraction} relative z-10 grid size-[51px] shrink-0 place-items-center rounded-full border-0 bg-transparent p-0 [&>span]:size-[51px]`} aria-label={`Mở hồ sơ của ${name}`}><SocialAvatar /></button>
     <span className={`-ml-2 flex h-[43px] min-w-0 flex-1 items-center gap-2 rounded-r-[8px] border-y border-r pl-4 ${win ? 'border-[#c9a46b] bg-[linear-gradient(90deg,#efc45c_0%,#f5d273_34%,#f8df99_56%,#f7e8bf_76%,#f4e5c8_100%)] shadow-[inset_0_1px_0_#fff1c8]' : 'border-[#9fbac5] bg-[linear-gradient(90deg,#b9dce7_0%,#cde6ed_28%,#e4eef0_46%,#f1e9d5_64%,#f4e5c8_100%)] shadow-[inset_0_1px_0_#f4fcff]'}`}>
       <strong className="min-w-0 flex-1 truncate font-arial text-[18px] font-medium text-[#271608]">{name}</strong>
       <img src={win ? winResult : lossResult} alt={result} className={`m-0 block h-[39px] w-auto shrink-0 border-0 p-0 object-contain ${win ? '' : '-translate-x-[2px] -translate-y-[2px]'}`} />
@@ -42,15 +44,18 @@ function Player({ name, result }: { name: string; result: MatchResult }) {
   </div>
 }
 
-export function HistoryDialog({ dialogRef, layout, name, onClose, onReplay }: {
+export function HistoryDialog({ dialogRef, layout, name, onClose, onReplay, onOpenProfile }: {
   dialogRef: RefObject<HTMLDialogElement | null>
   layout: ReturnType<typeof useHistoryLayout>
   name: string
   onClose: () => void
   onReplay: (opponent: string) => void
+  onOpenProfile: (name: string) => void
 }) {
   const [tab, setTab] = useState<HistoryTab>('played')
-  const visibleMatches = tab === 'played' ? matches : matches.slice(1, 4)
+  const [historyMatches, setHistoryMatches] = useState(matches)
+  const [savedMatches, setSavedMatches] = useState(() => matches.filter(match => match.time !== '12:02').slice(0, 3))
+  const visibleMatches = tab === 'played' ? historyMatches : savedMatches
 
   return <dialog ref={dialogRef} aria-labelledby="history-title" onCancel={event => { event.preventDefault(); onClose() }} className="m-auto max-h-none max-w-none overflow-visible border-0 bg-transparent p-0 text-[#43240f] backdrop:bg-black/50" style={{ width: layout.width * layout.scale, height: layout.height * layout.scale }}>
     <div className="absolute top-0 left-0 origin-top-left rounded-[22px] border-[5px] border-[#5e3014] bg-[radial-gradient(ellipse_at_50%_8%,#b87a3344,transparent_38%),linear-gradient(135deg,#6e3718,#2b160b_48%,#5d2e14)] px-[36px] pt-[52px] pb-[28px] shadow-[inset_0_0_0_2px_#e0b466,inset_0_0_0_7px_#875026,inset_0_0_0_9px_#160904]" style={{ width: layout.width, height: layout.height, transform: `scale(${layout.scale})` }}>
@@ -64,24 +69,27 @@ export function HistoryDialog({ dialogRef, layout, name, onClose, onReplay }: {
           <img src={socialHeaderLandscape} alt="" className="size-full object-cover object-center" />
         </div>
         <nav className="relative z-10 mx-auto mb-1 grid h-[58px] w-[610px] shrink-0 grid-cols-2 gap-4" role="tablist" aria-label="Loại lịch sử">
-          <button type="button" role="tab" aria-selected={tab === 'played'} onClick={() => setTab('played')} className={`${buttonInteraction} relative isolate grid min-w-0 place-items-center`}><img src={playedTab} alt="" className="pointer-events-none h-[54px] w-auto max-w-full object-contain" />{tab !== 'played' && <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[#24130a]/85 mix-blend-color" style={{ maskImage: `url(${playedTab})`, maskPosition: 'center', maskRepeat: 'no-repeat', maskSize: 'auto 54px', WebkitMaskImage: `url(${playedTab})`, WebkitMaskPosition: 'center', WebkitMaskRepeat: 'no-repeat', WebkitMaskSize: 'auto 54px' }} />}<span className="sr-only">Đã chơi</span></button>
-          <button type="button" role="tab" aria-selected={tab === 'watched'} onClick={() => setTab('watched')} className={`${buttonInteraction} relative isolate grid min-w-0 place-items-center`}><img src={watchedTab} alt="" className="pointer-events-none h-[54px] w-auto max-w-full object-contain" />{tab === 'watched' && <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[#c82616]/80 mix-blend-color" style={{ maskImage: `url(${watchedTab})`, maskPosition: 'center', maskRepeat: 'no-repeat', maskSize: 'auto 54px', WebkitMaskImage: `url(${watchedTab})`, WebkitMaskPosition: 'center', WebkitMaskRepeat: 'no-repeat', WebkitMaskSize: 'auto 54px' }} />}<span className="sr-only">Đã xem</span></button>
+          <button type="button" role="tab" aria-selected={tab === 'played'} onClick={() => setTab('played')} className={`${buttonInteraction} relative isolate grid min-w-0 place-items-center`}><img src={tab === 'played' ? playedTab : playedTabUnselected} alt="" className="pointer-events-none h-[54px] w-auto max-w-full object-contain" /><span className="sr-only">Đã chơi</span></button>
+          <button type="button" role="tab" aria-selected={tab === 'watched'} onClick={() => setTab('watched')} className={`${buttonInteraction} relative isolate grid min-w-0 place-items-center`}><img src={tab === 'watched' ? savedTabSelected : savedTab} alt="" className="pointer-events-none h-[54px] w-auto max-w-full object-contain" /><span className="sr-only">Đã lưu</span></button>
         </nav>
 
-        <section className={`${socialPanelClass} z-10 flex flex-col p-[10px]`} style={{ backgroundImage: `linear-gradient(#fff4dc52,#fff4dc52), url(${historyParchmentBackground})`, backgroundPosition: 'center', backgroundSize: 'cover' }} aria-label={tab === 'played' ? 'Các ván đã chơi' : 'Các ván đã xem'}>
+        <section className={`${socialPanelClass} z-10 flex flex-col p-[10px]`} style={{ backgroundImage: `linear-gradient(#fff4dc52,#fff4dc52), url(${historyParchmentBackground})`, backgroundPosition: 'center', backgroundSize: 'cover' }} aria-label={tab === 'played' ? 'Các ván đã chơi' : 'Các ván đã lưu'}>
           <ol className="grid min-h-0 flex-1 grid-rows-7 gap-[5px]">
-            {visibleMatches.map(match => <li key={`${match.time}-${match.opponent}`} className="grid min-h-0 grid-cols-[118px_minmax(0,1fr)_96px_minmax(0,1fr)_149px] items-center gap-3 rounded-[8px] border border-[#c7a370]/70 bg-[linear-gradient(90deg,#f3dfb8,#ecd09d_48%,#f2ddb4)] px-3 shadow-[inset_0_1px_0_#fff0d0]">
+            {visibleMatches.map(match => <li key={`${match.time}-${match.opponent}`} className={`grid min-h-0 items-center rounded-[8px] border border-[#c7a370]/70 bg-[linear-gradient(90deg,#f3dfb8,#ecd09d_48%,#f2ddb4)] px-3 shadow-[inset_0_1px_0_#fff0d0] ${tab === 'watched' ? 'grid-cols-[118px_minmax(0,1fr)_96px_minmax(0,1fr)_149px_28px] gap-2' : 'grid-cols-[118px_minmax(0,1fr)_96px_minmax(0,1fr)_149px] gap-3'}`}>
               <time className="text-center font-arial text-[17px] leading-[20px] text-[#372416]"><span className="block">{match.date}</span><span>{match.time}</span></time>
-              <Player name={name} result={match.result} />
+              <Player name={name} result={match.result} onOpenProfile={onOpenProfile} />
               <div className="flex items-center justify-center gap-1.5"><img src={redGeneral} alt="Quân đỏ" className="size-[47px] object-contain" />{match.variant === 'xiangqi' ? <img src={blackGeneral} alt="Quân đen" className="size-[47px] object-contain" /> : <ConcealedPiece />}</div>
-              <Player name={match.opponent} result={match.result === 'Thắng' ? 'Thua' : 'Thắng'} />
+              <Player name={match.opponent} result={match.result === 'Thắng' ? 'Thua' : 'Thắng'} onOpenProfile={onOpenProfile} />
               <button type="button" onClick={() => onReplay(match.opponent)} className={`${buttonInteraction} relative h-[52px] w-[151px] shrink-0 overflow-hidden`}><img src={replayButtonFrame} alt="" className="pointer-events-none absolute inset-0 size-full object-fill" /><span className="pointer-events-none relative flex size-full items-center justify-center gap-2 pb-px font-arial text-[19px] leading-none font-normal text-[#f4dcc0] [text-shadow:0_1px_1px_#351407]"><span aria-hidden="true" className="text-[23px] text-[#ffe0a0]">▶</span>Xem lại</span></button>
+              {tab === 'watched' && <button type="button" onClick={() => setSavedMatches(current => current.filter(item => item !== match))} className={`${buttonInteraction} ml-1 grid h-[36px] w-[28px] place-items-center rounded-md border border-[#696761] bg-[linear-gradient(180deg,#777672,#5b5a56)] text-[#e5e7eb] shadow-[inset_0_1px_2px_#ffffff1a,0_1px_2px_#241f1a88] hover:brightness-110`} aria-label={`Xóa ván với ${match.opponent}`}>
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[24px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M10 10v8m4-8v8M6 6l1 15h10l1-15M9 6V3h6v3" /></svg>
+              </button>}
             </li>)}
           </ol>
           <footer className="mt-[7px] flex h-[52px] shrink-0 items-center justify-center gap-12 rounded-[10px] bg-[linear-gradient(180deg,#4e2611_0%,#311408_55%,#4a210e_100%)] px-5 text-[#eed3a0] shadow-[inset_0_0_0_2px_#6f3a18]">
-            <span className="flex items-center gap-2"><img src={redGeneral} alt="" className="size-[38px] object-contain" /><ConcealedPiece className="size-[38px]" /><span className="font-arial text-[15px] leading-4">Cờ úp<br /><small>(Một bên ẩn quân)</small></span></span>
+            <span className="flex items-center gap-2"><img src={redGeneral} alt="" className="size-[38px] object-contain" /><img src={blackGeneral} alt="" className="size-[38px] object-contain" /><span className="flex h-[38px] items-center font-arial text-[18px] leading-[22px]">Cờ tướng</span></span>
             <span className="h-[34px] w-px bg-[#c08b4e88]" />
-            <span className="flex items-center gap-2"><img src={redGeneral} alt="" className="size-[38px] object-contain" /><img src={blackGeneral} alt="" className="size-[38px] object-contain" /><span className="font-arial text-[15px] leading-4">Cờ tướng<br /><small>(Đầy đủ quân cờ)</small></span></span>
+            <span className="flex items-center gap-2"><img src={redGeneral} alt="" className="size-[38px] object-contain" /><ConcealedPiece className="size-[38px]" /><span className="flex h-[38px] items-center font-arial text-[18px] leading-[22px]">Cờ úp</span></span>
           </footer>
         </section>
       </div>

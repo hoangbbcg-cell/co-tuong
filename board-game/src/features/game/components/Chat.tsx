@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import type { useChat } from '../hooks/useChat'
 import avatar from '../../../assets/icons/avatar.svg'
-import defaultAvatarFrame from '../../../assets/player/fb7341c5-be02-45ac-846c-f085eebc50ee.png'
+import defaultAvatarFrame from '../../../assets/30dfa56b-d9f3-4129-b9fd-aaf0ea884188.png'
 import { AvatarFrameOverlay } from './AvatarFrameOverlay'
 import { buttonInteraction } from '../../../lib/uiClasses'
 
@@ -25,7 +25,7 @@ export const Chat = memo(function Chat({ chat, onAvatarClick }: { chat: ReturnTy
       {visibleMessages.map(message => message.system
         ? <p key={message.id} className="m-0 px-0.5 py-px text-[14px]/[1.4] text-white [overflow-wrap:anywhere] [&+*]:mt-[6px]">{message.text}</p>
         : <article key={message.id} className="flex items-center gap-2 px-0.5 py-0.5 text-white [text-shadow:0_1px_2px_#00151c] [&+*]:mt-[6px]">
-          <button type="button" aria-label={`Xem hồ sơ ${message.name}`} onClick={() => onAvatarClick?.(message.name)} className="relative m-0 block size-8 flex-[0_0_32px] cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe2a1]"><img src={avatar} alt="" className="block size-full rounded-full border border-[#dabf80] object-cover" /><AvatarFrameOverlay src={defaultAvatarFrame} /></button>
+          <button type="button" aria-label={`Xem hồ sơ ${message.name}`} onClick={() => onAvatarClick?.(message.name)} className="relative m-0 block size-8 flex-[0_0_32px] cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe2a1]"><img src={avatar} alt="" className="block size-full rounded-full border-0 object-cover" /><AvatarFrameOverlay src={defaultAvatarFrame} /></button>
           <div className="min-w-0 flex-1 text-[14px]/[1.4] [overflow-wrap:anywhere]">
             <strong className="font-semibold text-[#f2d58e]">{message.name}: </strong>
             <span>{message.text}</span>

@@ -59,3 +59,11 @@
   font-weight: 400 900;
   font-display: swap;
 }
+
+@keyframes friend-request-sent-rise {
+  from { opacity: 1; translate: 0 0; }
+  to { opacity: 0; translate: 0 -80px; }
+}
+
+
+.friend-request-sent-exit { animation: friend-request-sent-rise 320ms ease-in forwards; }

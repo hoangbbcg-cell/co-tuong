@@ -1,18 +1,11 @@
 # Hướng dẫn làm việc
 
 - Trước khi truy cập hoặc làm việc với mã nguồn project, bắt buộc đọc `AGENTS.md` và `AI WORK RULES.md`, rồi tuân thủ cả hai file.
+- Trước mỗi lần sửa project, bắt buộc đọc `board-game/docs/PROJECT-MEMORY.md` và tài liệu chuyên biệt của phần liên quan. Khi người dùng chốt/thay đổi quy tắc hoặc phát hiện lỗi, cập nhật ghi nhớ này theo hướng dẫn trong file; phân biệt quy tắc lâu dài với xem thử UI. Trước bàn giao, đối chiếu các quy tắc và lỗi cần tránh, ghi đúng kết quả kiểm chứng.
 
 ## Phạm vi và ưu tiên
 
-- Mặc định mọi task dùng phạm vi nhỏ nhất có thể. Người dùng không cần lặp lại yêu cầu này ở mỗi prompt.
-
-- Với task nhỏ, chỉ tìm và đọc file trực tiếp chứa chức năng cần sửa và style/dependency trực tiếp liên quan. Chỉ mở thêm file khi thật sự cần để hiểu hoặc sửa đúng.
-
-- Không tự đọc rộng sang backend, game logic, socket, AI, page khác hoặc module khác nếu task hiện tại không liên quan.
-
-- Không scan/đọc toàn project để “hiểu trước” cho task nhỏ. Chỉ đọc rộng khi task thực sự liên quan nhiều tầng hoặc người dùng yêu cầu rõ.
-
-- Khi đã đủ bằng chứng để sửa đúng thì dừng tìm kiếm và bắt đầu sửa; không tiếp tục mở file chỉ để tham khảo.
+- Mặc định dùng phạm vi nhỏ nhất: xác định mục tiêu và file liên quan, tìm hàm/event/type cụ thể rồi chỉ đọc chức năng cùng style/dependency trực tiếp. Không đọc toàn project hoặc module không liên quan; chỉ mở rộng khi thiếu bằng chứng và dừng tìm khi đủ để sửa đúng.
 
 - Áp dụng toàn project; ứng dụng nằm trong `board-game/`.
 
@@ -20,23 +13,21 @@
 
 - Ưu tiên đúng chức năng, không phá tính năng cũ, dễ hiểu, tách trách nhiệm, test được, rồi mới tối ưu/làm đẹp.
 
-- Trước task xác định mục tiêu, file liên quan và phần không cần đụng. Search hàm/event/type cụ thể, không đọc toàn project cho bug nhỏ.
-
 - Được sửa bug/refactor cần thiết trực tiếp. Không đổi UI, gameplay, kiến trúc ngoài yêu cầu; ghi chú vấn đề khác trừ khi chặn task.
 
 ## Kiến trúc đã chốt
 
-- Người dùng yêu cầu migration thực tế ngày 2026-09-16: React + TypeScript + Tailwind + Zustand + TanStack Query + Axios; Express + Socket.IO cho phòng online.
+- Stack hiện hành: React + TypeScript + Tailwind + Zustand + TanStack Query + Axios; Express + Socket.IO cho phòng online.
 
-- `board-game/index.html` → `src/main.tsx` → providers → App → GamePage. Dùng Vite, không còn entry JavaScript/DOM cũ.
+- `board-game/index.html` → `src/main.tsx` → providers → App → màn hình theo session. Dùng Vite, không còn entry JavaScript/DOM cũ.
 
-- App mở HomePage mặc định; session store quản lý screen home/rooms/game. Vào bàn local/online chuyển sang GamePage, rời/mất kết nối quay về HomePage. Hook useHome xử lý tương tác trang chủ, useLobby giữ API phòng.
+- App mở HomePage mặc định; session store quản lý screen home/rooms/computer/game. Vào bàn local/online chuyển sang GamePage, rời/mất kết nối quay về HomePage. Hook useHome xử lý tương tác trang chủ, useLobby giữ API phòng.
 
 - Chọn Bàn là RoomSelectionPage riêng (screen rooms), không phải modal phủ Home; dùng hiệu ứng mở 600ms. Phòng online hỗ trợ 3/5/10/15/30 phút mỗi bên (mặc định 10); server xác thực minutes, khởi tạo clock và giữ cấu hình khi reset. Chơi nhanh chỉ ghép bàn khả dụng cùng thời gian.
 
 - Home: chỉ Chọn Bàn mở RoomSelectionPage. Chơi Nhanh tại Home lấy danh sách mới và vào thẳng bàn khả dụng, ưu tiên bàn có một người chờ, không lọc thời gian; hết bàn thì mở ván local mode computer với Máy · Cơ bản. Lỗi mạng vẫn báo lỗi. Bộ lọc thời gian của Chơi nhanh trong RoomSelectionPage vẫn áp dụng riêng.
 
-- Máy cơ bản trong luồng demo hiện tại: máy đỏ đi trước, người chơi đen; chọn nước hợp lệ ưu tiên ăn quân tại game/moves/computer.ts. Hook useComputer quản lý delay 500ms và hủy khi reset/rời/kết thúc; sau khi máy hoàn tất nước thứ hai thì gửi một yêu cầu Đi lại thử. Pikafish giữ phe người dùng chọn và delay tối thiểu 550ms; không phải engine AI mạnh. Người chơi luôn hiển thị bên trái; nếu cầm Đen thì bàn cờ đảo hướng để quân Đen ở dưới. Giữ Sẵn sàng/khai cuộc 1300ms; local hai người không đổi.
+- Máy cơ bản trong luồng demo hiện tại: máy đỏ đi trước, người chơi đen; chọn nước hợp lệ ưu tiên ăn quân tại game/moves/computer.ts. Hook useComputer quản lý delay 500ms và hủy khi reset/rời/kết thúc; sau khi máy hoàn tất nước thứ hai thì gửi một yêu cầu Đi lại thử. Pikafish giữ phe người dùng chọn và delay tối thiểu 550ms. Người chơi luôn hiển thị bên trái; nếu cầm Đen thì bàn cờ đảo hướng để quân Đen ở dưới. Giữ Sẵn sàng/khai cuộc 1300ms; local hai người không đổi.
 
 - Home Cờ Úp mở GamePage cùng giao diện, game.variant jieqi và mode computer. Khởi tạo tại game/state/hidden.ts, store cung cấp mẫu xáo; 30 quân úp và hai Tướng ngửa. Piece.type là loại di chuyển hiện tại; concealed giữ loại thật đến khi applyMove lật. Sĩ/Tượng jieqi đã lật bỏ giới hạn cung/sông, vẫn chặn mắt; UI không lộ danh tính quân úp, máy không đánh giá theo danh tính ẩn. Cờ Úp mới hỗ trợ local với máy, chưa online; quy ước tại game/state/hidden-rules.md.
 
@@ -44,9 +35,15 @@
 
 - Local state dùng Zustand; server state danh sách phòng dùng Query; snapshot phòng online lấy từ socket. Không đưa query data trùng lặp vào nhiều store.
 
+- Năng lượng Home: tối đa 5, hồi 1 mỗi 5 phút khi thiếu; tooltip khung năng lượng hiển thị đếm ngược. Session store giữ năng lượng/mốc hồi, hook app cập nhật theo thời gian thực qua các màn hình. Ván local hai người/online trừ 1 khi bắt đầu, người xem không trừ; đấu máy (cả Cờ Úp) không trừ. Hiện chỉ lưu trong phiên, chưa persistence hoặc chặn chơi khi hết.
+
 - Backend Controller → Service → Repository. Lưu RAM là quyết định hiện tại. Chưa có database/auth; không tạo folder rỗng giả như đã triển khai.
 
 - Khi có persistence: Prisma chỉ ở Repository; Service không query Prisma. MySQL/Prisma cần task cấu hình và lưu dữ liệu cụ thể.
+
+## Quy tắc riêng cho Bạn bè
+
+- Trước khi sửa giao diện hoặc hành vi Bạn bè, bắt buộc đọc `board-game/docs/FRIENDS-UI-RULES.md` và đối chiếu hiện trạng/diff. Giữ nhất quán các kích thước, trạng thái, hover, danh hiệu và luồng lời mời đã chốt trong tài liệu.
 
 ## Trách nhiệm thư mục
 
@@ -56,9 +53,9 @@
 - Danh hiệu người chơi chọn hiển thị trong hồ sơ xếp nhóm trước theo thứ tự của mục Tất cả: Vinh Quang Kỳ Đài → Danh Hiệu Phong Tặng → Chuỗi Chiến Thắng → Tổng Ván Chơi → Online Chuyên Cần. Sau đó xếp cấp khung tăng dần trong từng nhóm, rồi theo thứ tự khai báo trong catalog; không dùng thời điểm chọn làm thứ tự.
 - Quy tắc màu, cấp khung, nội dung gắn với cấp và mã nội bộ của cả năm nhóm danh hiệu được ghi tại `board-game/docs/HONOR-SYSTEM.md`; xem đây là tài liệu chuẩn khi thêm/chỉnh asset hoặc dữ liệu danh hiệu.
 
-- Chọn Bàn (2026-09-19): khung ngoài như Home (lề ngang desktop 120px, compact 6px), header gọn như Chơi Với Máy (56/48px). Nền trong khung dùng lại `src/assets/nền máy.png` từ Chơi Với Máy; header, khung danh sách, nút và icon cắt từ `src/assets/chọn bàn.png`, lưu ở `src/assets/room-selection/` cùng tọa độ nguồn. Hai nút lọc dùng Tailwind nền kem khi chọn/nâu khi chưa chọn, kích thước 140×34px. Bốn nút tiện ích Cúp/Loa/Bạn bè/Video dùng homeUtilityButton và HomeIcon SVG chung với Home (48×48px). Hai ô đầu dùng toàn mặt nút ảnh brown-button.png từ custom-position.png qua border-image slice 14 fill, width 12px giữ góc; Chơi nhanh dùng red-button.png từ start-match.png, chữ/icon nguồn được thay bằng nền cùng ảnh để đặt nội dung HTML. Khung danh sách dùng border-image từ asset với borderImageWidth ghi rõ đơn vị px để giữ góc khi đổi kích thước; nội dung/phòng/số người vẫn lấy state/API thật, không dùng screenshot tĩnh thay điều khiển. Giữ hiệu ứng 600ms và luồng tạo/vào/lọc/chọn thời gian.
+- Chọn Bàn: khung ngoài như Home (lề ngang desktop 120px, compact 6px), header gọn như Chơi Với Máy (56/48px). Nền trong khung dùng chung với Chơi Với Máy; header, khung danh sách, nút và icon dùng asset trong `src/assets/room-selection/`, giữ nguồn và tọa độ cắt. Hai nút lọc dùng Tailwind nền kem khi chọn/nâu khi chưa chọn, kích thước 140×34px. Bốn nút tiện ích Cúp/Loa/Bạn bè/Video dùng homeUtilityButton và HomeIcon SVG chung với Home (48×48px). Hai ô đầu dùng toàn mặt nút ảnh brown-button.png từ custom-position.png qua border-image slice 14 fill, width 12px giữ góc; Chơi nhanh dùng red-button.png từ start-match.png, chữ/icon nguồn được thay bằng nền cùng ảnh để đặt nội dung HTML. Khung danh sách dùng border-image từ asset với borderImageWidth ghi rõ đơn vị px để giữ góc khi đổi kích thước; nội dung/phòng/số người vẫn lấy state/API thật, không dùng screenshot tĩnh thay điều khiển. Giữ hiệu ứng 600ms và luồng tạo/vào/lọc/chọn thời gian.
 
-- Home Chơi Với Máy mở ComputerPage riêng (`screen computer`), dùng khung Home và hiệu ứng useRoomEntrance 600ms. Từ 2026-09-21, Pikafish là lựa chọn đầu tiên/mặc định trong hai ô máy; Đấu ngay kiểm tra engine rồi tạo ván local với phe Đỏ/Đen/Ngẫu nhiên. Máy · Cơ bản vẫn chọn được; Vị trí tùy chỉnh/Cờ thế chưa hỗ trợ. Máy ở Chơi Nhanh/Cờ Úp giữ nguyên. Dùng background hiện tại; nội dung co theo vùng dưới header bằng useComputerLayout (tối đa 85%), không cuộn dọc; tiêu đề/robot/nút/banner dùng ảnh cắt lưu tại src/assets/computer-setup/ cùng tọa độ nguồn.
+- Home Chơi Với Máy mở ComputerPage riêng (`screen computer`), dùng khung Home và hiệu ứng useRoomEntrance 600ms. Pikafish là lựa chọn đầu tiên/mặc định trong hai ô máy; Đấu ngay kiểm tra engine rồi tạo ván local với phe Đỏ/Đen/Ngẫu nhiên. Máy · Cơ bản vẫn chọn được; Vị trí tùy chỉnh/Cờ thế chưa hỗ trợ. Máy ở Chơi Nhanh/Cờ Úp giữ nguyên. Dùng background hiện tại; nội dung co theo vùng dưới header bằng useComputerLayout (tối đa 85%), không cuộn dọc; tiêu đề/robot/nút/banner dùng ảnh cắt lưu tại src/assets/computer-setup/ cùng tọa độ nguồn.
 
 - Pikafish native + NNUE chính thức ở `board-game/engines/pikafish/`, chạy server qua UCI, không import vào engine thuần hoặc bundle frontend. Luồng: useComputer → Axios pikafishApi → pikafishController → PikafishService → tiến trình engine. Service dựng lại thế cờ từ lịch sử UCI đã kiểm tra, kiểm tra bestmove; không tác động phòng online. Session lưu computerEngine/humanSide; gameStore lưu lịch sử nước đã áp dụng, reset xóa. Hủy request/tính toán khi reset/rời/kết thúc, bỏ phản hồi cũ; lỗi hiện nút thử lại. Mặc định tối đa 4 threads, Hash 128 MB, 1 giây/nước giảm theo clock; tối đa 2 tiến trình, timeout 15 giây, lịch sử tối đa 500 nửa-nước. Giữ giấy phép GPL engine và giấy phép NNUE riêng (không thương mại khi chưa có phép); xem engines/pikafish/README.md.
 
@@ -136,8 +133,6 @@
 
 - Tầng rules/moves không có side effect; không sửa board đầu vào. Không dùng any để bỏ qua hợp đồng dữ liệu; validate input tại server.
 
-- Đọc file liên quan, phân loại UI/state/rules/API/socket/backend, truy đúng data flow và nguyên nhân gốc. Chỉ mở rộng tìm kiếm khi thiếu bằng chứng; dừng khi đủ.
-
 - Sửa ở tầng chịu trách nhiệm. Không vá UI cho lỗi logic/backend; không refactor chỉ để đẹp.
 
 - Chạy test phù hợp và thêm regression nhỏ khi hợp lý. Thay đổi rộng cần typecheck/build và test; UI test DOM không thay browser QA.
@@ -152,7 +147,7 @@
 
 - Từ `board-game/`: `npm ci`, `npm run dev`, `npm test`, `npm run typecheck`, `npm run build`.
 
-- Sau mỗi nhiệm vụ có thay đổi project, bắt buộc chạy `npm run build` từ `board-game/` trước khi bàn giao để cập nhật `dist/`.
+- Sau mỗi nhiệm vụ có thay đổi project, bắt buộc chạy `npm run build` từ `board-game/` trước khi bàn giao để cập nhật `dist/`. Trên Windows dùng `npm.cmd run build`; chờ build hoàn tất thành công và kiểm tra thay đổi có trong dist trước khi báo xong để người dùng xem kết quả. Không để build sang nhiệm vụ sau.
 
 - `npm start` phục vụ dist + API/socket tại 3001 sau build. Dev Vite 5173 proxy backend 3001. Không dùng Live Server/file://.
 
@@ -164,9 +159,7 @@
 
 - Giữ assets/font license/nguồn gốc khi di chuyển. Không xóa tính năng hoạt động nếu không cần thiết.
 
-- Chưa có auth, DB, ELO thật, sp    
-
-
+- Ảnh runtime giữ theo nhóm chức năng tại src/assets; ảnh nguồn tải lên còn cần đối chiếu được gom tại src/assets/references/uploads. Khi dọn ảnh, kiểm tra cả import, tài liệu nguồn và script crop (kể cả đường dẫn wildcard); giữ reference và giấy phép.
 
 # UI IMPLEMENTATION RULES
 
@@ -229,6 +222,8 @@ KHÔNG được thay đổi nó khi làm feature khác,
 trừ khi tôi yêu cầu rõ ràng.
 
 Không refactor CSS/UI ngoài phạm vi task.
+
+- Trên toàn ứng dụng, chỉ cho chọn nội dung chữ bằng chuột; ảnh và SVG không hiện vùng chọn xanh hoặc kéo thành ảnh. Quy tắc chung nằm ở class Tailwind trên `board-game/index.html`.
 
 ## Design tokens
 

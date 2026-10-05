@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+  <title>Cờ úp</title>
+  <defs>
+    <linearGradient id="piece" x1="21%" y1="9%" x2="79%" y2="91%">
+      <stop stop-color="#fff0c9"/>
+      <stop offset=".72" stop-color="#e6b778"/>
+      <stop offset="1" stop-color="#c88e4f"/>
+    </linearGradient>
+    <radialGradient id="face" cx="35%" cy="25%" r="85%">
+      <stop stop-color="#f5d7a4"/>
+      <stop offset="1" stop-color="#d8a363"/>
+    </radialGradient>
+    <linearGradient id="rim" x2="0" y2="1">
+      <stop stop-color="#fff8df"/>
+      <stop offset=".5" stop-color="#fff0c9" stop-opacity="0"/>
+      <stop offset="1" stop-color="#a66632"/>
+    </linearGradient>
+  </defs>
+  <circle cx="10" cy="10" r="9.5" fill="url(#piece)" stroke="#a56830"/>
+  <circle cx="10" cy="10" r="8.5" fill="none" stroke="url(#rim)" stroke-width="1.5"/>
+  <circle cx="10" cy="10" r="6" fill="url(#face)"/>
+</svg>

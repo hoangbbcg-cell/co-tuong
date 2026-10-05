@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react'
 import computerArt from '../../assets/home-actions/computer-full.png'
 import tournamentArt from '../../assets/home-actions/tournament-title-large.png'
 import quickArt from '../../assets/home-actions/quick-full.png'
@@ -7,14 +8,20 @@ import { useHome } from '../../features/lobby/hooks/useHome'
 import { buttonInteraction, homeUtilityButton as utility } from '../../lib/uiClasses'
 import background from '../../assets/backgrounds/home.png'
 import { useHomeLayout } from '../../features/lobby/hooks/useHomeLayout'
-import noviceRank from '../../assets/ranks/rank-01-novice-clean.png'
-import avatar from '../../assets/icons/avatar.svg'
+import { AvatarRankBadge } from '../../features/game/components/AvatarRankBadge'
+import { AvatarPortrait } from '../../features/lobby/components/AvatarCustomization'
+import { useSessionStore } from '../../store/sessionStore'
+import { getAvatarFrame } from '../../lib/avatarFrames'
+import { AvatarFrameOverlay } from '../../features/game/components/AvatarFrameOverlay'
 import redGeneral from '../../assets/pieces/red-general.png'
+import concealedPiece from '../../assets/history/history-hidden-user.png'
+import energyGold from '../../assets/home-actions/energy-gold.png'
+import energyIcon from '../../assets/home-actions/energy-icon.png'
+import goldIcon from '../../assets/home-actions/gold-icon.png'
 import nameFrame from '../../assets/player/name-frame.png'
 import eloFrame from '../../assets/player/elo-frame.png'
 import { HomeIcon, type HomeIconName } from '../../features/lobby/components/HomeIcon'
 import { useHomeMusic } from '../../features/lobby/hooks/useHomeMusic'
-import { HOME_AVATA_TITLE_BADGE_STYLE } from '../../features/game/components/playerIdentityLayout'
 import { ProfileDialog } from '../../features/lobby/components/ProfileDialog'
 import { useProfileLayout } from '../../features/lobby/hooks/useProfileLayout'
 import { RankingDialog } from '../../features/lobby/components/RankingDialog'
@@ -31,14 +38,24 @@ const modes = [
   { name: 'Chơi Với Máy', image: computerArt, action: 'computer', artworkOffset: 55, alphaInsets: [0, 0, 42, 15] },
   { name: 'Cờ Úp', image: hiddenArt, action: 'hidden', artworkOffset: 0, alphaInsets: [41, 24, 0, 0] },
 ] as const
+
 export function HomePage() {
   const home = useHome()
+  const elo = useSessionStore(state => state.elo)
+  const selectedAvatarIndex = useSessionStore(state => state.avatarIndex)
+  const selectedFrameIndex = useSessionStore(state => state.avatarFrameIndex)
   const layout = useHomeLayout()
   const profileLayout = useProfileLayout()
   const rankingLayout = useRankingLayout()
   const friendsLayout = useFriendsLayout()
   const historyLayout = useHistoryLayout()
   const music = useHomeMusic()
+  const historyPlayerProfileRef = useRef<HTMLDialogElement>(null)
+  const [historyPlayerName, setHistoryPlayerName] = useState('')
+  const openHistoryPlayerProfile = (playerName: string) => {
+    setHistoryPlayerName(playerName)
+    if (!historyPlayerProfileRef.current?.open) historyPlayerProfileRef.current?.showModal()
+  }
 
   return <main className="relative isolate h-dvh w-full overflow-hidden bg-[#263a35] text-[#f7e6c1]" aria-label="Màn hình chính">
     <div className="absolute top-1/2 left-1/2 isolate flex origin-center flex-col overflow-hidden border-[5px] border-[#80582c] bg-[#d9d4bf] px-8 py-5 shadow-[inset_0_0_0_2px_#efd397,0_0_0_1px_#e1c993,0_8px_30px_#101d18aa] compact:px-4 compact:py-3" style={{ width: layout.width, height: layout.height, transform: `translate(-50%, -50%) scale(${layout.scale})` }}>
@@ -50,27 +67,40 @@ export function HomePage() {
       <header style={{ transform: `translateY(${12 / layout.scale - (layout.compact ? 12 : 20)}px)` }} className="relative z-10 flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-4">
           <span className="block w-[108px] shrink-0 pb-7">
-            <span className="relative block size-[100px]">
-              <button type="button" className={`${buttonInteraction} block size-full rounded-full bg-transparent p-0`} onClick={home.openProfile} aria-label="Mở hồ sơ người chơi"><span role="img" aria-label="Avatar kỳ sĩ" className="block size-full rounded-full bg-[linear-gradient(135deg,#fff9d9,#e9a244_42%,#8d541c_70%,#ffda88)] p-[6px] shadow-[0_2px_3px_#432711] ring-1 ring-[#86511c]"><img src={avatar} alt="" className="block size-full rounded-full object-cover" /></span></button>
-              <img src={noviceRank} alt="Danh hiệu Tân Binh" className="pointer-events-none absolute z-1 -translate-x-1/2 drop-shadow-[0_2px_2px_#281307aa]" style={HOME_AVATA_TITLE_BADGE_STYLE} />
+            <span className="relative block size-[106px]">
+              <button type="button" className={`${buttonInteraction} block size-full rounded-full bg-transparent p-0`} onClick={home.openProfile} aria-label="Mở hồ sơ người chơi"><span role="img" aria-label="Avatar kỳ sĩ" className="relative block size-full rounded-full"><AvatarPortrait avatarIndex={selectedAvatarIndex} className="block size-full rounded-full" /><AvatarFrameOverlay src={getAvatarFrame(selectedFrameIndex).image} /></span></button>
+                            <AvatarRankBadge elo={elo} previewStars={3} placement="home" />
             </span>
           </span>
           <span className="w-[180px] pt-3">
-            <strong className="grid h-[38px] w-[180px] place-items-center bg-contain bg-center bg-no-repeat px-6 font-georgia text-[20px] leading-none font-normal text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${nameFrame})` }} title={home.name}><span className="max-w-full truncate">{home.name}</span></strong>
-            <span className="mt-1 grid w-full grid-cols-2 gap-1 text-[16px] leading-tight text-[#fff0cf]" title="Chỉ số minh họa, chưa có ELO hoặc tiền tệ thật">
-              <span className="relative flex h-[28px] min-w-0 items-center justify-center bg-center bg-no-repeat bg-[length:100%_100%] pl-5 font-georgia text-[#ffe7ae] whitespace-nowrap [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}><img src={redGeneral} alt="Cờ Tướng" className="absolute left-[6px] size-[22px] shrink-0 object-contain" /><span className="font-[Times_New_Roman,serif] text-[18px] leading-none lining-nums tabular-nums">2066</span></span>
-              <span className="relative flex h-[28px] min-w-0 items-center justify-center bg-center bg-no-repeat bg-[length:100%_100%] pl-5 font-georgia text-[#ffe7ae] whitespace-nowrap [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}><span role="img" aria-label="Cờ Úp" className="absolute left-[6px] grid size-[20px] shrink-0 place-items-center rounded-full border border-[#a56830] bg-[linear-gradient(145deg,#fff0c9,#e6b778_72%,#c88e4f)] shadow-[inset_0_2px_1px_#fff8df,inset_0_-2px_1px_#a66632]"><span className="size-[12px] rounded-full bg-[radial-gradient(circle_at_35%_25%,#f5d7a4,#d8a363)] shadow-[inset_0_1px_2px_#fff0c977,inset_0_-1px_1px_#9b602b55]" /></span><span className="font-[Times_New_Roman,serif] text-[18px] leading-none lining-nums tabular-nums">1000</span></span>
+            <strong className="grid h-[38px] w-[180px] place-items-center bg-contain bg-center bg-no-repeat px-6 font-georgia text-[20px] leading-none font-normal text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${nameFrame})` }}><span className="max-w-full truncate">{home.name}</span></strong>
+            <span className="mt-2 grid w-full grid-cols-2 gap-1 text-[16px] leading-tight text-[#fff0cf]">
+              <span className="relative flex h-[32px] min-w-0 items-center justify-center bg-center bg-no-repeat bg-[length:100%_100%] pl-8 pr-3 font-georgia text-[#ffe7ae] whitespace-nowrap [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}><img src={redGeneral} alt="Cờ Tướng" className="absolute left-[8px] size-[22px] shrink-0 object-contain" /><span className="font-[Times_New_Roman,serif] text-[18px] leading-none lining-nums tabular-nums">{elo}</span></span>
+              <span className="relative flex h-[32px] min-w-0 items-center justify-center bg-center bg-no-repeat bg-[length:100%_100%] pl-8 pr-3 font-georgia text-[#ffe7ae] whitespace-nowrap [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}><img src={concealedPiece} alt="Cờ Úp" className="absolute left-[8px] m-0 block size-[20px] shrink-0 border-0 p-0 object-contain" /><span className="font-[Times_New_Roman,serif] text-[18px] leading-none lining-nums tabular-nums">1000</span></span>
             </span>
           </span>
+        </div>
+        <div className="absolute top-1 left-1/2 w-[390px] max-w-full -translate-x-1/2 border-0 bg-transparent p-0 leading-none shadow-none compact:static compact:order-last compact:mx-auto compact:w-[300px] compact:translate-x-0 compact:-translate-y-2" aria-label="Năng lượng và vàng">
+          <img src={energyGold} alt="" className="m-0 block h-auto w-full border-0 p-0 brightness-[0.75] contrast-[1.08]" />
+          <img src={energyGold} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 m-0 block h-auto w-full border-0 p-0 [clip-path:inset(0_46%_0_46%)]" />
+          <img src={energyGold} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 m-0 block h-auto w-full border-0 p-0 [clip-path:inset(0_90%_0_0)]" />
+          <img src={energyGold} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 m-0 block h-auto w-full border-0 p-0 [clip-path:inset(0_0_0_90%)]" />
+          <img src={energyIcon} alt="Năng lượng" className="pointer-events-none absolute top-1/2 left-[10%] z-10 m-0 block h-[31px] w-auto max-w-none -translate-y-1/2 border-0 p-0 object-contain compact:h-[24px]" />
+          <img src={goldIcon} alt="Vàng" className="absolute top-1/2 left-[54%] z-10 m-0 block h-[32px] w-auto max-w-none -translate-y-1/2 border-0 p-0 object-contain compact:h-[25px]" />
+          <span aria-label={`Năng lượng: ${home.energy}/5. ${home.energyCountdown}`} className="pointer-events-none absolute top-1/2 left-[28%] -translate-x-1/2 -translate-y-1/2 font-[Times_New_Roman,serif] text-[20px] leading-none text-[#ffe7ae] lining-nums tabular-nums [text-shadow:0_1px_2px_#2a1008]">{home.energy}/5</span>
+          <span aria-label={`Vàng: ${home.gold}`} className="absolute top-1/2 left-[72%] -translate-x-1/2 -translate-y-1/2 font-[Times_New_Roman,serif] text-[20px] leading-none text-[#ffe7ae] lining-nums tabular-nums [text-shadow:0_1px_2px_#2a1008]">{home.gold}</span>
+          {[{ label: 'Thêm năng lượng', position: 'left-[41%]' }, { label: 'Thêm vàng', position: 'left-[85%]' }].map(action => <button key={action.label} type="button" aria-label={action.label} onClick={() => home.setMessage('Tính năng bổ sung năng lượng và vàng chưa được hỗ trợ.')} className={`${buttonInteraction} absolute top-[calc(50%-1px)] ${action.position} grid size-[24px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-[4px] border border-[#ffe08b] bg-[linear-gradient(to_top,#806006_0%,#806006_50%,#d9ac24_75%,#ffe078_100%)] p-0 text-[#fff9df] shadow-[inset_0_0_0_1px_#d8b548,inset_0_2px_2px_#ffdf6b66,0_1px_2px_#241007] compact:size-[19px]`}>
+            <svg aria-hidden="true" viewBox="0 0 16 16" className="block size-[16px] drop-shadow-[0_1px_1px_#4b350a] compact:size-[13px]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><path d="M8 3v10M3 8h10" /></svg>
+          </button>)}
         </div>
         <nav className="flex flex-wrap justify-end gap-2" aria-label="Tiện ích">
           {[
             ['trophy', 'Thành tích', 'Thành tích sẽ có khi hệ thống tài khoản được mở.'],
             ['history', 'Lịch sử', 'Lịch sử ván đấu chưa được lưu.'],
             ['friends', 'Bạn bè', 'Tính năng bạn bè sắp ra mắt.'],
-          ].map(([icon, label, message]) => <button key={label} className={utility} aria-label={label} title={label} onClick={() => icon === 'trophy' ? home.openRanking() : icon === 'history' ? home.openHistory() : icon === 'friends' ? home.openFriends() : home.setMessage(message)}><HomeIcon name={icon as HomeIconName} /></button>)}
-          <button className={utility} aria-label={music.playing ? 'Tắt nhạc' : 'Bật nhạc'} aria-pressed={music.playing} title={music.playing ? 'Tắt nhạc' : 'Bật nhạc'} onClick={() => void music.toggle().catch(() => home.setMessage('Không thể phát nhạc trên trình duyệt này.'))}><HomeIcon name={music.playing ? 'sound' : 'muted'} /></button>
-          <button className={utility} aria-label="Toàn màn hình" title="Toàn màn hình" onClick={() => void home.fullscreen()}><HomeIcon name="fullscreen" /></button>
+          ].map(([icon, label, message]) => <button key={label} className={utility} aria-label={label} onClick={() => icon === 'trophy' ? home.openRanking() : icon === 'history' ? home.openHistory() : icon === 'friends' ? home.openFriends() : home.setMessage(message)}><HomeIcon name={icon as HomeIconName} /></button>)}
+          <button className={utility} aria-label={music.playing ? 'Tắt nhạc' : 'Bật nhạc'} aria-pressed={music.playing} onClick={() => void music.toggle().catch(() => home.setMessage('Không thể phát nhạc trên trình duyệt này.'))}><HomeIcon name={music.playing ? 'sound' : 'muted'} /></button>
+          <button className={utility} aria-label="Toàn màn hình" onClick={() => void home.fullscreen()}><HomeIcon name="fullscreen" /></button>
         </nav>
       </header>
       {home.notice && <p role="status" className="mt-3 rounded-lg border border-[#b38c4a] bg-[#30261c] p-3 text-center text-sm">{home.notice}</p>}
@@ -104,8 +134,12 @@ export function HomePage() {
         <p className="leading-relaxed">{home.message}</p><button autoFocus className={`${utility} mx-auto mt-5 w-auto px-6 text-base`} onClick={() => home.setMessage('')}>Đã hiểu</button>
     </dialog>
     <ProfileDialog layout={profileLayout} dialogRef={home.profileRef} name={home.name} editable onClose={home.closeProfile} primaryActionLabel="Liên kết tài khoản" onPrimaryAction={() => home.setMessage('Liên kết tài khoản sắp ra mắt. Hiện bạn đang chơi với tư cách khách.')} />
-    <RankingDialog layout={rankingLayout} dialogRef={home.rankingRef} onClose={home.closeRanking} onView={name => home.setMessage(`Đang chuẩn bị xem ván của ${name}.`)} />
-    <FriendsDialog layout={friendsLayout} dialogRef={home.friendsRef} onClose={home.closeFriends} />
-    <HistoryDialog layout={historyLayout} dialogRef={home.historyRef} name={home.name} onClose={home.closeHistory} onReplay={opponent => home.setMessage(`Đang chuẩn bị xem lại ván với ${opponent}.`)} />
+    <ProfileDialog layout={profileLayout} dialogRef={historyPlayerProfileRef} name={historyPlayerName} onClose={() => historyPlayerProfileRef.current?.close()} primaryActionLabel="Kết bạn" onPrimaryAction={() => {
+      historyPlayerProfileRef.current?.close()
+      home.setMessage('Tính năng kết bạn sắp ra mắt.')
+    }} />
+    <RankingDialog layout={rankingLayout} dialogRef={home.rankingRef} onClose={home.closeRanking} onView={name => home.setMessage(`Đang chuẩn bị xem ván của ${name}.`)} onOpenProfile={openHistoryPlayerProfile} />
+    <FriendsDialog layout={friendsLayout} dialogRef={home.friendsRef} onClose={home.closeFriends} onOpenProfile={openHistoryPlayerProfile} />
+    <HistoryDialog layout={historyLayout} dialogRef={home.historyRef} name={home.name} onClose={home.closeHistory} onReplay={opponent => home.setMessage(`Đang chuẩn bị xem lại ván với ${opponent}.`)} onOpenProfile={openHistoryPlayerProfile} />
   </main>
 }

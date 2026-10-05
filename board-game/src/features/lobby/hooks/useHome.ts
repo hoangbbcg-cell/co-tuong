@@ -7,6 +7,19 @@ import { roomSocket } from '../../../services/socket'
 
 export function useHome() {
   const name = useSessionStore(state => state.name)
+  const energy = useSessionStore(state => state.energy)
+  const gold = useSessionStore(state => state.gold)
+  const energyRecoveryAt = useSessionStore(state => state.energyRecoveryAt)
+  const [energyNow, setEnergyNow] = useState(Date.now)
+  useEffect(() => {
+    if (energyRecoveryAt === null) return
+    setEnergyNow(Date.now())
+    const timer = window.setInterval(() => setEnergyNow(Date.now()), 1000)
+    return () => window.clearInterval(timer)
+  }, [energyRecoveryAt])
+  // Tạm hiện mẫu 5:00 khi đầy năng lượng để kiểm tra giao diện tooltip.
+  const seconds = energyRecoveryAt === null ? 300 : Math.max(0, Math.ceil((energyRecoveryAt - energyNow) / 1000))
+  const energyCountdown = `Hồi năng lượng sau: ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
   const setName = useSessionStore(state => state.setName)
   const notice = useSessionStore(state => state.notice)
   const [message, setMessage] = useState('')
@@ -80,5 +93,5 @@ export function useHome() {
       setMessage('Bạn có thể đóng tab trình duyệt để thoát trò chơi.')
     }
   }
-  return { openComputer, playHidden, quickPlay, joining: quick.isPending, name, setName, notice, message, messageRef, profileRef, rankingRef, friendsRef, historyRef, openProfile, closeProfile, openRanking, closeRanking, openFriends, closeFriends, openHistory, closeHistory, setMessage, openRooms, closeRooms, playLocal, fullscreen, exit }
+  return { energyCountdown, energy, gold, openComputer, playHidden, quickPlay, joining: quick.isPending, name, setName, notice, message, messageRef, profileRef, rankingRef, friendsRef, historyRef, openProfile, closeProfile, openRanking, closeRanking, openFriends, closeFriends, openHistory, closeHistory, setMessage, openRooms, closeRooms, playLocal, fullscreen, exit }
 }

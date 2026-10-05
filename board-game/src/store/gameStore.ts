@@ -6,6 +6,7 @@ import type { GameState, GameVariant, Move, Position, Side } from '../types/game
 import { createHiddenGame } from '../game/state/hidden'
 import { toUci } from '../game/moves/uci'
 import { DEBUG_SKIP_ENDGAME_MOVE_SCAN } from './gameDebug'
+import { useSessionStore } from './sessionStore'
 
 interface LocalGameStore {
   game: GameState
@@ -28,7 +29,12 @@ interface LocalGameStore {
 }
 export const useGameStore = create<LocalGameStore>()((set, get) => ({
   game: createGame(), selected: null, animation: null, animationVersion: 0, moves: [], history: [], takebacksRemaining: 2, takebackDeclineVersion: 0,
-  start: now => set(state => ({ game: startGame(state.game, now, MATCH_INTRO_MS) })),
+  start: now => {
+    const previous = get().game
+    const game = startGame(previous, now, MATCH_INTRO_MS)
+    set({ game })
+    if (previous.phase !== 'playing' && game.phase === 'playing' && useSessionStore.getState().mode !== 'computer') useSessionStore.getState().consumeEnergy()
+  },
   reset: (now, variant = 'xiangqi') => set(state => ({
     game: variant === 'jieqi' ? createHiddenGame(now, Array.from({ length: 28 }, () => Math.random())) : createGame(now),
     selected: null, animation: null, animationVersion: state.animationVersion + 1, moves: [], history: [], takebacksRemaining: 2, takebackDeclineVersion: 0,

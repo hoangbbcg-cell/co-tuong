@@ -8,3 +8,5 @@ coverage/
 board-game/engines/pikafish/*.7z
 board-game/engines/pikafish/*.exe
 board-game/engines/pikafish/*.nnue
+board-game/engines/pikafish/pikafish
+board-game/src/assets/references/uploads/
