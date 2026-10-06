@@ -5,6 +5,13 @@ import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 
 import type { useProfileLayout } from '../hooks/useProfileLayout'
 import { useSessionStore } from '../../../store/sessionStore'
 import profileTitle from '../../../assets/profile/info-title-friends-frame.png'
+import profileActionButtonFrame from '../../../assets/profile/actions/button-frame.png'
+import profileActionInfo from '../../../assets/profile/actions/info.png'
+import profileActionChallenge from '../../../assets/profile/actions/challenge.png'
+import profileActionFriend from '../../../assets/profile/actions/friend.png'
+import profileActionMessage from '../../../assets/profile/actions/message.png'
+import profileActionFollow from '../../../assets/profile/actions/follow.png'
+import profileActionGift from '../../../assets/profile/actions/gift.png'
 import avatarCustomizationTitle from '../../../assets/profile/avatar-customization-title.png'
 import xiangqiMode from '../../../assets/profile/mode-xiangqi.png'
 import hiddenMode from '../../../assets/profile/mode-hidden.png'
@@ -873,19 +880,23 @@ export function ProfileDialog({ dialogRef, name, onClose, primaryActionLabel, on
             </div>
           </div>)}
         </section>
-        {showOtherProfileActions ? <section aria-label={`Thao tác với ${name}`} className={`${panel} grid min-h-[var(--ui-p-240,240px)] flex-1 grid-cols-3 grid-rows-2 gap-3 p-4`}>
+        {showOtherProfileActions ? <section aria-label={`Thao tác với ${name}`} className={`${panel} grid min-h-[var(--ui-p-240,240px)] flex-1 grid-cols-3 grid-rows-2 gap-x-3 gap-y-5 px-3 pt-8 pb-10`}>
           {([
-            { id: 'info', label: 'Xem thông tin' },
-            { id: 'challenge', label: 'So tài' },
-            { id: 'friend', label: isFriend ? 'Xóa bạn' : 'Thêm bạn' },
-            { id: 'message', label: 'Nhắn tin' },
-            { id: 'follow', label: 'Theo dõi' },
-            { id: 'gift', label: 'Tặng quà' },
+            { id: 'info', label: 'Xem thông tin', icon: profileActionInfo },
+            { id: 'challenge', label: 'So tài', icon: profileActionChallenge },
+            { id: 'friend', label: isFriend ? 'Xóa bạn' : 'Thêm bạn', icon: profileActionFriend },
+            { id: 'message', label: 'Nhắn tin', icon: profileActionMessage },
+            { id: 'follow', label: 'Theo dõi', icon: profileActionFollow },
+            { id: 'gift', label: 'Tặng quà', icon: profileActionGift },
           ] as const).map(action => <button key={action.id} type="button" onClick={() => {
             if (action.id === 'info') setViewOtherProfileInfo(true)
             else setProfileActionFeedback(`Tính năng ${action.label.toLowerCase()} với ${name} chưa được hỗ trợ.`)
-          }} className={`${buttonInteraction} grid h-[calc(100%-var(--ui-p-60,60px))] w-[calc(100%-var(--ui-p-28,28px))] min-h-0 min-w-0 justify-self-center self-center place-items-center rounded-[var(--ui-p-4,4px)] border-[3px] border-[#9c784e] bg-[#875026] px-2 py-2 font-[Arial,sans-serif] text-[length:var(--ui-p-22,22px)] leading-none font-medium text-[#ffebca]`}>
-            <span className="whitespace-nowrap">{action.label}</span>
+          }} className={`${buttonInteraction} relative block aspect-[1471/680] w-full min-w-0 self-center border-0 bg-transparent p-0 leading-none [container-type:inline-size]`}>
+            <span aria-hidden="true" className="pointer-events-none absolute inset-0 border-0 border-solid border-transparent" style={{ borderImageSource: `url(${profileActionButtonFrame})`, borderImageSlice: '200 fill', borderImageWidth: '13.596cqw', borderImageRepeat: 'stretch' }} />
+            <span className="pointer-events-none absolute inset-0 flex items-center gap-[1%] pl-[9%] pr-[3%]">
+              <CrispUiImage src={action.icon} alt="" aria-hidden="true" className="block h-auto w-[32%] shrink-0 object-contain" />
+              <span className="min-w-0 flex-1 whitespace-nowrap text-center font-cormorant text-[10.7cqw] font-bold leading-none tracking-[-0.025em] text-[#ffebba] [text-shadow:0_1px_1px_#291207]">{action.label}</span>
+            </span>
           </button>)}
         </section> : <section aria-labelledby="profile-honors" className={`${panel} min-h-[var(--ui-p-240,240px)] flex-1 p-4`}>
           <h3 id="profile-honors" className="mb-4 flex items-center gap-3 font-georgia text-2xl font-bold italic text-[#ffe1a0] [text-shadow:0_1px_0_#321604]"><span aria-hidden="true" className="text-[#e8ae50]">⚑</span>Danh hiệu<span aria-hidden="true" className="h-px flex-1 bg-gradient-to-r from-[#d99a42] to-transparent" /><span aria-label={`Sở hữu: ${ownedHonorCount}`} className="inline-flex shrink-0 items-baseline gap-1 text-[length:var(--ui-p-22,22px)] not-italic font-medium"><span>Sở hữu:</span><span className="lining-nums tabular-nums">{ownedHonorCount}</span></span>{editable && <button type="button" aria-label="Mở danh hiệu" onClick={() => { setSelectedHonor(null); setHonorsOpen(true) }} className={`${buttonInteraction} grid size-6 shrink-0 place-items-center rounded-md p-0 text-[#f1bd58] hover:bg-[#f3dba71a] hover:text-[#ffe8ad]`}><svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" /></svg></button>}</h3>

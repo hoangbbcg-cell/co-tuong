@@ -50,7 +50,7 @@ Cập nhật: 2026-10-06. File này lưu các quyết định người dùng đ�
 ### Hồ sơ người khác — 2026-10-06
 
 - Bấm avatar người khác mở hồ sơ với vùng danh hiệu được thay bằng6 nút,3 cột ×2 hàng: Xem thông tin → So tài → Thêm bạn/Xóa bạn → Nhắn tin → Theo dõi → Tặng quà. Nhãn Thêm bạn/Xóa bạn dựa theo danh sách bạn bè hiện có.
-- Các nút dùng chữ không icon, font Arial medium22px; nền nâu gỗ phẳng #875026, bo góc4px thiết kế, viền nâu vàng dày3px #9c784e, không bóng hay hiệu ứng hover. Kích thước mỗi nút giảm28px chiều ngang,60px chiều cao thiết kế so với ô lưới, căn giữa trong ô.
+- Theo mẫu b99a1e64-d36b-41e2-8824-05088d378d56 ngày2026-10-06:6 nút dùng bộ7 asset mới (1 khung,6 icon) ở src/assets/profile/actions; giữ3 cột ×2 hàng. Icon bên trái, chữ Cormorant đậm bên phải, cỡ10.7cqw theo bề rộng nút (tracking-0.025em để nhãn dài không tràn); icon rộng32% vùng nội dung, lề nội dung trái9%/phải3%, gap1%. Giữ tỷ lệ khung1471:606, icon object-contain, không thêm nền/viền/bóng hoặc hover; lề ngang12px, trên32px/dưới40px và gap ngang12px/dọc20px theo thiết kế responsive. Mẫu chỉ đối chiếu, không import vào UI; nguồn/crop ghi trong assets/profile/actions/source.md. Quy tắc này thay style nút phẳng #875026 trước đó.
 - Xem thông tin mở lại vùng danh hiệu; Quay lại trở về6 nút. Mở hồ sơ mới luôn bắt đầu ở6 nút. Hồ sơ của chính mình giữ vùng danh hiệu.
 - Luồng dùng chung cho Home, Bạn bè, Xếp hạng, Lịch sử và avatar trong bàn chơi/chat/danh sách phòng. Các hành động xã hội hiện chưa có xử lý; bấm sẽ báo chưa được hỗ trợ, không báo gửi hay thay đổi quan hệ thành công.
 
