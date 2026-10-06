@@ -12,37 +12,33 @@ export const AVATA_RATIO = {
   },
 } as const
 
+export const RANK_TITLE_OFFSET_YPX = -3
+
 export const AVATA_TITLE_BADGE_STYLE = {
-  top: `${AVATA_RATIO.titleBadge.topPx / AVATA_RATIO.avatarDiameterPx * 100}%`,
+  top: `${(AVATA_RATIO.titleBadge.topPx + RANK_TITLE_OFFSET_YPX) / AVATA_RATIO.avatarDiameterPx * 100}%`,
   left: `${(0.5 + AVATA_RATIO.titleBadge.centerOffsetXPx / AVATA_RATIO.avatarDiameterPx) * 100}%`,
   width: `${AVATA_RATIO.titleBadge.widthPx / AVATA_RATIO.avatarDiameterPx * 100}%`,
   height: 'auto',
 } as const
 
-export const AVATA_TITLE_BADGE_CLASS_NAME = 'pointer-events-none absolute z-20 max-w-none -translate-x-1/2 drop-shadow-[0_2px_2px_#281307aa]'
-
-/** Locked by the user on 2026-10-05. Keep these coordinates until explicitly unlocked. */
+/** Shared reference approved from Home on 2026-10-05; update every consumer together. */
 export const RANK_STAR_LAYOUT = {
   offsetXPx: 3,
   bottomInsetPx: 14,
-  clusterOffsetYPx: -1,
+  clusterOffsetYPx: -6,
   starWidthCqw: 25,
   gapCqw: 1.5,
 } as const
 
-export const AVATA_RANK_STARS_STYLE = {
-  left: `${(0.5 + (AVATA_RATIO.titleBadge.centerOffsetXPx + RANK_STAR_LAYOUT.offsetXPx) / AVATA_RATIO.avatarDiameterPx) * 100}%`,
-  width: AVATA_TITLE_BADGE_STYLE.width,
-  top: `${(AVATA_RATIO.titleBadge.topPx + AVATA_RATIO.titleBadge.heightPx - RANK_STAR_LAYOUT.bottomInsetPx + RANK_STAR_LAYOUT.clusterOffsetYPx) / AVATA_RATIO.avatarDiameterPx * 100}%`,
+/** Star position relative to the title frame, independent of the avatar size. */
+export const RANK_TITLE_STARS_STYLE = {
+  left: `${(0.5 + RANK_STAR_LAYOUT.offsetXPx / AVATA_RATIO.titleBadge.widthPx) * 100}%`,
+  width: '100%',
+  top: `${(AVATA_RATIO.titleBadge.heightPx - RANK_STAR_LAYOUT.bottomInsetPx + RANK_STAR_LAYOUT.clusterOffsetYPx - RANK_TITLE_OFFSET_YPX) / AVATA_RATIO.titleBadge.heightPx * 100}%`,
 } as const
 
-/** Home adjustment approved and relocked on 2026-10-05. */
-export const HOME_RANK_BADGE_OFFSETS = {
-  titleYPx: -2,
-  starsYPx: -7,
-} as const
-
-export const HOME_AVATA_RANK_STARS_STYLE = {
-  ...AVATA_RANK_STARS_STYLE,
-  top: `${(AVATA_RATIO.titleBadge.topPx + AVATA_RATIO.titleBadge.heightPx - RANK_STAR_LAYOUT.bottomInsetPx + RANK_STAR_LAYOUT.clusterOffsetYPx + HOME_RANK_BADGE_OFFSETS.starsYPx) / AVATA_RATIO.avatarDiameterPx * 100}%`,
-} as const
+/** Only the earned-star row moves; Tân Binh keeps its approved position. */
+export function getRankTitleStarsStyle(rankLevel: number) {
+  if (rankLevel === 1) return RANK_TITLE_STARS_STYLE
+  return { ...RANK_TITLE_STARS_STYLE, top: `calc(${RANK_TITLE_STARS_STYLE.top} + 1px)` }
+}

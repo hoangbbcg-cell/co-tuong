@@ -162,4 +162,3 @@ export function PlayerCard({ entranceHidden = false, fillHeight = false, side, n
     {children}
   </section>
 }
-

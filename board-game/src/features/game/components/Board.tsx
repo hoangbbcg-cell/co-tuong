@@ -13,6 +13,10 @@ const rows = [55, 198, 324, 450, 576, 707, 833, 959, 1085, 1216]
 const x = (col: number) => columns[col]
 const y = (row: number) => rows[row]
 const location = (point: Position, flipped = false) => ({ left: x(flipped ? 8 - point.col : point.col), top: y(flipped ? 9 - point.row : point.row) })
+const displayLocation = (point: Position, flipped: boolean | undefined, scale: number) => {
+  const position = location(point, flipped)
+  return { left: position.left * scale, top: position.top * scale }
+}
 const points = Array.from({ length: 90 }, (_, index) => ({ row: Math.floor(index / 9), col: index % 9 }))
 const layer = 'absolute top-0 left-0 h-[1296px] w-[1134px] origin-top-left'
 const pieceWidth = 108
@@ -188,9 +192,9 @@ const PieceView = memo(function PieceView({ piece, testId, left, top, visualRow,
     </PieceMotion>
   </div>
 })
-function CornerMarker({ point, flipped = false, testId }: { point: Position; flipped?: boolean; testId?: string }) {
-  return <div data-testid={testId} style={location(point, flipped)} className="absolute size-[114px] -translate-x-1/2 -translate-y-1/2">
-    {markerCorners.map(corner => <span key={corner} className={`absolute size-[34px] border-white shadow-[0_0_4px_#ffffffcc] ${corner}`} />)}
+function CornerMarker({ point, flipped = false, testId, scale }: { point: Position; flipped?: boolean; testId?: string; scale: number }) {
+  return <div data-testid={testId} style={{ ...displayLocation(point, flipped, scale), width: Math.round(114 * scale), height: Math.round(114 * scale) }} className="absolute -translate-x-1/2 -translate-y-1/2">
+    {markerCorners.map(corner => <span key={corner} style={{ width: Math.round(34 * scale), height: Math.round(34 * scale), borderTopWidth: corner.includes('border-t') ? Math.round(7 * scale) : 0, borderRightWidth: corner.includes('border-r') ? Math.round(7 * scale) : 0, borderBottomWidth: corner.includes('border-b') ? Math.round(7 * scale) : 0, borderLeftWidth: corner.includes('border-l') ? Math.round(7 * scale) : 0 }} className={`absolute border-white shadow-[0_0_4px_#ffffffcc] ${corner}`} />)}
   </div>
 }
 interface Props {
@@ -216,7 +220,7 @@ export const Board = memo(function Board(props: Props) {
   checkmateStartRef.current = props.onCheckmateEffectStart
   const checkmateLiftRef = useRef<{ key: string; status: 'scheduled' | 'started'; cancel?: () => void } | null>(null)
   useEffect(() => () => checkmateHitCancelRef.current?.(), [])
-  const layerStyle = { transform: `scale(${scale})` }
+  const layerStyle = { width: props.frameWidth, height: props.frameWidth * 1296 / 1134 }
   const path = useMemo(() => animation ? getPieceMovePath(animation).map(point => location(point, props.flipped)) : [], [animation, props.flipped])
   const duration = PIECE_MOVE_DURATION_MS
   const effectPieceId = props.checkmateEffect && props.lastMove
@@ -285,17 +289,17 @@ export const Board = memo(function Board(props: Props) {
   return <div data-testid="board-frame" className="relative col-start-2 row-start-1 max-w-full self-center justify-self-center overflow-visible rounded-[14px] bg-center bg-no-repeat shadow-[0_4px_12px_#170d0766] compact:col-span-full compact:row-start-2" style={{ width: outerFrameWidth, paddingBlock: frameEdgeSize, backgroundImage: `url(${mapleBoard})`, backgroundSize: '100% 100%' }}>
     <div ref={boardRef} id="board" className="relative mx-auto aspect-[1134/1296] touch-manipulation overflow-visible rounded-[0.5%] bg-[length:100%_100%] bg-center shadow-[0_7px_12px_#24120580] select-none" style={{ width: props.frameWidth, backgroundImage: `url(${mapleBoard})` }} aria-label={props.hiddenChess ? 'Bàn cờ úp' : 'Bàn cờ tướng'}>
       <div className={`${layer} pointer-events-none`} style={layerStyle} aria-hidden="true">
-        <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 font-georgia text-[48px] leading-none font-bold whitespace-nowrap text-[#936332] italic" style={{ top: 641.5 }}>HOANGBBCG</span>
+        <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 font-georgia leading-none font-bold whitespace-nowrap text-[#936332] italic" style={{ top: 641.5 * scale, fontSize: Math.round(48 * scale) }}>HOANGBBCG</span>
       </div>
       <div hidden={props.revealPieces === false} className={`${layer} pointer-events-none z-3`} style={layerStyle} aria-hidden="true">
         {props.lastMove && !animation && !selected && <>
-          <img data-testid="last-move-origin" src={moveIndicatorDot} alt="" className={moveMarkerImageClass} style={location(props.lastMove.from, props.flipped)} />
-          <div data-testid="last-move-destination" className={lastMovePieceRing} style={location(props.lastMove.to, props.flipped)} />
+          <img data-testid="last-move-origin" src={moveIndicatorDot} alt="" className={moveMarkerImageClass} style={{ ...displayLocation(props.lastMove.from, props.flipped, scale), width: Math.round(155 * scale), height: Math.round(155 * scale) }} />
+          <div data-testid="last-move-destination" className={lastMovePieceRing} style={{ ...displayLocation(props.lastMove.to, props.flipped, scale), width: Math.round(122 * scale), height: Math.round(122 * scale), borderWidth: Math.round(5 * scale) }} />
         </>}
-        {selected && <CornerMarker testId="selected-marker" point={selected} flipped={props.flipped} />}
+        {selected && <CornerMarker testId="selected-marker" point={selected} flipped={props.flipped} scale={scale} />}
         {legalMoves.map(point => board[point.row][point.col]
-          ? <CornerMarker key={`${point.row}-${point.col}`} testId="capture-move-marker" point={point} flipped={props.flipped} />
-          : <img key={`${point.row}-${point.col}`} data-testid="move-marker" src={moveIndicatorDot} alt="" className={moveMarkerImageClass} style={location(point, props.flipped)} />)}
+          ? <CornerMarker key={`${point.row}-${point.col}`} testId="capture-move-marker" point={point} flipped={props.flipped} scale={scale} />
+          : <img key={`${point.row}-${point.col}`} data-testid="move-marker" src={moveIndicatorDot} alt="" className={moveMarkerImageClass} style={{ ...displayLocation(point, props.flipped, scale), width: Math.round(155 * scale), height: Math.round(155 * scale) }} />)}
       </div>
       {/* Render pieces at display resolution; scaling a shared raster layer softens every piece during animation. */}
       <div ref={piecesLayerRef} hidden={props.revealPieces === false} className="pointer-events-none absolute inset-0 isolate z-4" aria-hidden="true">
@@ -317,7 +321,7 @@ export const Board = memo(function Board(props: Props) {
         })}
       </div>
       <div className={`${layer} z-5`} style={layerStyle}>
-        {points.map(point => <button type="button" key={`${point.row}-${point.col}`} data-testid="board-hit" className={`absolute size-[100px] -translate-x-1/2 -translate-y-1/2 border-0 bg-transparent p-0 [-webkit-tap-highlight-color:transparent] disabled:opacity-100 focus-visible:rounded-full focus-visible:outline-4 focus-visible:-outline-offset-8 focus-visible:outline-[#ffe2a1] ${animation ? 'cursor-default' : 'cursor-pointer disabled:cursor-default'}`} style={location(point, props.flipped)}
+        {points.map(point => <button type="button" key={`${point.row}-${point.col}`} data-testid="board-hit" className={`absolute -translate-x-1/2 -translate-y-1/2 border-0 bg-transparent p-0 [-webkit-tap-highlight-color:transparent] disabled:opacity-100 focus-visible:rounded-full focus-visible:outline-4 focus-visible:-outline-offset-8 focus-visible:outline-[#ffe2a1] ${animation ? 'cursor-default' : 'cursor-pointer disabled:cursor-default'}`} style={{ ...displayLocation(point, props.flipped, scale), width: 100 * scale, height: 100 * scale, outlineWidth: 4 * scale, outlineOffset: -8 * scale }}
           aria-label={`Hàng ${point.row + 1}, cột ${point.col + 1}${board[point.row][point.col] ? `, ${board[point.row][point.col]!.name}` : ''}`}
           aria-pressed={selected?.row === point.row && selected.col === point.col} disabled={props.disabled} onClick={() => props.onSelect(point)} />)}
       </div>

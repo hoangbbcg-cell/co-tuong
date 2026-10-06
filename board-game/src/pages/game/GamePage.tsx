@@ -18,6 +18,7 @@ import { MatchActions } from '../../features/game/components/MatchActions'
 import { Chat } from '../../features/game/components/Chat'
 import { LobbyDialog } from '../../features/lobby/components/LobbyDialog'
 import { ProfileDialog } from '../../features/lobby/components/ProfileDialog'
+import { isExistingFriend } from '../../features/lobby/components/FriendsDialog'
 import { useProfileLayout } from '../../features/lobby/hooks/useProfileLayout'
 import { useSessionStore } from '../../store/sessionStore'
 import type { Side } from '../../types/game'
@@ -132,9 +133,9 @@ export function GamePage({ onEntranceComplete }: { onEntranceComplete?: () => vo
     <div data-testid="room-entrance" data-entering={entrance.entering} className="group/entrance flex h-dvh w-full items-center justify-center overflow-hidden bg-[#263a35] data-[entering=true]:bg-transparent">
     <main ref={screenshotRoot} data-screenshot-root="true" aria-label={game.variant === 'jieqi' ? 'Cờ Úp' : 'Cờ Tướng'} className="relative h-[calc(100dvh-12px)] w-[calc(100%-240px)] overflow-hidden border-[5px] border-[#80582c] text-center shadow-[inset_0_0_0_2px_#efd397,0_0_0_1px_#e1c993,0_8px_30px_#101d18aa] compact:w-[calc(100%-12px)]">
     <div ref={entrance.sceneRef} className={`${OPENING_MODE === 'clip' ? 'will-change-[clip-path]' : ''} relative isolate grid h-full w-full grid-rows-[0px_0px_minmax(0,1fr)_0px] bg-[#3b2516] px-6 py-1 compact:grid-rows-[48px_0px_minmax(0,1fr)_32px] compact:gap-[3px] compact:p-3`}>
-      <img src={gameBackground} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20 size-full scale-[1.16] object-cover object-center contrast-[1.08] saturate-[1.08]" />
+      <img src={gameBackground} alt="" aria-hidden="true" className="pointer-events-none absolute -inset-[8%] -z-20 h-[116%] w-[116%] max-w-none object-cover object-center contrast-[1.08] saturate-[1.08]" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-15" style={{ maskImage: layout.backgroundMask, maskComposite: 'add', opacity: layout.backgroundMask ? 1 : 0 }}>
-        <img src={gameBackground} alt="" className="absolute inset-0 size-full scale-[1.16] object-cover object-center contrast-[1.08] saturate-[1.08]" />
+        <img src={gameBackground} alt="" className="absolute -inset-[8%] h-[116%] w-[116%] max-w-none object-cover object-center contrast-[1.08] saturate-[1.08]" />
       </div>
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,#2110061f,transparent_35%,transparent_65%,#2110061f)]" />
       {game.variant === 'jieqi' && <span className="pointer-events-none absolute top-3 left-1/2 z-20 -translate-x-1/2 rounded border border-[#bd914e] bg-[#382717]/90 px-3 py-1 text-sm font-semibold text-[#f4d598]">Cờ Úp</span>}
@@ -203,7 +204,7 @@ export function GamePage({ onEntranceComplete }: { onEntranceComplete?: () => vo
       </div>
     </div>}
     <LobbyDialog lobby={lobby} />
-    <ProfileDialog layout={profileLayout} dialogRef={profileDialogRef} name={profileName} onClose={() => profileDialogRef.current?.close()} primaryActionLabel="Kết bạn" onPrimaryAction={() => {
+    <ProfileDialog layout={profileLayout} dialogRef={profileDialogRef} name={profileName} isOwnProfile={profileName === name} isFriend={isExistingFriend(profileName)} onClose={() => profileDialogRef.current?.close()} primaryActionLabel="Kết bạn" onPrimaryAction={() => {
       profileDialogRef.current?.close()
       setProfileNotice('Tính năng kết bạn sắp ra mắt.')
     }} />

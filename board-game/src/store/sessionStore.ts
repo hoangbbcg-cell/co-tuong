@@ -46,7 +46,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     const next = recoverEnergy(state.energy, state.energyRecoveryAt, now)
     return next.energy === state.energy && next.energyRecoveryAt === state.energyRecoveryAt ? state : next
   }),
-  gold: 100000,
+  gold: 10_000_000,
   consumeEnergy: () => set(state => {
     const now = Date.now()
     const recovered = recoverEnergy(state.energy, state.energyRecoveryAt, now)

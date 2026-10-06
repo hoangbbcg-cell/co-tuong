@@ -2,6 +2,8 @@
 
 Nguồn: `history-reference.png` (1470×1070), giữ lại nguyên bản làm ảnh đối chiếu.
 
+2026-10-05: Runtime MatchResultBadge nay dùng sprite PNG người dùng chỉ định 24f07314-e511-454e-9d58-2a50197a5a34.png (2172×724). Thắng lấy viewBox(126,177,935,361), Thua lấy(1115,191,936,353), gồm4px padding quanh vùng alpha>=8; giữ nguyên ảnh nguồn và tỉ lệ bằng preserveAspectRatio=xMidYMid meet. Các crop win/loss v2 trong bảng chỉ còn là ảnh đối chiếu. Ô hiển thị vẫn82.77551×39px; Thua giữ offset-2px/-2px.
+
 | Asset | Vùng nguồn (x, y, rộng, cao) | Xử lý |
 | --- | --- | --- |
 | `history-tab-played.png` | 410, 140, 315, 82 | Xóa nền giấy nối từ mép, trim sát nét cọ. |

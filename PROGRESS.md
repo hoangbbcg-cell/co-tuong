@@ -265,6 +265,76 @@ Cập nhật: 2026-10-01. Tóm tắt trạng thái từ tài liệu hiện có; 
 
 ## Phạm vi đang khóa
 
-- 2026-10-05: Người dùng cho phép thay đổi tiếp vị trí sao Home; chỉnh riêng starsYPx=-9→-7, giữ titleYPx=-2 và tọa độ mặc định của các consumer khác. Phạm vi offset sao Home đang mở; chỉ Home dùng placement=home.
+- 2026-10-05: Người dùng cho phép thay đổi sao và đồng bộ theo Home trên toàn project. Chuẩn chung: danh hiệu top84.876613px, sao top118.961945px theo anchor106px, offsetX3px, sao25cqw, gap1.5cqw. RankTitleBadge/RANK_TITLE_STARS_STYLE dùng chung ở Home/Hồ sơ/Tùy chỉnh/PlayerCard/Xếp hạng/Bạn bè; bỏ offset riêng Home. Tỷ lệ và hướng điền trái→phải tiếp tục theo quy tắc; thay vị trí phải đồng bộ các consumer, không tạo ngoại lệ màn hình.
 
-- 2026-10-05: Người dùng khóa vị trí vùng sao dưới danh hiệu sau khi dịch phải3px. Phạm vi: RANK_STAR_LAYOUT và AVATA_RANK_STARS_STYLE tại board-game/src/features/game/components/playerIdentityLayout.ts, cùng các consumer. Anchor106px; offsetX3px, bottomInset14px, clusterOffsetY-1px; sao25cqw, gap1.5cqw. Riêng Home có titleY-2px và starsY-6px đã được người dùng mở khóa/chốt lại. Không tự dịch/ghi đè tọa độ hoặc tỷ lệ; chỉ thay sau khi người dùng đồng ý mở khóa theo AGENTS.md. Chi tiết trong docs/PROJECT-MEMORY.md.
+- 2026-10-05: Sao neo dưới đáy khung thêm2px, giữ tỷ lệ25%/gap1.5%; nới các thẻ dùng chung đủ chỗ. Danh hiệu dùng Canvas làm nét tĩnh đúng kích thước cũ; chữ Thắng24px gọn trong nền, ô giữ nguyên. Quy tắc hiện hành ở PROJECT-MEMORY/RANK-SYSTEM/FRIENDS-UI-RULES. Build/typecheck PASS, dist cập nhật; QA các dialog chính và Home. Chi tiết tại board-game/PROGRESS.md.
+
+- 2026-10-05: Theo yêu cầu hoàn tác, phục hồi sao top118.961945px theo avatar106px (bottomInset14/clusterOffsetY-8), giữ tỷ lệ25%/gap1.5%/offsetX3. Khôi phục vùng chứa trước lần neo sao xuống đáy: Ranking138/132px, Friends85/84px, Profile190px, AvatarCustomization190/188/183px, PlayerCard margins78/54px và bỏ compact mb28. Giữ thay đổi làm nét Canvas và chữ Thắng vì người dùng chỉ yêu cầu hoàn tác vị trí sao. Cập nhật quy tắc hiện hành và STAR-04: không tự đổi chuẩn vị trí từ yêu cầu giữ tỷ lệ. Build/typecheck PASS; dist index-tWx-SYxJ.js xác nhận clusterOffsetYPx:-8, không còn titleGapPx:2. Chưa browser QA lượt hoàn tác.
+
+- 2026-10-05: Cải thiện nét danh hiệu nhỏ theo yêu cầu giữ nguyên kích thước: SharpRankArtwork bỏ chuỗi giảm đôi nhiều lần làm mềm chữ, dùng lấy mẫu2x rồi thu một lần về độ phân giải hiển thị; unsharp mask1.1 cho khung≤140px/0.65 cho khung lớn, threshold1.5 và bù nét giới hạn±28 để hạn chế viền sáng. Component chung áp dụng cả7 bậc và mọi consumer. Không sửa kích thước/khung/vị trí danh hiệu hoặc sao; giữ clusterOffsetY-8. Cập nhật PROJECT-MEMORY/RANK-SYSTEM. Build/typecheck PASS, dist index-CxeKkb9u.js cập nhật. Chưa browser QA trực quan lượt này; mức rõ tối đa vẫn phụ thuộc số pixel của chữ nhỏ.
+
+- 2026-10-05: Kiểm tra nguyên nhân mờ Xếp hạng trước sửa: parent transform matrix0.85 ở1280×720/matrix0.728205 ở960×600, không CSS zoom; danh hiệu105.188×42.063px và sao26.287/26.3px trước parent scale. Danh hiệu Canvas lại nằm trong parent scale. Nguồn rank2144×724/star1199×1219 đủ2×, avatarSVG; icon red-general60×62 thiếu2× ở43px. Đã báo nguyên nhân trước sửa. RankingDialog chuyển toàn bảng sang kích thước CSS cuối cùng/token pixel nguyên, bỏ parent scale và medal scale110; RankingRankBadge render ảnh gốc/img trực tiếp, object-contain, đọc cùng token tọa độ cũ. Không đổi asset hay các màn khác. Browser QA trước/sau1280×720 và960×600, cả2 tab; sau sửa root/ancestor ảnh transform none/scale none/zoom1, Canvas0. Ở1280: medal84×84, avatar65×65, title89×36, sao22×22; ở960: title77×31, sao19×19. Hàng117px so với117.3px trước ở1280,100px so với100.492px ở960; bề rộng hàng chênh vài pixel do làm tròn/viền, không đổi cấu trúc/cột. Ảnh trực tiếp tránh nội suy parent, chữ nhỏ vẫn giới hạn chi tiết theo số pixel. Đã reset viewport. Build/typecheck PASS; dist index-eS4U3gEw.js có token mới. Chưa đạt nguồn2× cho icon Điểm vì không được thay asset; đã báo giới hạn. Quy tắc cập nhật PROJECT-MEMORY/RANK-SYSTEM.
+
+- 2026-10-05: Theo yêu cầu lấy khoảng cách/kích thước sao Home áp dụng toàn project, tìm mọi consumer. Home/Hồ sơ/Tùy chỉnh/PlayerCard/Bạn bè đã dùng RankStars/RANK_TITLE_STARS_STYLE chung; RankingRankBadge còn tự làm tròn sao/gap/top nên lệch nhẹ. Bỏ phần tính/render sao riêng của Ranking, dùng cùng component/style Home. Giữ tọa độ chuẩn và khung/layout hiện hành; ảnh danh hiệu Ranking vẫn render trực tiếp, parent không scale. Ưu tiên tỷ lệ25%/gap1.5% của Home hơn làm tròn từng sao. Cập nhật PROJECT-MEMORY/RANK-SYSTEM. Build/typecheck PASS, dist index-CS5d2E5R.js cập nhật. Chưa browser QA lượt này.
+
+- 2026-10-05: Sửa rendering ảnh nhỏ toàn project theo nguyên nhân đã báo trước sửa: Home/Profile/Tùy chỉnh/Bạn bè/Lịch sử/ComputerSetup có parent transform scale; rank Canvas trung gian còn bị lấy mẫu lại; crop huy hiệu và marker layer có scale riêng. Không CSS zoom; nguồn rank/sao đủ2x, một số icon/frame Lịch sử không đủ. Thêm CrispUiImage/crispUiRendering để img native và CSS cuối cùng, pixel token nguyên; bỏ parent scale, SharpRankArtwork Canvas và GPU translateZ/backface ép buộc. Giữ contrast1.12 tĩnh, asset gốc, cấu trúc và tọa độ/tỷ lệ sao Home. FittedUiArtwork chuyển stretch huy hiệu đã duyệt sang kích thước ảnh thật, giữ crop/style; nền Game scale1.16 thành box116% tương đương. Board marker/hit layer dùng tọa độ/kích thước cuối cùng, không đổi luật/animation/quân. Đồng bộ SocialUi/RankStars/AvatarFrameOverlay/RankingRankBadge; History frame object-contain. Ghi docs/UI-IMAGE-RENDERING.md, cập nhật PROJECT-MEMORY/RANK-SYSTEM/FRIENDS-UI-RULES/HONOR-SYSTEM. Browser QA Home/Profile/Tùy chỉnh/Huy hiệu/Bạn bè/Lịch sử/ComputerSetup/Board tại1280x720 và/hoặc960x600; Xếp hạng cả2 tab ở960 và1280, title89x36 ở1280 với ancestors không scale, Canvas0. Huy hiệu arena213x82px, img chỉ translate tâm, giữ hình dáng; console error0 trong lượt đọc cuối. Đã reset viewport. Build/typecheck PASS; dist index-ZKCooTym.js. Làm tròn có sai khác dưới1px; sao/crop giữ tỷ lệ nên vẫn có kích thước phân số. Không thay ảnh nguồn nhỏ/không tuyên bố khôi phục chi tiết chữ dưới giới hạn pixel; chưa kiểm chứng nhấp nháy từng frame hoặc mọi thao tác chơi cờ.
+
+- 2026-10-05: Theo yêu cầu dịch sao xuống2px và đồng bộ mọi nơi, đổi RANK_STAR_LAYOUT.clusterOffsetYPx từ-8 thành-6; chuẩn sao top120.961945px theo avatar106px (tự co theo tỷ lệ). RankTitleBadge/RankingRankBadge đọc RANK_TITLE_STARS_STYLE chung, áp dụng Home/Hồ sơ/Tùy chỉnh/PlayerCard/Bạn bè/Xếp hạng. Giữ danh hiệu, size/gap/offsetX và rendering. Cập nhật PROJECT-MEMORY/RANK-SYSTEM/UI-IMAGE-RENDERING. Build/typecheck PASS; dist index-DtrYrnFo.js xác nhận clusterOffsetYPx:-6. Chưa browser QA lượt này.
+
+- 2026-10-05: Theo yêu cầu giữ Tân Binh và hạ sao ở6 danh hiệu còn lại1px, thêm getRankTitleStarsStyle(rankLevel) trong playerIdentityLayout; bậc1 trả style cũ, bậc2–7 chỉ top calc(+1px CSS). RankTitleBadge và RankingRankBadge dùng chung helper, đồng bộ mọi consumer. Không sửa vị trí/kích thước avatar, danh hiệu, thẻ hoặc UI khác; size/gap sao giữ nguyên. Cập nhật3 tài liệu quy tắc. Build/typecheck PASS; dist index-D0nu3fLi.js xác nhận +1px. Chưa browser QA lượt này.
+
+- 2026-10-05: Thu khung đỏ Gợi ý cho bạn trong tab Thêm bạn bằng khung Lời mời: bỏ inline height54 cố định, dùng friendSectionTitle cao50px thiết kế/token responsive. Hàng chứa54px giữ mốc điều khiển cùng Danh sách. Giữ asset/chiều rộng và các hàng bạn. Cập nhật FRIENDS-UI-RULES/PROJECT-MEMORY. Build/typecheck PASS; dist index-Dpi2lHR7.js cập nhật. Chưa browser QA lượt này.
+
+- 2026-10-05: Đồng bộ icon tìm kiếm Bạn bè Danh sách/Thêm bạn bằng SearchIcon chung31px/stroke3.5, giữ màu/bóng nền. Build/typecheck PASS, dist index-Bhk2LSwb.js.
+
+- 2026-10-05: Tăng chữ ô nhập tên ở Danh sách và Thêm bạn21→23px, giữ bố cục. Build/typecheck PASS; dist index-DzV7MuEB.js.
+
+- 2026-10-05: Sửa chiều cao nút Tìm Thêm bạn dùng cùng token responsive56px với ô nhập, bỏ inline pixel cố định. Build/typecheck PASS; dist index-CaRXOdxz.js.
+
+- 2026-10-05: Đã căn x ngang khung danh hiệu Lời mời trùng Danh sách theo quyền mở khóa rõ của người dùng; tất cả FriendRow dùng cột240px. Giữ nguyên kích thước khóa, cột action330px. QA trình duyệt ở1280x720 xác nhận anchor danh hiệu x=516.8px ở Danh sách/Lời mời và action bắt đầu x=713px; ảnh xác nhận các hàng/cột vẫn hiển thị. Build/typecheck PASS, dist index-DdbyJ0Cn.js.
+
+- 2026-10-05: Tăng chiều cao các hàng Bạn bè85→90px responsive, giữ track nội dung85px để avatar/danh hiệu/sao không đổi vị trí tương đối. Browser QA List at1280x720. Build/typecheck PASS, dist index-BImLFixZ.js.
+
+- 2026-10-05: Đồng bộ chiều cao nút Kết bạn, Chấp nhận/Từ chối và Hủy lời mời theo nút Mời chơi của Danh sách bằng token responsive60px; không đổi chiều rộng, icon hay vị trí. Build/typecheck PASS; browser QA tại1280x720: Kết bạn và Chấp nhận đều cao51px CSS sau scale responsive.
+
+
+- 2026-10-05: Căn giữa theo chiều dọc nội dung FriendRow trong hàng cao90px: giữ track85px, thêm căn giữa content của grid để phân bổ khoảng trống thừa đều trên/dưới. Kích thước, khoảng cách tương đối avatar/danh hiệu/sao và các nút không đổi; áp dụng chung mọi tab Bạn bè. Build/typecheck PASS, dist index-BIZNY3sd.js; browser QA Danh sách ở localhost: hàng55px màn hình, nội dung centerDelta=-0.4px do responsive scale.
+
+
+- 2026-10-05: Quy tắc mới: mọi avatar trong project hiển thị cursor-pointer. Đặt trực tiếp trong SocialAvatar, AvatarPortrait, avatar placeholder ở Chọn Bàn và avatar header Chơi với máy; Home/Hồ sơ/Xếp hạng/PlayerCard/Chat/RoomUsersPanel vốn ở trong vùng tương tác có cursor pointer. Không đổi geometry bị khóa. Build/typecheck PASS; dist index-DAWRtbaz.js.
+
+
+- 2026-10-05: Ẩn thanh cuộn trực quan trong danh sách Bạn bè/Lời mời bằng scrollbar-width:none và ::-webkit-scrollbar:hidden; vẫn giữ overflow-y-auto để cuộn dọc, overflow-x-hidden và scrollbar-gutter:stable để không đổi bề ngang nội dung. Build/typecheck PASS; Browser QA tab Lời mời: overflowY=auto, scrollbarWidth=none, scrollHeight220>clientHeight195 nên nội dung còn cuộn được; dist index-DeKVuXl5.js.
+
+
+- 2026-10-05: Người dùng cho phép mở khóa một lần; dịch nền nâu và nội dung danh hiệu/sao/tên bậc/nút sang trái50px thiết kế responsive bằng brownGroupPosition trong FriendRow. Khóa lại mốc mới. Browser QA Danh sách/Thêm bạn/Lời mời: offset thực30px theo viewport hiện tại, nền x258.3→228.3, rank281.3→251.3, action434.6→404.6; avatar/tên x55.8 và y/width/height giữ nguyên. Build/typecheck PASS; dist index-DhvXVJ9q.js.
+
+
+- 2026-10-05: Sửa hiểu nhầm yêu cầu: hoàn tác dịch trái cả cụm, chỉ kéo dài nền nâu50px thiết kế về bên trái (margin-left=-(38px+50px), responsive). Nội dung danh hiệu/sao/nút trở về mốc cũ và khóa lại. Không thay chiều cao/kích thước nội dung. Browser QA Danh sách/Lời mời: nền x228.3, width407.3 (+30px CSS tại viewport hiện tại), right635.6 giữ nguyên; rank x281.3 và action x434.6 phục hồi đúng mốc trước dịch. Build/typecheck PASS, dist index-BU_4_TfW.js. Bài học: phân biệt kéo dài nền với dịch toàn bộ nền và nội dung; quy tắc hiện hành đã cập nhật.
+
+
+- 2026-10-05: Theo yêu cầu tiếp nối, dịch riêng danh hiệu/sao/tên bậc/nút trong nền nâu sang trái50px thiết kế responsive qua brownContentPosition chung cho mọi FriendRow. Nền nâu giữ nguyên chiều dài đã nới, mép phải giữ nguyên. Dùng quyền cho phép trong cùng phạm vi và khóa lại vị trí mới. Browser QA cả3 tab: nền x228.3/right635.6/width407.3 giữ nguyên; rank281.3→251.3, action434.6→404.6 (30px CSS theo scale hiện tại); avatar/tên người chơi giữ x55.8. Build/typecheck PASS, dist index-C5E4-Sxm.js.
+
+
+- 2026-10-05: Căn nhóm nút của mọi tab Bạn bè sát mép phải nền nâu, chừa8px thiết kế responsive. Bỏ brownContentPosition ở cột thao tác, giữ offset50px của danh hiệu/sao và chiều dài nền. Browser QA cả3 tab: frameRight635.6, buttonRight630.6, gap5px CSS theo scale hiện tại; rankX251.3 giữ nguyên. Build/typecheck PASS; dist index-a-AO4_38.js.
+
+
+- 2026-10-05: Đổi placeholder tìm kiếm ở cả Danh sách và Thêm bạn thành “Nhập tên / ID người chơi...”. Chỉ cập nhật chữ gợi ý; logic lọc giữ nguyên. Kiểm tra source đủ2 input, build/typecheck PASS; dist index-BWJSBwp2.js. Chưa browser QA lượt này.
+
+
+- 2026-10-05: Dịch tên người chơi và trạng thái sang trái8px thiết kế responsive trong toàn bộ Bạn bè bằng giảm gap FriendIdentity từ36px xuống28px. FriendRow chung bao phủ Danh sách/Online/Facebook/Thêm bạn/Lời mời nhận và gửi. Avatar, danh hiệu/sao và các nút giữ tọa độ hiện hành. Build/typecheck PASS; dist index-DUIt7Cwp.js. Kiểm tra mã dùng chung; chưa browser QA lượt này.
+
+
+- 2026-10-05: Thêm nút Tìm vào tab Danh sách, dùng chung FriendSearchButton với Thêm bạn (cao56px/rộng tối thiểu170px responsive). Thu chiều rộng ô nhập để chừa nút, giữ mốc hàng tìm kiếm và khung danh sách. Danh sách vẫn lọc khi nhập; bấm Tìm/Enter trim query. Browser QA tìm “ LinhMeo ” trả LinhMeo99 và trim thành LinhMeo; cả2 tab ô nhập/nút cao34px màn hình, nút rộng104px, cùng top224.91 theo scale hiện tại. Đã xóa query kiểm tra. Build/typecheck PASS; dist index-CForDYMl.js.
+
+
+- 2026-10-05: Rút nhãn hiển thị nút lời mời đã gửi từ “Hủy lời mời” thành “Hủy”; aria-label giữ mô tả đầy đủ. Build/typecheck PASS; dist index-BtHLrFlg.js.
+- 2026-10-05: Người dùng chốt quy tắc khóa: kể cả khi làm task khác, nếu thay đổi chạm/cần sửa hoặc ảnh hưởng phụ đến vùng đã khóa thì dừng trước phần đó, báo đúng phạm vi và hỏi xác nhận mở khóa cho task hiện tại; phần độc lập vẫn được tiếp tục. Xác nhận chỉ áp dụng đúng phạm vi/task và sau đó khóa lại. Đã lưu trong AGENTS.md và docs/PROJECT-MEMORY.md.
+
+- 2026-10-05: Sửa lỗi danh hiệu sprite méo/cắt dư: metadata có imageHeight theo kích thước nguồn/crop và cả bốn consumer render chiều cao tường minh, giữ hình học ô hiện hành. Áp dụng Chuỗi Chiến Thắng/Tổng Ván Chơi/Online Chuyên Cần và chi tiết danh hiệu. Cập nhật bài học PROJECT-MEMORY và HONOR-SYSTEM. npm run build/typecheck PASS; dist index-CQ-oopQk.js. Browser QA cả ba nhóm và chi tiết Thống Trị: viền đầy đủ, không còn lộ khung khác; ảnh đối chiếu lưu trong outputs/danh-hieu-sau-sua.jpg của phiên.
+
+- 2026-10-05: Đồng bộ khoảng cách dọc các tab catalog Danh hiệu theo Tất cả trong HonorsFrame (ProfileDialog.tsx), chuẩn hóa rowGap theo số hàng thay vì 3% giống nhau ở mọi danh sách. Giữ hình học badge/crop và lưới ba cột. Build tạo dist index-ZtfX4uYY.js; browser QA: Tất cả và năm tab riêng cùng gap13.875px/cardHeight57.8125px tại viewport hiện tại. Lưu quy tắc trong PROJECT-MEMORY/HONOR-SYSTEM và ảnh outputs/danh-hieu-khoang-cach.jpg của phiên.
+
+- 2026-10-05: Căn ba khung tiêu đề Bạn bè theo vị trí Gợi ý cho bạn của Thêm bạn. FriendsDialog dùng friendSectionTitleStyle top=calc((--ui-p-54 - --ui-p-50)/2), Add bỏ căn giữa riêng để giữ tọa độ mẫu; hai khung Lời mời áp dụng cùng inset. Build/typecheck PASS, dist index-DyfCCasH.js. Browser QA: mẫu Add x54.2/y186.4125/w606/h30 giữ nguyên; Lời mời nhận y184.9125→186.4125, gửi y420.2→421.7; tọa độ tất cả hàng Add và Lời mời giữ nguyên. Ảnh đối chiếu khung-ban-be-can-vi-tri.jpg trong outputs của phiên.
+
+- 2026-10-05: Thay Thắng/Thua trong MatchResultBadge bằng hai vùng ảnh từ PNG24f07314-e511-454e-9d58-2a50197a5a34 của người dùng. Đặt nguồn vào src/assets/history, crop bằng viewBox giữ tỉ lệ/alpha/màu, ô và offset cũ. Cập nhật PROJECT-MEMORY/history-crops để thay quy tắc text cũ. Typecheck/build PASS, dist index-BtDRXcty.js. Browser QA Đã chơi14 badge/Đã lưu6 badge đều dùng nguồn mới; ô50×24px tại viewport hiện tại. Ảnh kết quả thang-thua-anh-moi.jpg trong outputs của phiên.

@@ -20,7 +20,7 @@ const gold = `${buttonInteraction} rounded-xl border border-[#be8741] bg-[linear
 const coin = `${homeUtilityButton} shrink-0`
 
 function Avatar({ empty = false, header = false }: { empty?: boolean; header?: boolean }) {
-  return <span className={`grid aspect-square ${header ? 'w-full' : 'w-[22%]'} max-w-14 shrink-0 place-items-center rounded-full border-2 ${empty ? 'border-dashed border-[#ab9776]/70' : 'border-[#e4d6bd] bg-[linear-gradient(#646b6d,#242b2e)] shadow-[0_3px_2px_#0009]'}`}>
+  return <span className={`grid aspect-square ${header ? 'w-full' : 'w-[22%]'} max-w-14 shrink-0 cursor-pointer place-items-center rounded-full border-2 ${empty ? 'border-dashed border-[#ab9776]/70' : 'border-[#e4d6bd] bg-[linear-gradient(#646b6d,#242b2e)] shadow-[0_3px_2px_#0009]'}`}>
     {!empty && <svg viewBox="0 0 40 40" className="w-full" aria-hidden="true"><path fill="#f1f1eb" d="M8 35q-2-7 8-10v-4q-4-3-4-9 0-9 8-9t8 9q0 6-4 9v4q10 3 8 10Z" /></svg>}
   </span>
 }

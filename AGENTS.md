@@ -2,14 +2,19 @@
 
 - Trước khi truy cập hoặc làm việc với mã nguồn project, bắt buộc đọc `AGENTS.md` và `AI WORK RULES.md`, rồi tuân thủ cả hai file.
 - Trước mỗi lần sửa project, bắt buộc đọc `board-game/docs/PROJECT-MEMORY.md` và tài liệu chuyên biệt của phần liên quan. Khi người dùng chốt/thay đổi quy tắc hoặc phát hiện lỗi, cập nhật ghi nhớ này theo hướng dẫn trong file; phân biệt quy tắc lâu dài với xem thử UI. Trước bàn giao, đối chiếu các quy tắc và lỗi cần tránh, ghi đúng kết quả kiểm chứng.
+- Quy tắc đồng bộ2026-10-05: Khi sửa một thành phần/quy tắc được dùng ở nhiều nơi, tìm mọi nơi sử dụng và cập nhật tương ứng trong cùng nhiệm vụ. Ưu tiên component/token dùng chung; không để các màn hình giữ bản cũ hoặc offset riêng. Giữ dữ liệu và kích thước theo ngữ cảnh, đồng bộ tỷ lệ/vị trí tương đối. Chỉ giữ ngoại lệ khi người dùng yêu cầu rõ; nếu có phạm vi khóa, đối chiếu quyền mở khóa đã được người dùng cho trong phiên trước khi hỏi lại.
 
 ## Phạm vi và ưu tiên
+
+- Phạm vi khóa theo yêu cầu người dùng2026-10-05, cập nhật2026-10-06: Kích thước/vị trí avatar người chơi và khung avatar vẫn khóa toàn project; không tự sửa các giá trị này. Theo yêu cầu mới, toàn bộ khung/ảnh danh hiệu và cụm sao đi kèm được mở khóa trên toàn project để thử nghiệm, kể cả trong phần danh hiệu của Lịch sử, Xếp hạng, Bạn bè và Hồ sơ; giữ mở đến khi người dùng yêu cầu khóa lại. Bố cục chung các màn Lịch sử/Xếp hạng/Bạn bè vẫn khóa. Danh sách tại board-game/PROGRESS.md.
+
+- Phạm vi khóa giao diện do người dùng chốt2026-10-06, cập nhật2026-10-06: Lịch sử, Xếp hạng và toàn bộ Bạn bè vẫn khóa theo UI hiện hành, ngoại trừ phần ảnh/khung danh hiệu và cụm sao đã được mở khóa riêng để thử nghiệm. Toàn bộ UI Danh hiệu/catalog, popup Thông tin danh hiệu và các phần hiển thị trong/ngoài thông tin user cũng đang mở khóa. Avatar người chơi và khung avatar vẫn khóa riêng. Nếu sửa khác có thể tác động đến bố cục còn khóa, phải báo phạm vi và xin mở khóa trước.
 
 - Mặc định dùng phạm vi nhỏ nhất: xác định mục tiêu và file liên quan, tìm hàm/event/type cụ thể rồi chỉ đọc chức năng cùng style/dependency trực tiếp. Không đọc toàn project hoặc module không liên quan; chỉ mở rộng khi thiếu bằng chứng và dừng tìm khi đủ để sửa đúng.
 
 - Áp dụng toàn project; ứng dụng nằm trong `board-game/`.
 
-- Khi người dùng đánh dấu một file, component, asset, khu vực UI hoặc hành vi cụ thể là “khóa”, giữ nguyên phạm vi đó trong các task sau. Nếu người dùng yêu cầu sửa trực tiếp phần đang khóa, chưa chỉnh ngay: nêu rõ phần đang khóa và hỏi họ có đồng ý mở khóa không. Chỉ sửa phần bị khóa sau khi họ xác nhận rõ việc mở khóa; yêu cầu sửa thông thường không tự mở khóa. Quy tắc này không yêu cầu xin duyệt thay đổi ở nơi khác chỉ vì thay đổi đó có thể ảnh hưởng đến phần đang khóa. Ghi chính xác các phạm vi đang khóa vào mục tương ứng trong `PROGRESS.md` và chỉ xóa khỏi danh sách sau khi người dùng đồng ý mở khóa.
+- Quy tắc phạm vi khóa do người dùng chốt 2026-10-05: Khi người dùng đánh dấu một file, component, asset, khu vực UI hoặc hành vi cụ thể là “khóa”, giữ nguyên phạm vi đó trong các task sau. Quy tắc áp dụng cả khi đang sửa việc khác: nếu thay đổi dự kiến trực tiếp chạm, cần sửa, hoặc có tác động phụ lên vùng khóa, phải dừng trước khi sửa vùng đó, thông báo chính xác phần nào sẽ bị ảnh hưởng và hỏi người dùng có cho phép mở khóa đúng phạm vi đó trong task hiện tại không. Có thể tiếp tục phần độc lập không chạm vùng khóa trong lúc chờ. Chỉ sửa vùng khóa sau khi người dùng xác nhận rõ; sau task khóa lại. Mỗi lần cho phép chỉ áp dụng cho phạm vi và task đã nêu, không phải quyền thường trực. Đọc/kiểm tra vùng khóa không đồng nghĩa được phép sửa. Ghi chính xác các phạm vi khóa vào `PROGRESS.md` và chỉ xóa khỏi danh sách sau khi người dùng đồng ý mở khóa.
 
 - Ưu tiên đúng chức năng, không phá tính năng cũ, dễ hiểu, tách trách nhiệm, test được, rồi mới tối ưu/làm đẹp.
 

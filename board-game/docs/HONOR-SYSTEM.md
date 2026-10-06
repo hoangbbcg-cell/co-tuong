@@ -2,6 +2,8 @@
 
 Tài liệu này là quy ước chuẩn cho tên nhóm, cấp khung, màu sắc, nội dung hiển thị và mã nội bộ của danh hiệu. Khung được chọn theo `group + frameLevel`; chữ trên khung là `titleText` độc lập, có thể thay đổi mà không cần tạo khung ảnh mới.
 
+- Thanh cuộn trực quan ở catalog và danh sách chú thích/cách nhận trong popup danh hiệu được ẩn; vùng có nội dung dài vẫn cuộn dọc bằng overflow-y-auto.
+
 ## 1. Vinh Quang Kỳ Đài
 
 - **Màu khung:** đỏ.
@@ -12,6 +14,7 @@ Tài liệu này là quy ước chuẩn cho tên nhóm, cấp khung, màu sắc,
   - `Vinh Quang Kỳ Đài 3` — cấp Xã.
 - **Chữ dùng chung cho cả ba cấp khung:** Quán Quân, Á Quân, Hạng Ba. Không có danh hiệu Top 4.
 - Mỗi cấp khung có đủ ba chữ trên, tổng cộng chín biến thể. Khác biệt giữa các cấp chỉ nằm ở asset khung.
+- Vị trí chữ trong phần **Thông tin danh hiệu** (2026-10-06): Vinh Quang Kỳ Đài 1 — Á Quân nâng1px; cấp2 — cả Quán Quân, Á Quân, Hạng Ba hạ2px; cấp3 — cả ba chữ nâng2px. Chỉ dịch lớp chữ trong popup thông tin; catalog và preview giữ vị trí cũ, asset khung và hình học badge không đổi.
 - **Ví dụ:** khung cấp 1 + “Quán Quân” là Quán Quân cấp Quốc gia; khung cấp 2 + “Á Quân” là Á Quân cấp Tỉnh; khung cấp 3 + “Hạng Ba” là Hạng Ba cấp Xã.
 - **Mã asset khung:** `vqkd_1`, `vqkd_2`, `vqkd_3`. **Mã từng danh hiệu:** `vqkd_{level}_{rank}`, ví dụ `vqkd_2_3` là Hạng Ba trên khung cấp 2.
 - **Chi tiết và cách nhận:**
@@ -29,6 +32,8 @@ Tài liệu này là quy ước chuẩn cho tên nhóm, cấp khung, màu sắc,
 | Xã | Hạng Ba | Hạng Ba cờ tướng cấp Xã. | Không thể tự mở khóa. Nhận được khi đạt Hạng Ba giải đấu cờ tướng cấp Xã. |
 
 ## 2. Danh Hiệu Phong Tặng
+
+- Vị trí chữ trong phần **Thông tin danh hiệu** (2026-10-06): Phong Tặng dùng offset cộng dồn so với vị trí chữ gốc: cấp1 +3px; cấp2 -1px; cấp3 0px; cấp4/5 -5px. Lượt chỉnh mới dịch thêm cấp3 xuống1px từ trạng thái trước. Chỉ dịch lớp chữ trong popup thông tin; catalog và preview giữ vị trí cũ, khung/asset và hình học badge không đổi.
 
 - **Màu khung:** tím.
 - **Ý nghĩa:** danh hiệu do cộng đồng phong tặng.
@@ -76,7 +81,7 @@ Tài liệu này là quy ước chuẩn cho tên nhóm, cấp khung, màu sắc,
 - **Màu khung:** xanh lam.
 - **Ý nghĩa:** số trận đã chơi, thể hiện kinh nghiệm và thời gian gắn bó.
 - **Cách tính:** chỉ tính ván cờ đã hoàn thành; không tính trường hợp vào bàn rồi thoát.
-- **Thứ tự ưu tiên hiển thị:** Lão Làng Kỳ Đàn → Kỳ Thủ Lâu Năm → Lão Luyện → Dày Dạn → Khởi Đầu.
+- **Thứ tự ưu tiên hiển thị:** Lão Làng Kỳ Đàn → Kỳ Thủ Lâu Năm → Lão Luyện → Dày Dặn → Khởi Đầu.
 - **Nội dung và cách nhận:**
 
 | Danh hiệu | Chú thích | Cách nhận |
@@ -84,7 +89,7 @@ Tài liệu này là quy ước chuẩn cho tên nhóm, cấp khung, màu sắc,
 | Lão Làng Kỳ Đàn | Danh hiệu cao nhất dành cho kỳ thủ đã trải qua vô số ván đấu trên kỳ đàn. | Hoàn thành 10.000 ván cờ. |
 | Kỳ Thủ Lâu Năm | Ghi nhận kỳ thủ có thời gian thi đấu lâu dài và giàu kinh nghiệm. | Hoàn thành 3.000 ván cờ. |
 | Lão Luyện | Ghi nhận kỳ thủ đã tích lũy nhiều kinh nghiệm qua những ván đấu. | Hoàn thành 1.000 ván cờ. |
-| Dày Dạn | Ghi nhận kỳ thủ đã trải qua nhiều trận đấu và tích lũy kinh nghiệm. | Hoàn thành 500 ván cờ. |
+| Dày Dặn | Ghi nhận kỳ thủ đã trải qua nhiều trận đấu và tích lũy kinh nghiệm. | Hoàn thành 500 ván cờ. |
 | Khởi Đầu | Dấu mốc đầu tiên trên hành trình tích lũy kinh nghiệm tại kỳ đàn. | Hoàn thành 100 ván cờ. |
 - **Mã nội bộ:** `tvc_1` đến `tvc_5`.
 
@@ -111,6 +116,9 @@ Tài liệu này là quy ước chuẩn cho tên nhóm, cấp khung, màu sắc,
 
 ## Quy tắc quản lý và hiển thị
 
+- Hồ sơ người khác2026-10-06: vùng danh hiệu mặc định được thay bằng6 nút3×2 (Xem thông tin, So tài, Thêm bạn/Xóa bạn; Nhắn tin, Theo dõi, Tặng quà). Các nút không icon, dùng Arial medium22px, nền #875026, bo góc4px thiết kế, viền nâu vàng dày3px #9c784e, không bóng/hover. Nhỏ hơn ô lưới28px ngang/60px dọc theo kích thước thiết kế. Xem thông tin mở lại preview danh hiệu; Quay lại trở về nhóm nút. Hồ sơ chính mình tiếp tục hiển thị danh hiệu mặc định.
+
+- Phân trang danh hiệu trong hồ sơ2026-10-06: mỗi trang tối đa9 danh hiệu (3×3). Mặc định mở trang đầu; đứng ở khung đầu1,5 giây rồi chạy đều tuyến tính đến mép cuối khung cuối trong tổng cộng6 giây. Dừng ở cuối0,5 giây rồi nhảy ngay về đầu và lặp lại chu kỳ8 giây, không animate trượt ngược. Giữ thứ tự nhóm/cấp và kích thước badge. Dừng khi hồ sơ/khung bị ẩn, đang mở chi tiết hoặc rê chuột trong khung; trang nằm hoàn toàn ngoài khung không nhận thao tác/focus. Với reduced motion, đổi trang bằng bước nhảy thay cho chuyển động liên tục.
 - Tên khung theo mẫu `[Tên nhóm] + [Số cấp]`, ví dụ `Vinh Quang Kỳ Đài 1` hoặc `Danh Hiệu Phong Tặng 5`.
 - Dữ liệu hiển thị tách riêng nhóm/cấp khung và nội dung chữ. Ví dụ: `{ group: 'vinh-quang-ky-dai', frameLevel: 1, titleText: 'Quán Quân' }` chọn khung đỏ cấp 1 và hiển thị chữ “Quán Quân”.
 - Thứ tự nhóm trong mục Tất cả: Vinh Quang Kỳ Đài → Danh Hiệu Phong Tặng → Chuỗi Chiến Thắng → Tổng Ván Chơi → Online Chuyên Cần.
@@ -134,3 +142,9 @@ Tài liệu này là quy ước chuẩn cho tên nhóm, cấp khung, màu sắc,
 - Source sprite: `src/assets/awarded-honors/6fc3cfba-04f1-4337-8430-8377074835f5.png` (1774x887). The top/simple frame is Tổng Ván Chơi 2; the ornate bottom frame is Tổng Ván Chơi 1.
 - Level 1 is `Lão Làng Kỳ Đàn`. Level 2 has `Kỳ Thủ Lâu Năm`, `Lão Luyện`, `Dày Dặn`, and `Khởi Đầu`. Show level 1 first in the all-honors list.
 - Render titles with the shared honor font and Chuỗi Chiến Thắng color treatment (`#5b2605` with `#fff0a8` shadow), centered in the shared 3:1 badge slot. Fill the slot width with the frame art; center the final two cards in the second row.
+
+Rendering2026-10-05: xem docs/UI-IMAGE-RENDERING.md. Crop scaleY và scale của khung chọn được chuyển sang kích thước/aspect-ratio tương đương; giữ vị trí, crop, nội dung và màu sắc.
+
+- Rendering sprite 2026-10-05: imageHeight phải bằng chiều cao sprite nguồn / chiều cao crop × 100%, cùng hệ tọa độ với imageTop; khai báo width/height trực tiếp và objectFit:fill chỉ để giữ độ giãn đã được duyệt. Không để height:auto khi ô crop có aspect-ratio đã điều chỉnh. Áp dụng cả danh sách danh hiệu và HonorDetailSprite.
+
+- 2026-10-05: Khoảng cách dọc trong catalog Danh hiệu của mọi tab lấy tab Tất cả làm chuẩn. gap-y phần trăm tính theo tổng chiều cao nội dung nên phải chuẩn hóa theo số hàng: gap = 3% × số hàng Tất cả / số hàng tab hiện tại. Giữ lưới ba cột và kích thước thẻ; không để nhóm ít danh hiệu có khoảng cách hàng nhỏ hơn.
