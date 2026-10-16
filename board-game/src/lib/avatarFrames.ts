@@ -1,7 +1,7 @@
-import goldFrame from '../assets/30dfa56b-d9f3-4129-b9fd-aaf0ea884188.png'
-import redFrame from '../assets/3830d50d-608d-4c7c-b4b8-90ab56e5d423.png'
-import greenFrame from '../assets/bfe1914e-68bf-4a53-bba9-394552e7a83a.png'
-import blueFrame from '../assets/c6e6ed73-8a09-4dc7-955b-27b0da3557b0.png'
+import goldFrame from '../assets/player/avatar-frames/gold-frame.png'
+import redFrame from '../assets/player/avatar-frames/red-frame.png'
+import greenFrame from '../assets/player/avatar-frames/green-frame.png'
+import blueFrame from '../assets/player/avatar-frames/blue-frame.png'
 
 export const AVATAR_FRAMES = [
   { image: goldFrame, label: 'Khung avatar vàng mặc định' },
@@ -13,3 +13,4 @@ export const AVATAR_FRAMES = [
 export function getAvatarFrame(index: number) {
   return AVATAR_FRAMES[index] ?? AVATAR_FRAMES[0]
 }
+

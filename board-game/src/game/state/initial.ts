@@ -1,4 +1,5 @@
 import type { Board, GameState, Piece, PieceType, Side } from '../../types/game'
+import { initialRepetition } from '../rules/repetition'
 
 export const ROWS = 10
 export const COLS = 9
@@ -21,8 +22,9 @@ export function createInitialBoard(): Board {
   }
   return board
 }
-export function createGame(now = 0, initialTime = INITIAL_TIME): GameState {
-  return { board: createInitialBoard(), currentTurn: 'red', phase: 'ready',
+export function createGame(now = 0, initialTime = INITIAL_TIME, turnTimeLimitMs = TURN_TIME_LIMIT_MS): GameState {
+  const board = createInitialBoard()
+  return { board, turnTimeLimitMs, repetition: initialRepetition(), currentTurn: 'red', phase: 'ready',
     remainingTime: { red: initialTime, black: initialTime }, lastClockUpdate: now,
     turnElapsed: 0, result: null, lastMove: null }
 }

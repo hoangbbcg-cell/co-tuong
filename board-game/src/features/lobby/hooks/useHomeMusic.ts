@@ -1,43 +1,79 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
+import firstTrack from '../../../assets/audio/et11lx-chinese-ancient-style-music-love-et11lx-155926.mp3'
+import secondTrack from '../../../assets/audio/et11lx-chinese-ancient-style-music-love-etlx-247345.mp3'
+import thirdTrack from '../../../assets/audio/chinesezenmusic-chinese-bamboo-flute-amp-guzheng-relaxing-zen-music-618302.mp3'
 
-// Original pentatonic ambient melody, synthesized locally without external audio.
-const melody = [261.63, 329.63, 392, 440, 392, 329.63, 293.66, 261.63, 196, 261.63, 293.66, 329.63, 392, 329.63, 293.66, 196]
+const tracks = [firstTrack, secondTrack, thirdTrack]
+let trackIndex = 0
+
+const listeners = new Set<() => void>()
+let enabled = true
+let audio: HTMLAudioElement | null = null
+let replayTimer: ReturnType<typeof setTimeout> | null = null
+
+function clearReplay() {
+  if (replayTimer !== null) clearTimeout(replayTimer)
+  replayTimer = null
+}
+
+function getAudio() {
+  if (!audio) {
+    audio = new Audio(tracks[trackIndex])
+    audio.preload = 'metadata'
+    audio.loop = false
+    audio.addEventListener('ended', scheduleNext)
+  }
+  return audio
+}
+
+function scheduleNext() {
+  clearReplay()
+  if (!enabled) return
+  replayTimer = setTimeout(() => {
+    replayTimer = null
+    if (!enabled || !audio) return
+    trackIndex = (trackIndex + 1) % tracks.length
+    audio.src = tracks[trackIndex]
+    audio.load()
+    void audio.play().catch(() => {})
+  }, 4000)
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  return () => { listeners.delete(listener) }
+}
+
+async function toggle() {
+  enabled = !enabled
+  clearReplay()
+  listeners.forEach(listener => listener())
+  if (!enabled) { audio?.pause(); return }
+  if (getAudio().ended) { scheduleNext(); return }
+  try { await getAudio().play() }
+  catch (error) {
+    enabled = false
+    listeners.forEach(listener => listener())
+    throw error
+  }
+}
+
+// One shared player keeps the track and sound controls in sync across screens.
 export function useHomeMusic() {
-  const [playing, setPlaying] = useState(false)
-  const audio = useRef<AudioContext | null>(null)
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null)
-  const stop = () => {
-    if (timer.current) clearInterval(timer.current)
-    timer.current = null
-    if (audio.current) void audio.current.close()
-    audio.current = null
-  }
-  useEffect(() => stop, [])
-  const toggle = async () => {
-    if (audio.current) { stop(); setPlaying(false); return }
-    const context = new AudioContext()
-    audio.current = context
-    try {
-      await context.resume()
-      if (audio.current !== context) return
-      let index = 0
-      const note = () => {
-        const oscillator = context.createOscillator()
-        const gain = context.createGain()
-        oscillator.type = 'sine'
-        oscillator.frequency.value = melody[index++ % melody.length]
-        gain.gain.setValueAtTime(0, context.currentTime)
-        gain.gain.linearRampToValueAtTime(0.08, context.currentTime + 0.015)
-        gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 1.7)
-        oscillator.connect(gain).connect(context.destination)
-        oscillator.start()
-        oscillator.stop(context.currentTime + 1.8)
-        oscillator.onended = () => { oscillator.disconnect(); gain.disconnect() }
+  const playing = useSyncExternalStore(subscribe, () => enabled)
+  useEffect(() => {
+    const resume = () => {
+      if (enabled && replayTimer === null && getAudio().paused && !getAudio().ended) {
+        void getAudio().play().catch(() => {})
       }
-      note()
-      timer.current = setInterval(note, 650)
-      setPlaying(true)
-    } catch (error) { stop(); setPlaying(false); throw error }
-  }
+    }
+    resume()
+    document.addEventListener('pointerdown', resume)
+    document.addEventListener('keydown', resume)
+    return () => {
+      document.removeEventListener('pointerdown', resume)
+      document.removeEventListener('keydown', resume)
+    }
+  }, [])
   return { playing, toggle }
 }

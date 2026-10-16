@@ -1,8 +1,9 @@
+import { getComputerAvatar } from '../../../lib/computerAvatar'
 import { memo } from 'react'
 import type { useChat } from '../hooks/useChat'
 import avatar from '../../../assets/icons/avatar.svg'
-import defaultAvatarFrame from '../../../assets/30dfa56b-d9f3-4129-b9fd-aaf0ea884188.png'
-import { AvatarFrameOverlay } from './AvatarFrameOverlay'
+import defaultAvatarFrame from '../../../assets/player/avatar-frames/gold-frame.png'
+import { AvatarFrameOverlay, AVATAR_FRAME_VISIBLE_SCALE } from './AvatarFrameOverlay'
 import { buttonInteraction } from '../../../lib/uiClasses'
 
 const suggestions = ['Chào bạn!', 'Nước đi hay!', 'Chúc bạn chơi vui!']
@@ -15,19 +16,19 @@ export const Chat = memo(function Chat({ chat, onAvatarClick }: { chat: ReturnTy
     if (chat.collapsed) chat.toggle()
     chat.togglePicker(picker)
   }
-  return <section ref={chat.containerRef} className={`relative flex w-[calc(100%-20px)] min-w-0 flex-col overflow-visible rounded-none border border-[#c39a52] bg-[#06181dcc] p-2 text-left shadow-[inset_0_0_0_1px_#e3bf704f,inset_0_0_24px_#0008] desktop:absolute desktop:-right-4 desktop:bottom-0 desktop:w-[calc(100%+16px)] compact:absolute compact:right-0 compact:bottom-2 compact:z-9 compact:w-[min(290px,calc(92%_-_10px))] ${chat.collapsed ? 'h-[92px] flex-none justify-end' : 'h-[318px] flex-none compact:h-[300px]'}`} aria-label="Trò chuyện">
+  return <section ref={chat.containerRef} className={`relative flex w-[calc(100%-20px)] min-w-0 flex-col overflow-visible rounded-none border border-[#c39a52] bg-[#06181dcc] p-2 text-left shadow-[inset_0_0_0_1px_#e3bf704f,inset_0_0_24px_#0008] desktop:absolute desktop:-right-4 desktop:bottom-0 desktop:w-[calc(100%+16px)] compact:absolute compact:right-0 compact:bottom-0 compact:z-9 compact:w-full compact:max-h-full ${chat.collapsed ? 'h-[92px] flex-none justify-end' : 'h-[318px] flex-none compact:h-[300px]'}`} aria-label="Trò chuyện">
     <div className="pointer-events-none absolute right-2 bottom-[52px] z-2">
       <button id="chatToggle" className={`${buttonInteraction} pointer-events-auto grid size-5 shrink-0 place-items-center border-0 bg-transparent p-0 text-[#35b9f4]`} aria-label={chat.collapsed ? 'Mở trò chuyện' : 'Thu gọn trò chuyện'} aria-expanded={!chat.collapsed} aria-controls="chatMessages" onClick={chat.toggle}>
         <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true"><path d={chat.collapsed ? 'M4 17 12 3 20 17Z' : 'M4 7 12 21 20 7Z'} fill="currentColor"/></svg>
       </button>
     </div>
-    <div id="chatMessages" hidden={chat.collapsed || visibleMessages.length === 0} className="relative z-1 mb-2 min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth motion-reduce:scroll-auto px-1 pt-[12px] pb-0.5 [scrollbar-width:thin]" role="log" aria-live="polite" aria-label="Tin nhắn" ref={chat.messagesRef}>
+    <div id="chatMessages" hidden={chat.collapsed || visibleMessages.length === 0} className="relative z-1 mb-2 min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth motion-reduce:scroll-auto px-1 pt-[12px] pb-0.5 [scrollbar-width:thin] [scrollbar-color:#3b82f680_transparent]" role="log" aria-live="polite" aria-label="Tin nhắn" ref={chat.messagesRef}>
       {visibleMessages.map(message => message.system
-        ? <p key={message.id} className="m-0 px-0.5 py-px text-[14px]/[1.4] text-white [overflow-wrap:anywhere] [&+*]:mt-[6px]">{message.text}</p>
-        : <article key={message.id} className="flex items-center gap-2 px-0.5 py-0.5 text-white [text-shadow:0_1px_2px_#00151c] [&+*]:mt-[6px]">
-          <button type="button" aria-label={`Xem hồ sơ ${message.name}`} onClick={() => onAvatarClick?.(message.name)} className="relative m-0 block size-8 flex-[0_0_32px] cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe2a1]"><img src={avatar} alt="" className="block size-full rounded-full border-0 object-cover" /><AvatarFrameOverlay src={defaultAvatarFrame} /></button>
+        ? <p key={message.id} className="m-0 px-0.5 py-px text-[14px]/[1.4] text-white [overflow-wrap:anywhere] [&+*]:mt-[12px]">{message.text}</p>
+        : <article key={message.id} className="flex items-center gap-2 px-0.5 py-0.5 text-white [text-shadow:0_1px_2px_#00151c] [&+*]:mt-[12px]">
+          <button type="button" aria-label={`Xem hồ sơ ${message.name}`} onClick={() => onAvatarClick?.(message.name)} className="relative m-0 block size-8 flex-[0_0_32px] cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe2a1]"><img src={getComputerAvatar(message.name) ?? avatar} alt="" className={getComputerAvatar(message.name) ? "block size-full border-0 object-contain" : "block size-full rounded-full border-0 object-cover"} style={getComputerAvatar(message.name) ? { transform: `scale(${AVATAR_FRAME_VISIBLE_SCALE})` } : undefined} />{!getComputerAvatar(message.name) && <AvatarFrameOverlay src={defaultAvatarFrame} />}</button>
           <div className="min-w-0 flex-1 text-[14px]/[1.4] [overflow-wrap:anywhere]">
-            <strong className="font-semibold text-[#f2d58e]">{message.name}: </strong>
+            <strong className="font-semibold text-[#f2d58e]">{getComputerAvatar(message.name) ? 'Ông Hoàng' : message.name}: </strong>
             <span>{message.text}</span>
           </div>
         </article>)}
@@ -68,3 +69,4 @@ export const Chat = memo(function Chat({ chat, onAvatarClick }: { chat: ReturnTy
     && before.messages === after.messages
     && before.mode === after.mode
 })
+

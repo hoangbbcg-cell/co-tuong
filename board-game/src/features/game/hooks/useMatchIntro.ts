@@ -2,7 +2,7 @@ import { MATCH_INTRO_MS } from '../../../game/moves/actions'
 import { useEffect, useRef, useState } from 'react'
 import type { GameState } from '../../../types/game'
 
-export function useMatchIntro(phase: GameState['phase'], roomKey: string) {
+export function useMatchIntro(phase: GameState['phase'], roomKey: string, enabled = true) {
   const [visible, setVisible] = useState(false)
   const previous = useRef({ phase, roomKey })
   const redRef = useRef<HTMLDivElement>(null)
@@ -13,13 +13,13 @@ export function useMatchIntro(phase: GameState['phase'], roomKey: string) {
   const rightBeamRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
-    const started = previous.current.phase === 'ready' && phase === 'playing' && previous.current.roomKey === roomKey
+    const started = enabled && phase === 'playing' && (previous.current.phase !== 'playing' || previous.current.roomKey !== roomKey)
     previous.current = { phase, roomKey }
     setVisible(started)
     if (!started) return
     const timer = window.setTimeout(() => setVisible(false), MATCH_INTRO_MS)
     return () => window.clearTimeout(timer)
-  }, [phase, roomKey])
+  }, [phase, roomKey, enabled])
 
   useEffect(() => {
     if (!visible || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return

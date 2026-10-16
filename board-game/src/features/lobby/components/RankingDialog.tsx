@@ -5,7 +5,10 @@ import xiangqiTab from '../../../assets/rankings/ranking-xiangqi-tab-user.png'
 import hiddenTab from '../../../assets/rankings/ranking-hidden-tab-user.png'
 import socialHeaderLandscape from '../../../assets/rankings/social-header-landscape.png'
 import historyParchmentBackground from '../../../assets/history/history-parchment-background.png'
-import { socialPanelClass, socialActionButton, socialActionStyle } from './SocialUi'
+import { SocialPlayerName, socialPresenceTextClass, socialPanelClass } from './SocialUi'
+import { RankingViewButton } from './RankingViewButton'
+import { useRankingWatch } from '../hooks/useRankingWatch'
+import { RoomPasswordDialog } from './RoomPasswordDialog'
 import rankPlainFrame from '../../../assets/rankings/rank-plain-frame.png'
 import rankNumberOne from '../../../assets/rankings/rank-gold-v2.png'
 import rankNumberTwo from '../../../assets/rankings/rank-silver-v2.png'
@@ -34,14 +37,15 @@ function PresenceDot({ online }: { online: boolean }) {
   </span>
 }
 
-export function RankingDialog({ dialogRef, layout, onClose, onView, onOpenProfile }: {
+export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
   dialogRef: RefObject<HTMLDialogElement | null>
   layout: ReturnType<typeof useRankingLayout>
   onClose: () => void
-  onView: (name: string) => void
   onOpenProfile: (name: string) => void
 }) {
   const [mode, setMode] = useState<Mode>('xiangqi')
+  const [previewNotice, setPreviewNotice] = useState('')
+  const watch = useRankingWatch(dialogRef, onClose, mode)
   const renderingStyle = {
     width: Math.round(layout.width * layout.scale), height: Math.round(layout.height * layout.scale),
     '--spacing': `${4 * layout.scale}px` ,
@@ -86,6 +90,7 @@ export function RankingDialog({ dialogRef, layout, onClose, onView, onOpenProfil
     '--ranking-76': `${Math.round(76 * layout.scale)}px` ,
     '--ranking-8': `${Math.round(8 * layout.scale)}px` ,
     '--ranking-84': `${Math.round(84 * layout.scale)}px` ,
+    '--ranking-player-name-size': 'calc(var(--ranking-84) * 0.26190476)',
     '--ranking-9': `${Math.round(9 * layout.scale)}px` ,
     '--ranking-90': `${Math.round(90 * layout.scale)}px` ,
     '--ranking-99': `${Math.round(99 * layout.scale)}px` ,
@@ -109,11 +114,11 @@ export function RankingDialog({ dialogRef, layout, onClose, onView, onOpenProfil
           {modes.map(item => <button key={item.key} type="button" role="tab" aria-selected={mode === item.key} onClick={() => setMode(item.key)} className={`${buttonInteraction} relative block h-[var(--ranking-70)] w-[var(--ranking-264)] shrink-0 isolate overflow-visible border-0 bg-transparent p-0 leading-none`}><img src={item.image} alt="" className={`pointer-events-none block h-full w-full object-contain transition-[filter] duration-200 motion-reduce:transition-none ${mode === item.key ? selectedImageTabGlow : ''}`} /><span className="sr-only">{item.label}</span></button>)}
         </div>
         <section aria-label={`Bảng xếp hạng ${mode === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}`} className={`${socialPanelClass} ranking-panel flex flex-col gap-[var(--ranking-6)]`} style={{ paddingInline: Math.round(20 * layout.scale), borderWidth: Math.round(3 * layout.scale), borderRadius: Math.round(14 * layout.scale), backgroundImage: `linear-gradient(#fff4dc52,#fff4dc52), url(${historyParchmentBackground})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
-          <div className="relative z-10 isolate grid h-[var(--ranking-38)] shrink-0 grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)] items-center gap-3 overflow-hidden rounded-[var(--ranking-9)] border border-[#c3a371] bg-[#b68c53]/30 px-3 font-['Times_New_Roman'] text-[length:var(--ranking-21)] font-bold italic text-[#43240f]">
+          <div className="relative z-10 isolate grid h-[var(--ranking-38)] shrink-0 grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)] items-center gap-3 overflow-hidden rounded-[var(--ranking-9)] border border-[#c3a371] bg-[#b68c53]/30 px-3 font-heading text-[length:var(--ranking-21)] font-extrabold italic text-[#43240f] [-webkit-text-stroke:0.35px_currentColor]">
             <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-0 w-[var(--ranking-125)] bg-[linear-gradient(90deg,#4b271326_0%,#75451d1b_54%,transparent_100%)] shadow-[inset_8px_0_12px_-10px_#24100635]" />
             <span className="relative z-10 text-center">Hạng</span><span className="pl-[var(--ranking-100)]">Người chơi</span><span className="text-center">Điểm</span><span className="text-center">Thao tác</span>
           </div>
-          <ol className="relative z-10 flex min-h-0 flex-1 flex-col gap-[var(--ranking-8)] overflow-x-hidden overflow-y-auto pr-2 [scrollbar-gutter:stable]">
+          <ol className="relative z-10 flex min-h-0 flex-1 flex-col gap-[var(--ranking-8)] overflow-x-hidden overflow-y-auto pr-2 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#ffffff_transparent] [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white [&::-webkit-scrollbar-thumb:hover]:bg-white [&::-webkit-scrollbar-corner]:bg-transparent [&::-webkit-scrollbar-button]:hidden">
             {players.map((player, index) => <li key={player.name} className="relative isolate grid h-[var(--ranking-138)] min-h-[var(--ranking-138)] shrink-0 grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)] items-center gap-3 overflow-hidden rounded-[var(--ranking-10)] border border-[#c5a16a]/55 bg-[linear-gradient(90deg,#ead0a0,#f0dcb3_48%,#e8cca0)] px-3 py-0 shadow-[inset_0_1px_0_#f8e6bd]">
               <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-0 w-[var(--ranking-132)] bg-[linear-gradient(90deg,#4a261327_0%,#75451d1a_55%,transparent_100%)] shadow-[inset_9px_0_14px_-11px_#24100635]" />
               <span className="relative z-10 grid size-[var(--ranking-90)] place-items-center self-center justify-self-center" aria-label={`Hạng ${index + 1}`}>
@@ -129,17 +134,19 @@ export function RankingDialog({ dialogRef, layout, onClose, onView, onOpenProfil
                   <RankingRankBadge elo={Number(player.elo)} scale={layout.scale} />
                   </span>
                 </span>
-                <div className="min-w-0"><h3 className="truncate font-arial text-[length:var(--ranking-22)] leading-6 font-bold text-[#251506]">{player.name}</h3><p className={`mt-2 flex items-center gap-3 font-arial text-[length:var(--ranking-19)] leading-5 font-medium ${player.online ? 'text-[#268523]' : 'text-[#5a5147]'}`}><PresenceDot online={player.online} /><span className="truncate">{index === 0 ? `Đang chơi ${mode === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}` : player.playing}</span></p></div>
+                <div className="min-w-0"><h3 className="flex h-6 items-center font-heading text-[length:var(--ranking-player-name-size)] leading-6 text-[#251506]"><SocialPlayerName name={player.name} /></h3><p className={`mt-2 flex items-center gap-3 ${socialPresenceTextClass} text-[length:var(--ranking-19)] leading-5 ${(watch.matchFor(player.name) || player.online) ? 'text-[#268523]' : 'text-[#5a5147]'}`}><PresenceDot online={!!watch.matchFor(player.name) || player.online} /><span className="truncate">{watch.matchFor(player.name) ? 'Đang chơi Cờ Tướng' : player.online ? 'Đang online' : 'Offline'}</span></p></div>
               </div>
               <div className="my-[var(--ranking-17)] flex h-[calc(100%_-_var(--ranking-34))] items-center justify-center rounded-[var(--ranking-9)] bg-[#b68c53]/20">
-                <span className="relative flex h-[var(--ranking-44)] w-[var(--ranking-122)] items-center justify-center font-arial text-[length:var(--ranking-22)] text-[#fff0d7]"><span aria-hidden="true" className="absolute inset-y-0 left-[var(--ranking-18)] right-0 rounded-r-lg border border-[#b4792d] bg-[linear-gradient(#673117,#2f1208)] shadow-[inset_0_0_0_1px_#9c5d23]" /><img src={redGeneral} alt={`Điểm ${mode === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}`} className="absolute -left-[var(--ranking-8)] z-10 size-[var(--ranking-50)] object-contain" /><span className="relative z-10 translate-x-[var(--ranking-15)]">{player.elo}</span></span>
+                <span className="relative flex h-[var(--ranking-44)] w-[var(--ranking-122)] items-center justify-center font-number text-[length:var(--ranking-22)] text-[#fff0d7]"><span aria-hidden="true" className="absolute inset-y-0 left-[var(--ranking-18)] right-0 rounded-r-lg border border-[#b4792d] bg-[linear-gradient(#673117,#2f1208)] shadow-[inset_0_0_0_1px_#9c5d23]" /><img src={redGeneral} alt={`Điểm ${mode === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}`} className="absolute -left-[var(--ranking-8)] z-10 size-[var(--ranking-50)] object-contain" /><span className="relative z-10 translate-x-[var(--ranking-15)]">{player.elo}</span></span>
               </div>
-              <button type="button" onClick={() => onView(player.name)} className={`${socialActionButton} group shadow-[0_2px_3px_#4a240d99] transition-[filter] duration-150 hover:brightness-110 motion-reduce:transition-none`} style={{ ...socialActionStyle, width: Math.round(173 * layout.scale), height: Math.round(52 * layout.scale), fontSize: Math.round(24 * layout.scale), paddingInline: Math.round(14 * layout.scale), gap: Math.round(9 * layout.scale), textShadow: '0 var(--ranking-1) 0 #f7d388' }} aria-label={`Vào xem ${player.name}`}>Vào xem <svg aria-hidden="true" viewBox="0 0 12 16" className="h-[var(--ranking-17)] w-[var(--ranking-12)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 3 5 5-5 5" /></svg></button>
+              {(index === 0 || watch.matchFor(player.name)) && <RankingViewButton name={player.name} scale={layout.scale} onView={watch.matchFor(player.name) ? watch.watch : () => setPreviewNotice('Nút mẫu để xem giao diện, chưa vào phòng.')} />}
             </li>)}
           </ol>
         </section>
       </div>
       {['top-0 left-0', 'top-0 right-0 -scale-x-100', 'bottom-0 left-0 -scale-y-100', 'bottom-0 right-0 -scale-x-100 -scale-y-100'].map(position => <svg key={position} aria-hidden="true" viewBox="0 0 90 90" className={`pointer-events-none absolute size-[var(--ranking-76)] ${position}`} fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M7 79V20Q7 7 21 7h58M16 66V26q0-10 12-10h37M14 47c40 7 6-48 38-34 14 7-5 25-13 21S44 6 62 9M21 74c-8-24 22-9 19-28" stroke="#64320f" strokeWidth="11"/><path d="M7 79V20Q7 7 21 7h58M16 66V26q0-10 12-10h37M14 47c40 7 6-48 38-34 14 7-5 25-13 21S44 6 62 9M21 74c-8-24 22-9 19-28" stroke="#d8a34e" strokeWidth="6"/><path d="M7 74V20Q7 7 21 7h52M16 42c26 4 10-30 27-29" stroke="#ffe1a0" strokeWidth="2"/></svg>)}
     </div>
+    {(watch.error || previewNotice) && !watch.passwordControls.passwordRoom && <p role={watch.error ? 'alert' : 'status'} onClick={() => setPreviewNotice('')} className="absolute bottom-3 left-1/2 z-30 max-w-[90%] -translate-x-1/2 rounded border border-[#c7a264] bg-[#f7e6c1] px-3 py-2 text-center text-[#43240f]">{watch.error || previewNotice}</p>}
+    <RoomPasswordDialog lobby={watch.passwordControls}/>
   </dialog>
 }

@@ -1,15 +1,17 @@
-﻿import { memo, useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from 'react'
-import type { Board as BoardState, Move, Piece, Position } from '../../../types/game'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from 'react'
+import type { Board as BoardState, Move, Piece, Position, Side } from '../../../types/game'
+import { findGeneral } from '../../../game/rules'
 import { buttonInteraction } from '../../../lib/uiClasses'
 import mapleBoard from '../../../assets/boards/banco-inner-clean-v1.png'
 import readyButton from '../../../assets/buttons/ready-button-ss-shadow-reference.png'
+import startMatchButton from '../../../assets/buttons/custom-position-start.png'
 import moveIndicatorDot from '../../../assets/icons/move-indicator-dot.png'
 import checkmateHitAnimation from '../../../assets/effects/checkmate-hit-0.2s.webp'
+import concealedBack from '../../../assets/pieces/concealed-back.png'
 import { PIECE_MOVE_DURATION_MS, getPieceMovePath } from '../moveAnimation'
-import { ChessPiece } from './ChessPiece'
+import { ChessPiece, pieceColorFilter } from './ChessPiece'
+import { BOARD_COLUMNS as columns, BOARD_ROWS as rows } from '../boardGeometry'
 
-const columns = [73, 195, 319, 442, 567, 691, 816, 940, 1061]
-const rows = [55, 198, 324, 450, 576, 707, 833, 959, 1085, 1216]
 const x = (col: number) => columns[col]
 const y = (row: number) => rows[row]
 const location = (point: Position, flipped = false) => ({ left: x(flipped ? 8 - point.col : point.col), top: y(flipped ? 9 - point.row : point.row) })
@@ -22,15 +24,16 @@ const layer = 'absolute top-0 left-0 h-[1296px] w-[1134px] origin-top-left'
 const pieceWidth = 108
 const pieceHeight = 112
 const pieceFlightHeight = 8
-const pieceLiftDurationMs = 500
 const pieceLiftRiseMs = 100
-const pieceLiftHoldMs = 300
+const pieceLiftHoldMs = 800
+const pieceLiftLandMs = 100
+const pieceLiftDurationMs = pieceLiftRiseMs + pieceLiftHoldMs + pieceLiftLandMs
 const CHECKMATE_HIT_DURATION_MS = 200
 const CHECKMATE_AUDIO_LEAD_MS = 100
 const pieceLiftSamples = [
-  { name: 'light', rise: 8, shadowScaleX: 1, shadowScaleY: 0.7, shadowBlur: 4, shadowOpacity: 0.25 },
-  { name: 'medium', rise: 12, shadowScaleX: 1.35, shadowScaleY: 1.18, shadowBlur: 6, shadowOpacity: 0.38 },
-  { name: 'strong', rise: 16, shadowScaleX: 1.5, shadowScaleY: 0.82, shadowBlur: 8, shadowOpacity: 0.34 },
+  { name: 'light', rise: 10, shadowScaleX: 1, shadowScaleY: 0.7, shadowBlur: 4, shadowOpacity: 0.25 },
+  { name: 'medium', rise: 14, shadowScaleX: 1.35, shadowScaleY: 1.18, shadowBlur: 6, shadowOpacity: 0.38 },
+  { name: 'strong', rise: 18, shadowScaleX: 1.5, shadowScaleY: 0.82, shadowBlur: 8, shadowOpacity: 0.34 },
 ] as const
 type PieceLiftVariant = typeof pieceLiftSamples[number]['name']
 const emptyPath: Array<{ left: number; top: number }> = []
@@ -126,8 +129,9 @@ function animatePieceLift(layer: HTMLDivElement | null, variant: PieceLiftVarian
 
     const sprite = piece.querySelector<HTMLImageElement>('img')
     if (sprite) {
-      const baseShadow = `drop-shadow(${9 * scale}px ${13 * scale}px ${4 * scale}px #6a4827c2)`
-      const liftedShadow = `drop-shadow(${2 * scale}px ${3 * scale}px ${2 * scale}px #6a4827b8)`
+      const colorFilter = (sprite.dataset.faceFilter || (sprite.dataset.pieceSide === 'black' ? pieceColorFilter('black') : '')) + ' '
+      const baseShadow = `${colorFilter}drop-shadow(${9 * scale}px ${13 * scale}px ${4 * scale}px #6a4827c2)`
+      const liftedShadow = `${colorFilter}drop-shadow(${2 * scale}px ${3 * scale}px ${2 * scale}px #6a4827b8)`
       animations.push(sprite.animate([
         { filter: baseShadow, offset: 0 },
         { filter: liftedShadow, offset: riseOffset, easing: liftEasing },
@@ -141,13 +145,14 @@ function animatePieceLift(layer: HTMLDivElement | null, variant: PieceLiftVarian
 }
 function PieceMotion({ pieceId, selected, moving, duration, scale, path, children }: { pieceId: string; selected: boolean; moving: boolean; duration: number; scale: number; path: Array<{ left: number; top: number }>; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
+  const previouslySelected = useRef(selected)
   useLayoutEffect(() => {
     if (!moving || !ref.current || path.length < 2 || typeof ref.current.animate !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const start = path[0]
     const destination = path[path.length - 1]
-    const dx = Math.round(destination.left * scale) - Math.round(start.left * scale)
-    const dy = Math.round(destination.top * scale) - Math.round(start.top * scale)
-    const selectedLift = Math.round(12 * scale)
+    const dx = Math.round((destination.left - pieceWidth / 2) * scale) - Math.round((start.left - pieceWidth / 2) * scale)
+    const dy = Math.round((destination.top - pieceHeight / 2) * scale) - Math.round((start.top - pieceHeight / 2) * scale)
+    const selectedLift = previouslySelected.current ? Math.round(12 * scale) : 0
     const lift = Math.round(pieceFlightHeight * scale)
     const keyframes: Keyframe[] = [
       { transform: `translate3d(0px, ${-selectedLift}px, 0px)`, offset: 0, easing: 'linear' },
@@ -158,6 +163,7 @@ function PieceMotion({ pieceId, selected, moving, duration, scale, path, childre
     const motion = ref.current.animate(keyframes, { duration, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)', fill: 'both' })
     return () => motion.cancel()
   }, [moving, duration, scale, path])
+  useLayoutEffect(() => { previouslySelected.current = selected }, [selected])
   return <div className={`relative size-full ${moving ? 'transition-none' : 'transition-transform duration-150 ease-out motion-reduce:transition-none'}`} style={{
     transform: selected && !moving ? `translate3d(0px, ${-Math.round(12 * scale)}px, 0px)` : undefined,
   }}>
@@ -187,7 +193,7 @@ const PieceView = memo(function PieceView({ piece, testId, left, top, visualRow,
   }}>
     <PieceMotion pieceId={piece.id} selected={selected} moving={moving} duration={duration} scale={scale} path={path}>
       {piece.concealed
-        ? <span data-testid="covered-piece" className="block size-full rounded-full bg-[radial-gradient(circle_at_35%_25%,#f5d7a4,#d8a363)] shadow-[inset_0_1px_3px_#fff0c977,inset_0_-1px_2px_#9b602b55]" />
+        ? <img data-testid="covered-piece" src={concealedBack} alt="" aria-hidden="true" draggable={false} className={`m-0 block size-full border-0 p-0 object-fill saturate-[0.84] ${moving ? 'drop-shadow-none' : 'drop-shadow-[0.5625em_0.8125em_0.25em_#6a4827c2]'}`} style={{ fontSize: 16 * scale }} />
         : <ChessPiece side={piece.side} type={piece.type} character={piece.name} scale={scale} moving={moving} />}
     </PieceMotion>
   </div>
@@ -200,15 +206,24 @@ function CornerMarker({ point, flipped = false, testId, scale }: { point: Positi
 interface Props {
   hiddenChess?: boolean
   revealPieces?: boolean
+  shadow?: boolean
   checkmateEffect?: boolean
+  checkSide?: Side | null
   flipped?: boolean
-  board: BoardState; selected: Position | null; legalMoves: Position[]; animation: Move | null; lastMove?: Move | null
+  hintMove?: Move | null
+  board: BoardState; selected: Position | null; legalMoves: Position[]; forbiddenMoves?: Position[]; animation: Move | null; lastMove?: Move | null
   frameWidth: number; scale: number; disabled: boolean; showStart: boolean; startDisabled: boolean
   startLabel: string; onSelect: (point: Position) => void; onStart: () => void
   onCheckmateEffectStart?: () => void
+  onRemove?: (point: Position) => void
+  readyCountdown?: number | null
 }
 export const Board = memo(function Board(props: Props) {
   const { board, selected, legalMoves, animation, scale } = props
+  const hintFrom = props.hintMove ? location(props.hintMove.from, props.flipped) : null
+  const hintTo = props.hintMove ? location(props.hintMove.to, props.flipped) : null
+  const hintLength = hintFrom && hintTo ? Math.hypot(hintTo.left - hintFrom.left, hintTo.top - hintFrom.top) : 0
+  const hintAngle = hintFrom && hintTo ? Math.atan2(hintTo.top - hintFrom.top, hintTo.left - hintFrom.left) * 180 / Math.PI : 0
   const piecesLayerRef = useRef<HTMLDivElement>(null)
   const boardRef = useRef<HTMLDivElement>(null)
   const checkmateHitCancelRef = useRef<(() => void) | null>(null)
@@ -221,6 +236,7 @@ export const Board = memo(function Board(props: Props) {
   const checkmateLiftRef = useRef<{ key: string; status: 'scheduled' | 'started'; cancel?: () => void } | null>(null)
   useEffect(() => () => checkmateHitCancelRef.current?.(), [])
   const layerStyle = { width: props.frameWidth, height: props.frameWidth * 1296 / 1134 }
+  const checkedGeneral = props.checkSide ? findGeneral(props.checkSide, board) : null
   const path = useMemo(() => animation ? getPieceMovePath(animation).map(point => location(point, props.flipped)) : [], [animation, props.flipped])
   const duration = PIECE_MOVE_DURATION_MS
   const effectPieceId = props.checkmateEffect && props.lastMove
@@ -286,12 +302,18 @@ export const Board = memo(function Board(props: Props) {
   }, [effectMoveKey, effectPieceId, props.checkmateEffect, props.revealPieces])
   const frameEdgeSize = frameEdgeExtension * scale
   const outerFrameWidth = props.frameWidth + frameEdgeSize * 2
-  return <div data-testid="board-frame" className="relative col-start-2 row-start-1 max-w-full self-center justify-self-center overflow-visible rounded-[14px] bg-center bg-no-repeat shadow-[0_4px_12px_#170d0766] compact:col-span-full compact:row-start-2" style={{ width: outerFrameWidth, paddingBlock: frameEdgeSize, backgroundImage: `url(${mapleBoard})`, backgroundSize: '100% 100%' }}>
-    <div ref={boardRef} id="board" className="relative mx-auto aspect-[1134/1296] touch-manipulation overflow-visible rounded-[0.5%] bg-[length:100%_100%] bg-center shadow-[0_7px_12px_#24120580] select-none" style={{ width: props.frameWidth, backgroundImage: `url(${mapleBoard})` }} aria-label={props.hiddenChess ? 'Bàn cờ úp' : 'Bàn cờ tướng'}>
+  return <div data-testid="board-frame" className="relative col-start-2 row-start-1 max-w-full self-center justify-self-center overflow-visible rounded-[14px] bg-center bg-no-repeat shadow-[0_4px_12px_#170d0766] compact:col-span-full compact:row-start-2" style={{ boxShadow: props.shadow === false ? 'none' : undefined, width: outerFrameWidth, paddingBlock: frameEdgeSize, backgroundImage: `url(${mapleBoard})`, backgroundSize: '100% 100%' }}>
+    <div ref={boardRef} id="board" className="relative mx-auto aspect-[1134/1296] touch-manipulation overflow-visible rounded-[0.5%] bg-[length:100%_100%] bg-center shadow-[0_7px_12px_#24120580] select-none" style={{ boxShadow: props.shadow === false ? 'none' : undefined, width: props.frameWidth, backgroundImage: `url(${mapleBoard})` }} aria-label={props.hiddenChess ? 'Bàn cờ úp' : 'Bàn cờ tướng'}>
+      {hintFrom && hintTo && <svg data-testid="pikafish-hint-arrow" aria-hidden="true" viewBox="0 0 1134 1296" className="pointer-events-none absolute inset-0 z-10 size-full overflow-visible" style={{ pointerEvents: 'none' }}>
+        <g transform={`translate(${hintFrom.left} ${hintFrom.top}) rotate(${hintAngle})`} fill="#23854b" opacity="0.82">
+          <path d={`M0 -11 H${hintLength - 42} V-30 L${hintLength} 0 L${hintLength - 42} 30 V11 H0 Z`} />
+        </g>
+      </svg>}
       <div className={`${layer} pointer-events-none`} style={layerStyle} aria-hidden="true">
         <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 font-georgia leading-none font-bold whitespace-nowrap text-[#936332] italic" style={{ top: 641.5 * scale, fontSize: Math.round(48 * scale) }}>HOANGBBCG</span>
       </div>
       <div hidden={props.revealPieces === false} className={`${layer} pointer-events-none z-3`} style={layerStyle} aria-hidden="true">
+        {checkedGeneral && <div data-testid="checked-general-ring" className={lastMovePieceRing} style={{ ...displayLocation(checkedGeneral, props.flipped, scale), width: Math.round(122 * scale), height: Math.round(122 * scale), borderWidth: Math.round(5 * scale) }} />}
         {props.lastMove && !animation && !selected && <>
           <img data-testid="last-move-origin" src={moveIndicatorDot} alt="" className={moveMarkerImageClass} style={{ ...displayLocation(props.lastMove.from, props.flipped, scale), width: Math.round(155 * scale), height: Math.round(155 * scale) }} />
           <div data-testid="last-move-destination" className={lastMovePieceRing} style={{ ...displayLocation(props.lastMove.to, props.flipped, scale), width: Math.round(122 * scale), height: Math.round(122 * scale), borderWidth: Math.round(5 * scale) }} />
@@ -320,13 +342,19 @@ export const Board = memo(function Board(props: Props) {
           return <PieceView key={piece.id} piece={piece} testId={`piece-${point.row}-${point.col}`} left={position.left} top={position.top} visualRow={visualRow} selected={selectedPiece} moving={moving} duration={duration} scale={scale} path={movingPath} />
         })}
       </div>
-      <div className={`${layer} z-5`} style={layerStyle}>
-        {points.map(point => <button type="button" key={`${point.row}-${point.col}`} data-testid="board-hit" className={`absolute -translate-x-1/2 -translate-y-1/2 border-0 bg-transparent p-0 [-webkit-tap-highlight-color:transparent] disabled:opacity-100 focus-visible:rounded-full focus-visible:outline-4 focus-visible:-outline-offset-8 focus-visible:outline-[#ffe2a1] ${animation ? 'cursor-default' : 'cursor-pointer disabled:cursor-default'}`} style={{ ...displayLocation(point, props.flipped, scale), width: 100 * scale, height: 100 * scale, outlineWidth: 4 * scale, outlineOffset: -8 * scale }}
-          aria-label={`Hàng ${point.row + 1}, cột ${point.col + 1}${board[point.row][point.col] ? `, ${board[point.row][point.col]!.name}` : ''}`}
-          aria-pressed={selected?.row === point.row && selected.col === point.col} disabled={props.disabled} onClick={() => props.onSelect(point)} />)}
+      <div hidden={props.revealPieces === false} className={`${layer} pointer-events-none z-5`} style={layerStyle} aria-hidden="true">
+        {props.forbiddenMoves?.map(point => <span key={`${point.row}-${point.col}`} data-testid="repetition-forbidden-marker" className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#ef3030] shadow-[0_0_5px_#ef303066]" style={{ ...displayLocation(point, props.flipped, scale), width: Math.round(45 * scale), height: Math.round(45 * scale) }} />)}
       </div>
-      {props.showStart && (props.startLabel === 'Sẵn sàng'
-        ? <button id="startButton" aria-label={props.startLabel} className={`${buttonInteraction} absolute top-1/2 left-1/2 z-6 m-0 h-fit w-fit -translate-x-1/2 -translate-y-1/2 border-0 bg-transparent p-0 leading-none shadow-none disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#ffe290]`} disabled={props.startDisabled} onClick={props.onStart}><img src={readyButton} alt="" className="m-0 block h-auto w-[170px] border-0 p-0 compact:w-[135px]" /></button>
+      <div className={`${layer} z-5`} style={layerStyle}>
+        {points.map(point => <button type="button" key={`${point.row}-${point.col}`} data-testid="board-hit" data-row={point.row} data-col={point.col} className={`absolute -translate-x-1/2 -translate-y-1/2 border-0 bg-transparent p-0 [-webkit-tap-highlight-color:transparent] disabled:opacity-100 focus-visible:rounded-full focus-visible:outline-4 focus-visible:-outline-offset-8 focus-visible:outline-[#ffe2a1] ${animation ? 'cursor-default' : 'cursor-pointer disabled:cursor-default'}`} style={{ ...displayLocation(point, props.flipped, scale), width: 100 * scale, height: 100 * scale, outlineWidth: 4 * scale, outlineOffset: -8 * scale }}
+          aria-label={`Hàng ${point.row + 1}, cột ${point.col + 1}${board[point.row][point.col] ? `, ${board[point.row][point.col]!.name}` : ''}`}
+          aria-pressed={selected?.row === point.row && selected.col === point.col} disabled={props.disabled} onClick={() => props.onSelect(point)} onContextMenu={props.onRemove ? event => { event.preventDefault(); props.onRemove?.(point) } : undefined} />)}
+      </div>
+      {props.showStart && props.readyCountdown != null && <output aria-label="Đếm ngược bắt đầu ván" className="pointer-events-none absolute left-1/2 z-6 -translate-x-1/2 -translate-y-full font-number leading-none text-black" style={{ top: `calc(50% - ${65 * scale}px)`, fontSize: 72 * scale }}>{props.readyCountdown}</output>}
+      {props.showStart && (props.startLabel === 'Đấu ngay' || props.startLabel === 'Đang chuẩn bị…'
+        ? <button type="button" aria-label={props.startLabel} disabled={props.startDisabled} onClick={props.onStart} className={`${buttonInteraction} absolute top-1/2 left-1/2 z-6 m-0 h-fit w-fit -translate-x-1/2 -translate-y-1/2 border-0 bg-transparent p-0 leading-none disabled:opacity-60`}><img src={startMatchButton} alt="" className="m-0 block h-auto w-[170px] border-0 p-0 compact:w-[135px]" /></button>
+        : props.startLabel === 'Sẵn sàng'
+        ? <button id="startButton" aria-label={props.startLabel} className={`cursor-pointer disabled:cursor-default absolute top-1/2 left-1/2 z-6 m-0 h-fit w-fit -translate-x-1/2 -translate-y-1/2 border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#ffe290]`} disabled={props.startDisabled} onClick={props.onStart}><img src={readyButton} alt="" className="m-0 block h-auto w-[170px] border-0 p-0 compact:w-[135px]" /></button>
         : <button id="startButton" className={`${buttonInteraction} absolute top-1/2 left-1/2 z-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#dfbd79] bg-[linear-gradient(#e7c68e,#ac713a)] px-[18px] py-1.5 font-georgia text-lg font-bold whitespace-nowrap text-[#352112] italic shadow-[inset_0_0_0_2px_#8f5e32,0_3px_4px_#301c1599] focus-visible:outline-offset-3 compact:px-3 compact:py-1 compact:text-sm`} disabled={props.startDisabled} onClick={props.onStart}>{props.startLabel}</button>)}
     </div>
   </div>

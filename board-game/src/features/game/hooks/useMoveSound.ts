@@ -14,7 +14,7 @@ function moveSignature(move: Move | null) {
   return move && `${move.from.row},${move.from.col}-${move.to.row},${move.to.col}`
 }
 
-export function useMoveSound(move: Move | null, board: Board, moveCount: number, phase: GameState['phase'], result: GameState['result'] = null) {
+export function useMoveSound(move: Move | null, board: Board, moveCount: number, phase: GameState['phase'], result: GameState['result'] = null, clockWarningKey: string | null = null, moveOnlyCue = false) {
   const previous = useRef({ move: moveSignature(move), board, moveCount, phase })
   const soundsRef = useRef<GameSounds | null>(null)
   const introRequested = useRef(false)
@@ -68,6 +68,10 @@ export function useMoveSound(move: Move | null, board: Board, moveCount: number,
     // Clock/socket updates must not replay a cue; a new ply is not identified by coordinates alone.
     if (!current || board === before.board || moveCount === before.moveCount && current === before.move) return
     stopMatchIntro()
+    if (moveOnlyCue) {
+      soundsRef.current?.play('move')
+      return
+    }
     if (result?.reason === 'checkmate') {
       const checkmateKey = `${moveCount}:${current}`
       if (checkmatePlayedFor.current !== checkmateKey) {
@@ -82,7 +86,14 @@ export function useMoveSound(move: Move | null, board: Board, moveCount: number,
     const gaveCheck = !!movedPiece && capturedPiece?.type !== 'general' && isInCheck(opposite(movedPiece.side), board)
     soundsRef.current?.play(captured && gaveCheck ? 'check' : captured ? 'capture' : 'move')
     if (gaveCheck && !captured) soundsRef.current?.play('check')
-  }, [board, move, moveCount, phase, playMatchIntro, result?.reason, stopMatchIntro])
+  }, [board, move, moveCount, phase, playMatchIntro, moveOnlyCue, result?.reason, stopMatchIntro])
+
+  useEffect(() => {
+    const sounds = soundsRef.current
+    if (clockWarningKey) sounds?.startClockWarning()
+    else sounds?.stopClockWarning()
+    return () => sounds?.stopClockWarning()
+  }, [clockWarningKey])
 
   return { playMatchIntro, stopMatchIntro }
 }

@@ -3,7 +3,7 @@ import { useSessionStore } from '../../../store/sessionStore'
 import { roomSocket } from '../../../services/socket'
 import { errorMessage } from '../../../services/api'
 
-export function useChat() {
+export function useChat(enabled = true) {
   const session = useSessionStore()
   const [input, setInput] = useState('')
   const [picker, setPicker] = useState<'emoji' | 'quick' | null>(null)
@@ -14,6 +14,7 @@ export function useChat() {
   const inputRef = useRef<HTMLInputElement>(null)
   const messages = session.mode === 'online' ? session.room?.messages ?? [] : session.messages
   useEffect(() => {
+    if (!enabled) return
     const el = messagesRef.current
     if (!el) return
     const frame = window.requestAnimationFrame(() => {
@@ -21,15 +22,17 @@ export function useChat() {
       el.scrollTo({ top: el.scrollHeight, behavior })
     })
     return () => window.cancelAnimationFrame(frame)
-  }, [messages, collapsed])
+  }, [enabled, messages, collapsed])
   useEffect(() => {
+    if (!enabled) return
     const outside = (event: MouseEvent) => { if (!containerRef.current?.contains(event.target as Node)) setPicker(null) }
     const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') setPicker(null) }
     document.addEventListener('click', outside)
     document.addEventListener('keydown', escape)
     return () => { document.removeEventListener('click', outside); document.removeEventListener('keydown', escape) }
-  }, [])
+  }, [enabled])
   const send = async (text = input) => {
+    if (!enabled) return
     if (!text.trim() || text.length > 300 || sending) return
     setSending(true)
     try {

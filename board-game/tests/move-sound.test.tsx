@@ -14,6 +14,8 @@ vi.mock('../src/features/game/audio/GameSounds', () => ({ GameSounds: class {
   stopIntro = audio.stopIntro
   stopAll = audio.stopAll
   dispose = audio.dispose
+  startClockWarning() {}
+  stopClockWarning() {}
 } }))
 afterEach(() => { cleanup(); vi.clearAllMocks() })
 

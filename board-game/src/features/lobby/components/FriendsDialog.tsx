@@ -1,11 +1,12 @@
 import { CrispUiImage } from '../../../lib/CrispUiImage'
+
 import { getCrispUiLayout } from '../../../lib/crispUiRendering'
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import type { useFriendsLayout } from '../hooks/useFriendsLayout'
 import friendsTitle from '../../../assets/friends/friends-banner.png'
 import historyParchmentBackground from '../../../assets/history/history-parchment-background.png'
 import inviteButtonImage from '../../../assets/friends/friend-invite-button.png'
-import { SocialAvatar, socialActionButton as baseFriendActionButton, socialActionStyle as friendActionFrame, socialPanelClass } from './SocialUi'
+import { SocialPlayerName, socialPresenceTextClass, SocialAvatar, socialActionButton as baseFriendActionButton, socialActionStyle as friendActionFrame, socialPanelClass } from './SocialUi'
 import secondaryActionButtonFrame from '../../../assets/friends/friend-secondary-action-button-frame.png'
 import friendAddIcon from '../../../assets/friends/friend-add-icon.png'
 import friendSectionTitleFrame from '../../../assets/friends/friend-section-title-frame-tight.png'
@@ -17,6 +18,8 @@ import addTabInactive from '../../../assets/friends/friends-tab-add-inactive.png
 import invitesTabInactive from '../../../assets/friends/friends-tab-invites-inactive.png'
 import { buttonInteraction, selectedImageTabGlow } from '../../../lib/uiClasses'
 import { getRankProgress } from '../../../lib/rankProgression'
+import { useFriendChallenge } from '../hooks/useFriendChallenge'
+import { useSessionStore } from '../../../store/sessionStore'
 
 import { RankTitleBadge } from '../../game/components/RankTitleBadge'
 
@@ -38,7 +41,8 @@ const friends: Friend[] = [
 ]
 
 export function isExistingFriend(name: string): boolean {
-  return friends.some(friend => friend.name === name)
+  const override = useSessionStore.getState().friendshipOverrides[name]
+  return override ?? friends.some(friend => friend.name === name)
 }
 
 const suggestions: Friend[] = [
@@ -49,6 +53,24 @@ const suggestions: Friend[] = [
   { name: 'NgocThao07', presence: 'online', elo: 3200, piece: '炮', avatar: defaultAvatar },
   { name: 'DuyKien', presence: 'online', elo: 2500, piece: '帥', avatar: defaultAvatar },
 ]
+
+export function hasInitialIncomingFriendRequest(name: string): boolean {
+  return incoming.some(friend => friend.name === name)
+}
+
+export type MessageFriendContact = { name: string; image: string; status: Presence }
+
+export function getMessageFriendContacts(extraContacts: MessageFriendContact[] = []): MessageFriendContact[] {
+  const overrides = useSessionStore.getState().friendshipOverrides
+  const knownFriends = [...friends, ...suggestions, ...incoming].filter(friend => overrides[friend.name] ?? friends.includes(friend))
+  const contacts = new Map(knownFriends.map(friend => [friend.name, { name: friend.name, image: friend.avatar, status: friend.presence }]))
+
+  for (const contact of extraContacts) {
+    if (overrides[contact.name] === true && !contacts.has(contact.name)) contacts.set(contact.name, contact)
+  }
+
+  return [...contacts.values()].sort((left, right) => Number(right.status === 'online') - Number(left.status === 'online'))
+}
 
 const incoming: Friend[] = [
   { name: 'ThanhMai92', presence: 'online', elo: 2500, piece: '帥', avatar: defaultAvatar },
@@ -104,7 +126,7 @@ function FriendSearchButton() {
 
 function PresenceLabel({ presence, facebook }: { presence: Presence; facebook?: boolean }) {
   const isOnline = presence === 'online'
-  return <div className={`m-0 inline-flex h-[var(--ui-p-21,21px)] w-max flex-row flex-nowrap items-center gap-[var(--ui-p-6,6px)] whitespace-nowrap text-[length:var(--ui-p-19,19px)] leading-5 font-medium ${isOnline ? 'text-[#268523]' : 'text-[#5a5147]'}`}>
+  return <div className={`m-0 inline-flex h-[var(--ui-p-21,21px)] w-max flex-row flex-nowrap items-center gap-[var(--ui-p-6,6px)] whitespace-nowrap ${socialPresenceTextClass} text-[length:var(--ui-p-19,19px)] leading-5 ${isOnline ? 'text-[#268523]' : 'text-[#5a5147]'}`}>
     <span aria-hidden="true" className={`mr-[var(--ui-p-6,6px)] block size-[var(--ui-p-21,21px)] shrink-0 rounded-full border border-[#72512a] shadow-[0_1px_2px_#49301888] ${isOnline ? 'bg-[radial-gradient(circle_at_33%_25%,#b9ff75,#38dc18_58%,#168c08)]' : 'bg-[radial-gradient(circle_at_33%_25%,#e8e5d7,#9b9b92_58%,#6c706c)]'}`} />
     <span>{isOnline ? 'Đang online' : 'Offline'}</span>
     {facebook && <span aria-label="Bạn Facebook" className="grid size-[var(--ui-p-21,21px)] shrink-0 place-items-center rounded-[var(--ui-p-3,3px)] border border-[#1d4d91] bg-[#2f67bb] font-arial text-[length:var(--ui-p-21,21px)] font-bold leading-none text-white shadow-[inset_0_1px_0_#8db8ed,0_1px_2px_#49301888]">f</span>}
@@ -113,7 +135,7 @@ function PresenceLabel({ presence, facebook }: { presence: Presence; facebook?: 
 function FriendIdentity({ friend, onOpenProfile }: { friend: Friend; onOpenProfile?: (name: string) => void }) {
   return <div className="flex h-[var(--ui-p-76,76px)] min-w-0 items-center gap-[var(--ui-p-28,28px)] pl-[var(--ui-p-16,16px)]">
     {onOpenProfile ? <button type="button" aria-label={`Mở hồ sơ của ${friend.name}`} onClick={() => onOpenProfile(friend.name)} className={`${buttonInteraction} block size-[var(--ui-p-76,76px)] shrink-0 rounded-full border-0 bg-transparent p-0`}><SocialAvatar src={friend.avatar} /></button> : <SocialAvatar src={friend.avatar} />}
-    <div className="grid h-[var(--ui-p-53,53px)] min-w-0 grid-rows-[var(--ui-p-24,24px)_var(--ui-p-21,21px)] gap-2"><h3 className="m-0 h-[var(--ui-p-24,24px)] truncate font-arial text-[length:var(--ui-p-22,22px)] leading-6 font-bold text-[#251506]">{friend.name}</h3><PresenceLabel presence={friend.presence} facebook={friend.facebook} /></div>
+    <div className="grid h-[var(--ui-p-53,53px)] min-w-0 grid-rows-[var(--ui-p-24,24px)_var(--ui-p-21,21px)] gap-2"><h3 className="m-0 h-[var(--ui-p-24,24px)] flex items-center font-heading text-[length:var(--ui-p-22,22px)] leading-6 text-[#251506]"><SocialPlayerName name={friend.name} /></h3><PresenceLabel presence={friend.presence} facebook={friend.facebook} /></div>
   </div>
 }
 
@@ -137,16 +159,23 @@ function FriendRow({ friend, children, onOpenProfile }: { friend: Friend; childr
   return <li className={`relative isolate grid h-[var(--ui-p-90,90px)] min-h-[var(--ui-p-90,90px)] max-h-[var(--ui-p-90,90px)] grid-rows-[var(--ui-p-85,85px)] shrink-0 ${columns} content-center items-center gap-3 border-b border-[#c5a16a]/55 bg-[linear-gradient(90deg,#ead0a0,#f0dcb3_48%,#e8cca0)] pr-[var(--ui-p-38,38px)] pl-0 py-0 shadow-[inset_0_1px_0_#f8e6bd] last:border-b-transparent`}><span aria-hidden="true" className="pointer-events-none col-start-2 col-end-4 row-start-1 -z-10 -ml-[calc(var(--ui-p-38,38px)+var(--ui-p-50,50px))] h-[calc(100%-var(--ui-p-4,4px))] self-center"><FriendRowShade /></span><div className="col-start-1 row-start-1"><FriendIdentity friend={friend} onOpenProfile={onOpenProfile} /></div><div className={`${brownContentPosition} col-start-2 row-start-1`}><FriendRank friend={friend} /></div><div className="col-start-3 row-start-1 flex items-center justify-end gap-2 pr-[var(--ui-p-8,8px)]">{children}</div></li>
 }
 
-export function FriendsDialog({ dialogRef, layout, onClose, onOpenProfile }: { dialogRef: RefObject<HTMLDialogElement | null>; layout: ReturnType<typeof useFriendsLayout>; onClose: () => void; onOpenProfile?: (name: string) => void }) {
+export function FriendsDialog({ dialogRef, layout, onClose, onOpenProfile, onOpenMessages }: { dialogRef: RefObject<HTMLDialogElement | null>; layout: ReturnType<typeof useFriendsLayout>; onClose: () => void; onOpenProfile?: (name: string) => void; onOpenMessages: (name: string, image?: string, status?: Presence) => void }) {
   const [tab, setTab] = useState<Tab>('list')
   const [filter, setFilter] = useState<'all' | 'online' | 'facebook'>('all')
   const [listQuery, setListQuery] = useState('')
   const [query, setQuery] = useState('')
+  const friendshipOverrides = useSessionStore(state => state.friendshipOverrides)
 
-  const [received, setReceived] = useState(incoming)
-  const [sentInvites, setSentInvites] = useState<Friend[]>([])
+  const incomingOverrides = useSessionStore(state => state.incomingFriendRequestOverrides)
+  const setIncoming = useSessionStore(state => state.setIncomingFriendRequest)
+  const received = incoming.filter(friend => (incomingOverrides[friend.name] ?? true) && !friendshipOverrides[friend.name])
+  const pendingFriendRequests = useSessionStore(state => state.pendingFriendRequests)
+  const setPending = useSessionStore(state => state.setFriendRequestPending)
+  const setFriendship = useSessionStore(state => state.setFriendship)
+  const sentInvites = useMemo(() => [...friends, ...suggestions, ...incoming, ...outgoing].filter(friend => pendingFriendRequests[friend.name]), [pendingFriendRequests])
   const sent = useMemo(() => sentInvites.map(friend => friend.name), [sentInvites])
   const [actionFeedback, setActionFeedback] = useState<{ title: string; message: string } | null>(null)
+  const challenge = useFriendChallenge((name, message) => setActionFeedback({ title: `Mời chơi ${name}`, message }))
   const [sentToasts, setSentToasts] = useState<Array<{ id: number; phase: 'visible' | 'exiting' }>>([])
   const sentToastId = useRef(0)
   const sentToastTimeout = useRef<number | undefined>(undefined)
@@ -160,13 +189,14 @@ export function FriendsDialog({ dialogRef, layout, onClose, onOpenProfile }: { d
       if (sentToastTimeout.current !== undefined) window.clearTimeout(sentToastTimeout.current)
     }
   }, [])
-  const visibleFriends = useMemo(() => sortOnlineFirst(friends.filter(friend => {
+  const visibleFriends = useMemo(() => sortOnlineFirst([...friends, ...suggestions, ...incoming].filter(friend => {
+    if (!(friendshipOverrides[friend.name] ?? friends.includes(friend))) return false
     const matchesGroup = filter === 'facebook'
       ? friend.facebook === true
       : friend.facebook !== true && (filter === 'all' || friend.presence === filter)
     return matchesGroup && friend.name.toLowerCase().includes(listQuery.trim().toLowerCase())
-  })), [filter, listQuery])
-  const visibleSuggestions = useMemo(() => sortOnlineFirst(suggestions.filter(friend => friend.name.toLowerCase().includes(query.trim().toLowerCase()))), [query])
+  })), [filter, listQuery, friendshipOverrides])
+  const visibleSuggestions = useMemo(() => sortOnlineFirst(suggestions.filter(friend => !(friendshipOverrides[friend.name] ?? false) && friend.name.toLowerCase().includes(query.trim().toLowerCase()))), [query, friendshipOverrides])
   const selectTab = (next: Tab) => setTab(next)
   const updateFeedback = async (message: string) => {
     if (!message.startsWith('Đã gửi lời mời kết bạn tới')) return
@@ -184,7 +214,7 @@ export function FriendsDialog({ dialogRef, layout, onClose, onOpenProfile }: { d
 
   return <dialog ref={dialogRef} aria-labelledby="friends-title" onCancel={event => { event.preventDefault(); onClose() }} className="m-auto max-h-none max-w-none overflow-visible border-0 bg-transparent p-0 text-[#43240f] backdrop:bg-black/50" style={getCrispUiLayout(layout.scale, layout.width, layout.height)}>
     <div className="absolute top-0 left-0 origin-top-left rounded-[var(--ui-p-22,22px)] border-[length:var(--ui-p-5,5px)] border-[#5e3014] bg-[radial-gradient(ellipse_at_50%_8%,#b87a3344,transparent_38%),linear-gradient(135deg,#6e3718,#2b160b_48%,#5d2e14)] px-[var(--ui-p-36,36px)] pt-[var(--ui-p-52,52px)] pb-[var(--ui-p-28,28px)] shadow-[inset_0_0_0_2px_#e0b466,inset_0_0_0_7px_#875026,inset_0_0_0_9px_#160904]" style={getCrispUiLayout(layout.scale, layout.width, layout.height)}>
-      <header className="absolute -top-[var(--ui-p-50,50px)] left-1/2 z-20 w-[var(--ui-p-650,650px)] -translate-x-1/2 text-center"><CrispUiImage src={friendsTitle} alt="" className="pointer-events-none mx-auto h-auto w-full" /><h2 id="friends-title" className="sr-only">Bạn bè</h2></header>
+      <header className="absolute -top-[var(--ui-p-50,50px)] left-1/2 z-0 w-[var(--ui-p-650,650px)] -translate-x-1/2 text-center"><CrispUiImage src={friendsTitle} alt="" className="pointer-events-none mx-auto h-auto w-full" /><h2 id="friends-title" className="sr-only">Bạn bè</h2></header>
       <button type="button" onClick={onClose} className={`${friendButtonInteraction} absolute top-[var(--ui-p-24,24px)] right-[var(--ui-p-28,28px)] z-30 grid size-[var(--ui-p-56,56px)] place-items-center rounded-xl border-2 border-[#efb75d] bg-[linear-gradient(#6e3d17,#291207)] text-[length:var(--ui-p-42,42px)] leading-none text-[#ffe3a2] shadow-[inset_0_0_0_3px_#3f1a08,0_3px_4px_#160804]`} aria-label="Đóng">×</button>
       <div className="relative flex h-full min-h-0 flex-col">
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 -top-[var(--ui-p-8,8px)] h-[var(--ui-p-104,104px)] overflow-hidden rounded-[var(--ui-p-10,10px)] opacity-80 shadow-[inset_0_0_18px_8px_#241107]">
@@ -193,7 +223,7 @@ export function FriendsDialog({ dialogRef, layout, onClose, onOpenProfile }: { d
         <nav className="relative z-10 mx-auto mb-0 flex w-[var(--ui-p-760,760px)] max-w-full gap-2.5" role="tablist" aria-label="Chức năng bạn bè">
           <button type="button" role="tab" aria-selected={tab === 'list'} onClick={() => selectTab('list')} className={`${friendButtonInteraction} flex-1`}><CrispUiImage src={listTabInactive} alt="Danh sách" className={`pointer-events-none block h-auto w-full transition-[filter] duration-200 motion-reduce:transition-none ${tab === 'list' ? selectedImageTabGlow : ''}`} /></button>
           <button type="button" role="tab" aria-selected={tab === 'add'} onClick={() => selectTab('add')} className={`${friendButtonInteraction} flex-1`}><CrispUiImage src={addTabInactive} alt="Thêm bạn" className={`pointer-events-none block h-auto w-full transition-[filter] duration-200 motion-reduce:transition-none ${tab === 'add' ? selectedImageTabGlow : ''}`} /></button>
-          <button type="button" role="tab" aria-selected={tab === 'invites'} onClick={() => selectTab('invites')} className={`${friendButtonInteraction} relative flex-1`}><CrispUiImage src={invitesTabInactive} alt={`Lời mời (${received.length})`} className={`pointer-events-none block h-auto w-full transition-[filter] duration-200 motion-reduce:transition-none ${tab === 'invites' ? selectedImageTabGlow : ''}`} />{received.length > 0 && <span aria-hidden="true" className="pointer-events-none absolute -top-1 right-0 grid size-[var(--ui-p-28,28px)] place-items-center rounded-full border-2 border-[#ffe2a1] bg-[#d82323] font-arial text-[length:var(--ui-p-15,15px)] font-bold leading-none text-white shadow-[0_1px_4px_#321407]">{received.length > 99 ? '99+' : received.length}</span>}</button>
+          <button type="button" role="tab" aria-selected={tab === 'invites'} onClick={() => selectTab('invites')} className={`${friendButtonInteraction} relative flex-1`}><CrispUiImage src={invitesTabInactive} alt={`Lời mời (${received.length})`} className={`pointer-events-none block h-auto w-full transition-[filter] duration-200 motion-reduce:transition-none ${tab === 'invites' ? selectedImageTabGlow : ''}`} />{received.length > 0 && <span aria-hidden="true" className="pointer-events-none absolute -top-1 right-0 grid size-[var(--ui-p-28,28px)] place-items-center rounded-full border-2 border-[#ffe2a1] bg-[#d82323] font-number lining-nums tabular-nums text-[length:var(--ui-p-15,15px)] font-semibold leading-none text-white opacity-[0.88] shadow-[0_1px_4px_#321407]">{received.length > 99 ? '99+' : received.length}</span>}</button>
         </nav>
         <section className={socialPanelClass} style={{ backgroundImage: `linear-gradient(#fff4dc52,#fff4dc52), url(${historyParchmentBackground})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
           {tab === 'list' && <div className={friendDirectoryClass}>
@@ -206,14 +236,14 @@ export function FriendsDialog({ dialogRef, layout, onClose, onOpenProfile }: { d
               <div className="absolute inset-x-0 -top-[var(--ui-p-4,4px)] flex h-[var(--ui-p-56,56px)] gap-3">
                 <label className="flex h-[var(--ui-p-56,56px)] min-w-0 flex-1 items-center rounded-[var(--ui-p-10,10px)] border border-[#81420f] bg-[linear-gradient(#5a3219,#2b1508)] px-[var(--ui-p-11,11px)] shadow-[inset_0_0_0_1px_#ffd888,inset_0_0_0_3px_#a45f20,inset_0_0_0_4px_#55250b,0_1px_1px_#5b2b0d]">
                 <SearchIcon className="text-[#f6d27b] [filter:drop-shadow(0_1px_#3a1b08)]" />
-                <input aria-label="Tìm bạn trong danh sách" value={listQuery} onChange={event => setListQuery(event.target.value)} placeholder="Nhập tên / ID người chơi..." className="ml-2 min-w-0 flex-1 bg-transparent font-['Times_New_Roman'] text-[length:var(--ui-p-23,23px)] leading-none font-normal italic text-[#e5d8bc] outline-none placeholder:text-[#c2ae81]" />
+                <input aria-label="Tìm bạn trong danh sách" value={listQuery} onChange={event => setListQuery(event.target.value)} placeholder="Nhập tên / ID người chơi..." className="ml-2 min-w-0 flex-1 bg-transparent font-heading text-[length:var(--ui-p-23,23px)] leading-none font-normal italic text-[#e5d8bc] outline-none placeholder:text-[#c2ae81]" />
                 {listQuery && <button type="button" className={`${friendButtonInteraction} grid size-[var(--ui-p-30,30px)] shrink-0 place-items-center rounded-full text-[length:var(--ui-p-28,28px)] leading-none text-[#f6d27b] hover:bg-[#f6d27b]/15`} aria-label="Xóa nội dung tìm kiếm" onClick={() => setListQuery('')}>×</button>}
                 </label>
                 <FriendSearchButton />
               </div>
             </form>
             <ul className={friendListClass}>
-              {visibleFriends.map(friend => <FriendRow key={friend.name} friend={friend} onOpenProfile={onOpenProfile}><button type="button" className={friendActionButton} style={friendActionFrame} aria-label={`Mời chơi ${friend.name}`} onClick={() => setActionFeedback({ title: `Mời chơi ${friend.name}`, message: 'Chức năng mời bạn vào ván chưa được hỗ trợ.' })}><span aria-hidden="true" className="pointer-events-none block size-[var(--ui-p-35,35px)] shrink-0 bg-no-repeat" style={{ backgroundImage: `url(${inviteButtonImage})`, backgroundSize: `${Math.round(183 * layout.scale)}px ${Math.round(54 * layout.scale)}px`, backgroundPosition: `${Math.round(-30 * layout.scale)}px ${Math.round(-9 * layout.scale)}px` }} /><span className="whitespace-nowrap">Mời chơi</span></button><button type="button" className={friendButtonInteraction} aria-label={`Nhắn tin ${friend.name}`} onClick={() => setActionFeedback({ title: `Nhắn tin ${friend.name}`, message: 'Chức năng nhắn tin riêng chưa được hỗ trợ.' })}><CrispUiImage src={chatButtonImage} alt="Nhắn tin" className="pointer-events-none h-[var(--ui-p-54,54px)] w-[var(--ui-p-63,63px)] object-contain" /></button></FriendRow>)}
+              {visibleFriends.map(friend => <FriendRow key={friend.name} friend={friend} onOpenProfile={onOpenProfile}>{friend.presence === 'online' && <button type="button" className={friendActionButton} style={friendActionFrame} aria-label={`Mời chơi ${friend.name}`} disabled={challenge.pending} onClick={() => void challenge.invite(friend.name)}><span aria-hidden="true" className="pointer-events-none block size-[var(--ui-p-35,35px)] shrink-0 bg-no-repeat" style={{ backgroundImage: `url(${inviteButtonImage})`, backgroundSize: `${Math.round(183 * layout.scale)}px ${Math.round(54 * layout.scale)}px`, backgroundPosition: `${Math.round(-30 * layout.scale)}px ${Math.round(-9 * layout.scale)}px` }} /><span className="whitespace-nowrap">Mời chơi</span></button>}<button type="button" className={friendButtonInteraction} aria-label={`Nhắn tin ${friend.name}`} onClick={() => onOpenMessages(friend.name, friend.avatar, friend.presence)}><CrispUiImage src={chatButtonImage} alt="Nhắn tin" className="pointer-events-none h-[var(--ui-p-54,54px)] w-[var(--ui-p-63,63px)] object-contain" /></button></FriendRow>)}
             </ul>
           </div>}
           {tab === 'add' && <div className={friendDirectoryClass}>
@@ -222,13 +252,13 @@ export function FriendsDialog({ dialogRef, layout, onClose, onOpenProfile }: { d
             </div>
             <form className="relative h-[var(--ui-p-48,48px)] shrink-0" onSubmit={event => { event.preventDefault(); updateFeedback(query.trim() ? `Đã tìm người chơi “${query.trim()}”.` : 'Hãy nhập tên người chơi để tìm.') }}>
               <div className="absolute inset-x-0 -top-[var(--ui-p-4,4px)] flex h-[var(--ui-p-56,56px)] gap-3">
-                <label className="flex h-[var(--ui-p-56,56px)] min-w-0 flex-1 items-center rounded-[var(--ui-p-10,10px)] border border-[#81420f] bg-[linear-gradient(#5a3219,#2b1508)] px-[var(--ui-p-11,11px)] text-[#f6d27b] shadow-[inset_0_0_0_1px_#ffd888,inset_0_0_0_3px_#a45f20,inset_0_0_0_4px_#55250b,0_1px_1px_#5b2b0d]"><SearchIcon /><input aria-label="Tìm người chơi để kết bạn" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nhập tên / ID người chơi..." className="ml-2 min-w-0 flex-1 bg-transparent font-['Times_New_Roman'] text-[length:var(--ui-p-23,23px)] leading-none font-normal italic text-[#e5d8bc] outline-none placeholder:text-[#c2ae81]" /></label>
+                <label className="flex h-[var(--ui-p-56,56px)] min-w-0 flex-1 items-center rounded-[var(--ui-p-10,10px)] border border-[#81420f] bg-[linear-gradient(#5a3219,#2b1508)] px-[var(--ui-p-11,11px)] text-[#f6d27b] shadow-[inset_0_0_0_1px_#ffd888,inset_0_0_0_3px_#a45f20,inset_0_0_0_4px_#55250b,0_1px_1px_#5b2b0d]"><SearchIcon /><input aria-label="Tìm người chơi để kết bạn" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nhập tên / ID người chơi..." className="ml-2 min-w-0 flex-1 bg-transparent font-heading text-[length:var(--ui-p-23,23px)] leading-none font-normal italic text-[#e5d8bc] outline-none placeholder:text-[#c2ae81]" /></label>
                 <FriendSearchButton />
               </div>
             </form>
-            <ul className={friendListClass}>{visibleSuggestions.map(friend => <FriendRow key={friend.name} friend={friend} onOpenProfile={onOpenProfile}><button type="button" disabled={sent.includes(friend.name)} className={sent.includes(friend.name) ? `${friendSecondaryActionButton} opacity-60` : friendActionButton} style={sent.includes(friend.name) ? { ...friendActionFrame, width: 173, height: 'var(--ui-p-60,60px)', flexShrink: 0, filter: 'brightness(.78)', opacity: 1 } : { ...friendActionFrame, width: 173, height: 'var(--ui-p-60,60px)', flexShrink: 0 }} onClick={() => { if (sent.includes(friend.name)) return; setSentInvites(current => current.some(item => item.name === friend.name) ? current : [...current, friend]); updateFeedback(`Đã gửi lời mời kết bạn tới ${friend.name}.`) }}>{sent.includes(friend.name) ? <><SentIcon /><span>Đã gửi</span></> : <><AddFriendIcon /><span>Kết bạn</span></>}</button></FriendRow>)}</ul>
+            <ul className={friendListClass}>{visibleSuggestions.map(friend => <FriendRow key={friend.name} friend={friend} onOpenProfile={onOpenProfile}><button type="button" disabled={sent.includes(friend.name)} className={sent.includes(friend.name) ? `${friendSecondaryActionButton} opacity-60` : friendActionButton} style={sent.includes(friend.name) ? { ...friendActionFrame, width: 173, height: 'var(--ui-p-60,60px)', flexShrink: 0, filter: 'brightness(.78)', opacity: 1 } : { ...friendActionFrame, width: 173, height: 'var(--ui-p-60,60px)', flexShrink: 0 }} onClick={() => { if (sent.includes(friend.name)) return; setPending(friend.name, true); updateFeedback(`Đã gửi lời mời kết bạn tới ${friend.name}.`) }}>{sent.includes(friend.name) ? <><SentIcon /><span>Đã gửi</span></> : <><AddFriendIcon /><span>Kết bạn</span></>}</button></FriendRow>)}</ul>
           </div>}
-          {tab === 'invites' && <div className="flex h-full flex-col gap-3"><div className="flex min-h-0 flex-[2] flex-col"><h3 className={friendSectionTitle} style={friendSectionTitleStyle}>Lời mời đã nhận ({received.length})</h3><ul className={friendListClass}>{sortOnlineFirst(received).map(friend => <FriendRow key={friend.name} friend={friend} onOpenProfile={onOpenProfile}><div className="flex items-center gap-[var(--ui-p-10,10px)]"><button type="button" className={friendActionButton} style={{ ...friendActionFrame, width: 145, height: 'var(--ui-p-60,60px)', paddingInline: 6, gap: 4, fontSize: 18 }} aria-label={`Chấp nhận lời mời của ${friend.name}`} onClick={() => { setReceived(current => current.filter(item => item.name !== friend.name)); updateFeedback(`Đã chấp nhận lời mời của ${friend.name}.`) }}><AddFriendIcon /><span className="whitespace-nowrap">Chấp nhận</span></button><button type="button" className={friendSecondaryActionButton} style={{ ...friendSecondaryActionFrame, width: 145, height: 'var(--ui-p-60,60px)', paddingInline: 6, gap: 4, fontSize: 18 }} aria-label={`Từ chối lời mời của ${friend.name}`} onClick={() => { setReceived(current => current.filter(item => item.name !== friend.name)); updateFeedback(`Đã từ chối lời mời của ${friend.name}.`) }}><RemoveFriendIcon /><span>Từ chối</span></button></div></FriendRow>)}</ul></div><div className="flex min-h-0 flex-1 flex-col"><h3 className={friendSectionTitle} style={friendSectionTitleStyle}>Đã gửi lời mời ({sentInvites.length})</h3><ul className={friendListClass}>{sortOnlineFirst(sentInvites).map(friend => <FriendRow key={friend.name} friend={friend} onOpenProfile={onOpenProfile}><button type="button" className={friendSecondaryActionButton} style={friendSecondaryActionFrame} aria-label={`Hủy lời mời tới ${friend.name}`} onClick={() => { setSentInvites(current => current.filter(item => item.name !== friend.name)); updateFeedback(`Đã hủy lời mời tới ${friend.name}.`) }}><RemoveFriendIcon /><span>Hủy</span></button></FriendRow>)}</ul></div></div>}
+          {tab === 'invites' && <div className="flex h-full flex-col gap-3"><div className="flex min-h-0 flex-[2] flex-col"><h3 className={friendSectionTitle} style={friendSectionTitleStyle}>Lời mời đã nhận (<span className="font-number lining-nums tabular-nums font-semibold">{received.length}</span>)</h3><ul className={friendListClass}>{sortOnlineFirst(received).map(friend => <FriendRow key={friend.name} friend={friend} onOpenProfile={onOpenProfile}><div className="flex items-center gap-[var(--ui-p-10,10px)]"><button type="button" className={friendActionButton} style={{ ...friendActionFrame, width: 145, height: 'var(--ui-p-60,60px)', paddingInline: 6, gap: 4, fontSize: 18 }} aria-label={`Chấp nhận lời mời của ${friend.name}`} onClick={() => { setIncoming(friend.name, false); setFriendship(friend.name, true); updateFeedback(`Đã chấp nhận lời mời của ${friend.name}.`) }}><AddFriendIcon /><span className="whitespace-nowrap">Chấp nhận</span></button><button type="button" className={friendSecondaryActionButton} style={{ ...friendSecondaryActionFrame, width: 145, height: 'var(--ui-p-60,60px)', paddingInline: 6, gap: 4, fontSize: 18 }} aria-label={`Từ chối lời mời của ${friend.name}`} onClick={() => { setIncoming(friend.name, false); updateFeedback(`Đã từ chối lời mời của ${friend.name}.`) }}><RemoveFriendIcon /><span>Từ chối</span></button></div></FriendRow>)}</ul></div><div className="flex min-h-0 flex-1 flex-col"><h3 className={friendSectionTitle} style={friendSectionTitleStyle}>Đã gửi lời mời (<span className="font-number lining-nums tabular-nums font-semibold">{sentInvites.length}</span>)</h3><ul className={friendListClass}>{sortOnlineFirst(sentInvites).map(friend => <FriendRow key={friend.name} friend={friend} onOpenProfile={onOpenProfile}><button type="button" className={friendSecondaryActionButton} style={friendSecondaryActionFrame} aria-label={`Hủy lời mời tới ${friend.name}`} onClick={() => { setPending(friend.name, false); updateFeedback(`Đã hủy lời mời tới ${friend.name}.`) }}><RemoveFriendIcon /><span>Hủy</span></button></FriendRow>)}</ul></div></div>}
 
         </section>
       </div>

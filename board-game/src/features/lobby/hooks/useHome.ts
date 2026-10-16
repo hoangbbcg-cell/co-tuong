@@ -4,6 +4,7 @@ import { useGameStore } from '../../../store/gameStore'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { roomApi, errorMessage } from '../../../services/api'
 import { roomSocket } from '../../../services/socket'
+import { randomAvailableRoom } from '../../../lib/quickRoom'
 
 export function useHome() {
   const name = useSessionStore(state => state.name)
@@ -17,23 +18,30 @@ export function useHome() {
     const timer = window.setInterval(() => setEnergyNow(Date.now()), 1000)
     return () => window.clearInterval(timer)
   }, [energyRecoveryAt])
-  // Tạm hiện mẫu 5:00 khi đầy năng lượng để kiểm tra giao diện tooltip.
-  const seconds = energyRecoveryAt === null ? 300 : Math.max(0, Math.ceil((energyRecoveryAt - energyNow) / 1000))
+  const seconds = energyRecoveryAt === null ? 420 : Math.max(0, Math.ceil((energyRecoveryAt - energyNow) / 1000))
   const energyCountdown = `Hồi năng lượng sau: ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
   const setName = useSessionStore(state => state.setName)
   const notice = useSessionStore(state => state.notice)
   const [message, setMessage] = useState('')
+  const requireEnergy = () => {
+    const store = useSessionStore.getState()
+    store.recoverEnergy()
+    if (useSessionStore.getState().energy > 0) return true
+    useSessionStore.getState().showEnergyNotice()
+    return false
+  }
   const client = useQueryClient()
   const joiningRef = useRef(false)
   const quick = useMutation({
     mutationFn: async () => {
       const rooms = await client.fetchQuery({ queryKey: ['rooms'], queryFn: ({ signal }) => roomApi.list(signal), staleTime: 0 })
-      const room = rooms.find(room => room.players === 1 && room.phase !== 'playing')
-        ?? rooms.find(room => room.players === 0 && room.phase !== 'playing')
+      const room = randomAvailableRoom(rooms)
       if (!room) return null
+      if (!requireEnergy()) return { blocked: true as const }
       return roomSocket.join(room.id, name)
     },
     onSuccess: room => {
+      if (room && 'blocked' in room) return
       if (room) useSessionStore.getState().enterOnline(room)
       else {
         useGameStore.getState().reset(performance.now())
@@ -45,11 +53,7 @@ export function useHome() {
     onError: error => setMessage(errorMessage(error)),
     onSettled: () => { joiningRef.current = false },
   })
-  const quickPlay = () => {
-    if (joiningRef.current) return
-    joiningRef.current = true
-    quick.mutate()
-  }
+  const quickPlay = () => { if (requireEnergy()) quick.mutate() }
   const messageRef = useRef<HTMLDialogElement>(null)
   const profileRef = useRef<HTMLDialogElement>(null)
   const rankingRef = useRef<HTMLDialogElement>(null)

@@ -2,6 +2,14 @@ import { CrispUiImage } from '../../../lib/CrispUiImage'
 import defaultAvatar from '../../../assets/icons/avatar.svg'
 import actionButtonFrame from '../../../assets/friends/friend-action-button-frame.png'
 import { buttonInteraction } from '../../../lib/uiClasses'
+import { NumberText } from '../../../lib/NumberText'
+
+export const socialPresenceTextClass = 'font-heading font-bold'
+
+/** Shared name typography; inline digits retain the same baseline at every row size. */
+export function SocialPlayerName({ name }: { name: string }) {
+  return <span className="block min-w-0 max-w-full truncate font-heading leading-[1.4] font-extrabold [-webkit-text-stroke:0.2px_currentColor] [&>span]:[-webkit-text-stroke:0.3px_currentColor]"><NumberText text={name} compact weight="normal" soften={false} /></span>
+}
 
 export const socialActionButton = `${buttonInteraction} flex h-[var(--ui-p-60,60px)] w-[var(--ui-p-173,173px)] shrink-0 items-center justify-center gap-[var(--ui-p-9,9px)] border-0 bg-center bg-no-repeat px-[var(--ui-p-14,14px)] font-['Times_New_Roman'] text-[length:var(--ui-p-21,21px)] leading-none font-bold italic text-[#2b1909]`
 export const socialActionStyle = { backgroundImage: `url(${actionButtonFrame})`, backgroundSize: '100% 100%' }

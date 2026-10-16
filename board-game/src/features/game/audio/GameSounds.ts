@@ -1,5 +1,5 @@
 type SoundName = 'move' | 'capture' | 'check' | 'checkmate' | 'introOne' | 'introTwo'
-type Channel = 'effects' | 'intro' | 'checkmate'
+type Channel = 'effects' | 'intro' | 'checkmate' | 'clock'
 type Clip = { sound: SoundName; volume: number; delay?: number; offset?: number }
 
 /** Decodes each asset once per board and gives each cue its own playback source. */
@@ -8,9 +8,10 @@ export class GameSounds {
   private readonly abort = new AbortController()
   private readonly buffers = new Map<SoundName, Promise<AudioBuffer>>()
   private readonly active: Record<Channel, Set<AudioBufferSourceNode>> = {
-    effects: new Set(), intro: new Set(), checkmate: new Set(),
+    effects: new Set(), intro: new Set(), checkmate: new Set(), clock: new Set(),
   }
-  private readonly versions: Record<Channel, number> = { effects: 0, intro: 0, checkmate: 0 }
+  private readonly versions: Record<Channel, number> = { effects: 0, intro: 0, checkmate: 0, clock: 0 }
+  private clockBuffer: AudioBuffer | null = null
   private readonly waiting = new Set<() => void>()
   private readonly warned = new Set<string>()
   private disposed = false
@@ -115,9 +116,9 @@ export class GameSounds {
       const [one, two] = buffers
       const time = this.context.currentTime
       const delay = two.duration / 5
-      // Preserve the original overlap, using the audio clock instead of timeupdate.
+      // Start both tracks together; seek the second track to the intended overlap point.
       this.start(two, { sound: 'introTwo', volume: 0.9 }, 'intro', time)
-      this.start(one, { sound: 'introOne', volume: 0.65, delay, offset: delay % one.duration }, 'intro', time)
+      this.start(one, { sound: 'introOne', volume: 0.65, offset: delay % one.duration }, 'intro', time)
     }).catch(error => this.warn('intro', error))
   }
 
@@ -129,7 +130,38 @@ export class GameSounds {
 
   stopIntro() { this.stop('intro') }
 
+  startClockWarning() {
+    this.stopClockWarning()
+    const version = this.versions.clock
+    void this.ready([], 'clock', version).then(ready => {
+      if (!ready) return
+      if (!this.clockBuffer) {
+        const rate = this.context.sampleRate
+        this.clockBuffer = this.context.createBuffer(1, rate, rate)
+        const samples = this.clockBuffer.getChannelData(0)
+        for (const [offset, frequency] of [[0, 1700], [0.5, 1300]]) {
+          for (let i = 0; i < rate * 0.035; i++) {
+            const t = i / rate
+            samples[Math.floor(offset * rate) + i] = (Math.sin(2 * Math.PI * frequency * t) * 0.5 + (Math.random() * 2 - 1) * 0.5) * Math.exp(-t * 180)
+          }
+        }
+      }
+      const source = this.context.createBufferSource()
+      const gain = this.context.createGain()
+      source.buffer = this.clockBuffer
+      source.loop = true
+      gain.gain.value = 0.35
+      source.connect(gain).connect(this.context.destination)
+      this.active.clock.add(source)
+      source.onended = () => { this.active.clock.delete(source); source.disconnect(); gain.disconnect() }
+      source.start()
+    }).catch(error => this.warn('clock', error))
+  }
+
+  stopClockWarning() { this.stop('clock') }
+
   stopAll() {
+    this.stopClockWarning()
     this.stop('effects')
     this.stop('intro')
     this.stop('checkmate')

@@ -12,7 +12,7 @@ function normalizeSearch(value: string) {
 
 export function VietnamAddressPicker({ onCancel, onSave }: {
   onCancel: () => void
-  onSave: (address: string) => void
+  onSave: (address: string, province: string) => void
 }) {
   const [step, setStep] = useState<'province' | 'ward'>('province')
   const [province, setProvince] = useState<AdministrativeProvince | null>(null)
@@ -34,10 +34,11 @@ export function VietnamAddressPicker({ onCancel, onSave }: {
     window.addEventListener('keydown', handleTypingToSearch)
     return () => window.removeEventListener('keydown', handleTypingToSearch)
   }, [])
-  const { provinces, wards, provincesLoading, provincesError, retry } =
+  const { provinces, wards, provincesLoading, provincesError, wardsLoading, wardsError, retryProvinces, retryWards } =
     useVietnamAdministrativeUnits(true, province?.code ?? null)
-  const loading = provincesLoading
-  const error = provincesError
+  const loading = step === 'ward' ? wardsLoading : provincesLoading
+  const error = step === 'ward' ? wardsError : provincesError
+  const retry = step === 'ward' ? retryWards : retryProvinces
   const options = step === 'ward' ? wards : provinces
   const filteredOptions = useMemo(() => {
     const query = normalizeSearch(search)
@@ -111,7 +112,7 @@ export function VietnamAddressPicker({ onCancel, onSave }: {
       <div className="h-5" aria-hidden="true" />
       <div className="flex justify-end gap-2">
         <button type="button" onClick={onCancel} className="rounded-lg border border-[#a86e2c] bg-[#351a0b] px-5 py-2 font-bold text-[#f0d69e] hover:bg-[#4b250e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#efb75d]">Hủy</button>
-        <button type="button" disabled={step === 'province' ? !province : !ward} onClick={() => { if (step === 'province') continueToWards(); else if (province && ward) onSave(`${ward.name}, ${province.name}`) }} className="rounded-lg border-2 border-[#edba5a] bg-[linear-gradient(135deg,#ffe29a,#f1bb5e)] px-5 py-2 font-bold text-[#46220c] shadow-[inset_0_0_0_1px_#fff1c5] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fff0bf]">{step === 'province' ? 'Tiếp' : 'Lưu địa chỉ'}</button>
+        <button type="button" disabled={step === 'province' ? !province : !ward} onClick={() => { if (step === 'province') continueToWards(); else if (province && ward) onSave(`${ward.name}, ${province.name}`, province.name) }} className="rounded-lg border-2 border-[#edba5a] bg-[linear-gradient(135deg,#ffe29a,#f1bb5e)] px-5 py-2 font-bold text-[#46220c] shadow-[inset_0_0_0_1px_#fff1c5] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fff0bf]">{step === 'province' ? 'Tiếp' : 'Lưu địa chỉ'}</button>
       </div>
     </div>
   </section>

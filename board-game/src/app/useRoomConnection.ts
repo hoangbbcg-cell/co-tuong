@@ -10,7 +10,6 @@ export function useRoomConnection() {
     const receive = (room: RoomSnapshot) => useSessionStore.getState().receiveRoom(room, socket.id)
     const disconnect = (reason: string) => {
       if (reason === 'io client disconnect') return
-      socket.disconnect()
       if (useSessionStore.getState().mode === 'online') {
         useSessionStore.getState().leave('Đã mất kết nối. Ghế chơi đã được giải phóng; hãy vào lại phòng.')
         void client.invalidateQueries({ queryKey: ['rooms'] })

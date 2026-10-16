@@ -9,6 +9,7 @@ import { useSessionStore } from '../src/store/sessionStore'
 import { roomApi } from '../src/services/api'
 import { roomSocket } from '../src/services/socket'
 import { pikafishApi } from '../src/services/pikafish'
+import * as moveSound from '../src/features/game/hooks/useMoveSound'
 
 beforeEach(() => {
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} })
@@ -18,37 +19,34 @@ beforeEach(() => {
   useGameStore.getState().reset(performance.now())
   useSessionStore.setState({ screen: 'game', mode: 'local', computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, room: null, name: 'Picolozz', notice: '', messages: [] })
 })
-afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); Reflect.deleteProperty(document, 'fonts') })
 function mount() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   render(<QueryClientProvider client={client}><App /></QueryClientProvider>)
   return client
 }
 describe('React regression', () => {
-  it('keeps chat expandable when the red player is in the right column after a game starts', () => {
+  it.each(['xiangqi', 'jieqi'] as const)('hides saving and room UI for computer matches (%s)', variant => {
     vi.useFakeTimers()
+    Object.defineProperty(document, 'fonts', { configurable: true, value: { load: vi.fn().mockResolvedValue([]) } })
+    vi.spyOn(moveSound, 'useMoveSound').mockReturnValue({ playMatchIntro: vi.fn(), stopMatchIntro: vi.fn() })
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue()
+    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
     useSessionStore.setState({ mode: 'computer', humanSide: 'black' })
+    useGameStore.getState().reset(performance.now(), variant)
     mount()
 
     const redCard = document.getElementById('player-red')!
-    const chatPanel = document.getElementById('chatForm')!.parentElement!
-    const toggle = document.getElementById('chatToggle')!
     expect(redCard).toHaveClass('flex-none')
     expect(redCard).not.toHaveClass('h-full')
 
-    fireEvent.click(toggle)
-    expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    const expandedClass = chatPanel.className
-
     act(() => useGameStore.getState().start(performance.now()))
-
-    expect(document.getElementById('chatToggle')).toBe(toggle)
-    expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    expect(chatPanel.className).toBe(expandedClass)
-    fireEvent.click(toggle)
-    expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    fireEvent.click(toggle)
-    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(document.getElementById('chatForm')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Lưu ván đấu' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Lưu thế cờ' })).toBeNull()
+    expect(screen.queryByRole('img', { name: 'Mã phòng 123456' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Người trong phòng' })).toBeNull()
+    expect(screen.getByRole('button', { name: /âm thanh/ })).toBeInTheDocument()
   })
   it('mở một danh sách người xem với ba thẻ tên dài ngắn khác nhau', () => {
     mount()

@@ -1,16 +1,18 @@
-import { randomUUID } from 'node:crypto'
+import { playerNameError } from '../../src/lib/playerName'
+import { randomUUID, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
 import { createGame, opposite } from '../../src/game/state/initial'
-import { advanceClock, applyMove, finishGame, startGame, takebackSnapshot, MATCH_INTRO_MS } from '../../src/game/moves/actions'
+import { advanceClock, applyMoveWithResult, finishGame, startGame, takebackSnapshot, MATCH_INTRO_MS } from '../../src/game/moves/actions'
 import { isInsideBoard } from '../../src/game/rules'
+import { REPETITION_FORBIDDEN_MESSAGE } from '../../src/game/rules/repetition'
 import type { RoomCommand, RoomSnapshot, RoomSummary } from '../../src/types/room'
 import type { GameState, Position } from '../../src/types/game'
-import { ROOM_MINUTES } from '../../src/types/room'
+import { ROOM_MINUTES, ROOM_TURN_SECONDS } from '../../src/types/room'
 import { RoomRepository } from '../repositories/roomRepository'
 
 export class RoomError extends Error {}
 function textInput(value: unknown, limit: number): string {
-  if (typeof value !== 'string' || !value.trim() || value.trim().length > limit) throw new RoomError(`Nội dung phải có 1–${limit} ký tự.`)
+  if (typeof value !== 'string' || !value.trim() || value.trim().length > limit) throw new RoomError(`Ná»™i dung pháº£i cÃ³ 1â€“${limit} kÃ½ tá»±.`)
   return value.trim()
 }
 function position(value: unknown): value is Position {
@@ -19,36 +21,119 @@ function position(value: unknown): value is Position {
   return isInsideBoard(point.row, point.col)
 }
 export class RoomService {
+  private queueRotations = new Map<string, { result: GameState['result']; deadline: number; waitingAtFinish: Set<string> }>()
+  private readyWaits = new Map<string, { pair: string; since: number; readyPlayer: string | null; readySince: number | null }>()
   private histories = new Map<string, GameState[]>()
+  private repetitionNoticeDeadlines = new Map<string, number | null>()
   constructor(private repository: RoomRepository, private now = () => performance.now()) {}
   list(): RoomSummary[] {
     this.repository.pruneEmpty()
-    return this.repository.all().map(({ id, name, players, game, minutes }) => ({ id, name, players: players.length, phase: game.phase, minutes: minutes ?? 10 }))
+    return this.repository.all().map(({ id, name, players, viewers, game, minutes, province, locked }) => ({ id, name, players: players.length, viewerCount: viewers?.length ?? 0, playerNames: players.map(player => player.name), phase: game.phase, minutes: minutes ?? 10, province, locked: !!locked }))
   }
-  create(name: unknown, minutes: unknown = 10): RoomSummary {
-    if (typeof minutes !== 'number' || !ROOM_MINUTES.some(value => value === minutes)) throw new RoomError('Thời gian không hợp lệ.')
+  create(name: unknown, minutes: unknown = 10, turnSeconds: unknown = 60, province?: unknown, password?: unknown): RoomSummary {
+    if (password !== undefined && (typeof password !== 'string' || password.length < 1 || password.length > 64)) throw new RoomError('Mật khẩu phải có từ 1 đến 64 ký tự.')
+    if (typeof turnSeconds !== 'number' || !ROOM_TURN_SECONDS.some(value => value === turnSeconds)) throw new RoomError('Thời gian mỗi nước không hợp lệ.');
+    if (typeof minutes !== 'number' || !ROOM_MINUTES.some(value => value === minutes)) throw new RoomError('Thá»i gian khÃ´ng há»£p lá»‡.')
+    if (province !== undefined && (typeof province !== 'string' || province.trim().length === 0 || province.trim().length > 100)) throw new RoomError('Tỉnh/thành phố không hợp lệ.')
     this.repository.pruneEmpty()
-    if (this.repository.all().length >= 100) throw new RoomError('Máy chủ đã đủ phòng. Vui lòng dùng phòng có sẵn.')
-    const room: RoomSnapshot = { id: randomUUID(), name: textInput(name, 40), players: [], viewers: [], minutes, game: createGame(this.now(), minutes * 60_000), nextMatchOffer: null, nextMatchDeclinedId: null, messages: [], drawOffer: null, takebackOffer: null, takebackDecline: null, takebackRemaining: { red: 2, black: 2 }, moveCount: 0 }
+    if (this.repository.all().length >= 100) throw new RoomError('MÃ¡y chá»§ Ä‘Ã£ Ä‘á»§ phÃ²ng. Vui lÃ²ng dÃ¹ng phÃ²ng cÃ³ sáºµn.')
+    const normalizedProvince = typeof province === 'string' ? province.trim().normalize('NFC') : undefined
+    const room: RoomSnapshot = { id: randomUUID(), name: textInput(name, 40), province: normalizedProvince, players: [], viewers: [], minutes, turnSeconds, game: createGame(this.now(), minutes * 60_000, turnSeconds * 1000), messages: [], drawOffer: null, takebackOffer: null, takebackDecline: null, takebackRemaining: { red: 2, black: 2 }, moveCount: 0, repetitionNoticePaused: false, repetitionNoticeKind: null, repetitionAttemptNotice: null }
     this.histories.set(room.id, [])
+    room.locked = password !== undefined
+    if (typeof password === 'string') {
+      const salt = randomBytes(16)
+      this.repository.setPassword(room.id, { salt, hash: scryptSync(password, salt, 32) })
+    }
     this.repository.save(room)
-    return { id: room.id, name: room.name, players: 0, phase: 'ready', minutes }
+    return { id: room.id, name: room.name, players: 0, viewerCount: 0, phase: 'ready', minutes, province: normalizedProvince, locked: room.locked }
   }
   private get(id: string) {
     const room = this.repository.get(id)
-    if (!room) throw new RoomError('Phòng không còn tồn tại.')
+    if (!room) throw new RoomError('PhÃ²ng khÃ´ng cÃ²n tá»“n táº¡i.')
     return room
   }
   roomFor(playerId: string) { return this.repository.all().find(room => room.players.some(player => player.id === playerId) || room.viewers?.some(viewer => viewer.id === playerId)) }
   private memberRoom(playerId: string) {
     const room = this.roomFor(playerId)
-    if (!room) throw new RoomError('Bạn chưa vào phòng.')
+    if (!room) throw new RoomError('Báº¡n chÆ°a vÃ o phÃ²ng.')
     return room
   }
   private append(room: RoomSnapshot, name: string, text: string, system = false) {
     room.messages = [...room.messages, { id: randomUUID(), name, text, system }].slice(-100)
   }
-  private syncNextMatchOffer(room: RoomSnapshot) {
+  private captureCompletedMatch(room: RoomSnapshot) {
+    if (room.game.phase !== 'finished' || room.lastCompletedMatch?.states.at(-1)?.result === room.game.result) return
+    room.players = room.players.map(player => ({ ...player, ready: false }))
+    const states = [...(this.histories.get(room.id) ?? []), room.game]
+    room.lastCompletedMatch = {
+      id: randomUUID(), endedAt: Date.now(),
+      redName: room.players.find(player => player.side === 'red')?.name ?? 'Đỏ',
+      blackName: room.players.find(player => player.side === 'black')?.name ?? 'Đen',
+      states,
+    }
+  }
+  private advanceQueuedPlayer(room: RoomSnapshot, losingPlayer: RoomSnapshot['players'][number], nextViewer: NonNullable<RoomSnapshot['viewers']>[number], now: number, readinessTimeout = false) {
+    room.players = room.players.map(member => member.id === losingPlayer.id
+      ? { id: nextViewer.id, name: nextViewer.name, side: member.side, ready: false }
+      : { ...member, ready: readinessTimeout && member.ready })
+    room.viewers = [...(room.viewers ?? []).filter(viewer => viewer.id !== nextViewer.id), { id: losingPlayer.id, name: losingPlayer.name, queued: !readinessTimeout }]
+    this.readyWaits.delete(room.id)
+    room.readyCountdown = null
+    room.game = createGame(now, (room.minutes ?? 10) * 60_000, (room.turnSeconds ?? 60) * 1000)
+    room.drawOffer = null
+    room.takebackOffer = null
+    room.takebackDecline = null
+    room.takebackRemaining = { red: 2, black: 2 }
+    room.moveCount = 0
+    this.histories.set(room.id, [])
+    this.append(room, '', `${losingPlayer.name} xuống ${readinessTimeout ? 'khán giả' : 'hàng chờ'}; ${nextViewer.name} lên bàn.`, true)
+  }
+  private updateReadyWait(room: RoomSnapshot, now = this.now()): boolean {
+    const previousCountdown = room.readyCountdown ?? null
+    const nextViewer = room.viewers?.find(viewer => viewer.queued)
+    if (room.game.phase !== 'ready' || room.players.length !== 2 || !nextViewer) {
+      this.readyWaits.delete(room.id)
+      room.readyCountdown = null
+      return previousCountdown !== null
+    }
+    const pair = room.players.map(player => player.id).join(':')
+    let wait = this.readyWaits.get(room.id)
+    if (!wait || wait.pair !== pair) {
+      wait = { pair, since: now, readyPlayer: null, readySince: null }
+      this.readyWaits.set(room.id, wait)
+    }
+    const readyPlayers = room.players.filter(player => player.ready)
+    room.readyCountdown = null
+    if (readyPlayers.length === 1) {
+      if (wait.readyPlayer !== readyPlayers[0].id) {
+        wait.readyPlayer = readyPlayers[0].id
+        wait.readySince = now
+      }
+      if (now - wait.readySince! >= 30_000) {
+        const notReady = room.players.find(player => !player.ready)!
+        this.append(room, '', `${notReady.name} xuống khán giả vì không Sẵn sàng trong 30 giây.`, true)
+        this.advanceQueuedPlayer(room, notReady, nextViewer, now, true)
+        this.updateReadyWait(room, now)
+        return true
+      }
+    } else if (readyPlayers.length === 0) {
+      wait.readyPlayer = null
+      wait.readySince = null
+      const elapsed = now - wait.since
+      if (elapsed >= 30_000) {
+        room.players = room.players.map(player => ({ ...player, ready: true }))
+        room.game = startGame(room.game, now, MATCH_INTRO_MS)
+        delete room.lastCompletedMatch
+        this.readyWaits.delete(room.id)
+        return true
+      }
+      if (elapsed >= 10_000) room.readyCountdown = Math.ceil((30_000 - elapsed) / 1000)
+    }
+    return previousCountdown !== (room.readyCountdown ?? null)
+  }
+  private rotateQueueAfterFinishedGame(room: RoomSnapshot, now = this.now()) {
+    this.captureCompletedMatch(room)
     const winner = room.game.result?.winner
     const nextViewer = room.viewers?.find(viewer => viewer.queued)
     const eligible = room.game.phase === 'finished'
@@ -57,33 +142,42 @@ export class RoomService {
       && room.players.length === 2
       && room.players.some(player => player.side === winner)
       && room.players.some(player => player.side === opposite(winner))
-
-    if (!eligible || !nextViewer) {
-      room.nextMatchOffer = null
-      room.nextMatchDeclinedId = null
-      return
+    const losingPlayer = eligible ? room.players.find(player => player.side === opposite(winner!)) : undefined
+    if (!eligible || !losingPlayer) { this.queueRotations.delete(room.id); return }
+    let rotation = this.queueRotations.get(room.id)
+    if (!rotation || rotation.result !== room.game.result) {
+      room.players = room.players.map(player => ({ ...player, ready: false }))
+      rotation = { result: room.game.result, deadline: now + 3000, waitingAtFinish: new Set(room.viewers?.filter(viewer => viewer.queued).map(viewer => viewer.id)) }
+      this.queueRotations.set(room.id, rotation)
     }
-    if (room.nextMatchDeclinedId === nextViewer.id) {
-      room.nextMatchOffer = null
-      return
-    }
-    if (room.nextMatchOffer?.winner === winner && room.nextMatchOffer.nextPlayerId === nextViewer.id) return
-    room.nextMatchOffer = { id: randomUUID(), winner, loser: opposite(winner), nextPlayerId: nextViewer.id }
-    room.nextMatchDeclinedId = null
+    if (!nextViewer || rotation.waitingAtFinish.has(nextViewer.id) && now < rotation.deadline) return
+    this.queueRotations.delete(room.id)
+    this.advanceQueuedPlayer(room, losingPlayer, nextViewer, now)
   }
-  join(id: unknown, playerId: string, name: unknown): RoomSnapshot {
+  join(id: unknown, playerId: string, name: unknown, password?: unknown, asViewer: unknown = false): RoomSnapshot {
     const room = this.get(textInput(id, 64))
-    const playerName = textInput(name, 24)
+    if (typeof name !== 'string') throw new RoomError('TÃªn ngÆ°á»i chÆ¡i khÃ´ng há»£p lá»‡.')
+    const nameError = playerNameError(name)
+    if (nameError) throw new RoomError(nameError)
+    const playerName = name.trim().normalize('NFC')
     const current = this.roomFor(playerId)
     if (current?.id === room.id) return room
-    if (current) throw new RoomError('Hãy rời phòng hiện tại trước.')
-    if (room.players.length >= 2 || room.game.phase === 'playing') {
+    if (room.locked) {
+      const secret = this.repository.getPassword(room.id)
+      if (!secret || typeof password !== 'string' || password.length > 64 || !timingSafeEqual(scryptSync(password, secret.salt, 32), secret.hash)) throw new RoomError('Mật khẩu bàn không đúng.')
+    }
+    if (current) throw new RoomError('HÃ£y rá»i phÃ²ng hiá»‡n táº¡i trÆ°á»›c.')
+    if (typeof asViewer !== 'boolean') throw new RoomError('Vai trò vào phòng không hợp lệ.')
+    if (asViewer && room.game.phase !== 'playing') throw new RoomError('Người chơi không còn đang đấu trong phòng này.')
+    const joinsAsViewer = asViewer || room.players.length >= 2 || room.game.phase === 'playing'
+    if (joinsAsViewer) {
       room.viewers = [...(room.viewers ?? []), { id: playerId, name: playerName, queued: false }]
     } else {
       const side = room.players.some(player => player.side === 'red') ? 'black' : 'red'
       room.players = [...room.players, { id: playerId, name: playerName, side, ready: false }]
     }
-    this.append(room, '', `${playerName} đã vào phòng.`, true)
+    this.append(room, '', `${playerName} Ä‘Ã£ vÃ o phÃ²ng.`, true)
+    this.updateReadyWait(room)
     this.repository.save(room)
     return room
   }
@@ -93,144 +187,166 @@ export class RoomService {
     const viewer = room.viewers?.find(member => member.id === playerId)
     if (viewer) {
       room.viewers = room.viewers!.filter(member => member.id !== playerId)
-      this.append(room, '', `${viewer.name} đã rời phòng.`, true)
-      this.syncNextMatchOffer(room)
-      if (!room.players.length && !room.viewers.length) { this.repository.delete(room.id); this.histories.delete(room.id) }
+      this.append(room, '', `${viewer.name} Ä‘Ã£ rá»i phÃ²ng.`, true)
+      this.rotateQueueAfterFinishedGame(room)
+      this.updateReadyWait(room)
+      if (!room.players.length && !room.viewers.length) { this.repository.delete(room.id); this.queueRotations.delete(room.id); this.histories.delete(room.id); this.repetitionNoticeDeadlines.delete(room.id) }
       else this.repository.save(room)
       return room
     }
     const player = room.players.find(player => player.id === playerId)
     if (!player) return null
-    room.game = advanceClock(room.game, this.now())
+    const leavingAt = this.now()
+    this.repetitionNoticeDeadlines.delete(room.id)
+    room.repetitionNoticePaused = false
+    room.repetitionNoticeKind = null
+    room.repetitionAttemptNotice = null
+    room.game = advanceClock({ ...room.game, lastClockUpdate: leavingAt }, leavingAt)
     if (room.game.phase === 'playing') room.game = finishGame(room.game, opposite(player.side), 'leave')
+    this.captureCompletedMatch(room)
     room.players = room.players.filter(player => player.id !== playerId).map(player => ({ ...player, ready: false }))
-    this.append(room, '', `${player.name} đã rời phòng.`, true)
+    this.append(room, '', `${player.name} Ä‘Ã£ rá»i phÃ²ng.`, true)
     const nextViewer = room.viewers?.find(member => member.queued)
     if (nextViewer) {
       room.viewers = room.viewers!.filter(member => member.id !== nextViewer.id)
       room.players = [...room.players, { id: nextViewer.id, name: nextViewer.name, side: player.side, ready: false }]
-      this.append(room, '', `${nextViewer.name} đã được chuyển từ hàng chờ lên bàn.`, true)
+      this.append(room, '', `${nextViewer.name} Ä‘Ã£ Ä‘Æ°á»£c chuyá»ƒn tá»« hÃ ng chá» lÃªn bÃ n.`, true)
     }
     room.drawOffer = null
     room.takebackOffer = null
-    this.syncNextMatchOffer(room)
-    if (!room.players.length && !room.viewers?.length) { this.repository.delete(room.id); this.histories.delete(room.id) }
+    this.rotateQueueAfterFinishedGame(room)
+    this.updateReadyWait(room)
+    if (!room.players.length && !room.viewers?.length) { this.repository.delete(room.id); this.histories.delete(room.id); this.repetitionNoticeDeadlines.delete(room.id) }
     else this.repository.save(room)
     return room
   }
   command(playerId: string, input: unknown): RoomSnapshot {
     const room = this.memberRoom(playerId)
-    if (!input || typeof input !== 'object' || !('type' in input)) throw new RoomError('Thao tác không hợp lệ.')
+    if (!input || typeof input !== 'object' || !('type' in input)) throw new RoomError('Thao tÃ¡c khÃ´ng há»£p lá»‡.')
     const command = input as RoomCommand
     const viewer = room.viewers?.find(member => member.id === playerId)
+    if (command.type === 'repetition-notice') {
+      if (!room.players.some(member => member.id === playerId)) throw new RoomError(viewer ? 'NgÆ°á»i xem khÃ´ng thá»ƒ táº¡m dá»«ng Ä‘á»“ng há»“.' : 'Báº¡n chÆ°a vÃ o phÃ²ng.')
+      const now = this.now()
+      if (room.repetitionNoticePaused) {
+        room.game = {
+          ...room.game,
+          lastClockUpdate: now,
+          repetition: room.repetitionNoticeKind === 'warning' && room.game.repetition
+            ? { ...room.game.repetition, warning: false, warningSide: null }
+            : room.game.repetition,
+        }
+        room.repetitionNoticePaused = false
+        room.repetitionNoticeKind = null
+        room.repetitionAttemptNotice = null
+        this.repetitionNoticeDeadlines.delete(room.id)
+      }
+      this.repository.save(room)
+      return room
+    }
+    if (command.type === 'repetition-attempt') {
+      const player = room.players.find(member => member.id === playerId)
+      if (!player) throw new RoomError('Người xem không thể thao tác ván cờ.')
+      if (!command.move || !position(command.move.from) || !position(command.move.to)) throw new RoomError('Tọa độ không hợp lệ.')
+      const result = applyMoveWithResult(room.game, command.move, this.now(), player.side)
+      if (result.rejection !== 'repetition') throw new RoomError('Nước đi không phải là nước lặp bị chặn.')
+      room.repetitionAttemptNotice = { id: randomUUID(), recipient: opposite(player.side), message: 'Đối thủ đã thử đi một nước lặp bị cấm.' }
+      this.repository.save(room)
+      return room
+    }
     if (command.type === 'join-queue' || command.type === 'leave-queue') {
-      if (!viewer) throw new RoomError('Chỉ người xem mới có thể xếp hàng.')
+      if (!viewer) throw new RoomError('Chá»‰ ngÆ°á»i xem má»›i cÃ³ thá»ƒ xáº¿p hÃ ng.')
       if (command.type === 'join-queue' && room.players.length < 2 && room.game.phase !== 'playing') {
         const side = room.players.some(member => member.side === 'red') ? 'black' : 'red'
         room.viewers = room.viewers!.filter(member => member.id !== playerId)
         room.players = [...room.players, { id: viewer.id, name: viewer.name, side, ready: false }]
-        this.append(room, '', `${viewer.name} đã vào ghế trống.`, true)
+        this.append(room, '', `${viewer.name} Ä‘Ã£ vÃ o gháº¿ trá»‘ng.`, true)
       } else if (command.type === 'join-queue') {
         room.viewers = [...room.viewers!.filter(member => member.id !== playerId), { ...viewer, queued: true }]
       } else {
         viewer.queued = false
       }
-      this.syncNextMatchOffer(room)
+      this.rotateQueueAfterFinishedGame(room)
+      this.updateReadyWait(room)
       this.repository.save(room)
       return room
     }
     const player = room.players.find(member => member.id === playerId)
-    if (!player) throw new RoomError('Người xem không thể thao tác ván cờ.')
-    const previousNextMatchOffer = room.nextMatchOffer ?? null
+    if (!player) throw new RoomError('NgÆ°á»i xem khÃ´ng thá»ƒ thao tÃ¡c vÃ¡n cá».')
+    if (room.repetitionNoticePaused) throw new RoomError('ÄÃ³ng báº£ng nháº¯c nhá»Ÿ Ä‘á»ƒ tiáº¿p tá»¥c vÃ¡n cá».')
     const now = this.now()
-    room.game = room.takebackOffer ? { ...room.game, lastClockUpdate: now } : advanceClock(room.game, now)
+    room.game = room.takebackOffer ? { ...room.game, lastClockUpdate: now } : command.type === 'move' ? room.game : advanceClock(room.game, now)
     if (room.game.phase === 'finished') {
       room.drawOffer = null
       room.takebackOffer = null
     }
-    this.syncNextMatchOffer(room)
-    if (room.nextMatchOffer && command.type !== 'reply-next-match') throw new RoomError('Hãy trả lời lời mời đấu tiếp trước.')
+    this.rotateQueueAfterFinishedGame(room)
+    this.updateReadyWait(room, now)
+    if ((command.type === 'ready' || command.type === 'reset') && room.game.phase === 'finished' && room.viewers?.some(viewer => viewer.queued) && this.queueRotations.has(room.id)) throw new RoomError('??i 3 gi?y ?? chuy?n ng??i trong h?ng ch? l?n b?n.')
+    if (!room.players.some(member => member.id === playerId)) throw new RoomError('B?n ?? xu?ng h?ng ch?.')
     switch (command.type) {
       case 'ready':
-        if (room.nextMatchOffer) throw new RoomError('Hãy trả lời lời mời đấu tiếp trước.')
         if (room.game.phase === 'finished') {
-          room.game = createGame(now, (room.minutes ?? 10) * 60_000)
+          // Committing to a rematch closes the previous game's replacement window.
+          // Later queue entries must wait for this new match to finish.
+          this.queueRotations.delete(room.id)
+          room.game = createGame(now, (room.minutes ?? 10) * 60_000, (room.turnSeconds ?? 60) * 1000)
           room.players = room.players.map(member => ({ ...member, ready: false }))
           room.drawOffer = null
           room.takebackOffer = null
           room.takebackRemaining = { red: 2, black: 2 }
           room.moveCount = 0
-          room.nextMatchDeclinedId = null
           this.histories.set(room.id, [])
         }
-        if (room.game.phase !== 'ready') throw new RoomError('Ván đã bắt đầu.')
+        if (room.game.phase !== 'ready') throw new RoomError('VÃ¡n Ä‘Ã£ báº¯t Ä‘áº§u.')
         room.players.find(member => member.id === playerId)!.ready = true
-        if (room.players.length === 2 && room.players.every(player => player.ready)) room.game = startGame(room.game, now, MATCH_INTRO_MS)
+        if (room.players.length === 2 && room.players.every(player => player.ready)) { room.game = startGame(room.game, now, MATCH_INTRO_MS); delete room.lastCompletedMatch }
         break
       case 'move': {
-        if (room.takebackOffer) throw new RoomError('Hãy trả lời yêu cầu đi lại trước.')
-        if (!command.move || !position(command.move.from) || !position(command.move.to)) throw new RoomError('Tọa độ không hợp lệ.')
+        if (room.takebackOffer) throw new RoomError('HÃ£y tráº£ lá»i yÃªu cáº§u Ä‘i láº¡i trÆ°á»›c.')
+        if (!command.move || !position(command.move.from) || !position(command.move.to)) throw new RoomError('Tá»a Ä‘á»™ khÃ´ng há»£p lá»‡.')
         const before = takebackSnapshot(room.game)
-        const next = applyMove(room.game, command.move, now, player.side, { forceCheckmate: (room.moveCount ?? 0) === 0 })
-        if (next.board === room.game.board) throw new RoomError('Nước đi không hợp lệ hoặc chưa đến lượt bạn.')
-        this.histories.set(room.id, [...(this.histories.get(room.id) ?? []), before].slice(-500))
+        const result = applyMoveWithResult(room.game, command.move, now, player.side)
+        const next = result.game
+        if (next.board === room.game.board) {
+          if (result.rejection === 'repetition') throw new RoomError(REPETITION_FORBIDDEN_MESSAGE)
+          room.game = next
+          throw new RoomError('NÆ°á»›c Ä‘i khÃ´ng há»£p lá»‡ hoáº·c chÆ°a Ä‘áº¿n lÆ°á»£t báº¡n.')
+        }
+        this.histories.set(room.id, [...(this.histories.get(room.id) ?? []), before])
         room.game = next
+        room.repetitionAttemptNotice = null
         room.moveCount = (room.moveCount ?? 0) + 1
         room.drawOffer = null
+        if (next.repetition?.warning) {
+          room.repetitionNoticePaused = true
+          room.repetitionNoticeKind = 'warning'
+          this.repetitionNoticeDeadlines.set(room.id, null)
+        }
         break
       }
       case 'resign':
-        if (room.game.phase !== 'playing') throw new RoomError('Ván chưa diễn ra.')
+        if (room.game.phase !== 'playing') throw new RoomError('VÃ¡n chÆ°a diá»…n ra.')
         room.game = finishGame(room.game, opposite(player.side), 'resign')
         room.drawOffer = null
         break
       case 'offer-draw':
-        if (room.game.phase !== 'playing' || room.drawOffer) throw new RoomError('Không thể cầu hòa lúc này.')
+        if (room.game.phase !== 'playing' || room.drawOffer) throw new RoomError('KhÃ´ng thá»ƒ cáº§u hÃ²a lÃºc nÃ y.')
         room.drawOffer = player.side
         break
       case 'reply-draw':
-        if (room.game.phase !== 'playing' || !room.drawOffer || room.drawOffer === player.side || typeof command.accepted !== 'boolean') throw new RoomError('Không có lời cầu hòa từ đối thủ.')
+        if (room.game.phase !== 'playing' || !room.drawOffer || room.drawOffer === player.side || typeof command.accepted !== 'boolean') throw new RoomError('KhÃ´ng cÃ³ lá»i cáº§u hÃ²a tá»« Ä‘á»‘i thá»§.')
         if (command.accepted) room.game = finishGame(room.game, null, 'draw')
-        else this.append(room, '', `${player.name} từ chối cầu hòa.`, true)
+        else this.append(room, '', `${player.name} tá»« chá»‘i cáº§u hÃ²a.`, true)
         room.drawOffer = null
         break
-      case 'reply-next-match': {
-        const offer = previousNextMatchOffer
-        if (!offer || room.nextMatchOffer?.id !== offer.id || room.game.phase !== 'finished' || offer.winner !== player.side || typeof command.accepted !== 'boolean') {
-          throw new RoomError('Không có lời mời đấu tiếp dành cho bạn.')
-        }
-        const nextViewer = room.viewers?.find(viewer => viewer.id === offer.nextPlayerId && viewer.queued)
-        const losingPlayer = room.players.find(member => member.side === offer.loser)
-        if (!nextViewer || !losingPlayer) throw new RoomError('Người chơi tiếp theo không còn trong hàng chờ.')
-        if (command.accepted) {
-          room.players = room.players.map(member => member.id === losingPlayer.id
-            ? { id: nextViewer.id, name: nextViewer.name, side: member.side, ready: false }
-            : { ...member, ready: false })
-          room.viewers = [...room.viewers!.filter(viewer => viewer.id !== nextViewer.id), { id: losingPlayer.id, name: losingPlayer.name, queued: true }]
-          room.game = createGame(now, (room.minutes ?? 10) * 60_000)
-          room.drawOffer = null
-          room.takebackOffer = null
-          room.takebackDecline = null
-          room.takebackRemaining = { red: 2, black: 2 }
-          room.moveCount = 0
-          room.nextMatchOffer = null
-          room.nextMatchDeclinedId = null
-          this.histories.set(room.id, [])
-          this.append(room, '', `${losingPlayer.name} xuống hàng chờ; ${nextViewer.name} lên bàn đấu tiếp.`, true)
-        } else {
-          room.nextMatchOffer = null
-          room.nextMatchDeclinedId = nextViewer.id
-          this.append(room, '', `${player.name} từ chối đấu với ${nextViewer.name}.`, true)
-        }
-        break
-      }
       case 'request-takeback': {
         const history = this.histories.get(room.id) ?? []
         const remaining = room.takebackRemaining ?? { red: 2, black: 2 }
-        if (room.game.phase !== 'playing' || room.takebackOffer || room.drawOffer) throw new RoomError('Không thể yêu cầu đi lại lúc này.')
-        if (remaining[player.side] <= 0) throw new RoomError('Bạn đã dùng hết 2 lần yêu cầu đi lại.')
+        if (room.game.phase !== 'playing' || room.takebackOffer || room.drawOffer) throw new RoomError('KhÃ´ng thá»ƒ yÃªu cáº§u Ä‘i láº¡i lÃºc nÃ y.')
+        if (remaining[player.side] <= 0) throw new RoomError('Báº¡n Ä‘Ã£ dÃ¹ng háº¿t 2 láº§n yÃªu cáº§u Ä‘i láº¡i.')
         const requestedPlies: 1 | 2 = room.game.currentTurn === player.side ? 2 : 1
-        if (!history.length) throw new RoomError('Chưa có đủ nước đi để hoàn tác.')
+        if (!history.length) throw new RoomError('ChÆ°a cÃ³ Ä‘á»§ nÆ°á»›c Ä‘i Ä‘á»ƒ hoÃ n tÃ¡c.')
         const plies: 1 | 2 = requestedPlies === 2 && history.length === 1 ? 1 : requestedPlies
         room.takebackRemaining = { ...remaining, [player.side]: remaining[player.side] - 1 }
         room.takebackOffer = { requester: player.side, plies }
@@ -239,49 +355,52 @@ export class RoomService {
       }
       case 'reply-takeback': {
         const offer = room.takebackOffer
-        if (room.game.phase !== 'playing' || !offer || offer.requester === player.side || typeof command.accepted !== 'boolean') throw new RoomError('Không có yêu cầu đi lại từ đối thủ.')
+        if (room.game.phase !== 'playing' || !offer || offer.requester === player.side || typeof command.accepted !== 'boolean') throw new RoomError('KhÃ´ng cÃ³ yÃªu cáº§u Ä‘i láº¡i tá»« Ä‘á»‘i thá»§.')
         if (command.accepted) {
           const history = this.histories.get(room.id) ?? []
           const restored = history.at(-offer.plies)
-          if (!restored) throw new RoomError('Không thể khôi phục nước đi.')
-          room.game = { ...restored, lastClockUpdate: now }
+          if (!restored) throw new RoomError('KhÃ´ng thá»ƒ khÃ´i phá»¥c nÆ°á»›c Ä‘i.')
+          room.game = { ...restored, repetition: restored.repetition ? { ...restored.repetition, warning: false, warningSide: null } : undefined, lastClockUpdate: now }
           this.histories.set(room.id, history.slice(0, -offer.plies))
           room.moveCount = Math.max(0, (room.moveCount ?? history.length) - offer.plies)
           const remaining = room.takebackRemaining ?? { red: 2, black: 2 }
           room.takebackRemaining = { ...remaining, [offer.requester]: 2 }
-          this.append(room, '', `${player.name} đồng ý cho đối thủ đi lại.`, true)
+          this.append(room, '', `${player.name} Ä‘á»“ng Ã½ cho Ä‘á»‘i thá»§ Ä‘i láº¡i.`, true)
           room.takebackDecline = null
         } else {
-          this.append(room, '', `${player.name} từ chối yêu cầu đi lại.`, true)
+          this.append(room, '', `${player.name} tá»« chá»‘i yÃªu cáº§u Ä‘i láº¡i.`, true)
           room.takebackDecline = { id: randomUUID(), requester: offer.requester, declinedBy: player.side }
         }
         room.takebackOffer = null
         break
       }
       case 'reset':
-        if (room.nextMatchOffer) throw new RoomError('Hãy trả lời lời mời đấu tiếp trước.')
-        if (room.game.phase === 'playing') throw new RoomError('Hãy kết thúc ván trước khi chơi lại.')
-        room.game = createGame(now, (room.minutes ?? 10) * 60_000)
+        if (room.game.phase === 'ready' && room.viewers?.some(viewer => viewer.queued)) throw new RoomError('Không thể cài lại khi đang có người chờ đấu.')
+        if (room.game.phase === 'playing') throw new RoomError('HÃ£y káº¿t thÃºc vÃ¡n trÆ°á»›c khi chÆ¡i láº¡i.')
+        room.game = createGame(now, (room.minutes ?? 10) * 60_000, (room.turnSeconds ?? 60) * 1000)
+        room.repetitionNoticePaused = false
+        room.repetitionNoticeKind = null
+        room.repetitionAttemptNotice = null
+        this.repetitionNoticeDeadlines.delete(room.id)
         room.players = room.players.map(player => ({ ...player, ready: false }))
         room.drawOffer = null
         room.takebackOffer = null
         room.takebackDecline = null
         room.takebackRemaining = { red: 2, black: 2 }
         room.moveCount = 0
-        room.nextMatchOffer = null
-        room.nextMatchDeclinedId = null
         this.histories.set(room.id, [])
         break
-      default: throw new RoomError('Thao tác không được hỗ trợ.')
+      default: throw new RoomError('Thao tÃ¡c khÃ´ng Ä‘Æ°á»£c há»— trá»£.')
     }
-    this.syncNextMatchOffer(room)
+    this.rotateQueueAfterFinishedGame(room)
+    this.updateReadyWait(room, now)
     this.repository.save(room)
     return room
   }
   chat(playerId: string, input: unknown): RoomSnapshot {
     const room = this.memberRoom(playerId)
     const member = room.players.find(player => player.id === playerId) ?? room.viewers?.find(viewer => viewer.id === playerId)
-    if (!member) throw new RoomError('Bạn chưa vào phòng.')
+    if (!member) throw new RoomError('Báº¡n chÆ°a vÃ o phÃ²ng.')
     this.append(room, member.name, textInput(input, 300))
     this.repository.save(room)
     return room
@@ -289,11 +408,29 @@ export class RoomService {
   tick(): RoomSnapshot[] {
     const changed: RoomSnapshot[] = []
     for (const room of this.repository.all()) {
-      if (room.game.phase !== 'playing') continue
+      if (room.game.phase !== 'playing') {
+        const beforeGame = room.game
+        this.rotateQueueAfterFinishedGame(room)
+        const readinessChanged = this.updateReadyWait(room)
+        if (beforeGame !== room.game || readinessChanged) { this.repository.save(room); changed.push(room) }
+        continue
+      }
       const now = this.now()
+      const repetitionNoticeDeadline = this.repetitionNoticeDeadlines.get(room.id)
+      if (room.repetitionNoticePaused && (repetitionNoticeDeadline === undefined || repetitionNoticeDeadline === null || now < repetitionNoticeDeadline)) {
+        changed.push(room)
+        continue
+      }
+      if (repetitionNoticeDeadline !== undefined && repetitionNoticeDeadline !== null) {
+        room.game = { ...room.game, lastClockUpdate: repetitionNoticeDeadline }
+        room.repetitionNoticePaused = false
+        room.repetitionNoticeKind = null
+        this.repetitionNoticeDeadlines.delete(room.id)
+      }
       room.game = room.takebackOffer ? { ...room.game, lastClockUpdate: now } : advanceClock(room.game, now)
       if (room.game.phase === 'finished') { room.drawOffer = null; room.takebackOffer = null }
-      this.syncNextMatchOffer(room)
+      this.rotateQueueAfterFinishedGame(room)
+      this.updateReadyWait(room, now)
       this.repository.save(room)
       changed.push(room)
     }

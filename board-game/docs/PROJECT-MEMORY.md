@@ -1,5 +1,279 @@
 # Ghi nhớ quy tắc và lỗi cần tránh
 
+- 2026-10-15: Header Chọn Bàn bổ sung Toàn màn hình ở cuối cụm tiện ích; thứ tự Cúp, Bạn bè, Âm thanh, Toàn màn hình; dùng handler fullscreen chung của Home.
+
+- 2026-10-15: Đặt quân bằng click vào điểm không hợp lệ trong Vị trí tùy chỉnh chỉ báo lỗi, vẫn giữ lựa chọn bên/loại quân trong khay để thử điểm khác; áp dụng cho cả hai bên.
+
+- 2026-10-15: Header Chơi với máy (desktop/compact) bỏ Thành tích; hai tiện ích theo thứ tự trái→phải là Âm thanh, Toàn màn hình. Toàn màn hình bật/tắt bằng fullscreen API và báo lỗi qua dialog hiện có.
+
+- 2026-10-15: Trong Vị trí tùy chỉnh, chuột phải lấy quân khỏi bàn cũng tự chọn khay đúng bên và loại quân vừa lấy, đồng bộ với kéo quân ra ngoài.
+
+- 2026-10-15: Màn Vị trí tùy chỉnh bỏ nút Lưu thế cờ ở thanh tiện ích theo yêu cầu; giữ Tạo từ ảnh, Âm thanh và Toàn màn hình.
+
+- 2026-10-14: Hover Lùi/Tiến trial enabled phủ vàng nhạt#ffe08b alpha8%, xuất hiện ngay không transition; thay hover trắng10% trước đó.
+
+- 2026-10-14: Máy đi trial bỏ outline focus khi Enter/click, giữ glow active. Lùi/Tiến enabled hover phủ trắng10%; disabled không hover, giữ artwork mờ.
+
+- 2026-10-14: Lùi bàn thử (nút và ←) quay về trước nước của mình: mình vừa đi/máy chưa đáp lùi1; máy đã đáp sau mình lùi2. Nếu chỉ có nước máy mở đầu thì lùi1, không vượt gốc. Hủy animation/request qua seek; giữ tua từng nước ở replay gốc và nút tiến như cũ.
+
+- 2026-10-14: Lùi/Tiến trial phải làm mờ trực tiếp artwork khi disabled (brightness0.35), không chỉ CSS trên button trong suốt. Robot Máy đi dùng crop img riêng792×182 thay background atlas để tránh render lệch/vỡ; giữ hiệu ứng active.
+
+- 2026-10-14: Máy đi bật phải nổi bật theo ảnh mẫu: phóng1.03, sáng125%, viền vàng2px và glow vàng/cam trong-ngoài rõ. Tắt bỏ active. Chỉ áp dụng nút Máy đi, giữ khung/các nút khác.
+
+- 2026-10-14: Hoàn tác UI khung trial về220px/chữ Máy đi17px và khoảng cách artwork bản trước; giữ active Máy đi scale1.02/viền vàng mảnh/glow nhẹ. Giữ phím tắt và search1s, không hiện dòng đang tính.
+
+- 2026-10-14: Trial bỏ dòng Pikafish đang tính; search vẫn cấp10 nhưng movetime1000ms theo yêu cầu. API thinkMs tùy chọn validated100..2500 chỉ level10; trial gửi1000, chế độ khác giữ profile cũ. Không nhầm thời gian engine với tổng thời gian mạng/khởi động/animation.
+
+- 2026-10-14: Theo yêu cầu thử UI mới sau hoàn tác: trial controls220→240px, khoảng cách artwork các nút tăng theo tỷ lệ khung; chữ Máy đi17→20px. Máy đi bật scale1.02, viền vàng1px/glow nhẹ, tắt về cũ. Không dim nút Lùi/Tiến; giữ toàn bộ phím tắt.
+
+- 2026-10-14: Người dùng hoàn tác riêng UI lần nới/glow/dim trial: khung về220px, bỏ dim Lùi/Tiến và scale/glow Máy đi. Giữ nguyên phím ←/→/↑/↓/Enter/Space đã nối.
+
+- 2026-10-14: Khung trial tăng220→244px; Lùi/Tiến mờ40% khi không dùng được, sáng lại khi có lịch sử. Máy đi bật scale1.04/glow vàng, tắt về cũ. Bàn thử dùng ←/→ lùi/tiến, ↑/↓ reset, Enter bật/tắt Máy đi; bàn gốc Enter Phát/Tạm dừng, Space chuyển bàn. Phím ngoài phạm vi không chiếm thao tác ô nhập/dialog.
+- 2026-10-14: Nội dung số mới mặc định dùng font-number và lining-nums/tabular-nums, căn baseline/hàng với nội dung bên cạnh theo yêu cầu người dùng.
+
+- 2026-10-14: Trial dùng cả cụm giữa ảnh4470bd4d làm khung Lùi/Reset/Tiến/Máy đi; hit area tương ứng artwork, nhãn Bật/Tắt HTML trên nền đã xử lý từ ảnh gốc. Phân tích/Gợi ý tách dưới khung gap10px CSS, width72px mỗi nút; không bọc nền/viền thêm. Replay gốc giữ controls cũ.
+
+- 2026-10-14: Phân tích/Gợi ý trong trial dùng hai nút ảnh dưới của4470bd4d, crop alpha riêng trial-analysis/trial-hint, đặt ngang giữ tỷ lệ. Wrapper không nền/viền/padding/shadow. Vẫn UI đang phát triển, không logic phân tích/gợi ý.
+
+- 2026-10-14: Máy hướng dẫn/đánh thử phải dùng Pikafish cấp10 qua API, tuyệt đối không fallback máy cơ bản. Gửi FEN snapshot gốc và lịch sử UCI nhánh tới nước hiện tại, remainingMs600000 để dùng đủ profile mạnh nhất. Hủy request khi tua/reset/tắt/chuyển/rời, validate nước và giữ animation. Lỗi có Thử lại; Cờ Úp báo chưa hỗ trợ Pikafish. Phân tích/Gợi ý vẫn chỉ UI.
+
+- 2026-10-14: Đính chính nút ghim trong replay: chỉ hiện ở bàn thử và bàn chính Ván đấu; bàn chính Thế cờ ẩn ghim. Bàn chơi thật vẫn giữ Lưu thế như trước.
+
+- 2026-10-14: Mở Thế cờ gốc ẩn ReplayControls Phát/0/0/Tua, chỉ giữ icon chuyển bàn (và tiện ích); bàn thử vẫn có controls thử. GameTools cho ghim lưu thế ở mọi replay/trial, lưu snapshot đang hiển thị ngay. replayKind=position phân biệt nguồn, initialMoveCount giữ số nước của thế gốc khi lưu tiếp.
+
+- 2026-10-14: Mỗi lần chuyển Xem lại↔Đánh thử luôn tắt Máy đi. Nước đi thử của người/máy truyền animation Move qua Board chung, khóa nước tiếp khi đang chạy400ms; máy chờ animation xong rồi delay550ms. Tua/reset/chuyển/rời hủy animation/timer cũ.
+
+- 2026-10-14: Phím Enter/NumpadEnter Phát/Tạm dừng replay (không áp dụng trial); Space luôn chuyển Xem lại↔Đánh thử kể cả nút đang focus. Bỏ qua ô nhập/dialog/phím lặp/modifier, không xử lý lúc entrance.
+
+- 2026-10-14: Khoảng cách giữa hàng Thế cờ dùng cùng var(--ui-p-5) với Ván đấu, viewport vẫn vừa hai hàng. Bỏ đường chia liền giữa card; thanh cuộn mảnh nằm ở khoảng trống phải ngoài card, track/corner trong suốt chỉ hiện thumb.
+
+- 2026-10-14: Icon replay chuyển sang trái và đổi chức năng thành Xem lại/Đánh thử, Space dùng cùng thao tác (bỏ qua ô nhập/dialog/phím lặp). Cụm ReplayControls chuyển dưới user phải. Đánh thử chụp đúng snapshot đang xem, tạm dừng replay; useReplayTrial giữ nhánh riêng, không sửa recording/gameStore/socket/clock. Lùi/tiến duyệt nhánh, số nước thay Reset về mốc thử. Máy đi toggle mặc định tắt, bật dùng máy cơ bản theo phe đối diện user; tắt cho đi cả hai bên. Timer máy hủy khi tua/reset/tắt/rời. Phân tích/Gợi ý chỉ UI disabled/đang phát triển. Bấm icon/Space lại trở về đúng nước replay gốc.
+
+- 2026-10-14: Icon đảo hướng replay tăng64→84px desktop,40→52px compact; vị trí không đổi.
+
+- 2026-10-14: Replay thêm nút đảo hướng bàn dùng ảnh người dùng0a700f7c; desktop đặt giữa theo chiều dọc bàn và giữa bàn/mép phải bằng cột phải GamePage. Chỉ đảo Board, giữ user trái và state gốc; vào replay khác reset hướng mặc định. Compact nút nhỏ dưới cụm phải tránh avatar.
+
+- 2026-10-14: Đính chính bố cục hàng Thế cờ: bỏ dịch5px; cột thao tác chỉ rộng bằng nút Mở thế151px responsive, mép phải nút trùng mép phải thùng rác. Cột thông tin minmax(0,1fr) giãn lấp khoảng trống; giữ gap bàn–thông tin10px.
+
+- 2026-10-14: Theo yêu cầu đẩy nhẹ sang phải, cụm thông tin và nút Mở thế hàng Thế cờ dịch5px CSS; bàn mini và thùng rác giữ vị trí.
+
+- 2026-10-14: Nút thùng rác của mỗi hàng Thế cờ nằm góc trên bên phải; giữ nút Mở thế ở bên phải giữa hàng.
+
+- 2026-10-14: Hàng Thế cờ phải rộng bằng Ván đấu, bỏ gutter thanh cuộn dành sẵn riêng. Mở thế dùng cùng asset nút gỗ/font/cỡ chữ Xem lại; Xóa dùng icon thùng rác/nền xám/kích thước của Ván đấu. Hai nút đặt ngang cuối hàng.
+
+- 2026-10-14: Icon số nước/ghi chú và loại cờ trong hàng Thế cờ tăng lên24px responsive; chấm bên tới lượt18px responsive. Ghi chú tăng lề trái để không chồng icon.
+
+- 2026-10-14: Thế cờ: vs cách mỗi user17px CSS; icon số nước/ghi chú là tờ báo SVG. Ghi chú có bút riêng góc trên phải; sửa tên giữ nền gradient vàng/độ đậm, sửa ghi chú giữ nền nâu nhạt. Nút ghim trong ván lưu ngay snapshot với tên mặc định theo số nước và ghi chú trống; không hỏi, không mở dialog. Chỉnh tên/ghi chú sau trong Đã lưu.
+
+- 2026-10-14: Người dùng mở riêng avatar nhỏ hàng Thế cờ, tăng28→34px responsive rồi khóa lại. Cụm hai user ôm nội dung, vs đặt giữa, cách mỗi cụm10px CSS, không flex-1 tạo khoảng trống thừa.
+
+- 2026-10-14: Thông tin hai người trong hàng Thế cờ luôn đặt bản thân bên trái nếu tham gia; nếu hai người lạ đấu thì Đỏ bên trái, Đen bên phải. Dùng savedMatchSide chung với Ván đấu/replay, không đổi phe/lượt trong snapshot.
+
+- 2026-10-14: Mini Board Thế cờ không có bóng khung/bàn (Board shadow=false); nội dung cách bàn10px CSS. Tên thế tăng21→24px responsive và font-black. Các bàn khác giữ bóng mặc định.
+
+- 2026-10-14: Mini Board trong Thế cờ lấy chiều cao hàng thực trừ10px, cách mép trong trên/dưới5px CSS, width theo1134/1296. ResizeObserver đo hàng trong viewport hai dòng; không giữ width178 cố định.
+
+- 2026-10-14: Style hàng Thế cờ theo ảnh mẫu giấy vàng/đường chia nâu, tên nền vàng và bút sửa, hai tên người kèm avatar nhỏ và vs, số nước/chấm màu lượt/biến thể, ghi chú nền nâu nhạt cuộn riêng. Bút cho sửa tên/ghi chú và lưu localStorage. Vẫn hai hàng, bàn mini dọc đúng tỷ lệ và Mở thế/Xóa; modal/Ván đấu không đổi.
+
+- 2026-10-14: Màn bàn cờ luôn có Âm thanh và Toàn màn hình (phóng to/thu nhỏ), kể cả replay ván/đọc thế đã lưu và trình chỉnh thế compact. GameTools replay chỉ hiện hai tiện ích này; không bật lại lệnh thi đấu.
+
+- 2026-10-14: Đã lưu/Thế cờ mỗi hàng một thế, viewport vừa hai hàng và cuộn dọc; ngày giờ/bàn mini dọc/thông tin/nút Mở thế-Xóa. Ghi chú cuộn riêng trong chiều cao cố định. Giữ modal và tab Ván đấu. Người dùng cho phép nối nút ghim: chụp GameState ngay lúc bấm, nhập tên/ghi chú, savedPositionsStore lưu localStorage theo owner; mở thế dùng GamePage replay một snapshot, không đổi gameStore. Board mini dùng Board thật, tỷ lệ1134/1296, chỉ đọc.
+
+- 2026-10-14: Người dùng mở phạm vi footer Lịch sử và danh sách để bỏ thanh chú thích Cờ tướng/Cờ úp; dùng chiều cao được giải phóng cho thêm hàng lịch sử. Đã chơi hiển thị 8 hàng và cuộn khi vượt; dữ liệu Đã chơi vẫn minh họa. Avatar và các khu vực còn lại tiếp tục khóa.
+
+- 2026-10-14: Icon Lưu thế cờ trong GameTools đổi thành cây ghim vàng; giữ vị trí giữa Lưu ván và Bạn bè.
+
+- 2026-10-14: Tiện ích bàn cờ bỏ Camera; thứ tự trái sang phải Lưu ván/Lưu thế cờ/Bạn bè/Âm thanh/Toàn màn hình. Lưu ván giữ icon đĩa mềm và điều kiện kết thúc; Lưu thế dùng icon bàn cờ, hiện thông báo đang phát triển vì chưa nối dữ liệu Thế cờ.
+
+- 2026-10-14: Nút Lưu giữ ván kết thúc gần nhất mà client đã nhận. Vào giữa ván chưa có kết quả thì khóa; đã xem hết ván 1 có thể lưu ván 1 trong ván 2; hết ván 2 thay mục tiêu bằng ván 2. useMatchSaving không nhận archive cũ lúc game đang playing, vẫn giữ lastMatch đã nhận trước đó.
+
+- 2026-10-14: Đã lưu/Ván đấu phải render người dùng sở hữu danh sách bên trái ở cả phe Đỏ và Đen; không chỉ tính leftSide rồi vẫn truyền redName cố định. Biểu tượng phe/kết quả đi cùng người. Replay đặt phe đó dưới bàn, độc lập lượt đầu. Regression DOM hai phe đã kiểm tra thứ tự nút hồ sơ.
+
+- 2026-10-14: Cân màu gỗ quân Đen theo quân Đỏ bằng gamma RGB riêng trong SVG filter, mask theo độ sáng giữ chữ tối. Cùng filter cho bàn/khay/drag/animation, không sửa geometry hoặc bản A. Thay cân màu brightness nhẹ trước đó ở render.
+
+- 2026-10-14: Căn mặt tròn bên trong quân Đỏ sang phải khoảng2% chiều rộng bằng SVG displacement trong ChessPiece, giữ nguyên thân/viền ngoài và tọa độ quân. Áp dụng chung bàn/khay/drag; hiệu ứng kết thúc giữ filter mặt. Không thay file ảnh hoặc mốc A.
+
+- 2026-10-14: Mốc hoàn tác A là .checkpoints/A-2026-10-14.zip (879 tệp), tạo trước khi đồng bộ quân. Manifest/hash tại .checkpoints/A.json. Khi người dùng yêu cầu về A, phục hồi snapshot này rồi build lại; giữ dependencies/binary ignored hiện có. Không nhầm bản sau đồng bộ với A.
+
+- 2026-10-14: Quân mở Đỏ/Đen dùng chung ChessPiece object-fill trong khung108×112, không offset riêng Đỏ4px. Cân tông gỗ Đen bằng pieceColorFilter brightness0.985/saturate1.015 dùng chung trong render/animation/nhận diện. Khay, bàn, quân kéo và ảnh chụp DOM đồng bộ theo component.
+
+- 2026-10-13: Khay xếp thế bỏ nhãn Quân Đen/Quân Đỏ; mỗi màu dùng nhãn1/2/3/4/5/Q/W theo thứ tự Xe/Mã/Tượng/Sĩ/Tướng/Pháo/Tốt, trái sang phải rồi hàng sau. ↑ chọn khay Đen, ↓ chọn khay Đỏ và viền vàng; bấm vào khay chọn màu và giữ lựa chọn; rê chuột chỉ hover, không đổi màu đang chọn; khay đang chọn dùng nền nâu sáng, viền vàng/outline và glow chung để nổi bật. Bấm số trên quân hoặc phím1–5/Q/W chọn quân của khay đang chọn. Quân hết vẫn khóa; không bắt phím trong ô nhập/dialog.
+
+- 2026-10-13: Vị trí tùy chỉnh: Xóa quân xóa toàn bộ quân thường, giữ Tướng đang có trên bàn và bỏ chọn quân. Không kiểm tra Tướng đối mặt trong thao tác bấm/kéo xếp thế; Đấu ngay và server vẫn báo lỗi, chặn thế Tướng đối mặt.
+
+- 2026-10-13: Đấu ngay chuyển xuống dưới khay quân, gap10px, căn giữa chiều dọc cả cụm khay+nút; dùng ảnh nút đỏ/kiếm/hai rồng theo mẫu, bỏ nút giữa bàn trong trình chỉnh thế.
+
+- 2026-10-13: Vị trí tùy chỉnh: đặt/di chuyển sai vị trí báo lỗi rồi bỏ chọn quân. Kéo trực tiếp từ khay hoặc từ bàn mà không cần bấm chọn; thả trong bàn đặt vào giao điểm gần nhất theo hướng bàn và luật hiện hành, thả quân trên bàn ra ngoài thì xóa; thả quân khay ngoài bàn không thêm quân. Pointer cancel không xóa; click sau kéo bị chặn. Chỉ áp dụng trình chỉnh thế.
+
+- 2026-10-13: Bỏ nhãn hiện Đổi bên; khay quân desktop căn giữa chiều dọc vùng từ dưới hàng tiện ích đến mép dưới. Tạo bàn cờ từ ảnh chỉ hiện Đang trong quá trình phát triển, chưa mở chọn ảnh.
+
+- 2026-10-13: Nút Lưu Vị trí tùy chỉnh dùng đĩa mềm vàng theo mẫu mới: thân vàng đặc bo nhẹ, khe trên có chốt vàng, ô dưới kín có thanh ngang lõm; không chữ, icon32px cùng cỡ tiện ích.
+
+- 2026-10-13 — Quân trong khay Vị trí tùy chỉnh không có drop-shadow; truyền shadow=false cho ChessPiece. Quân trên bàn giữ bóng hiện hành.
+
+- 2026-10-13 — Vị trí tùy chỉnh giới hạn mỗi bên1 Tướng/2 Sĩ/2 Tượng/2 Mã/2 Xe/2 Pháo/5 Tốt. Quân dùng hết bị mờ và khóa bấm; tự bỏ chọn sau khi đặt quân cuối. Chặn đặt/di chuyển vào điểm Tướng/Sĩ/Tượng/Tốt không thể tới ; hai Tướng đối mặt chỉ bị chặn khi Đấu ngay. Tượng chỉ đặt tại7 điểm có thể tới bên phần sân mình. Xóa quân vẫn được phép để tạo thế dang dở; kiểm tra Đấu ngay/server FEN vẫn là lớp xác thực cuối.
+
+- 2026-10-13 — Vị trí tùy chỉnh mở từ màn máy, screen position, dùng Board/PlayerCard cũ; không đối thủ/chat/view/clock/vòng xanh/thao tác thi đấu. Khay chuyển bên phải, gap ngang10px với bàn/viền trong, đủ14 loại quân không cuộn khay. Chỉ giữ Xóa quân (thùng rác) và Cài lại (mũi tên khôi phục). Header Lưu/Tạo từ ảnh dùng icon đĩa mềm/ảnh; Đổi bên thay mã phòng. Nút Đấu ngay đỏ/hai rồng nằm dưới khay, gap10px; không hiện nút giữa bàn. Lưu FEN; Tạo từ ảnh hiện chỉ báo đang phát triển, giữ mã nhận diện để phát triển tiếp. Đấu ngay kiểm tra thế rồi khởi tạo Pikafish từ FEN, giữ cấp; server kiểm tra FEN+lịch sử, chơi lại dùng thế gốc. Chi tiết docs/CUSTOM-POSITION.md.
+
+- 2026-10-13 — Banner Luyện cờ nới thêm30px mỗi bên:1208→1268px, tổng60px mỗi bên so với ban đầu; giữ tâm/aspect, fit chiều cao878px.
+
+- 2026-10-13 — Banner Luyện cờ tăng rộng1148→1208px theo hệ thiết kế màn máy (thêm30px mỗi bên), giữ tâm và aspect2132/348.
+
+- 2026-10-13 — Banner Cờ thế màn Chơi với máy thay bằng ảnh Luyện cờ63e5f151, runtime computer-setup/training-banner.png crop2132×348. Giữ tỷ lệ, width thiết kế1148px; fit layout theo chiều cao858px để không tràn. Nguồn/crop tại training-banner-source.md; chưa triển khai chức năng luyện cờ.
+
+- 2026-10-13 — Nút giữa bàn sau ván máy trở lại nhãn Sẵn sàng như bình thường, bỏ ngoại lệ Đấu lại. Giữ tự bắt đầu khi mới vào bàn máy.
+
+- 2026-10-13 — Đính chính ảnh nút tròn: đó là Đi lại/Hoàn nước, không phải nút Sẵn sàng giữa bàn. Đấu máy ẩn toàn bộ MatchActions (Cầu hòa/Xin thua/Đi lại); khôi phục Sẵn sàng sau ván, giữ tự bắt đầu Pikafish.
+
+- 2026-10-13 — Ván mode computer cô lập với phòng online: không tạo/đăng phòng server, không chặn mời chơi bằng localBusy. challengeProfile chỉ báo localBusy cho mode local đang playing; online do server room kiểm tra. Đồng ý lời mời reset ván local/hủy máy rồi enterOnline theo luồng challenge hiện có, không đưa ai vào ván máy. Ẩn Cầu hòa/Xin thua/Đi lại trong máy. Các nút online/local hai người không đổi.
+
+- 2026-10-13 — Đấu máy (mode computer, gồm Cờ Úp/demo) không hiển thị MatchIntro ai đấu với ai hoặc âm thanh intro gọi từ start, đồng hồ và vòng/phủ xanh avatar. GamePage truyền showClock=false vào cả2 PlayerCard và tắt useMatchIntro. Chỉ ẩn hiển thị, giữ luật clock/khai cuộc1300ms; online/local hai người vẫn như cũ.
+
+- 2026-10-13 — Header Chơi với máy lấy geometry avatar/tên của Chọn Bàn: avatar45px desktop/33px compact, hạ1px; cùng AvatarPortrait/AvatarFrameOverlay, bỏ mask/shadow riêng. Cụm gap12px; tên font-heading24px/18px, leading-none, màu#eee4ce, max-width192px. Chỉ đổi màn máy theo yêu cầu, Chọn Bàn giữ nguyên.
+
+- 2026-10-13 — Người dùng mở riêng kích thước avatar header Chơi với máy: tăng40→44px desktop,36→40px compact; frame vẫn scale theo component chung. Tên dùng font-heading (font chính). Các avatar khác tiếp tục khóa.
+
+- 2026-10-13 — Chơi với máy chỉ chọn Pikafish/cấp độ, bỏ dropdown Máy cơ bản trên desktop/compact. Khi vào bàn Pikafish ready tự gọi luồng start hiện có (giữ intro/clock1300ms), ẩn nút Sẵn sàng ban đầu; kết thúc dùng Đấu lại. Header dùng AvatarPortrait/AvatarFrameOverlay và tên session, giữ geometry avatar; cụm tiện ích gap8px theo Home. Máy cơ bản ở Chơi nhanh/Cờ Úp không đổi.
+
+- 2026-10-13 — Sai số Pikafish qua MultiPV và PIKAFISH_MOVE_WEIGHTS (pikafishCandidates.ts): cấp1 top5 [20,25,25,20,10], giảm sai số tới cấp10 bestmove100%. Cấp1–3 đổi sang depth1/2/3 với deadline80/120/180ms vì64 nodes chỉ trả2 PV ở engine thật. Lấy cùng vòng depth, lọc illegal/lặp, thua ngay1 nước, mate âm khi tránh được và chênh300cp; chuẩn hóa trọng số ứng viên còn an toàn, không random ngoài PV. Cấp4–10 giữ search budget. Không khẳng định tránh được chiến thuật sâu.
+
+- 2026-10-13 — 10 cấp Pikafish dùng profile server tại pikafishLevels.ts; binary2026-09-06 không có Skill Level/UCI_Elo (uci-options.txt). Cấp1–9 tăng nodes64→400000, cấp10 movetime2500 không cap depth/nodes; mỗi go chỉ một limit chính. Threads/Hash/EvalFile chỉ set khi handshake quảng bá, clamp min/max và CPU. Deadline stop theo profile/clock, giữ process async/hủy/timeout15s. Chọn cấp lưu session ngay, mỗi search gửi level; chưa benchmark ELO.
+
+- 2026-10-13 — Sau khi bỏ tiêu đề Chơi với máy, giữ Cờ thế tại vị trí cũ: bảng giữa cao625px (tăng82px), giãn biển tên/cấp độ/chọn bên/nút hành động theo chiều dọc; banner cách bảng13px. Footer nằm trong flow dưới banner, không đo top tuyệt đối gây đè cấp độ.
+
+- 2026-10-13 — Màn Chơi với máy bỏ tiêu đề lớn ở desktop/compact; nội dung desktop dồn lên bằng chiều cao tiêu đề cũ 82px theo scale, giữ kích thước hiện hành. Nhãn cấp độ dùng font-heading cho Cấp, font-number lining/tabular cho số, căn chung baseline.
+
+- 2026-10-13 — Căn tâm mặt tròn quân Đỏ của bộ codo-coden-v2: ChessPiece dịch ngang sang phải 4px nhân scale bàn (từ 2px), dùng chung mọi màn qua Board; quân Đen và mặt úp giữ nguyên.
+
+
+- 2026-10-13 — Bảng Tạo bàn dùng khung72f80581 giống khung chọn tỉnh/thành, gồm nền/tiêu đề/X; các ô thời gian và nút Hủy/Tạo bàn dùng ảnh cắt từ skin v2 cũ để giữ chức năng. CreateRoomForm dùng chung ở Chọn Bàn/LobbyDialog; kích thước ngang tối đa680px, aspect1369/953; tọa độ điều khiển đã căn lại theo khung mới. Nguồn và crop ghi trong create-room/source.md.
+
+- 2026-10-13 — Tiêu đề khung chọn tỉnh/thành tăng nhẹ: 34px desktop/22px compact, font-heading; giữ nguyên tâm, vùng tiêu đề và khung.
+
+- 2026-10-13 — Đã hoàn tác lần thử thu nhỏ bảng Tạo bàn; kích thước hiện hành trở lại max-width680px/73dvh, aspect1589/983.
+
+- 2026-10-13 — Người trong sảnh Chọn Bàn được tính theo tỉnh/thành đang chọn, không cố định theo địa chỉ hồ sơ. Mở màn mặc định địa chỉ hồ sơ; đổi nơi gửi lobby:presence mới để server giảm nơi cũ/tăng nơi mới, không đổi hồ sơ và không cộng giả phía UI. Đổi nơi không gửi null trung gian; reconnect công bố nơi đang chọn, rời màn mới gỡ presence.
+
+- 2026-10-13 — Thẻ chọn tỉnh/thành: icon dùng ô rộng26cqw/cao100% thẻ, object-contain giữ tỷ lệ, hình cao được phép chạm viền trên/dưới. Tên font-heading min(36px,7cqw); số liệu font-number min(28px,5.5cqw). Giữ4 dòng/gap dọc8px và artwork hiện tại.
+
+- 2026-10-13 — Sửa theo phản hồi: thẻ tỉnh/thành phải giãn đầy chiều cao mỗi hàng, gap dọc8px, giữ4 dòng trong viewport. Cho phép artwork thẻ giãn theo ô trong phạm vi này theo yêu cầu; bỏ căn giữa thẻ thấp gây khoảng trống lớn. Gap ngang desktop12px giữ nguyên, compact8px.
+
+- 2026-10-13 — Tiện ích góc phải màn đấu: Chụp hình → Bạn bè → Âm thanh → Toàn màn hình. Nút Bạn bè dùng HomeIcon và FriendsDialog chung, mở hồ sơ/nhắn tin hiện có, Mời chơi dùng challenge chung. Giữ mép phải, gap và geometry avatar; áp dụng GamePage cho cả online/local/Cờ Úp.
+
+- 2026-10-13 — Khung chọn tỉnh/thành chỉ hiển thị4 dòng trong viewport danh sách: desktop2 cột, compact1 cột; phần còn lại cuộn. Grid chia chiều cao thành4 hàng trừ gap, thẻ giữ aspect gốc và căn giữa hàng, không kéo méo artwork.
+
+- 2026-10-13 — Chốt thay riêng khung chọn tỉnh/thành về ảnh72f80581, crop1369×953; thẻ giữ ảnh e05c67be1066×187. Khung có sẵn X nên desktop chỉ đặt hit area, không chồng SVG. Nguồn/script tại province-picker-source.md.
+
+- 2026-10-13 — Mời chơi Bạn bè dùng chung challenge với So tài hồ sơ. Khi đồng ý: người gửi chưa có phòng online → tạo phòng mới cho cả hai, kể cả người nhận đang ở phòng khác; người gửi có phòng → đưa người nhận tới phòng người gửi, không tạo phòng mới. Xác định phòng lúc đồng ý; cập nhật snapshot phòng cũ/phòng đích và socket membership. Giữ chặn đang đấu/đã Sẵn sàng, không chiếm ghế của người khác. Danh sách bạn bè vẫn mẫu, backend lời mời cần người nhận online thật. 8 test service/socket pass; không tuyên bố backend quan hệ bạn bè đã tích hợp.
+
+- 2026-10-13 — Header Chọn Bàn: bấm avatar mở hồ sơ bản thân bằng ProfileDialog hiện có; lưu tên đang nhập hợp lệ trước khi mở. Người dùng cho phép hạ riêng avatar header xuống1px, giữ kích thước và khung avatar; các nơi khác vẫn khóa. Tiện ích từ trái qua phải: Cúp, Bạn bè, Loa; giữ gap10px và chức năng hiện có.
+
+- 2026-10-13 — Thay tiếp khung/thẻ chọn tỉnh thành bằng hai hình trong ảnh e05c67be: khung trên crop1360×720, thẻ dưới1066×187. Giữ tỷ lệ, chữ/icon co theo chiều rộng thẻ để vừa thẻ thấp; nút đóng SVG vì nguồn mới không có X. Nguồn và script tại province-picker-source.md.
+
+- 2026-10-13 — Ghép nhanh chỉ chọn phòng có đúng1 người ngồi, chưa đấu; viewers không tính, không ghép phòng0 hoặc2 người. Chọn Bàn phải khớp thời lượng dropdown và chỉ mở Tạo bàn nếu không có phòng phù hợp. Home giữ mọi thời lượng và fallback máy.
+
+- 2026-10-13 — Thay khung chọn tỉnh/thành bằng ảnh72f80581 và thẻ bằng ảnh971d28dd theo yêu cầu. Runtime crop sát alpha1369×953 và2069×462, giữ tỷ lệ; nguồn/script tại province-picker-source.md. Giữ danh sách, tên/icon và thao tác chọn hiện hành.
+
+- 2026-10-13 — Nút X Tạo bàn neo theo tâm vòng tròn của skin v2: (1499,105) trên ảnh1589×983, tương ứng94.34%/10.68%; SVG vuông và căn giữa, tránh lệch do tọa độ hit area cũ.
+
+- 2026-10-13 — Chơi nhanh trong Chọn Bàn lấy danh sách phòng mới và vào thẳng phòng còn ghế, chưa đấu, đúng thời lượng dropdown; tìm trên mọi tỉnh/thành. Chỉ mở Tạo bàn nếu không có phòng phù hợp. Quy tắc này thay phần “mọi thời lượng” của ghi chú cũ cho Chọn Bàn; Home giữ hành vi riêng. Bàn mẫu không phải phòng online để ghép nhanh.
+
+- 2026-10-10 — Không có ai xếp hàng thì người thua giữ ghế, kể cả có khán giả chưa xếp hàng. Sau ván, người mới xếp hàng được thay người thua nếu chưa có ai Sẵn sàng đấu tiếp; giữ mốc tối thiểu 3 giây từ kết quả, quá mốc thì chuyển ngay. Một trong hai người đã Sẵn sàng thì đóng quyền thay ghế của ván cũ, người mới chỉ vào hàng chờ ván tiếp theo. Kiểm chứng: 6 test liên quan pass.
+
+- 2026-10-10 — Trong demo hai máy, hàng chờ là hàng chờ cục bộ: nếu khán giả xếp trước khi demo kết thúc ở nước thứ3, người đó thay Máy Đen và tiếp tục đấu Máy Đỏ; nếu không ai xếp thì Đỏ thắng như demo. Đây không phải hàng chờ phòng online và không tạo/join server room.
+
+- 2026-10-10 — Xem thử tạm thời: bấm bàn mẫu mở ván local xem hai máy cơ bản tự đi luân phiên theo thời gian của bàn; sau3 nửa-nước demo kết thúc với Máy · Đỏ thắng do Máy · Đen xin thua; tên Máy · Đỏ/Máy · Đen. Chặn người xem đi quân; không tiêu năng lượng hoặc tạo phòng server. Cờ computerDemo được xóa khi rời/vào online/local; useComputer hủy timer khi rời hoặc đổi ván.
+
+- 2026-10-10 — Thẻ bàn dùng con trỏ pointer khi rê chuột, kể cả bàn mẫu xem thử; preview vẫn không gọi join/API online.
+
+- 2026-10-10 — Thẻ phòng trong Chọn Bàn bấm vào sẽ vào/xem đúng phòng thật qua `onJoin(room.id)`; bàn mẫu bấm mở demo cục bộ hai máy, không gọi API. Sắp xếp giảm dần theo tổng người (`players + viewerCount`), tính cả người chơi lẫn khán giả; khi bằng nhau giữ thứ tự tạo từ `RoomRepository` (Map insertion order), phòng cũ đứng trước. Icon mắt hiển thị số tổng ngoài artwork, cách bàn5px; icon ghế/tên chỉ tính người chơi.
+
+- 2026-10-10 — RoomTableGrid dùng `scrollbar-gutter: stable` để dành sẵn chỗ cho thanh cuộn sát mép trong khung; thanh chỉ hiện khi danh sách vượt khung (`overflow-y-auto`), nhờ đó lưới không dịch ngang khi bắt đầu/cuộn hết.
+
+- 2026-10-10 — RoomTableGrid: vùng hình cao78% thẻ; bàn lấy chiều cao thực, giữ aspect934/922. Hai người cao45% bàn, width:auto và neo ngoài mép bàn đúng3px. Không dùng ô ảnh rộng/object-contain gây khoảng hở giả; bàn luôn căn giữa.
+
+- 2026-10-10 — Quy tắc đấu luân phiên: khi ván kết thúc có người thắng và hàng chờ, bất kể ai tạo phòng, người thua xuống cuối hàng và người đầu tiên đang xếp hàng lên bàn ngay. Người xem chưa xếp hàng không được đưa lên; giữ nguyên thứ tự những người còn lại.
+
+- 2026-10-10 — Nếu người đang ngồi rời phòng, xử thua nếu ván đang diễn ra và lấp ghế vừa trống bằng người đầu tiên đang xếp hàng. Người xem không xếp hàng không được tự đưa lên; các người chờ còn lại giữ nguyên thứ tự.
+
+- 2026-10-10 — Phòng 0 người ngồi nhưng còn viewers vẫn hiển thị trong tab “Tất cả”; viewerCount chỉ giữ phòng trên lưới, không cộng vào players, icon ghế hay tên. Chỉ ẩn phòng không có cả players lẫn viewers. Tab “Còn trống” vẫn chỉ hiện đúng1 người chơi. Preview chỉ hiển thị khi API không có phòng thật.
+
+- 2026-10-10 — Tab “Còn trống” ở Chọn Bàn chỉ hiện phòng chưa bắt đầu có đúng1 người đang ngồi; viewers không tính. Giữ điều kiện này cả với preview để tab không hiển thị bàn mẫu đủ2 người.
+
+- 2026-10-10 — Ẩn bàn trống (0 người chơi) khỏi lưới Chọn Bàn; chỉ các ghế chơi hiện tại quyết định. Bàn có1 người vẫn hiện; viewers không tính. Danh sách mẫu cũng chỉ dùng trạng thái1/2 người.
+
+- 2026-10-10 — Nút đóng Tạo bàn: dấu X là SVG đối xứng ở tâm nút, không glyph văn bản để tránh lệch quang học; vùng nút và tọa độ giữ nguyên.
+
+- 2026-10-10 — Thẻ bàn hiển thị thời lượng + tên người chơi ở ghế đầu tiên từ `RoomSummary.playerNames`; không hiện tên nội bộ “Bàn 1”. Danh sách tên lấy theo thứ tự `room.players` ở server, chỉ người đang ngồi, không gồm viewers. Khi người đầu rời, người còn lại tự lên đầu; người vào sau xếp sau. Hình bàn/người thu nhỏ theo yêu cầu.
+
+- 2026-10-10 — Cập nhật lưới bàn xem thử: đủ12 bàn thường, bỏ ô Tạo bàn trong lưới vì có nút trên header. Bỏ dòng phụ Mẫu/số người. Nhãn thời gian/tên bàn cùng font-heading và cỡ20px desktop/14px compact như chữ Tạo bàn trong lưới trước đó; cả số dùng font chữ theo yêu cầu này. Bàn mẫu vẫn không gọi API.
+
+- 2026-10-10 — Xem thử tạm thời theo yêu cầu: khi danh sách bàn trống và tải xong, RoomTableGrid hiện22 bàn mẫu để kiểm tra cuộn; hai bàn đầu luôn đủ2 người để duyệt hình hai bên. Mẫu có1/2 người, không gọi join/API online và không cộng bộ đếm bàn thật; có phòng thật sẽ hiển thị dữ liệu thật. Gỡ dữ liệu mẫu khi người dùng kết thúc xem thử.
+
+- 2026-10-10 — Danh sách Chọn Bàn dùng hai artwork mới (bàn gỗ và người chơi nhìn từ trên), nguồn/crop tại table-artwork-source.md. Lưới4 cột×3 hàng nhìn thấy, mọi ô là bàn thường; phòng từ API, quá12 ô cuộn tiếp. Không dựng phòng hoặc tiền cược giả; hiển thị người chơi hai bên theo số ghế. UI tại RoomTableGrid.
+
+- 2026-10-10 — Thanh cuộn dọc của RoomTableGrid hiện thumb xanh ngọc #22c1a8 mảnh, alpha30% (hover45%); track trong suốt, không thêm nền bao quanh. Cuộn khi danh sách vượt khung.
+
+- 2026-10-10 — Header Chọn Bàn: Bạn bè mở cùng FriendsDialog như Home, Thành tích mở cùng RankingDialog, âm thanh chia sẻ useHomeMusic nên trạng thái và playback luôn đồng bộ.
+
+- 2026-10-10 — Với preview bàn mẫu, dùng trạng thái tải ban đầu thay vì `isFetching` của polling nền. Refetch định kỳ không được gỡ rồi dựng lại 22 node preview vì điều đó làm thanh cuộn chớp và reset vị trí về đầu.
+
+- 2026-10-10 — Header Chọn Bàn: avatar người chơi45px desktop/33px compact; tên24px/18px; avatar và tên căn giữa dọc trong header. Ngoại lệ xem thử áp dụng avatar đã khóa chỉ trong header Chọn Bàn, không đổi avatar trong game/profile.
+
+- 2026-10-10 — Menu Chơi nhanh trong Chọn Bàn không có lựa chọn “Tất cả”; giữ các mốc3/5/10/15/30 và mặc định10 phút.
+
+- 2026-10-10 — Cụm nút tiện ích trong Chọn Bàn dùng cùng bố cục với Home, riêng khoảng cách giữa nút là10px theo yêu cầu (Home8px); giữ `homeUtilityButton`/HomeIcon dùng chung. Mép phải cụm giữ nguyên khi tăng gap.
+
+- 2026-10-10 — Nhãn thời lượng trên nút Chơi nhanh: số dùng font-number, chữ phút/Tất cả dùng font-heading; cùng cỡ22px desktop/18px compact như Chơi nhanh và Tạo bàn.
+
+- 2026-10-10 — Dropdown thời gian Chơi nhanh phải đóng khi bấm/chạm ngoài cụm nút và menu; chọn mốc đóng menu như hiện hành. Listener chỉ tồn tại khi mở và được cleanup.
+
+- 2026-10-10 — Thẻ địa chỉ hiện tại Chọn Bàn bỏ dấu mũi tên cạnh tên; tên22px desktop/18px compact, giữ font-heading và căn trái. Cả thẻ vẫn bấm mở danh sách tỉnh/thành.
+
+- 2026-10-10 — Thẻ khu vực hiện tại trong Chọn Bàn căn trái tên và số liệu. Bỏ hình nhà cố định; ảnh dùng roomProvinceIcon với cùng selection.province như tên: ban đầu theo địa chỉ hồ sơ, chọn khu vực khác đổi cả hình/tên. Không sửa địa chỉ hồ sơ khi duyệt khu vực.
+
+- 2026-10-10 — Chơi nhanh ở Home và Chọn Bàn lấy danh sách mới, chọn ngẫu nhiên bàn còn chỗ/chưa chơi trên mọi tỉnh/thành và thời lượng, không lọc khu vực/thời gian hoặc ưu tiên bàn đầu tiên. Chọn Bàn có dropdown thời gian: mặc định10 phút, chỉ gồm3/5/10/15/30, không có lựa chọn Tất cả, vẫn ngẫu nhiên trên mọi tỉnh/thành. Hết bàn: giữ fallback Home sang máy cơ bản, Chọn Bàn mở Tạo bàn. Tạo bàn dùng tỉnh/thành đang duyệt; khi mới mở Chọn Bàn mặc định theo địa chỉ hồ sơ. Số bàn tính theo province của phòng thật, không tăng bộ đếm giả.
+
+- 2026-10-10 — Xem thử icon trong thẻ chọn tỉnh/thành: vùng ảnh104px desktop/80px compact; tên tỉnh/thành28px desktop/24px compact, dùng font chính theo tên người chơi: font-heading theo yêu cầu mới; giữ tỷ lệ ảnh. Ẩn thanh cuộn trực quan của danh sách tỉnh/thành nhưng vẫn giữ overflow-y-auto để xem đủ34 tỉnh/thành.
+
+- 2026-10-10 — Icon tỉnh/thành: bộ 34 tỉnh/thành và thứ tự chính xác nằm trong `src/assets/room-selection/province-icons/manifest.json`; bảng asset 6 cột, hai ô cuối trống. File riêng đặt số thứ tự và tên tỉnh/thành, không dùng tên cũ/không tự thêm tỉnh. Chỉ hình biểu tượng hoạt hình đồng nhất, PNG alpha thật, không chữ/thẻ/khung/nền, crop sát. Người dùng yêu cầu tạo lại bộ mới vì ảnh tải lên 36 hình không khớp danh sách; không gán tên theo vị trí ảnh nguồn sai. Danh sách lựa chọn thực tế vẫn lấy API, không thay bằng dữ liệu minh họa.
+
+- 2026-10-10 — Xem thử bộ chọn tỉnh/thành trong Chọn Bàn: dùng nguồn 8ee5ac91 làm khung ngoài, f6d81a33 làm thẻ tỉnh/thành. Runtime crop sát tại room-selection/province-picker-frame.png và province-card.png, giữ tỷ lệ; tiêu đề, nút đóng và danh sách API/cuộn là điều khiển HTML. Tiêu đề dùng font chính theo tên người chơi: font-heading, cỡ30px desktop/20px compact và không hiển thị tổng số tỉnh/thành bên cạnh. Nguồn/crop ghi trong province-picker-source.md.
+
+- 2026-10-09 — Thời lượng Chơi nhanh và cấu hình Tạo bàn là hai state độc lập. Mở Tạo bàn mặc định 10 phút mỗi bên và 60 giây mỗi nước; thay đổi lựa chọn ở một nơi không được làm đổi nơi kia.
+
+- 2026-10-10 — Bộ chọn khu vực Chọn Bàn phải tải toàn bộ tỉnh/thành hiện hành từ cùng API `/api/v2/?depth=1` dùng trong bộ chọn địa chỉ hồ sơ, không hard-code danh sách rút gọn. Thẻ hiển thị số bàn theo province của phòng và số người theo presence/province hồ sơ; tăng cỡ tên và số liệu theo yêu cầu mới. Chọn khu vực chỉ đổi phạm vi duyệt, không sửa địa chỉ hồ sơ.
+
+- 2026-10-09 — Hai nút đáy trong Tạo bàn dùng artwork nút nền; hover tăng brightness và saturation trên vùng hit-area để nền nút sáng rõ hơn, không đổi opacity nền.
+
+- 2026-10-09 — Bảng Tạo bàn đã duyệt: khi thu nhỏ hai nút đáy, thu cả artwork trên skin lẫn vùng bấm/chữ overlay theo bounding box mới; giữ khoảng trống và tâm nút, không scale cả panel.
+
+- 2026-10-09 — Bảng Tạo bàn theo mẫu đã được duyệt; thu nhỏ đồng bộ còn tối đa680px ngang/73dvh cao (trước800px/86dvh), giữ tỷ lệ1488:926 và toàn bộ vị trí tương đối.
+
+- 2026-10-09 — Nhạc nền chung dùng file người dùng cung cấp `src/assets/references/uploads/background-music-source.mp4` (runtime `src/assets/audio/background-music.mp4`); hết bài chờ5 giây rồi phát lại. Một player xuyên màn hình, nút nhạc đồng bộ; tắt nhạc hủy lịch phát lại. Mặc định bật; trình duyệt có thể cần thao tác để cho phép phát.
+
+- 2026-10-09 — Bộ đếm năng lượng của EnergyNotice nằm trong góc trên trái khung thông báo, không neo vào viewport. Có thể tăng nhẹ kích thước khung theo yêu cầu hiện tại; giữ bộ đếm ở góc và nội dung cân bằng bên trong. Mỗi lần mở bảng, dropdown hồi năng lượng mở sẵn hướng lên.
+- 2026-10-09 — Trong lúc hiệu ứng mở phòng đang chạy, nút Sẵn sàng vẫn thao tác được ngay. Giữ khóa nước đi cho tới khi hiệu ứng kết thúc; không áp dụng trạng thái inert/disabled mở phòng lên hành động Sẵn sàng.
+
+- 2026-10-10 — Xem thử nền khung danh sách Chọn Bàn: #1c0e07 alpha40% (trong suốt60%), nâu đen tối hơn và trong suốt hơn theo yêu cầu mới. Dùng màu đã có trong selectionPalette. Bản A trước thử nghiệm lưu tại `docs/checkpoints/room-selection-A/`, nền #2C1408 alpha65% (trong suốt35%); không ghi đè A. Khi người dùng yêu cầu về A, khôi phục theo snapshot/README. Không dùng blur/backdrop-blur hay opacity cho cả khung. Viền #bd914e, góc #f4d995 và nội dung giữ nét.
+- 2026-10-09 — Chọn Bàn bỏ nút Video dưới cùng, chuyển nút Bạn bè lên cụm tiện ích góc trên phải. Hai nút lọc ở dưới cùng; khung giữa giữ khoảng trên8px, chừa24px phía dưới (kéo mép dưới xuống thêm32px theo yêu cầu).
+
+- 2026-10-09 — Chọn Bàn: ô nâu đầu có icon nhà bên trái; bên phải là khu vực đang duyệt (mặc định từ tỉnh/thành hồ sơ), dưới là tổng bàn ở khu vực đó và số kết nối đang ở trang Chọn Bàn có tỉnh/thành hồ sơ tương ứng (bao gồm mình). Không cộng người đang ngồi trong bàn vào bộ đếm này. Server giữ presence trong RAM, bỏ khi rời trang/vào phòng/mất kết nối. Chưa có auth/database nên đếm theo kết nối, chưa gộp nhiều tab của cùng tài khoản.
+- 2026-10-09 — Ô địa chỉ Chọn Bàn viết gọn tiền tố “Thành phố ” thành “TP. ” khi hiển thị; tăng nhẹ icon bàn cờ, icon người và số đếm.
+- 2026-10-09 — Thẻ địa chỉ Chọn Bàn dùng tên tỉnh20px (compact16), số đếm20px (compact16) và icon đếm22px (compact18), nhỏ hơn nhẹ. Icon kiếm Chơi nhanh36px (compact30), cùng cỡ dấu cộng Tạo bàn; giữ kích thước thẻ.
+- 2026-10-09 — Toàn bộ nội dung thẻ địa chỉ có đệm dọc tối thiểu 5px; không thêm padding riêng cho tên thành phố. Chữ Chơi nhanh/thời lượng dùng 18px desktop/16px compact để cân bằng thị giác với chữ serif Tạo bàn 22px/18px.
+- 2026-10-09 — Tên tỉnh/thành trong thẻ địa chỉ được hạ thêm 5px so với vị trí căn giữa ban đầu để nhìn rõ khoảng cách mép trên.
+- 2026-10-09 — Nút giữa ở Chọn Bàn hiển thị “Tạo bàn” và dấu cộng cạnh nhau, căn giữa cả cụm.
+- 2026-10-09 — Mũi tên Chơi nhanh mở bảng xổ dưới nút, chứa các mốc phút theo cột; mỗi thẻ mốc cùng chiều rộng/cao, chọn sẽ cập nhật và đóng bảng.
+- 2026-10-09 — Bảng Tạo bàn theo ảnh riêng mới nhất: skin `assets/create-room/dialog-skin.png` có khung vàng, nền cảnh nâu/cây/chùa/mây, tiêu đề cong, ô chọn/nút như mẫu. Chỉ một skin nền, không thêm lớp nâu phủ; chữ và điều khiển HTML/SVG căn theo tỷ lệ skin. Mỗi lần mở mặc định10 phút/60 giây; các mốc mỗi bên3/5/10/15/30 phút, mỗi nước30/60/90/120 giây. Không nhập tên, tên nội bộ “Bàn cờ”. Server xác thực và giữ cấu hình khi reset/rematch; clock/vòng avatar dùng cùng giới hạn.
+- 2026-10-09 — Chọn Bàn dùng hai thẻ mới người dùng cung cấp: thẻ nâu cho địa chỉ/Tạo bàn, thẻ đỏ cho Chơi nhanh. Giữ kích thước ô hiện hành; nội dung HTML đặt trên ảnh đầy đủ, không phủ nền nâu khác. Bản runtime được cắt sát, bỏ nhiễu alpha gần trong suốt ngoài thẻ; giữ nguyên ảnh nguồn.
+- 2026-10-09 — Ảnh thẻ nâu được render thành img tuyệt đối object-fill phủ kín ô địa chỉ và ô Tạo bàn, nội dung đặt z-index bên trên; giữ chính xác kích thước các ô.
+- 2026-10-09 — Thẻ Chọn Bàn cao 72px desktop/64px compact; bỏ border trong suốt 10px cũ vì nó thu nhỏ vùng ảnh nền và làm nội dung vượt viền. Chữ/icon đặt trực tiếp trên ảnh thẻ đầy ô, không có lớp phủ riêng.
+- 2026-10-09 — Icon nhà Chọn Bàn dùng bản mới nền alpha trong suốt, crop sát; không dùng ảnh nhà cũ có nền nâu hình chữ nhật. Tăng chữ địa chỉ, số đếm và nhãn Tạo bàn/Chơi nhanh theo yêu cầu.
+- 2026-10-09 — Hình trạng thái danh sách bàn trống dùng ảnh bàn mới `references/uploads/empty-board-source.png`, bản runtime crop sát; hiển thị màu gốc không mix-blend-screen.
+- 2026-10-09 — Năng lượng chỉ ảnh hưởng online: mỗi ván online bắt đầu trừ 1 cho mỗi người chơi, người xem không trừ. Hết năng lượng chặn Sẵn sàng/xếp hàng, tạo/vào phòng chưa chơi và ghép nhanh vào phòng online; vẫn được vào phòng đang chơi để xem. Home, local và đấu máy/Cờ Úp luôn chơi được, không trừ năng lượng. Ngoại lệ xem thử tạm thời: máy cơ bản ở Cờ Tướng và Cờ Úp dùng luật chặn/trừ như online cho đến khi người dùng kết thúc thử nghiệm; lựa chọn máy khác được miễn. Cảnh báo riêng giữa màn hình trên client thao tác. Hồi 1 điểm mỗi7 phút, tối đa5. Video chưa tích hợp; năng lượng chỉ lưu trong session. EnergyNotice đặt bộ đếm năng lượng ở góc trên trái, dropdown thời gian mở sẵn hướng lên; click trong khung thu dropdown, click ngoài khung đóng bảng, Bỏ qua đóng bảng.
+- ENERGY-UI-01 (2026-10-09): Khi chỉnh màu nút Bỏ qua trong EnergyNotice, không kế thừa `lobbyButton` vì class đó có nền vàng dùng chung. Dùng `buttonInteraction` và khai báo nền nâu trực tiếp; hover sáng hơn. Kiểm tra màu thực tế trong CSS đã build, không chỉ thấy class màu nâu trong JSX.
+
 Cập nhật: 2026-10-06. File này lưu các quyết định người dùng đã chốt và bài học từ lỗi trong quá trình sửa project. Lịch sử công việc nằm ở `PROGRESS.md`; quy tắc đang có hiệu lực nằm ở đây và các tài liệu chuyên biệt được dẫn bên dưới.
 
 ## Cách sử dụng bắt buộc
@@ -140,3 +414,218 @@ Quy tắc2026-10-05: Tân Binh giữ vị trí sao hiện hành. Sáu bậc2–7
 - 2026-10-05: Khoảng cách dọc trong catalog Danh hiệu của mọi tab lấy tab Tất cả làm chuẩn. gap-y phần trăm tính theo tổng chiều cao nội dung nên phải chuẩn hóa theo số hàng: gap = 3% × số hàng Tất cả / số hàng tab hiện tại. Giữ lưới ba cột và kích thước thẻ; không để nhóm ít danh hiệu có khoảng cách hàng nhỏ hơn.
 
 - 2026-10-05: Vị trí khung tiêu đề nhóm friend-section-title-frame-tight.png lấy Gợi ý cho bạn ở Thêm bạn làm chuẩn. Giữ cùng lề ngang/chiều rộng/chiều cao và độ lệch dọc (slot54px - khung50px)/2 theo token responsive. friendSectionTitleStyle dùng chung cho Gợi ý, Lời mời đã nhận và Đã gửi lời mời; Add dùng align-start để độ lệch chung giữ nguyên tọa độ mẫu. Không tăng chiều cao slot hoặc dịch các danh sách/avatar/danh hiệu/sao đã khóa để căn tiêu đề.
+- 2026-10-09: Repetition UI rule update: the shared third-round warning is the only centered board panel. A blocked fifth-move red-dot click shows nothing to the actor; online server validation sends a short status only to the opponent, with no clock pause or move commit.
+- 2026-10-09: Người dùng yêu cầu bỏ chiếu lặp. Nước đi nào tạo chiếu sẽ xóa chu kỳ lặp hiện tại và không được tính làm nước mở đầu chu kỳ; giữ nguyên đếm/cảnh báo/chặn cho chu kỳ phối hợp đi quân không chiếu. Không triển khai luật phạt chiếu dai.
+- 2026-10-09: The manual repetition-test AI first tries its scripted cannon shuttle; if that move is blocked or cannot answer check, it falls back to a normal legal move instead of surfacing a false engine error.
+- 2026-10-09: Removed the temporary cannon repetition fixture from Home quick play and computer engine options. Quick play again uses the normal room-matching flow; when it falls back to local basic AI, the machine chooses freely among legal moves after filtering fifth-round repetition violations. Pikafish keeps server validation.
+- 2026-10-09: Room Selection header uses the shared player-selected avatarIndex and avatarFrameIndex with AvatarFrameOverlay; the editable player name uses font-heading. Keep its existing header geometry.
+- 2026-10-09: In-game check indication uses the existing white move ring around the checked side's general; suppress the textual “đang bị chiếu” status. Keep other status/result messages and last-move ring behavior.
+- 2026-10-09: Room Selection header name input has no underline and the avatar/name cluster remains vertically centered in the fixed header.
+- 2026-10-09: Takeback-decline “Từ chối” badge must render above the player portrait, frame, and timer arc. Keep the existing badge size, position, and animation; use a stacking level above those avatar overlays.
+- 2026-10-09: Room Selection header name is 20px desktop / 16px compact. Use lining-nums and tabular-nums so digits in editable names share the text baseline; preserve vertical centering.
+
+
+- 2026-10-10 ? Theo y?u c?u l?m nhanh UI ?i?n tho?i: Home c? b? c?c 2?2 n?t ch?i v? ti?n ?ch d? ch?m; Ch?i V?i M?y c? form mobile ri?ng d?ng c?ng hook; Ch?n B?n d?ng k?ch th??c CSS th?c, l??i2 c?t v? ch?n t?nh cao80dvh. Trong v?n, chat mobile m? b?ng n?t, thao t?c v?n l?n h?n v? d?nh v?ng ??y ri?ng. Ch? ??i tr?nh b?y compact, gi? logic/API v? UI desktop; kh?ng s?a avatar, khung avatar ho?c b? c?c c?c dialog x? h?i ?? kh?a. Build/typecheck th?nh c?ng; ch?a ki?m ch?ng tr?c quan tr?n ?i?n tho?i th?t.
+
+- 2026-10-10 ? Sau khi v?n k?t th?c c? ng??i th?ng, gi? k?t qu? ?t nh?t3 gi?y r?i m?i ??a ng??i ??u h?ng hi?n t?i l?n thay ng??i thua; ng??i thua xu?ng cu?i h?ng. Ch?n ready/reset ?? kh?ng b? qua h?ng ch? trong3 gi?y. Server tick th?c hi?n chuy?n gh?; ng??i xem kh?ng x?p h?ng v?n kh?ng ???c ??a l?n. R?i ph?ng v?n l?p gh? ngay theo quy t?c tr??c. Demo hai m?y c?ng k?t th?c tr??c, ??i3 gi?y r?i cho ng??i x?p h?ng v?o v?n m?i.
+
+- 2026-10-10 ? Ng??i ch?i b?t ??u phi?n v?i ??5 n?ng l??ng (MAX_ENERGY), kh?ng kh?i t?o0. Gi? c? ch? tr?/h?i v? l?u trong phi?n hi?n t?i.
+
+- 2026-10-10: Queue timing supersedes prior minimum delay: entries queued before match end wait 3 seconds; entries queued after match end promote immediately when first in line. Rematch readiness still prevents replacement. Preserve FIFO; demo follows the same timing.
+
+- 2026-10-13 — Ảnh 63d54150 thay mặt sau của quân còn úp trên bàn trong ván Cờ Úp; ô chế độ Cờ Úp trên Home giữ nguyên. Không thay luật lật quân hoặc hình quân đã lật.
+- Lần hiểu nhầm thay artwork ô Home đã được hoàn tác theo đính chính của người dùng; ảnh cắt/trim 441×435 chuyển sang `pieces/concealed-back.png`.
+
+
+- Kiểm chứng mặt quân úp 2026-10-13: Home import lại hidden-full.png; typecheck/build PASS, dist có concealed-back-Clukm56z.png. Chưa QA trình duyệt trực tiếp.
+- 2026-10-13 — Người dùng chốt giữ ảnh quân úp mới 63d54150 trong ván Cờ Úp; ảnh hiển thị lấp đúng cùng khung quân 108×112 của quân đã mở, cùng bóng đổ và scale khi bàn co giãn. Ô Home giữ nguyên.
+- 2026-10-13 — Mặt sau quân Cờ Úp giữ ảnh/kích thước đã chốt; giảm độ bão hòa riêng lúc render xuống 0.84 để viền cam gần tông gỗ của quân mở. Không đổi asset quân mở và ô Home.
+- 2026-10-13 — Theo phản hồi, hình quân Đỏ đã mở trong bàn cờ dịch sang phải 2px ở scale bàn gốc để tâm tròn nhìn cân với giao điểm; offset nhân theo scale của Board trong ChessPiece. Không dịch quân Đen hoặc quân còn úp, không sửa file ảnh.
+- 2026-10-13 — Chơi với máy desktop theo ảnh mẫu người dùng: một robot Pikafish căn giữa trên bảng 1058×543, hai hàng 5 nút cấp (mặc định Cấp 2), chọn phe và hai nút hành động dưới; banner Cờ thế giữ asset cũ. Biển tên vẫn cho chọn Máy · Cơ bản để giữ tính năng. Cấp Pikafish 1–10 giới hạn thời gian suy nghĩ từ 1/10 đến toàn mức tối đa hiện hành; server xác thực cấp. Header, nền, avatar, mobile và các màn khác giữ nguyên.
+
+- 2026-10-14 — Thông báo thao tác trong Vị trí tùy chỉnh tự ẩn sau 3 giây; thông báo mới thay bộ hẹn giờ cũ, rời màn hình thì dọn timer.
+
+- 2026-10-14: Vị trí tùy chỉnh có công tắc Đi tiên riêng dưới Đổi bên; mặc định Đen. Gạt sang Đen nền đỏ, sang Đỏ nền trắng vàng. Phe cầm quân độc lập bên đi trước; kiểm tra/lưu FEN/Đấu ngay dùng bên đi trước.
+
+- 2026-10-14: Đính chính công tắc Đi tiên theo ảnh: núm bên phải/nền đỏ là Đỏ đi trước; núm bên trái/nền trắng vàng là Đen đi trước. Chữ Đi tiên cách cụm chọn thêm8px.
+
+- 2026-10-14: Công tắc Đi tiên mặc định Đỏ theo yêu cầu mới; biểu tượng ⇄ trong nút đổi bên được nâng2px.
+
+- 2026-10-14: Theo yêu cầu mới, màn Vị trí tùy chỉnh bỏ cụm user bên trái (avatar/danh hiệu/tên); nhãn Đi tiên tăng16→20px. Không còn hàng trống avatar trên compact.
+
+- 2026-10-14: Hai hàng Chọn bên/Đi tiên cách10px. Chọn bên chỉ quyết định phe người chơi và hướng bàn; Đi tiên riêng quyết định lượt đầu (mặc định Đỏ), dùng cho FEN/validation. Nhãn Đỏ/Đen hàng Đi tiên20px, công tắc48×24/núm18px; khung224px giữ tâm.
+
+- 2026-10-14: Theo yêu cầu mở riêng phần Đã lưu của Lịch sử để thêm hai lựa chọn Ván đấu/Thế cờ bên dưới tab. Ván đấu mặc định giữ danh sách hiện có; Thế cờ hiện trạng thái trống, chưa nối dữ liệu lưu thế. Phần còn lại tiếp tục khóa.
+
+- 2026-10-14: Lưu ván vừa kết thúc cho người chơi/người xem; online server chụp diễn biến và tên trước chuyển ghế, local dùng snapshot gameStore. Đã lưu/Ván đấu dùng localStorage thật theo tên, chống trùng/quota, xóa và xem lại từng nước bằng Board chỉ đọc. Không tự lưu; lưu từ lịch sử mình/người khác đang phát triển. Chi tiết docs/MATCH-SAVING.md.
+
+- 2026-10-14: Lưu ván nằm giữa Camera và Bạn bè trong tiện ích bàn cờ, dùng PositionIcon save chung; khóa khi chưa có ván kết thúc/đã lưu. Bỏ nút lưu nổi dưới màn.
+
+- 2026-10-14: Xem lại ván đã lưu chuyển screen replay toàn màn hình, không popup bàn nhỏ; Board/PlayerCard dùng chung, xem từng nước và quay về Home. Không thay gameStore/engine/phòng online.
+
+- 2026-10-14: Replay ván lưu tự chạy khi vào,1,2 giây/nước; Phát/Tạm dừng và tua nằm bên trái bàn desktop. Tua tạm dừng, cuối tự dừng; mobile điều khiển dưới bàn. Chỉ bàn/hai người, không chat/view.
+
+- 2026-10-14: Chốt replay PHẢI dùng chính GamePage (replayData), không màn bàn sao chép. Xóa SavedMatchReplay; useReplayPlayback/ReplayControls chỉ điều khiển lịch sử, Board/PlayerCard/layout gameplay giữ nguyên. Chặn toàn bộ mutation/clock/socket/AI/chat trong replay; back không reset trận thật. Tự phát sau entrance và tua bên trái. docs/MATCH-SAVING.md là chuẩn.
+
+- 2026-10-14: ReplayControls220px, nút phát/dừng trên; lùi–số nước–tiến chung một hàng dưới. Không nút về đầu/tới cuối hoặc thanh tua xanh. Dùng màu nâu/vàng chung.
+
+- 2026-10-14: ?? l?u ? V?n ??u lu?n ??t ng??i l?u b?n tr?i n?u l? ng??i ch?i, bi?u t??ng phe v? k?t qu? theo ??ng ng??i. Replay m?c ??nh qu?n c?a m?nh ? d??i, m?nh b?n tr?i, ??c l?p b?n ?i tr??c. Kh?n gi? gi? ?? b?n tr?i/d??i. D?ng savedMatchSide chung; ?p d?ng c? b?n l?u c? theo t?n.
+
+- 2026-10-14: Icon đổi Xem lại/Đánh thử chuyển xuống dưới hai nút Phân tích và Gợi ý trong cụm điều khiển bên phải; vẫn dùng Space và cùng callback chuyển chế độ.
+
+- 2026-10-14: Pikafish trong chế độ đánh thử dùng cấp10 và giới hạn nghĩ500ms mỗi lượt; không đổi thời gian Pikafish của các luồng khác.
+
+- 2026-10-14: Theo yêu cầu, icon đổi Xem lại/Đánh thử cách hàng Phân tích/Gợi ý thêm10px (margin-top20px tổng).
+
+- 2026-10-14: Đánh thử bỏ delay550ms dư sau animation trước khi gọi Pikafish (vẫn nghĩ500ms). Animation quân bắt đầu đúng độ nhấc đã chọn; quân máy không nhảy lên khi xuất phát. Delta dùng cùng tọa độ làm tròn của PieceView để tránh lệch pixel khi đáp.
+
+- 2026-10-14: Bàn gốc Thế cờ hiện nút đổi sang Đánh thử dưới cụm user phải, margin-top50px; tái dùng ReplayModeButton cùng icon/callback/Space, không hiện Phát/Tua ở bàn gốc Thế cờ.
+
+- 2026-10-14: Theo yêu cầu mới, Pikafish bàn thử tăng thinkMs500→800ms mỗi lượt, giữ cấp10.
+
+- 2026-10-14: Nút đổi bàn cũng hiện dưới khung Phát/tiến lùi khi xem lại Ván đấu, cách50px; dùng chung icon và phím Space để vào Đánh thử.
+
+- 2026-10-14: Replay Ván đấu dùng artwork trial-back/forward cho Lùi/Tiến; nút Phát/Tạm dừng tái dùng viền cắt góc của cùng asset qua border-image. Giữ cụm điều khiển và phím tắt.
+
+- 2026-10-14: Trong hàng Đã lưu → Ván đấu, biểu tượng quân luôn theo thứ tự Đỏ rồi Đen, không đảo thứ tự theo phe người lưu; tên/người chơi vẫn theo quy tắc xếp bên riêng.
+
+- 2026-10-14: Nút playback lấy chuẩn mũi tên trial khung220px:52.8×43.14px (24% ngang,35% cao ảnh937×525). Phát cũng cao43.14px, cùng viền gỗ cắt góc; giữ số nước/phím.
+
+- 2026-10-14: Đã chơi thay fixture bằng playedMatchesStore/localStorage xiangqi-played-matches-v1, tự ghi ván hoàn tất có tên owner trong hai người chơi từ useMatchSaving; độc lập Đã lưu thủ công, xem lại snapshot thật. Nút Phát dùng asset mới replay-play-new.png từ imagegen, giữ chiều cao43.14px.
+
+- 2026-10-14: Theo xem trực quan, nút Phát playback tăng chiều cao lên52.8px để bằng kích thước cạnh nút mũi tên; trước đó container43.14px nhìn thấp hơn.
+
+- 2026-10-14: Đã chơi chỉ nhận snapshot online (marker isOnline), bỏ dữ liệu local/máy khỏi danh sách kể cả entry cũ. Rời phòng giữa ván server finish winner=đối thủ với reason leave và capture archive trước đổi ghế; UI đã xác nhận trước khi rời.
+
+- 2026-10-14: Replay mở từ tab Đã chơi gắn replayRequiresSave. Chỉ sau khi lưu ván vào savedMatchesStore hoặc lưu thế có sourceMatchId mới hiện nút Đánh thử; Space trước đó hiện nhắc lưu, nút ẩn, replay chỉ xem/tua. Replay từ nguồn khác giữ quy tắc hiện tại. Played entries tự hết hạn một tháng lịch kể từ endedAt, ngày cuối tháng được clamp, dọn lúc khởi tạo và timer khi app mở.
+
+- 2026-10-14: Nút Phân tích/Gợi ý trong bàn thử dùng cursor-pointer; bấm hiện status Đang phát triển, chưa chạy logic.
+
+- 2026-10-14: Máy trong mọi replay đánh thử từ ván/thế lưu bắt buộc Pikafish cấp10, thinkMs2500 (mức tối đa cấu hình); không dùng máy cơ bản hoặc rút ngắn thời gian.
+
+- 2026-10-14: Thông báo Đang phát triển/nội dung liên quan replay dùng toast cùng class Vị trí tùy chỉnh: absolute bottom3, giữa, nền xanh viền kem, chữ vàng nhạt, tự ẩn3s; không hiển thị inline dưới nút.
+
+- 2026-10-14: Đính chính thời gian Pikafish trong replay đánh thử: giữ cấp10, thinkMs700 theo yêu cầu; thay giới hạn2500 trước đó.
+
+- 2026-10-14: Trong replay và bàn thử, mọi nước chỉ phát tiếng đi quân; không phát cue ăn quân/chiếu/chiếu hết, intro hoặc cảnh báo thời gian.
+
+- 2026-10-14: Âm thanh replay chỉ giới hạn tiếng đi quân ở thao tác tua; các nước đánh trực tiếp trên bàn thử phải phát âm thanh bình thường (ăn/chiếu/chiếu hết).
+- 2026-10-14: Tên thế cờ trong Đã lưu dùng NumberText chung: chữ giữ font-heading, chữ số dùng font-number lining/tabular và compact 0.9em, cùng baseline với chữ.
+- 2026-10-14: Chữ số trong tên thế cờ dùng weight normal để nét mỏng tương xứng font-heading; giữ cỡ compact và baseline.
+- 2026-10-14: Ván bắt đầu bằng Đấu ngay từ Vị trí tùy chỉnh mở bàn thử cô lập, khởi chạy Pikafish bật sẵn. Cột phải hiện ReplayControls trial; ẩn mã phòng/lượt xem/chat; không lưu nhánh này như ván lịch sử.
+- 2026-10-14: Cụm bàn thử mở từ thế tùy chỉnh hiển thị số nước ở nút giữa hàng lùi/tiến và chuyển Reset xuống dưới; replay khác giữ Reset trong nút giữa.
+- 2026-10-14: Hoàn tác thay đổi vị trí Reset/số nước trong bàn thử thế tùy chỉnh; giữ nút Reset giữa hàng như thiết kế trước.
+- 2026-10-14: ReplayControls dùng bộ ảnh 6c0cdab5 thay toàn bộ khung/nút replay và trial: cắt riêng 8 asset alpha, không lấy biển Máy Cơ bản. Phát/Tạm dừng, Máy đi Bật/Tắt và số nước là dữ liệu sống; Reset trial giữ giữa hàng. Không dùng ảnh ghép tĩnh thay UI.
+- 2026-10-14: Mọi bàn thử: Reset dùng crop 0fed4f87 đặt bên phải Gợi ý trong hàng dưới (Phân tích/Gợi ý/Reset); vị trí giữa lùi/tiến hiển thị step/total font số. Phím reset ↑/↓ giữ nguyên.
+
+- 2026-10-15: Ô sửa tên Thế cờ dùng Times New Roman regular riêng cho chữ số, tỷ lệ90%, lining/tabular như NumberText khi hiển thị; giữ font chữ và input native.
+
+- 2026-10-15: Thanh cuộn danh sách Thế cờ đổi thumb sang nâu đậm#613014 để tương phản rõ trên nền vàng; giữ kích thước/vị trí và track trong suốt.
+
+- 2026-10-15: Quy tắc máy mới do người dùng chốt: mọi chức năng máy chỉ dẫn, hướng dẫn, gợi ý, phân tích nước đi và chơi với máy ngoài chế độ đấu máy10 cấp đều dùng Pikafish mạnh nhất (không chọn sai số/hạ sức mạnh), thời gian search700ms (0,7 giây). Riêng chế độ đấu máy10 cấp giữ nguyên cấu hình từng cấp, kể cả cấp10. Thay thế các cấu hình máy cơ bản hoặc thời gian search cũ trong phạm vi trên.700ms là thời gian engine tính, không phải tổng thời gian mạng/khởi động/diễn giải. Giữ hạn chế trợ giúp trong trận người thật; không tự bật engine cho biến thể chưa được hỗ trợ. Phiên này chỉ ghi quy tắc tài liệu, chưa áp dụng code.
+
+- 2026-10-15: Gợi ý đấu máy/bàn thử Vị trí tùy chỉnh dùng usePikafishHint riêng, Pikafish level10/search700ms từ FEN hiện tại bên người chơi; chỉ chạy khi tới lượt người chơi, chặn online/demo/replay/Cờ Úp. Không ghi store, không chọn/đi quân, không đổi lượt/history/clock hoặc bật Máy đi. Board vẽ1 mũi tên xanh opacity0.82 qua tọa độ chung/flipped, pointer-events:none. Bấm lại hủy request cũ/tính lại; đổi board/lượt/phase/reset/undo/rời hủy và bỏ kết quả cũ. Clock tick không xóa gợi ý. Phân tích vẫn đang phát triển.
+
+- 2026-10-15: Ba nút Phân tích/Gợi ý/Reset dùng chung ToolArtworkButton, hover vàng#ffe08b alpha8% tức thì như mũi tên, mask theo alpha artwork. Gợi ý nhấn/đang tính thu94%, artwork brightness0.35; hết request/lỗi/hủy trở lại bình thường, vẫn cho bấm lại tính mới. Đồng bộ nút Gợi ý đấu máy. Không thay gameplay.
+
+- 2026-10-15: Người dùng báo quân đi hơi không mượt ở mọi chế độ. Chưa xác định nguyên nhân/chưa tái hiện trên browser (không có browser kết nối). Regression move-animation-stability xác nhận xóa hint/render lại không restart/cancel animation, giữ DOM quân, lift6px tại scale0.5, đích/top nhất quán và duration400ms.7/7 test stability/hint/trial PASS; chưa sửa production animation. Cần kiểm tra frame thực tế trước khi chốt đã sửa.
+
+- 2026-10-15: Sửa render dư do Gợi ý: trước đây effect setHint/setThinking sau đổi thế tạo thêm render GamePage ngay đầu animation (regression đo2 render). usePikafishHint nay gắn kết quả/thinking với context board/turn/phase/side/revision; ẩn đồng bộ trong render, effect chỉ abort. Sau sửa đo1 render, không giữ mũi tên cũ khi đổi thế; clock tick giữ gợi ý. Không đổi400ms/đường đi/gameplay.15/15 test hint/stability/trial/computer PASS. Chưa xác nhận độ mượt/frame bằng browser.
+
+- 2026-10-15: Người dùng báo mọi thao tác kém mượt từ khi thêm Gợi ý. Giảm tải liên quan: ToolArtworkButton mask hover display:none khi không hover; useReplayTrial memo nước hợp lệ theo game/selected, không tính lại khi UI Gợi ý render. Regression giữ reference moves/không gọi lại rules và đổi chọn tính mới PASS.16/16 test hint/stability/trial/computer PASS; typecheck/build PASS. Không đổi geometry/luật/animation. Chưa đo frame browser, chưa xác nhận hết vấn đề toàn ứng dụng; cần reload tab để nạp dist mới.
+
+- 2026-10-15: Quy tắc mới thay phạm vi Gợi ý và lùi theo cặp: mọi nút Gợi ý ở bàn thử (replay ván/thế đã lưu và Vị trí tùy chỉnh) dùng Pikafish mạnh nhất/search700ms,1 mũi tên xanh/read-only; replay xác định phe theo savedMatchSide. Bỏ nút Gợi ý riêng ở ván Cờ Tướng/Cờ Úp thông thường; giữ chặn hỗ trợ trong trận người thật và báo chưa hỗ trợ jieqi. Lùi/Tiến mỗi lần đúng1 nửa-nước (1 lần đi quân) cả nút và ←/→, không lùi theo cặp người/máy. Giữ reset/hủy/memo và hover/pressed hiện hành.
+
+- 2026-10-15: Tên hiển thị máy Pikafish đổi thành Ông Hoàng toàn ứng dụng: thiết lập desktop/compact, tên đối thủ, trạng thái suy nghĩ/kết nối, tooltip Gợi ý và thông báo lỗi frontend/server. Mã engine pikafish, API/type/path/binary và giấy phép giữ nguyên. Chặn So tài nhận cả tên mới và tên cũ để tương thích; không đổi tên người chơi/bản ghi lịch sử đã lưu.
+
+- 2026-10-15: Trong chat bàn chơi, tăng khoảng cách dọc cố định giữa các tin từ6px lên12px; áp dụng cả tin hệ thống kế tiếp và tin thường. Giữ avatar, căn lề và cuộn.
+
+- 2026-10-15: Avatar máy dùng ảnh6626838d-3cae-4584-b222-c511ca546742 (Ông Hoàng), nguồn ở references/uploads, runtime ở computer-setup/ong-hoang-avatar.png. Dùng computerAvatar/getComputerAvatar chung trong PlayerCard, chat bàn chơi, Thế cờ, hồ sơ máy, Tin nhắn và chân dung thiết lập desktop. Ảnh được clip tròn trong khung hiện có; không đổi kích thước/vị trí avatar/khung. Hỗ trợ tên máy cũ Pikafish và Máy; không sửa dữ liệu lịch sử.
+
+- 2026-10-15: Theo yêu cầu mới, avatar máy dùng chân dung GIỮA ảnhc876e59c-c77c-411e-a467-31b5f5b4df21. Runtime ong-hoang-avatar-v2.svg nhúng nguyên pixel nguồn, clip circle(cx1086,cy348,r288), viewBox79860 576576 bỏ vòng vàng nguồn, ngoài tròn trong suốt; không vẽ lại ảnh. Máy chỉ giữ avatar và tên Ông Hoàng: bỏ overlay khung/danh hiệu/sao, khung tên/ELO và trang trí kết quả trên PlayerCard; hồ sơ/chat bỏ khung/huy hiệu máy; thiết lập bỏ khung biển tên. Dùng helper chung cho mọi avatar máy, gồm tên cũ. Quyền sửa này chỉ cho ảnh/trang trí máy, avatar người thật vẫn khóa. Nguồn giữ references/uploads. Typecheck/build PASS; chưa browser QA.
+
+- 2026-10-15: Đính chính avatar máyc876e59c: giữ100% hình GIỮA gồm vòng vàng/chi tiết gốc, chỉ tách khỏi hai hình bên và trim alpha trống (bbox x737,y0,698×694); SVGv3 nhúng nguyên pixel, không circle clip. Hiển thị object-contain trong kích thước avatar hiện có, không rounded/cắt ảnh máy. Khôi phục PlayerNameplate cho tên Ông Hoàng và khung biển tên ở thiết lập máy. Khung overlay/danh hiệu/sao/ELO riêng của máy vẫn bỏ như trước. Áp dụng đồng bộ bàn chơi/chat/thế/hồ sơ/Tin nhắn/thiết lập.
+
+- 2026-10-15: Chốt căn máy: thẻ tên Ông Hoàng dùng cùng margin/translate/breakpoint với thẻ tên người chơi, giữ ngang hàng thay margin riêng mt2. Avatar máy phóng theo đường kính HIỂN THỊ của viền mặc định (156/128×0.896=1.092), giữ nguyên ảnh nguồn và ô anchor. AVATAR_FRAME_VISIBLE_SCALE dùng chung PlayerCard/chat/hồ sơ, không đổi avatar/khung người thật. Không thêm danh hiệu/sao/ELO lại cho máy. Typecheck/build PASS, chưa browser QA.
+
+- 2026-10-15: Sửa chữ trong thẻ tên bị cắt dấu/nét do truncate kết hợp line-height1: PlayerNameplate đặt line-height1.4 riêng vùng chữ, giữ khung/kích thước/font/vị trí. Component chung áp dụng Home và mọi PlayerCard, gồm Ông Hoàng. Typecheck/build PASS, chưa browser QA.
+
+- 2026-10-15: Máy không mở bảng thông tin/hồ sơ. Avatar máy ở PlayerCard disabled nhưng giữ độ sáng100%, không pointer/context menu phong danh hiệu. Chặn tên máy tại điểm mở Profile của Game/Home/Chọn Bàn, bao gồm đường chat/Tin nhắn/lịch sử. Người thật giữ luồng cũ. Typecheck/build PASS, dist index-DS34NNzo.js xác nhận; chưa browser QA.
+
+- 2026-10-15: Ván đấu máy thông thường (computerMatch, cả Cờ Tướng/Cờ Úp) không có Lưu ván/Ghim thế, mã phòng, lượt xem/panel người xem hoặc chat (desktop/compact). showRoomFeatures dùng chung; useChat disabled cả send/listener/scroll, useMatchSaving không ghi ván máy. Bàn thử tùy chỉnh/replay giữ chức năng riêng đã chốt; online/local hai người giữ UI phòng. Không sửa avatar, khung tên hoặc engine.
+
+- 2026-10-15: Giảm tải sau báo kém mượt: thay SVGv3 nhúng cả sheet avatar3.023.811 byte/2172×724 bằng PNG crop đúng bbox698×694/1.117.868 byte; kiểm tra484.412 pixel ARGB giống nguồn100%, giữ toàn bộ hình/viền gốc. Runtime import ong-hoang-avatar-full.png, ảnh nguồn vẫn giữ. useReplayTrial.select useCallback theo state thực để Board memo không render lại do UI khác; regression giữ callback/moves khi rerender PASS. GamePage memo kiểm tra chiếu theo board/turn/phase; useGame bỏ kiểm tra chiếu dư chỉ để trả status rỗng khi playing, giữ status kết quả.16/16 test hint/trial/animation/computer PASS; typecheck/build PASS. Đã xem PNG xuất, chưa đo FPS trên browser, không khẳng định hết mọi khựng.
+
+- 2026-10-15: Ông Hoàng có danh hiệu riêng Kỳ Thủ AI và họa tiết sao riêng từ ảnh205ea2ea; thay quy tắc bỏ toàn bộ danh hiệu/sao máy trước đó. AvatarRankBadge/RankTitleBadge thêm prop computer, tái dùng vị trí/tỷ lệ slot và hàng sao chung, chỉ PlayerCard máy bật. Asset PNG title1168×383 tại(34,154), stars853×199 tại(1270,242), trim alpha<=16 loại nhiễu vô hình, corners alpha0; nguồn giữ references/uploads. Giữ avatar/khung tên/khóa hồ sơ máy. Typecheck/build PASS, đã xem2 crop và xác nhận dist, chưa browser QA.
+
+- 2026-10-15: Màn Chơi với máy dùng PlayerNameplate chung cho Ông Hoàng thay khung chữ CSS cũ, desktop/compact cùng thẻ tên width250px. Desktop giữ slot top171/h53/w330 và căn giữa; avatar/cấp/phe/hành vi giữ nguyên. Typecheck/build PASS, dist index-wVJBr8a_.js có width250; chưa browser QA.
+
+- 2026-10-15: Vị trí tùy chỉnh: kéo lấy quân từ khay tự chọn khay bên đó và loại quân đó (chooseForDrag không toggle). PositionPalette đồng bộ activeSide theo piece. Thả hợp lệ giữ chọn nếu loại đó còn trong khay, hết số lượng bỏ chọn/khóa như trước. Kéo quân trên bàn ra ngoài trả khay thì chọn đúng bên/loại vừa lấy xuống. Hover/click/phím tắt, kiểm tra đặt sai và hủy kéo giữ quy tắc hiện tại.10/10 test editor gồm đổi khay/aria-pressed/giữ chọn/hết quân PASS; typecheck/build PASS, chưa browser QA.
+
+- 2026-10-15: Tạo bàn dùng khung chọn tỉnh/thành, nút nâu/vàng 10f8e709 và ô thời gian 6ff86838; thêm Bàn khóa và hiện ô mật khẩu/xem-ẩn khi bật. Người dùng xác nhận chỉ làm UI trước; chưa nối khóa/phân quyền/mật khẩu server. Component chung áp dụng Chọn Bàn/LobbyDialog.
+
+- 2026-10-15: Form Tạo bàn: select thời gian phải nằm trên ảnh khung (relative z10); mật khẩu giữ nguyên artwork khi focus, không ring khung mới, tắt autocomplete và dùng input text che ký tự bằng text-security để tránh gợi ý tạo mật khẩu. Hủy/Tạo bàn hover opacity90%, không tăng sáng/bão hòa.
+
+- 2026-10-15: Người dùng yêu cầu toàn project bỏ viền outline/ring khi focus, áp dụng utility Tailwind quan trọng trên body index.html; không đổi viền chọn. Công tắc Bàn khóa thu80%, tắt brightness50%/saturate50%; mật khẩu luôn hiện chữ, bỏ mask/nút con mắt. Vẫn UI preview.
+
+- 2026-10-15: Hủy/Tạo bàn hover phủ vàng nhạt10% theo alpha artwork, không dim toàn nút. Bàn khóa tắt dùng nền nâu đậm/núm kem nâu rõ, không filter tối toàn cụm; hover viền vàng để nhận biết vẫn bấm được. Thay quy tắc hover opacity90/tắt brightness50 trước.
+
+- 2026-10-15: Tạo bàn hover phủ vàng nhạt30% để rõ hơn, Hủy giữ10%. Tắt Bàn khóa dịch hai nhãn/ô thời gian lên11% chiều cao form; bật trở lại vị trí chừa mật khẩu. Hai nút đáy giữ tọa độ.
+
+- 2026-10-15: Nhạc nền dùng3 MP3 mới, đầu155926→247345→618302→lặp; hết bài chờ4s. Một player chung xuyên màn, không để pointer/keyboard bỏ qua khoảng nghỉ. Bỏ runtime nhạc cũ; giữ nguồn archive và âm thanh ván cờ.
+
+- 2026-10-15: Sẵn sàng online: giữ đổi người thua/đầu hàng sau ván; cặp đang ngồi có hàng chờ thì cả hai chưa ready chờ10s rồi hiện20→0 tự bắt đầu, một người ready đếm ngầm30s từ lần bấm đầu; quá hạn người kia thua/not-ready xuống khán giả queued=false, đầu hàng lên đúng ghế. Không hàng chờ thì không ép/phạt. Bảng xanh trên cùng, nút ready ẩn sau bấm không chữ chờ. Chi tiết docs/ROOM-READINESS.md.
+
+- 2026-10-15: Đính chính luật Sẵn sàng: quá30s chỉ chuyển người chưa ready xuống khán giả và đầu hàng lên, KHÔNG xử thua/ghi thắng-thua/tạo ván mới trong lịch sử; giữ archive ván thật trước đó. Thay phần not-ready/xử thua vừa ghi. Mốc10/20/30 và luật đổi người thua ván thật giữ nguyên.
+
+- 2026-10-15: XEM THỬ TẠM theo yêu cầu: mở bàn mẫu Chọn Bàn (useRoomDemo) giữ phase ready và hiện countdown20 ngay, hết20s bắt đầu hai máy. useDemoReadyCountdown chỉ local demo, không online/replay/trial, rời bàn hủy interval. Gỡ ngoại lệ khi kết thúc xem UI; luật online10+20/30 không đổi.
+
+- 2026-10-15: Đã nối Bàn khóa THẬT theo yêu cầu mới, thay ngoại lệ chỉ UI: Tạo bàn gửi mật khẩu1–64 ký tự; server kiểm tra trước join cả ghế/viewer, Repository giữ salt/hash riêng không phát secret. Chọn Bàn thêm mục Bàn khóa bên phải Còn trống, lọc locked theo khu vực, bảng nhập dùng chung LobbyDialog. Chơi nhanh bỏ bàn khóa; lời mời không bypass khóa/rời phòng cũ trước xác thực. Chi tiết docs/ROOM-LOCKS.md.
+
+- 2026-10-15: Số countdown Sẵn sàng trong Board đổi đen, cỡ48→72 nhân scale (tăng50%), bỏ shadow chữ; dùng chung online/bàn mẫu preview.
+
+- 2026-10-15: Mọi bàn locked=true trong RoomTableGrid dùng artwork65c16869 (table-board-locked.png), crop alpha bbox107,140,1041,964; nguồn giữ references/uploads. Giữ slot chung/object-contain, người chơi/nhãn và luồng mật khẩu.
+
+- 2026-10-15: Xếp hạng Vào xem dựng RankingViewButton ôm asset210×62 alpha sẵn, bỏ bóng CSS chữ nhật; chỉ hiện khi tên top nằm trong phòng thật phase playing, click kiểm tra lại rồi join asViewer=true, khóa vẫn hỏi mật khẩu. Server chặn lệnh xem khi chưa/đã hết đấu. Query rooms chỉ poll khi dialog mở. Danh sách tên/ELO vẫn fixture, Cờ Úp online chưa hỗ trợ; docs/RANKING-WATCH.md.
+
+- 2026-10-15: XEM THỬ TẠM Xếp hạng: hàng top1 luôn có1 nút Vào xem mẫu nếu không có trận thật, click chỉ thông báo mẫu; nếu có trận thật vẫn watch bình thường. Các hàng khác giữ điều kiện phòng đang đấu. Thanh cuộn bỏ track trắng, thumb nâu vàng#92612d/hover#613014, track/corner trong suốt.
+
+- 2026-10-15: Thanh kéo Xếp hạng đổi trắng#fff, track/corner vẫn trong suốt. Bạn bè chỉ hiện Mời chơi khi friend.presence=online; offline ẩn nút nhưng giữ Nhắn tin/hàng/avatar.
+
+- 2026-10-16: Vị trí tùy chỉnh: nút đổi bên bỏ translateY-2px, căn giữa hàng Đỏ/Đen; icon hai mũi tên SVG20px đối xứng trong vòng32px, không lệch baseline glyph.
+
+- 2026-10-16: Chốt mô hình tài khoản Guest/đã liên kết tại board-game/docs/ACCOUNT-MODEL.md. Guest có online/máy/Cờ Úp/phòng/Elo-cấp-sao/vàng/danh hiệu/lịch sử/lưu ván-thế/bạn bè-chat/avatar-khung; chỉ tài khoản đã liên kết được đổi tên, đăng nhập thiết bị khác, khôi phục, giải đấu chính thức và mua tiền thật sau này. Xóa game/dữ liệu trình duyệt mất Guest; đã liên kết khôi phục bằng đăng nhập. Giữ giới hạn từng mode hiện hành. Chỉ chốt tài liệu, chưa code/database/schema/phương thức liên kết.
+
+- 2026-10-16: Bút đổi tên hồ sơ: Guest không có; đăng nhập Google/đã liên kết và chưa đổi tên thành công mới hiện bút vàng ở cuối dòng tên như bút địa chỉ trong ảnh người dùng. Đổi tên thành công thì ẩn bút; hủy/lỗi vẫn giữ. Trạng thái theo tài khoản, giữ qua đăng nhập lại/đổi thiết bị. Chưa có quy tắc cấp lại quyền. Chỉ lưu thiết kế tại docs/ACCOUNT-MODEL.md, chưa code/UI/database.
+
+- 2026-10-16: Màn đăng nhập mới theo ảnh người dùng, artwork tự tạo bằng imagegen theo yêu cầu. EntryGate trước App: chưa chọn cách vào thì LoginPage, đã chơi khách thì vào Home trực tiếp qua localStorage co-tuong-entry-v1. Đây chỉ là ghi nhớ cách vào, không phải auth server hoặc persistence hồ sơ. Không tin flag Google từ client; Google OAuth chưa cấu hình, nút báo rõ và không tạo phiên giả. Khi có auth Google thật phải kiểm tra phiên server rồi bỏ qua trang đăng nhập. Giữ UI/gameplay/phạm vi khóa hiện có. Không tạo database. Xem docs/ACCOUNT-MODEL.md và src/assets/login/source.md.
+
+- 2026-10-16: Tên khách tự sinh dạng Kỳ thủ + đúng6 chữ số ngẫu nhiên, không thêm khoảng trắng trước số (ví dụ Kỳ thủ000042). Dùng crypto.getRandomValues, pad số0 đầu; tạo một lần, giữ trong co-tuong-entry-v1 và khôi phục vào sessionStore khi tải lại. Entry guest cũ thiếu tên được bổ sung một lần. Validator client/server chung cho phép đúng mẫu này là ngoại lệ giới hạn10 ký tự; tên tự nhập khác giữ giới hạn cũ. Không bảo đảm tên random duy nhất toàn server khi chưa có DB. Chưa triển khai auth/database hoặc quyền đổi tên.
+
+- 2026-10-16: Cảnh báo Chơi như khách trên LoginPage nâng top84.3%→82.8% theo phản hồi bị họa tiết đáy che; chỉ dịch vị trí dọc, giữ chữ/font/cỡ/bố cục khác.
+
+- 2026-10-16: Số trong tên trên PlayerNameplate dùng NumberText chung với compact90%, font-number/lining-nums/tabular-nums, weight normal và giữ nguyên độ sáng (soften=false). Chữ và số cùng baseline inline, bỏ chữ số oldstyle của font-heading. Đồng bộ Home/PlayerCard/thiết lập qua component chung; giữ nguyên khung/kích thước/vị trí avatar và nameplate.
+
+- 2026-10-16: Theo yêu cầu trực tiếp mở đúng phạm vi typography cột tên/trạng thái và ô tìm kiếm Bạn bè: dùng font-heading (Cormorant) cho chữ/tìm kiếm/trạng thái; tên font-semibold bỏ text-stroke, số tên qua NumberText compact90%/font-number/lining/tabular/weight medium, giữ opacity88% hiện hành và baseline inline. Áp dụng FriendIdentity/PresenceLabel chung mọi tab và cả2 ô tìm kiếm. Giữ font-size/line-height/hàng/spacing/avatar/nút/danh hiệu, không đổi layout; phạm vi còn lại vẫn khóa và typography khóa lại sau nhiệm vụ.
+
+- 2026-10-16: Hồ sơ của mình đổi nút Thoát thành Đăng xuất theo yêu cầu, giữ hình học/style nút; hồ sơ người khác vẫn Thoát. Bấm mở dialog xác nhận Bạn có chắc muốn đăng xuất? với Hủy/Đồng ý; Hủy/Escape không đăng xuất. Đồng ý đánh dấu signedOut trong co-tuong-entry-v1, ngắt socket (server xử lý rời theo luật cũ), rời/reset ván local và trở lại LoginPage. Không xóa tên khách/localStorage ván-thế; chơi khách lại giữ tên. Chưa có OAuth để thu hồi phiên Google. Lỗi lưu marker giữ phiên và báo lỗi. Quyền sửa chỉ nút/footer và xác nhận của mình, vùng UI khác giữ khóa.
+
+- 2026-10-16: Theo yêu cầu tăng nhẹ độ dày chữ/số Bạn bè: tên FriendIdentity semibold→bold, số NumberText medium→semibold, trạng thái PresenceLabel medium→semibold; giữ font/cỡ/opacity88%/baseline/hình học và không thêm stroke. Component chung đồng bộ mọi tab. Phạm vi typography mở đúng yêu cầu rồi khóa lại, avatar/layout khác giữ nguyên.
+
+- 2026-10-16: Theo phản hồi số đang đậm hơn chữ, tên Bạn bè tăng extrabold và stroke0.2px chỉ phần chữ; span số reset stroke0, NumberText weight normal thay semibold, giữ compact90%/opacity88%/baseline. Trạng thái bold. Thay quy tắc không stroke của lần trước đúng phạm vi tên này; giữ font/cỡ/hình học/avatar và đồng bộ mọi tab qua FriendIdentity/PresenceLabel. Phạm vi typography khóa lại sau task.
+
+- 2026-10-16: Chốt tên Bạn bè/Xếp hạng dùng SocialPlayerName chung tại SocialUi: chữ font-heading/extrabold/stroke0.2px; số NumberText font-number/normal/compact90%/opacity88%, stroke riêng0.1px để tăng nhẹ từ lần trước, cùng baseline inline. Trạng thái dùng socialPresenceTextClass font-heading/bold. Phạm vi người dùng mở gồm typography tên/trạng thái hai màn, không đổi font-size/spacing/avatar/khung/hàng/nút/rank/Elo. Áp dụng mọi tab qua component chung; khóa lại phạm vi sau nhiệm vụ.
+
+- 2026-10-16: Theo yêu cầu tăng số thêm chút, stroke số trong SocialPlayerName tăng0.1px→0.2px, đồng bộ tên Bạn bè/Xếp hạng. Giữ nguyên chữ/font/weight/cỡ/opacity/baseline/hình học; phạm vi khác vẫn khóa.
+
+- 2026-10-16: Sửa cắt nét tên Bạn bè/Xếp hạng: SocialPlayerName có line-height1.4 và tự truncate ngang; h3 giữ slot cao24px, flex items-center/không overflow-hidden để line box đầy đủ vượt slot mà không bị cắt dấu/đuôi chữ. Giữ font/weight/stroke/baseline tương đối và chiều cao hàng/avatar/spacing. Đồng bộ component chung, chỉ mở phạm vi sửa cắt nét rồi khóa lại.
+
+- 2026-10-16: Chốt ghép đấu tự động tương lai: ưu tiên cùng cấp bậc/cùng số sao; không có thì ngẫu nhiên đối thủ hơn/kém1 sao, mở rộng lần lượt2 rồi3 sao, tối đa3. Không có phù hợp thì người chơi vào phòng một mình chờ, không fallback máy/ghép quá phạm vi. Chỉ ghi thiết kế, chưa đổi code hiện hành; chi tiết ranh giới bậc/sao trần cần chốt trước code. Xem board-game/docs/MATCHMAKING.md.
+
+- 2026-10-16: Chốt ELO mục tiêu theo đối thủ trước trận: thắng cùng bậc/sao +13, thắng cao hơn1/2/3 sao +16/+17/+18, thắng thấp hơn1/2/3 sao đều+10; thua cùng bậc/sao hoặc đối thủ thấp hơn đều-13, thua đối thủ cao hơn1/2/3 sao đều-10. Tính riêng mỗi người, không zero-sum. Chỉ tài liệu, chưa code/DB; hòa/điểm sàn/ngoài phạm vi và ranh giới bậc chưa chốt. Bảng chuẩn tại docs/MATCHMAKING.md.
+
+- 2026-10-16: Chốt sao liên tục qua bậc cho ghép đấu/ELO: index=(bậc-1)*3+(sao-1), chênh=index đối thủ-index mình. BậcN/3 sao +1/+2/+3 là bậcN+1/1/2/3 sao; bậcN/1 sao -1/-2/-3 là bậcN-1/3/2/1 sao. Chỉ xét bậc tồn tại, không dùng danh hiệu trang trí hoặc tự thêm sao ẩn. Thay ghi chú ranh giới bậc chưa chốt trước đó; bảng điểm giữ nguyên. Chỉ tài liệu, chưa code/DB. Xem docs/MATCHMAKING.md.
+
+- 2026-10-16: Chốt trần danh hiệu/sao: Kỳ Thánh1 sao2800–2899,2 sao2900–2999,3 sao từ3000; đạt đủ thì không tăng bậc/sao nữa nhưng ELO thật vẫn tăng. Thay trần sao2800 trước đây bằng3000, giữ mốc vào Kỳ Thánh2800. Đã áp dụng getRankProgress chung mọi consumer, không đổi UI/geometry/avatar hoặc triển khai tính điểm sau trận/DB.
+
+- 2026-10-16: Theo yêu cầu tăng độ đậm và dày số tên Bạn bè/Xếp hạng: SocialPlayerName giữ weight normal, số bỏ soften (opacity100% thay88%), stroke0.2→0.3px. Giữ phần chữ/font/cỡ/line-box1.4/baseline/hình học; áp dụng cả2 màn qua component chung, phạm vi khác giữ khóa.

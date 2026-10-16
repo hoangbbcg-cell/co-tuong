@@ -7,7 +7,7 @@ export function roomRouter(service: RoomService) {
   const router = Router()
   router.get('/', (_req, res) => res.json(service.list()))
   router.post('/', (req, res, next) => {
-    try { res.status(201).json(service.create(req.body?.name, req.body?.minutes)) } catch (error) { next(error) }
+    try { res.status(201).json(service.create(req.body?.name, req.body?.minutes, req.body?.turnSeconds, req.body?.province, req.body?.password)) } catch (error) { next(error) }
   })
   return router
 }
@@ -28,7 +28,7 @@ export function registerRoomSockets(io: Server<ClientEvents, ServerEvents>, serv
       }
     }
     socket.on('room:join', (input, ack) => run(ack, () => {
-      const room = service.join(input?.roomId, socket.id, input?.name)
+      const room = service.join(input?.roomId, socket.id, input?.name, input?.password, input?.asViewer)
       // The default in-memory Socket.IO adapter joins synchronously.
       void socket.join(room.id)
       publish(room)

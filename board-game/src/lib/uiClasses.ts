@@ -1,5 +1,6 @@
 // Complete class names let Tailwind detect shared styles at build time.
 export const buttonInteraction = 'cursor-pointer disabled:cursor-default disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe2a1]'
+export const messageScrollbarClass = '[scrollbar-color:#efb75d_#3a1b09] [scrollbar-width:thin]'
 export const selectedImageTabGlow = '[filter:brightness(1.1)_saturate(1.3)_drop-shadow(0_0_2px_#ffcf38)_drop-shadow(0_0_7px_#ffad16)]'
 export const selectionPalette = {
   selected: {
@@ -18,3 +19,5 @@ export const gameUtilityButton = `${buttonInteraction} pointer-events-auto grid 
 export const iconButton = `${buttonInteraction} grid size-[34px] shrink-0 place-items-center rounded border border-[#b59754] bg-[#463713] p-0 text-2xl text-[#ffe094]`
 export const lobbyButton = `${buttonInteraction} rounded border border-[#c6a563] bg-[#d1ad65] px-2.5 py-1.5 text-[13px] text-[#1c2924]`
 export const homeUtilityButton = `${buttonInteraction} grid size-12 place-items-center rounded-[3px] border-2 border-[#d8ac35] bg-[linear-gradient(#ad7e08,#805100)] text-xl text-[#ffe535] shadow-[inset_0_1px_0_#ffec8d,inset_0_0_0_1px_#6f400b,0_3px_5px_#0005] transition-[border-color,color,box-shadow] duration-150 hover:border-[#ffe78b] hover:bg-[linear-gradient(#d49b12,#a16a08)] hover:text-[#fff7a5] active:bg-[linear-gradient(#886005,#654000)] motion-reduce:transition-none`
+
+export const messageSelectionHighlight = 'bg-[radial-gradient(ellipse_at_center,#724018_0%,#51280f_54%,#241007_100%)] shadow-[inset_0_0_9px_#f8b73c55,0_0_4px_#f8b73c]'

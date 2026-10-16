@@ -8,8 +8,14 @@ import type { ClientEvents, ServerEvents } from '../src/types/room'
 import { RoomRepository } from './repositories/roomRepository'
 import { RoomError, RoomService } from './services/roomService'
 import { registerRoomSockets, roomRouter } from './controllers/roomController'
+import { ChallengeRepository } from './repositories/challengeRepository'
+import { ChallengeService } from './services/challengeService'
+import { registerChallengeSockets } from './controllers/challengeController'
 import { PikafishService } from './services/pikafishService'
 import { pikafishRouter } from './controllers/pikafishController'
+import { registerLobbyPresence } from './controllers/lobbyPresenceController'
+import { LobbyPresenceService } from './services/lobbyPresenceService'
+import { LobbyPresenceRepository } from './repositories/lobbyPresenceRepository'
 
 export function createApplication() {
   const app = express()
@@ -32,6 +38,8 @@ export function createApplication() {
   app.use(onError)
   app.use(express.static(resolve(fileURLToPath(new URL('..', import.meta.url)), 'dist')))
   const interval = registerRoomSockets(io, service)
-  http.on('close', () => { clearInterval(interval); pikafish.close() })
-  return { app, http, io, service, close: () => { clearInterval(interval); pikafish.close(); return new Promise<void>(resolve => io.close(() => resolve())) } }
+  registerLobbyPresence(io, new LobbyPresenceService(new LobbyPresenceRepository()))
+  const challengeInterval = registerChallengeSockets(io, new ChallengeService(new ChallengeRepository(), service))
+  http.on('close', () => { clearInterval(interval); clearInterval(challengeInterval); pikafish.close() })
+  return { app, http, io, service, close: () => { clearInterval(interval); clearInterval(challengeInterval); pikafish.close(); return new Promise<void>(resolve => io.close(() => resolve())) } }
 }

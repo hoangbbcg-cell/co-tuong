@@ -22,6 +22,87 @@ describe('Service phòng và server là nguồn sự thật', () => {
   it.each([0, -3, 7, '5', null])('từ chối thời gian không hợp lệ %s', minutes => {
     expect(() => service.create('Sai giờ', minutes)).toThrow('Thời gian không hợp lệ')
   })
+  it('giữ phòng có khán giả dù không còn người ngồi chơi', () => {
+    const room = service.create('Còn khán giả')
+    service.join(room.id, 'player-a', 'Người A')
+    service.join(room.id, 'player-b', 'Người B')
+    service.join(room.id, 'viewer', 'Khán giả')
+    service.leave('player-a')
+    service.leave('player-b')
+
+    expect(service.list().find(item => item.id === room.id)).toMatchObject({ players: 0, viewerCount: 1 })
+  })
+  it('tự đưa người thua xuống cuối hàng và cho người đầu lên bàn', () => {
+    service.join(id, 'viewer-1', 'Khán giả 1')
+    service.join(id, 'viewer-2', 'Khán giả 2')
+    service.command('viewer-1', { type: 'join-queue' })
+    service.command('viewer-2', { type: 'join-queue' })
+    start()
+
+    const result = service.command('a', { type: 'resign' })
+
+    expect(result.game.phase).toBe('finished')
+    expect(result.players.map(player => player.id)).toEqual(['a', 'b'])
+    expect(() => service.command('b', { type: 'ready' })).toThrow()
+    now = 2999
+    expect(service.tick()).toEqual([])
+    expect(result.players.map(player => player.id)).toEqual(['a', 'b'])
+    now = 3000
+    expect(service.tick()).toHaveLength(1)
+    expect(result.players.map(player => player.id)).toEqual(['viewer-1', 'b'])
+    expect(result.viewers?.filter(viewer => viewer.queued).map(viewer => viewer.id)).toEqual(['viewer-2', 'a'])
+    expect(result.game.phase).toBe('ready')
+  })
+  it('keeps loser seated without queued viewers', () => {
+    service.join(id, 'viewer', 'Viewer')
+    start()
+    const room = service.command('a', { type: 'resign' })
+    now = 4000
+    service.tick()
+    expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
+    expect(room.viewers).toEqual([expect.objectContaining({ id: 'viewer', queued: false })])
+    expect(room.game.phase).toBe('finished')
+  })
+  it('promotes a late queue entry immediately without rematch readiness', () => {
+    start()
+    service.command('a', { type: 'resign' })
+    now = 1
+    service.join(id, 'viewer', 'Viewer')
+    const room = service.command('viewer', { type: 'join-queue' })
+    expect(room.players.map(player => player.id)).toEqual(['viewer', 'b'])
+    expect(room.viewers).toEqual([expect.objectContaining({ id: 'a', queued: true })])
+  })
+  it.each(['a', 'b'])('keeps late entrants queued after %s readies a rematch', playerId => {
+    start()
+    service.command('a', { type: 'resign' })
+    now = 4000
+    service.command(playerId, { type: 'ready' })
+    service.join(id, 'viewer', 'Viewer')
+    const room = service.command('viewer', { type: 'join-queue' })
+    now = 8000
+    service.tick()
+    expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
+    expect(room.players.find(player => player.id === playerId)?.ready).toBe(true)
+    expect(room.viewers).toEqual([expect.objectContaining({ id: 'viewer', queued: true })])
+    expect(room.game.phase).toBe('ready')
+  })
+  it('đưa người đầu hàng chờ lên bàn ngay khi người thua rời phòng', () => {
+    service.join(id, 'viewer-1', 'Chờ 1')
+    service.join(id, 'viewer-2', 'Chờ 2')
+    service.command('viewer-1', { type: 'join-queue' })
+    service.command('viewer-2', { type: 'join-queue' })
+    start()
+
+    const roomAfterLeave = service.leave('a')
+
+    expect(roomAfterLeave?.players).toHaveLength(2)
+    expect(roomAfterLeave?.players).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'viewer-1', side: 'red' }),
+      expect.objectContaining({ id: 'b', side: 'black' }),
+    ]))
+    expect(roomAfterLeave?.viewers?.filter(viewer => viewer.queued).map(viewer => viewer.id)).toEqual(['viewer-2'])
+    expect(roomAfterLeave?.game.result).toMatchObject({ winner: 'black', reason: 'leave' })
+  })
   it('server khóa nước đi và giữ giờ trong 1,3 giây khai cuộc', () => {
     start()
     now = 1299
@@ -31,6 +112,12 @@ describe('Service phòng và server là nguồn sự thật', () => {
     const room = service.command('a', move)
     expect(room.game.board[5][0]?.side).toBe('red')
     expect(room.game.remainingTime.red).toBe(600000)
+    expect(room.game.phase).toBe('playing')
+    expect(room.game.result).toBeNull()
+    now = 1301
+    const reply = service.command('b', { type: 'move', move: { from: { row: 3, col: 0 }, to: { row: 4, col: 0 } } })
+    expect(reply.game.phase).toBe('playing')
+    expect(reply.game.currentTurn).toBe('red')
   })
   it('cần cả hai sẵn sàng và chặn người thứ ba', () => {
     expect(service.command('a', { type: 'ready' }).game.phase).toBe('ready')

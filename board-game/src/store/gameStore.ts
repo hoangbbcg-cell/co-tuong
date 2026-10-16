@@ -1,15 +1,17 @@
 import { create } from 'zustand'
 import { createGame, opposite } from '../game/state/initial'
-import { advanceClock, applyMove, finishGame, startGame, takebackSnapshot, MATCH_INTRO_MS } from '../game/moves/actions'
+import { advanceClock, applyMoveWithResult, finishGame, startGame, takebackSnapshot, MATCH_INTRO_MS } from '../game/moves/actions'
 import { isInsideBoard } from '../game/rules'
 import type { GameState, GameVariant, Move, Position, Side } from '../types/game'
 import { createHiddenGame } from '../game/state/hidden'
 import { toUci } from '../game/moves/uci'
 import { DEBUG_SKIP_ENDGAME_MOVE_SCAN } from './gameDebug'
-import { useSessionStore } from './sessionStore'
+import { gameFromPositionFen, positionFen } from '../game/state/customPosition'
 
 interface LocalGameStore {
   game: GameState
+  initialFen: string | null
+  loadPosition: (fen: string) => void
   selected: Position | null
   animation: Move | null
   animationVersion: number
@@ -21,21 +23,26 @@ interface LocalGameStore {
   reset: (now: number, variant?: GameVariant) => void
   tick: (now: number) => void
   freezeClock: (now: number) => void
-  select: (point: Position, now: number, animate?: boolean, forceCheckmate?: boolean) => void
+  select: (point: Position, now: number, animate?: boolean) => void
   completeAnimation: (version: number, now: number) => void
   takeback: (plies: 1 | 2, now: number, consume?: boolean) => void
   declineTakeback: () => void
   finish: (draw: boolean, now: number, resigningSide?: Side) => void
 }
 export const useGameStore = create<LocalGameStore>()((set, get) => ({
+  initialFen: null,
+  loadPosition: fen => {
+    const game = gameFromPositionFen(fen)
+    set(state => ({ game, initialFen: positionFen(game.board, game.currentTurn), selected: null, animation: null, animationVersion: state.animationVersion + 1, moves: [], history: [], takebacksRemaining: 2, takebackDeclineVersion: 0 }))
+  },
   game: createGame(), selected: null, animation: null, animationVersion: 0, moves: [], history: [], takebacksRemaining: 2, takebackDeclineVersion: 0,
   start: now => {
     const previous = get().game
     const game = startGame(previous, now, MATCH_INTRO_MS)
     set({ game })
-    if (previous.phase !== 'playing' && game.phase === 'playing' && useSessionStore.getState().mode !== 'computer') useSessionStore.getState().consumeEnergy()
   },
   reset: (now, variant = 'xiangqi') => set(state => ({
+    initialFen: null,
     game: variant === 'jieqi' ? createHiddenGame(now, Array.from({ length: 28 }, () => Math.random())) : createGame(now),
     selected: null, animation: null, animationVersion: state.animationVersion + 1, moves: [], history: [], takebacksRemaining: 2, takebackDeclineVersion: 0,
   })),
@@ -46,19 +53,20 @@ export const useGameStore = create<LocalGameStore>()((set, get) => ({
     return { game, selected }
   }),
   freezeClock: now => set(state => ({ game: state.game.phase === 'playing' ? { ...state.game, lastClockUpdate: now } : state.game })),
-  select: (point, now, animate = true, forceCheckmate = false) => {
-    get().tick(now)
+  select: (point, now, animate = true) => {
     const { game, selected, animation, animationVersion } = get()
     if (game.phase !== 'playing' || now < game.lastClockUpdate || animation || !isInsideBoard(point.row, point.col)) return
     if (game.board[point.row][point.col]?.side === game.currentTurn) { set({ selected: point }); return }
     if (selected) {
       const move = { from: selected, to: point }
-      const next = applyMove(game, move, now, game.currentTurn, {
+      const result = applyMoveWithResult(game, move, now, game.currentTurn, {
         skipEndgameMoveScan: DEBUG_SKIP_ENDGAME_MOVE_SCAN,
-        forceCheckmate,
+
       })
+      const next = result.game
       if (next.board === game.board) {
-        if (next.phase === 'playing') set({ selected: null })
+        if (result.rejection === 'repetition') return
+        set({ game: next, selected: null })
         return
       }
       const state = get()
@@ -68,7 +76,7 @@ export const useGameStore = create<LocalGameStore>()((set, get) => ({
         animation: animate ? move : null,
         animationVersion: animate ? animationVersion + 1 : animationVersion,
         moves: [...state.moves, toUci(move)],
-        history: [...state.history, takebackSnapshot(game)].slice(-500),
+        history: [...state.history, takebackSnapshot(game)],
       })
       return
     }
@@ -83,7 +91,7 @@ export const useGameStore = create<LocalGameStore>()((set, get) => ({
     const restored = state.history.at(-plies)
     if (!restored || state.takebacksRemaining <= 0) return state
     return {
-      game: { ...restored, lastClockUpdate: now },
+      game: { ...restored, repetition: restored.repetition ? { ...restored.repetition, warning: false, warningSide: null } : undefined, lastClockUpdate: now },
       selected: null,
       animation: null,
       animationVersion: state.animationVersion + 1,

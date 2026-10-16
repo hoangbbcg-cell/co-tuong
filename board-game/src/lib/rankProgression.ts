@@ -1,6 +1,6 @@
-/** Elo-derived rank and star progression. Stars stop advancing at 2800 Elo. */
+/** Elo-derived rank and star progression. Stars stop at Kỳ Thánh 3 stars; Elo remains uncapped. */
 export const DEFAULT_PLAYER_ELO = 1000
-export const STAR_ELO_CAP = 2800
+export const STAR_ELO_CAP = 3000
 export const rankTiers = [
   { level: 1, name: 'Tân Binh', minElo: DEFAULT_PLAYER_ELO, maxStars: 3, eloPerStar: 100 },
   { level: 2, name: 'Kỳ Sĩ', minElo: 1300, maxStars: 3, eloPerStar: 100 },

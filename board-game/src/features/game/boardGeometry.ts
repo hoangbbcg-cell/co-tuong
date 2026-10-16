@@ -1,0 +1,2 @@
+export const BOARD_COLUMNS = [73, 195, 319, 442, 567, 691, 816, 940, 1061]
+export const BOARD_ROWS = [55, 198, 324, 450, 576, 707, 833, 959, 1085, 1216]

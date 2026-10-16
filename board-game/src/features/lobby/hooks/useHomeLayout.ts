@@ -6,7 +6,7 @@ function measure() {
   const baseHeight = compact ? 850 : 720
   const availableWidth = compact ? window.innerWidth - 12 : window.innerWidth - 240
   const availableHeight = window.innerHeight - 12
-  const scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight)
+  const scale = compact ? 1 : Math.min(availableWidth / baseWidth, availableHeight / baseHeight)
   // Expand the logical frame after fitting content so its outside margins stay exact.
   return { width: availableWidth / scale, height: availableHeight / scale, scale, compact }
 }

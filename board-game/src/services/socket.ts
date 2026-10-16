@@ -6,12 +6,12 @@ function unwrap<T>(reply: Reply<T>): T {
   if (!reply.ok) throw new Error(reply.error)
   return reply.data
 }
-async function connect() {
+export async function connect() {
   if (socket.connected) return
   await new Promise<void>((resolve, reject) => {
     const cleanup = () => { clearTimeout(timer); socket.off('connect', onConnect); socket.off('connect_error', onError) }
     const onConnect = () => { cleanup(); resolve() }
-    const onError = () => { cleanup(); socket.disconnect(); reject(new Error('Không kết nối được máy chủ phòng.')) }
+    const onError = () => { cleanup(); reject(new Error('Không kết nối được máy chủ phòng.')) }
     const timer = setTimeout(onError, 8000)
     socket.once('connect', onConnect)
     socket.once('connect_error', onError)
@@ -19,10 +19,12 @@ async function connect() {
   })
 }
 export const roomSocket = {
-  async join(roomId: string, name: string): Promise<RoomSnapshot> {
+  async join(roomId: string, name: string, password?: string, asViewer = false): Promise<RoomSnapshot> {
     await connect()
-    try { return unwrap(await socket.timeout(8000).emitWithAck('room:join', { roomId, name })) }
-    catch (error) { socket.disconnect(); throw error }
+    let reply: Reply<RoomSnapshot>
+    try { reply = await socket.timeout(8000).emitWithAck('room:join', { roomId, name, password, asViewer }) }
+    catch (error) { socket.disconnect(); socket.connect(); throw error }
+    return unwrap(reply)
   },
   async command(command: RoomCommand) {
     if (!socket.connected) throw new Error('Đã mất kết nối phòng.')
@@ -33,7 +35,8 @@ export const roomSocket = {
     return unwrap<RoomSnapshot>(await socket.timeout(8000).emitWithAck('chat:send', text))
   },
   async leave() {
+    // Keep presence connected outside rooms to receive challenges.
     try { if (socket.connected) unwrap(await socket.timeout(3000).emitWithAck('room:leave')) }
-    finally { socket.disconnect() }
+    catch (error) { socket.disconnect(); socket.connect(); throw error }
   },
 }

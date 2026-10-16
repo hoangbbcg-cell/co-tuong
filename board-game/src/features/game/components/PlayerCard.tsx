@@ -1,21 +1,25 @@
+import { getComputerAvatar } from '../../../lib/computerAvatar'
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import type { Side } from '../../../types/game'
+import type { GameVariant, Side } from '../../../types/game'
 import { formatClock } from '../../../lib/format'
+import { CrispUiImage } from '../../../lib/CrispUiImage'
 import { TURN_TIME_LIMIT_MS } from '../../../game/state/initial'
 import { buttonInteraction } from '../../../lib/uiClasses'
 import avatar from '../../../assets/icons/avatar.svg'
-import defaultAvatarFrame from '../../../assets/30dfa56b-d9f3-4129-b9fd-aaf0ea884188.png'
-import { AvatarFrameOverlay } from './AvatarFrameOverlay'
+import defaultAvatarFrame from '../../../assets/player/avatar-frames/gold-frame.png'
+import { AvatarFrameOverlay, AVATAR_FRAME_VISIBLE_SCALE } from './AvatarFrameOverlay'
 import { AvatarRankBadge } from './AvatarRankBadge'
 import likeIcon from '../../../assets/icons/like-white.png'
 import { useSessionStore } from '../../../store/sessionStore'
 import readyRibbon from '../../../assets/buttons/ready-avatar-ribbon.png'
-import nameFrame from '../../../assets/player/name-frame.png'
+import { PlayerNameplate } from './PlayerNameplate'
 import eloFrame from '../../../assets/player/elo-frame.png'
+import redGeneral from '../../../assets/pieces/red-general.png'
+import concealedPiece from '../../../assets/history/history-hidden-user.png'
 import takebackDecline from '../../../assets/takeback/takeback-decline.png'
 
-interface Props { entranceHidden?: boolean; fillHeight?: boolean; side: Side; name: string; started: boolean; active: boolean; timerExpired?: boolean; ready?: boolean; remaining: number; turnElapsed: number; outcome?: 'win' | 'loss'; takebackDeclineKey?: string | number | null; likeVisible?: boolean; likePosition?: 'left' | 'right'; likeMatchId: string; likeActorId: string; onAvatarClick?: () => void; children?: ReactNode }
+interface Props { entranceHidden?: boolean; fillHeight?: boolean; side: Side; variant?: GameVariant; name: string; started: boolean; active: boolean; timerExpired?: boolean; showClock?: boolean; ready?: boolean; remaining: number; turnElapsed: number; turnTimeLimitMs?: number; outcome?: 'win' | 'loss'; takebackDeclineKey?: string | number | null; likeVisible?: boolean; likePosition?: 'left' | 'right'; likeMatchId: string; likeActorId: string; onAvatarClick?: () => void; onAvatarContextMenu?: () => void; children?: ReactNode }
 const LIKE_BUBBLE_INTERVAL_MS = 100
 const LIKE_PICKER_HOVER_DELAY_MS = 400
 const LIKE_PICKER_REOPEN_DELAY_MS = 1000
@@ -128,37 +132,40 @@ function ResultFace({ outcome }: { outcome: 'win' | 'loss' }) {
     </svg>
   </div>
 }
-export function PlayerCard({ entranceHidden = false, fillHeight = false, side, name, started, active, timerExpired = false, ready = false, remaining, turnElapsed, outcome, takebackDeclineKey, likeVisible = false, likePosition = 'left', likeMatchId, likeActorId, onAvatarClick, children }: Props) {
+export function PlayerCard({ entranceHidden = false, fillHeight = false, side, variant = 'xiangqi', name: originalName, started, active, timerExpired = false, showClock = true, ready = false, remaining, turnElapsed, turnTimeLimitMs = TURN_TIME_LIMIT_MS, outcome, takebackDeclineKey, likeVisible = false, likePosition = 'left', likeMatchId, likeActorId, onAvatarClick, onAvatarContextMenu, children }: Props) {
+  const machineAvatar = getComputerAvatar(originalName)
+  const name = machineAvatar ? 'Ông Hoàng' : originalName
   const likeBubbleLayerRef = useRef<HTMLSpanElement>(null)
-  const turnRatio = Math.max(0, Math.min(1, turnElapsed / TURN_TIME_LIMIT_MS))
+  const turnRatio = Math.max(0, Math.min(1, turnElapsed / turnTimeLimitMs))
   const turnAngle = turnRatio * 360
-  const timerVisible = active || timerExpired
+  const timerVisible = !machineAvatar && showClock && (active || timerExpired)
   return <section data-active={active} className={`mx-auto flex min-w-0 flex-col desktop:w-40 items-center pt-3 compact:grid compact:grid-cols-[60px_minmax(0,1fr)] compact:gap-x-2 compact:gap-y-[3px] compact:p-0 compact:text-left short-desktop:pt-0 ${fillHeight ? 'h-full compact:h-auto' : 'flex-none desktop:self-center'} ${side === 'red' ? 'compact:-translate-y-[10px]' : ''}`} id={`player-${side}`} aria-label={`Người chơi quân ${side === 'red' ? 'đỏ' : 'đen'}`} style={{ visibility: entranceHidden ? 'hidden' : undefined } as CSSProperties}>
-    <div data-active={active} data-testid={`avatar-${side}`} className="relative size-[132px] shrink-0 rounded-full bg-transparent p-2 shadow-[0_5px_18px_#071c1b99] compact:size-[60px] compact:p-[5px] short-desktop:size-[88px]">
-      {likeVisible && <PlayerLikeButton name={name} position={likePosition} matchId={likeMatchId} actorId={likeActorId} targetSide={side} avatarBubbleLayerRef={likeBubbleLayerRef} />}
-      <button type="button" aria-label={`Xem hồ sơ ${name}`} onClick={onAvatarClick} className={`${buttonInteraction} relative block size-full rounded-full border-0 bg-transparent p-0`}>
-        <img src={avatar} alt="" className="block size-full rounded-full object-cover" /><span aria-hidden="true" className={`pointer-events-none absolute inset-0 z-2 rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: `conic-gradient(from 0deg, transparent 0deg ${turnAngle}deg, #187b1299 ${turnAngle}deg 360deg)` }} />
-        <AvatarFrameOverlay src={defaultAvatarFrame} dimmed={timerVisible} />
+    <div data-active={active} data-testid={`avatar-${side}`} className="relative size-[132px] shrink-0 rounded-full bg-transparent p-2 shadow-[0_5px_18px_#071c1b99] compact:size-[60px] compact:p-[5px] short-desktop:size-[88px]" style={machineAvatar ? { boxShadow: 'none' } : undefined}>
+      {!machineAvatar && likeVisible && <PlayerLikeButton name={name} position={likePosition} matchId={likeMatchId} actorId={likeActorId} targetSide={side} avatarBubbleLayerRef={likeBubbleLayerRef} />}
+      <button type="button" disabled={!!machineAvatar} aria-label={machineAvatar ? 'Avatar Ông Hoàng' : `Xem hồ sơ ${name}`} title={!machineAvatar && onAvatarContextMenu ? 'Bấm chuột phải để phong danh hiệu' : undefined} onClick={machineAvatar ? undefined : onAvatarClick} onContextMenu={event => { event.preventDefault(); if (!machineAvatar) onAvatarContextMenu?.() }} className={`${buttonInteraction} relative block size-full rounded-full border-0 bg-transparent p-0 disabled:opacity-100`}>
+        <img src={machineAvatar ?? avatar} alt="" className={machineAvatar ? "block size-full object-contain" : "block size-full rounded-full object-cover"} style={machineAvatar ? { transform: `scale(${AVATAR_FRAME_VISIBLE_SCALE})` } : undefined} /><span aria-hidden="true" className={`pointer-events-none absolute inset-0 z-2 rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: `conic-gradient(from 0deg, transparent 0deg ${turnAngle}deg, #187b1299 ${turnAngle}deg 360deg)` }} />
+        {!machineAvatar && <AvatarFrameOverlay src={defaultAvatarFrame} dimmed={timerVisible} />}
         <svg aria-hidden="true" viewBox="0 0 100 100" className={`pointer-events-none absolute top-1/2 left-1/2 z-[11] size-[107%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`}>
           <path d={remainingArcPath(47, turnAngle)} fill="none" stroke="#48e600" strokeWidth="5.5" strokeLinecap="butt" />
           <path d={remainingArcPath(46.8, turnAngle)} fill="none" stroke="#d6d45a" strokeWidth="1.1" strokeLinecap="butt" />
-        </svg><AvatarRankBadge />
+        </svg><AvatarRankBadge computer={!!machineAvatar} />
 
       </button>
       <span ref={likeBubbleLayerRef} aria-hidden="true" className="pointer-events-none absolute inset-0 z-8 overflow-visible" />
-      {takebackDeclineKey != null && <span key={takebackDeclineKey} role="status" className="pointer-events-none absolute top-1/2 left-1/2 z-7 w-[126px] -translate-x-1/2 -translate-y-1/2 brightness-125 animate-[bounce_450ms_ease-in-out_2] motion-reduce:animate-none compact:w-[78px] short-desktop:w-[96px]"><img src={takebackDecline} alt="Từ chối" className="m-0 block h-auto w-full border-0 p-0" /></span>}
-      {ready && <img src={readyRibbon} alt="Sẵn sàng" className="pointer-events-none absolute top-1/2 left-1/2 z-5 m-0 block h-auto w-[158px] -translate-x-1/2 -translate-y-1/2 border-0 p-0 drop-shadow-[0_2px_3px_#17200899] compact:w-[72px] short-desktop:w-[106px]" />}
-      {outcome && <ResultFace outcome={outcome} />}
+      {takebackDeclineKey != null && <span key={takebackDeclineKey} role="status" className="pointer-events-none absolute top-1/2 left-1/2 z-[30] w-[126px] -translate-x-1/2 -translate-y-1/2 brightness-125 animate-[bounce_450ms_ease-in-out_2] motion-reduce:animate-none compact:w-[78px] short-desktop:w-[96px]"><img src={takebackDecline} alt="Từ chối" className="m-0 block h-auto w-full border-0 p-0" /></span>}
+      {!machineAvatar && ready && <img src={readyRibbon} alt="Sẵn sàng" className="pointer-events-none absolute top-1/2 left-1/2 z-[110] m-0 block h-auto w-[158px] -translate-x-1/2 -translate-y-1/2 border-0 p-0 drop-shadow-[0_2px_3px_#17200899] compact:w-[72px] short-desktop:w-[106px]" />}
+      {!machineAvatar && outcome && <ResultFace outcome={outcome} />}
     </div>
     <div className="mt-[78px] w-full min-w-0 -translate-y-[28px] compact:mt-0 short-desktop:mt-[54px]">
-      <h2 className="relative mx-auto my-0 grid h-[39px] w-[170px] place-items-center bg-contain bg-center bg-no-repeat px-5 font-georgia text-[20px] font-normal text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008] compact:h-[28px] compact:w-[120px] compact:px-4 compact:text-[14px]" style={{ backgroundImage: `url(${nameFrame})` }}><span className="max-w-full truncate">{name}</span></h2>
-      <p hidden={started} className="relative mx-auto mt-2 mb-[9px] flex h-[37px] w-fit items-center justify-center gap-2 bg-[length:100%_100%] bg-center bg-no-repeat px-[14px] font-georgia leading-none text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008] compact:mx-0 compact:mt-1 compact:mb-0.5 compact:h-[30px] compact:gap-1.5 compact:px-[14px]" style={{ backgroundImage: `url(${eloFrame})` }}>
-        <span role="img" aria-label="ELO · Quân Tướng đỏ" className="grid size-[20px] shrink-0 place-items-center rounded-full border border-[#a56b32] bg-[linear-gradient(#fff0c9,#e6b778)] shadow-[inset_0_0_0_1px_#fff3d0,0_1px_1px_#38200b80] compact:size-[15px]"><span aria-hidden="true" className="grid size-[16px] place-items-center rounded-full border border-[#b51f16] font-['DFKai-SB','BiauKai','KaiTi','STKaiti',serif] text-[12px] leading-none font-bold text-[#b51f16] compact:size-[12px] compact:text-[9px]">帥</span></span><strong className="grid h-[20px] place-items-center font-['Times_New_Roman',serif] text-[18px] font-normal leading-none text-[#ffe5a3] lining-nums tabular-nums compact:h-[15px] compact:text-[13px]">{side === 'red' ? '2069' : '1983'}</strong>
+      <h2 className="relative mx-auto my-0 w-fit leading-none"><PlayerNameplate name={name} className="[--nameplate-width:170px] compact:[--nameplate-width:120px]" /></h2>
+      <p hidden={started || !!machineAvatar} className="relative mx-auto mt-2 mb-[9px] flex h-[37px] w-fit items-center justify-center gap-2 bg-[length:100%_100%] bg-center bg-no-repeat px-[14px] font-georgia leading-none text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008] compact:mx-0 compact:mt-1 compact:mb-0.5 compact:h-[30px] compact:gap-1.5 compact:px-[14px]" style={{ backgroundImage: `url(${eloFrame})` }}>
+        <span role="img" aria-label={variant === 'jieqi' ? 'ELO · Cờ Úp' : 'ELO · Cờ Tướng'} className="grid size-[20px] shrink-0 place-items-center compact:size-[15px]"><CrispUiImage src={variant === 'jieqi' ? concealedPiece : redGeneral} alt="" className="block size-full object-contain" /></span><strong className="grid h-[20px] place-items-center font-number text-[18px] font-normal leading-none text-[#ffe5a3] lining-nums tabular-nums compact:h-[15px] compact:text-[13px]">{side === 'red' ? '2069' : '1983'}</strong>
       </p>
     </div>
-    <div hidden={!started} className={`mt-3 flex w-fit min-w-[70px] -translate-y-[23px] items-center justify-center gap-1 rounded-[3px] border py-0.5 pr-1 pl-[3px] transition-[background-color,border-color,box-shadow] duration-100 before:grid before:size-[18px] before:place-items-center before:rounded-full before:border-2 before:border-double before:border-[#70572c] before:bg-[#ebd39d] before:font-serif before:text-sm before:leading-[normal] before:outline before:outline-[#e6ce8a] compact:col-span-full compact:mt-1.5 compact:justify-self-center compact:px-[5px] compact:text-center ${active ? 'border-[#e8c479] bg-[#244b40] shadow-[0_0_0_1px_#e8c47933]' : 'border-[#c5ad6b] bg-[#503a23]'} ${side === 'red' ? "before:text-[#a11b11] before:content-['帥']" : "before:text-[#252419] before:content-['將']"}`}>
-      <output className="block font-arial text-base/[1.1] text-[#e8b923] tabular-nums" id={`clock-${side}`} aria-label={`Thời gian quân ${side === 'red' ? 'đỏ' : 'đen'}`}>{formatClock(remaining)}</output>
-    </div>
+    {!machineAvatar && showClock && <div hidden={!started} className={`mt-3 flex w-fit min-w-[70px] -translate-y-[23px] items-center justify-center rounded-[3px] border px-2 py-0.5 transition-[background-color,border-color,box-shadow] duration-100 compact:col-span-full compact:mt-1.5 compact:justify-self-center compact:px-[5px] compact:text-center ${active ? 'border-[#e8c479] bg-[#244b40] shadow-[0_0_0_1px_#e8c47933]' : 'border-[#c5ad6b] bg-[#503a23]'}`}>
+      <output className="block font-number text-lg/[1.1] text-[#e8b923] tabular-nums" id={`clock-${side}`} aria-label={`Thời gian quân ${side === 'red' ? 'đỏ' : 'đen'}`}>{formatClock(remaining)}</output>
+    </div>}
     {children}
   </section>
 }
+

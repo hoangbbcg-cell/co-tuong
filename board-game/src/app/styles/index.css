@@ -3,11 +3,25 @@
 
 @theme {
   --font-arial: Arial, sans-serif;
+  --font-body: Arial, sans-serif;
+  --font-heading: "Cormorant Garamond", Georgia, serif;
+  --font-position-title-input: "Position Title Digits", "Cormorant Garamond", Georgia, serif;
+  --font-number: "Times New Roman", serif;
   --font-georgia: Georgia, serif;
   --font-honor-title: "Alegreya", serif;
   --font-chess: "Chess Brush", "KaiTi", "STKaiti", "SimSun", serif;
   --font-rank: "KaiTi", "STKaiti", Georgia, serif;
   --font-cormorant: "Cormorant Garamond", Georgia, serif;
+}
+
+/* Match NumberText's normal-weight, 0.9em digits inside native title inputs. */
+@font-face {
+  font-family: "Position Title Digits";
+  src: local("Times New Roman");
+  font-style: normal;
+  font-weight: 100 900;
+  size-adjust: 90%;
+  unicode-range: U+0030-0039;
 }
 
 /* Match the existing layout thresholds, including short desktop windows. */

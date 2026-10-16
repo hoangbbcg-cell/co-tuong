@@ -1,0 +1,1 @@
+﻿# Nút Đấu ngay trình chỉnh thế`nGenerated with imagegen from user button reference on 2026-10-13. Raw: references/uploads/custom-position-dragon-start-generated.png. Runtime: custom-position-dragon-start.png. Alpha below64 removed, trimmed to remaining visible bounds. Display full width below palette, gap10px; button wrapper has no padding/border/background.

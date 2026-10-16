@@ -8,6 +8,8 @@ type AvatarFrameOverlayProps = {
 // The PNG opening is about 73% of its canvas. This scale places the portrait's
 // baked-in border inside the opaque gold band, between its inner and outer edges.
 const AVATAR_FRAME_SCALE = 156 / 128
+// Diameter remaining after the shared frame's circle(44.8%) clip.
+export const AVATAR_FRAME_VISIBLE_SCALE = AVATAR_FRAME_SCALE * 0.896
 
 export function AvatarFrameOverlay({ src, alt = '', dimmed = false }: AvatarFrameOverlayProps) {
   const frameSize = `${AVATAR_FRAME_SCALE * 100}%`

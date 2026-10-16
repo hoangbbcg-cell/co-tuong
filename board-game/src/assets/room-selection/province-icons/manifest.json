@@ -1,0 +1,287 @@
+{
+  "columns": 6,
+  "rows": 6,
+  "emptyCells": [
+    35,
+    36
+  ],
+  "icons": [
+    {
+      "index": 1,
+      "name": "Hà Nội",
+      "file": "01_ha_noi.png",
+      "subject": "Tháp Rùa tower on a tiny patch of Hoàn Kiếm lake water",
+      "row": 1,
+      "column": 1
+    },
+    {
+      "index": 2,
+      "name": "Cao Bằng",
+      "file": "02_cao_bang.png",
+      "subject": "Bản Giốc waterfall, stepped white cascades between rounded green limestone hills",
+      "row": 1,
+      "column": 2
+    },
+    {
+      "index": 3,
+      "name": "Tuyên Quang",
+      "file": "03_tuyen_quang.png",
+      "subject": "Na Hang lake: emerald water between steep green limestone peaks with a small wooden boat",
+      "row": 1,
+      "column": 3
+    },
+    {
+      "index": 4,
+      "name": "Điện Biên",
+      "file": "04_dien_bien.png",
+      "subject": "Điện Biên Phủ victory monument: compact bronze group of soldiers raising a flag atop a stone plinth",
+      "row": 1,
+      "column": 4
+    },
+    {
+      "index": 5,
+      "name": "Lai Châu",
+      "file": "05_lai_chau.png",
+      "subject": "rolling tea plantation hills beneath tall misty mountains",
+      "row": 1,
+      "column": 5
+    },
+    {
+      "index": 6,
+      "name": "Sơn La",
+      "file": "06_son_la.png",
+      "subject": "Mộc Châu green tea hills with one friendly dairy cow",
+      "row": 1,
+      "column": 6
+    },
+    {
+      "index": 7,
+      "name": "Lào Cai",
+      "file": "07_lao_cai.png",
+      "subject": "golden terraced rice fields climbing a mountain with a tiny ethnic wooden house",
+      "row": 2,
+      "column": 1
+    },
+    {
+      "index": 8,
+      "name": "Thái Nguyên",
+      "file": "08_thai_nguyen.png",
+      "subject": "Tân Cương tea: rounded green tea rows and a small basket of fresh tea leaves",
+      "row": 2,
+      "column": 2
+    },
+    {
+      "index": 9,
+      "name": "Lạng Sơn",
+      "file": "09_lang_son.png",
+      "subject": "Tam Thanh limestone mountain with a small temple at the cave entrance",
+      "row": 2,
+      "column": 3
+    },
+    {
+      "index": 10,
+      "name": "Quảng Ninh",
+      "file": "10_quang_ninh.png",
+      "subject": "Hạ Long Bay limestone islets and one small red-sailed wooden boat",
+      "row": 2,
+      "column": 4
+    },
+    {
+      "index": 11,
+      "name": "Bắc Ninh",
+      "file": "11_bac_ninh.png",
+      "subject": "Dâu pagoda square brick Buddhist tower and a small traditional conical flat hat",
+      "row": 2,
+      "column": 5
+    },
+    {
+      "index": 12,
+      "name": "Phú Thọ",
+      "file": "12_phu_tho.png",
+      "subject": "Hùng temple ceremonial gateway with curved roofs and stone steps",
+      "row": 2,
+      "column": 6
+    },
+    {
+      "index": 13,
+      "name": "Hải Phòng",
+      "file": "13_hai_phong.png",
+      "subject": "Hải Phòng opera house: yellow neoclassical facade with red flamboyant blossoms",
+      "row": 3,
+      "column": 1
+    },
+    {
+      "index": 14,
+      "name": "Hưng Yên",
+      "file": "14_hung_yen.png",
+      "subject": "a lush branch of ripe longan fruit beside a small traditional northern temple gate",
+      "row": 3,
+      "column": 2
+    },
+    {
+      "index": 15,
+      "name": "Ninh Bình",
+      "file": "15_ninh_binh.png",
+      "subject": "Tràng An limestone cliffs with a little rowboat passing a cave over turquoise water",
+      "row": 3,
+      "column": 3
+    },
+    {
+      "index": 16,
+      "name": "Thanh Hóa",
+      "file": "16_thanh_hoa.png",
+      "subject": "Hồ dynasty citadel: massive grey stone arched gateway",
+      "row": 3,
+      "column": 4
+    },
+    {
+      "index": 17,
+      "name": "Nghệ An",
+      "file": "17_nghe_an.png",
+      "subject": "a simple traditional thatched house with bamboo and pink lotus flowers, recalling Kim Liên",
+      "row": 3,
+      "column": 5
+    },
+    {
+      "index": 18,
+      "name": "Hà Tĩnh",
+      "file": "18_ha_tinh.png",
+      "subject": "Hồng Lĩnh rounded green mountain range with a tiny peaceful temple",
+      "row": 3,
+      "column": 6
+    },
+    {
+      "index": 19,
+      "name": "Quảng Trị",
+      "file": "19_quang_tri.png",
+      "subject": "Hiền Lương bridge: low steel truss bridge, half blue half yellow, over a small strip of river",
+      "row": 4,
+      "column": 1
+    },
+    {
+      "index": 20,
+      "name": "Huế",
+      "file": "20_hue.png",
+      "subject": "Ngọ Môn imperial gate with its layered golden red roofs",
+      "row": 4,
+      "column": 2
+    },
+    {
+      "index": 21,
+      "name": "Đà Nẵng",
+      "file": "21_da_nang.png",
+      "subject": "Đà Nẵng golden Dragon Bridge over a little turquoise water",
+      "row": 4,
+      "column": 3
+    },
+    {
+      "index": 22,
+      "name": "Quảng Ngãi",
+      "file": "22_quang_ngai.png",
+      "subject": "Lý Sơn Tò Vò volcanic rock arch over blue water",
+      "row": 4,
+      "column": 4
+    },
+    {
+      "index": 23,
+      "name": "Gia Lai",
+      "file": "23_gia_lai.png",
+      "subject": "Central Highlands tall-roofed communal rông house with a bronze gong",
+      "row": 4,
+      "column": 5
+    },
+    {
+      "index": 24,
+      "name": "Khánh Hòa",
+      "file": "24_khanh_hoa.png",
+      "subject": "Po Nagar red brick Cham towers with two small tropical palms",
+      "row": 4,
+      "column": 6
+    },
+    {
+      "index": 25,
+      "name": "Đắk Lắk",
+      "file": "25_dak_lak.png",
+      "subject": "friendly elephant with a small branch of red coffee cherries and green leaves",
+      "row": 5,
+      "column": 1
+    },
+    {
+      "index": 26,
+      "name": "Lâm Đồng",
+      "file": "26_lam_dong.png",
+      "subject": "Đà Lạt pine trees and a large green artichoke flower with rolling hills",
+      "row": 5,
+      "column": 2
+    },
+    {
+      "index": 27,
+      "name": "Đồng Nai",
+      "file": "27_dong_nai.png",
+      "subject": "Bửu Long lake with green limestone rock formations and a small lakeside pagoda",
+      "row": 5,
+      "column": 3
+    },
+    {
+      "index": 28,
+      "name": "TP. Hồ Chí Minh",
+      "file": "28_tp_ho_chi_minh.png",
+      "subject": "Ho Chi Minh City Hall: cream yellow ornate colonial facade with its central clock tower",
+      "row": 5,
+      "column": 4
+    },
+    {
+      "index": 29,
+      "name": "Tây Ninh",
+      "file": "29_tay_ninh.png",
+      "subject": "Cao Đài Great Temple colorful twin towers and central divine eye emblem, no lettering",
+      "row": 5,
+      "column": 5
+    },
+    {
+      "index": 30,
+      "name": "Đồng Tháp",
+      "file": "30_dong_thap.png",
+      "subject": "pink lotus flowers with one graceful red-headed sarus crane",
+      "row": 5,
+      "column": 6
+    },
+    {
+      "index": 31,
+      "name": "Vĩnh Long",
+      "file": "31_vinh_long.png",
+      "subject": "Mekong traditional red brick beehive pottery kilns and a small terracotta jar",
+      "row": 6,
+      "column": 1
+    },
+    {
+      "index": 32,
+      "name": "An Giang",
+      "file": "32_an_giang.png",
+      "subject": "Núi Sam green hill with a curved-roof traditional temple and a palmyra palm",
+      "row": 6,
+      "column": 2
+    },
+    {
+      "index": 33,
+      "name": "Cần Thơ",
+      "file": "33_can_tho.png",
+      "subject": "Cái Răng floating market: two small wooden boats piled with tropical fruit",
+      "row": 6,
+      "column": 3
+    },
+    {
+      "index": 34,
+      "name": "Cà Mau",
+      "file": "34_ca_mau.png",
+      "subject": "mangrove trees with exposed roots beside a small blue fishing boat",
+      "row": 6,
+      "column": 4
+    }
+  ],
+  "generation": {
+    "mode": "built-in image_gen",
+    "transparent_background": true,
+    "promptTemplate": "Create ONE transparent PNG game UI province icon. Province identity: {name}. Subject: {subject}. Simple cheerful cartoon, clean bold contours, warm bright colors, soft minimal shading, compact silhouette, modest detail readable at 64px. Single isolated icon centered, square composition, coordinated Vietnamese province icon set. Rounded friendly shapes, green vegetation, turquoise water where appropriate, warm ochre/red architecture, soft upper-left lighting. True alpha transparency. No text, letters, numbers, label, card, frame, background scene, watermark. No photorealism or elaborate tiny details."
+  }
+}

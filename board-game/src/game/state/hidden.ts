@@ -1,5 +1,6 @@
 import type { GameState } from '../../types/game'
 import { createGame } from './initial'
+import { initialRepetition } from '../rules/repetition'
 
 // Random samples are supplied by the store; the engine remains deterministic.
 export function createHiddenGame(now: number, samples: readonly number[]): GameState {
@@ -20,5 +21,5 @@ export function createHiddenGame(now: number, samples: readonly number[]): GameS
       piece!.name = 'Quân úp'
     })
   }
-  return { ...game, variant: 'jieqi' }
+  return { ...game, variant: 'jieqi', repetition: initialRepetition() }
 }

@@ -1,25 +1,50 @@
+import { playerNameError } from '../lib/playerName'
+import { readGuestEntry } from '../lib/guestIdentity'
 import { create } from 'zustand'
 import type { ChatMessage, RoomSnapshot } from '../types/room'
 import type { Side } from '../types/game'
-import { ENERGY_RECOVERY_MS, recoverEnergy } from '../lib/energy'
+import { ENERGY_RECOVERY_MS, MAX_ENERGY, recoverEnergy } from '../lib/energy'
 import { DEFAULT_PLAYER_ELO } from '../lib/rankProgression'
+import { createClientId } from '../lib/clientId'
 
 export type ComputerEngine = 'basic' | 'pikafish'
 export interface MatchLikeRecord { matchId: string; actorId: string; targetSide: Side }
 
 interface SessionStore {
+  address: string
+  province: string
+  setAddress: (address: string, province: string) => void
   elo: number
   energy: number
   energyRecoveryAt: number | null
+  energyNoticeOpen: boolean
+  energyVideoUnavailable: boolean
+  showEnergyNotice: () => void
+  dismissEnergyNotice: () => void
+  showEnergyVideoUnavailable: () => void
   recoverEnergy: (now?: number) => void
   gold: number
   consumeEnergy: () => void
+  friendshipOverrides: Record<string, boolean>
+  pendingFriendRequests: Record<string, boolean>
+  incomingFriendRequestOverrides: Record<string, boolean>
+  setIncomingFriendRequest: (name: string, pending: boolean) => void
+  followedPlayers: Record<string, boolean>
+  togglePlayerFollow: (name: string) => void
+  setFriendRequestPending: (name: string, pending: boolean) => void
+  friendRemovalConfirmationMutedUntil: number | null
+  setFriendRemovalConfirmationMutedUntil: (until: number | null) => void
+  setFriendship: (name: string, isFriend: boolean) => void
   matchLikeRecords: MatchLikeRecord[]
   recordMatchLike: (record: MatchLikeRecord) => void
   clearMatchLikes: (matchId: string) => void
-  screen: 'home' | 'rooms' | 'computer' | 'game'
+  screen: 'home' | 'rooms' | 'computer' | 'position' | 'game' | 'replay'
   mode: 'local' | 'online' | 'computer'
+  computerDemo: boolean
+  computerDemoQueued: boolean
+  customPositionTrial: boolean
   computerEngine: ComputerEngine
+  computerLevel: number
   humanSide: Side
   name: string
   avatarFrameIndex: number
@@ -39,9 +64,17 @@ interface SessionStore {
   setNotice: (notice: string) => void
 }
 export const useSessionStore = create<SessionStore>()((set, get) => ({
+  address: 'TP. Hồ Chí Minh',
+  province: 'Thành phố Hồ Chí Minh',
+  setAddress: (address, province) => set({ address, province }),
   elo: DEFAULT_PLAYER_ELO,
-  energy: 5,
+  energy: MAX_ENERGY,
   energyRecoveryAt: null,
+  energyNoticeOpen: false,
+  energyVideoUnavailable: false,
+  showEnergyNotice: () => set({ energyNoticeOpen: true, energyVideoUnavailable: false }),
+  dismissEnergyNotice: () => set({ energyNoticeOpen: false, energyVideoUnavailable: false }),
+  showEnergyVideoUnavailable: () => set({ energyVideoUnavailable: true }),
   recoverEnergy: (now = Date.now()) => set(state => {
     const next = recoverEnergy(state.energy, state.energyRecoveryAt, now)
     return next.energy === state.energy && next.energyRecoveryAt === state.energyRecoveryAt ? state : next
@@ -52,18 +85,25 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     const recovered = recoverEnergy(state.energy, state.energyRecoveryAt, now)
     return { energy: Math.max(0, recovered.energy - 1), energyRecoveryAt: recovered.energyRecoveryAt ?? now + ENERGY_RECOVERY_MS }
   }),
-  screen: 'home', mode: 'local', computerEngine: 'basic', humanSide: 'red', name: 'Picolozz', lobbyOpen: false, room: null, matchLikeRecords: [],
+  screen: 'home', mode: 'local', computerDemo: false, computerDemoQueued: false, customPositionTrial: false, computerEngine: 'basic', computerLevel: 2, humanSide: 'red', name: readGuestEntry()?.name ?? 'Picolozz', lobbyOpen: false, room: null, friendshipOverrides: {}, pendingFriendRequests: {}, friendRemovalConfirmationMutedUntil: null, matchLikeRecords: [],
   messages: [{ id: 'welcome', name: '', text: 'Picolozz đã vào phòng.', system: true }], notice: '',
-  setName: name => set({ name: name.trim().slice(0, 24) }),
+  setName: name => { if (!playerNameError(name)) set({ name: name.trim().normalize('NFC') }) },
+  setFriendship: (name, isFriend) => set(state => ({ friendshipOverrides: { ...state.friendshipOverrides, [name]: isFriend }, pendingFriendRequests: isFriend ? { ...state.pendingFriendRequests, [name]: false } : state.pendingFriendRequests })),
+  setFriendRequestPending: (name, pending) => set(state => ({ pendingFriendRequests: { ...state.pendingFriendRequests, [name]: pending } })),
+  followedPlayers: {},
+  incomingFriendRequestOverrides: {},
+  setIncomingFriendRequest: (name, pending) => set(state => ({ incomingFriendRequestOverrides: { ...state.incomingFriendRequestOverrides, [name]: pending } })),
+  togglePlayerFollow: name => set(state => ({ followedPlayers: { ...state.followedPlayers, [name]: !state.followedPlayers[name] } })),
+  setFriendRemovalConfirmationMutedUntil: until => set({ friendRemovalConfirmationMutedUntil: until }),
   avatarFrameIndex: 0,
   setAvatarFrameIndex: avatarFrameIndex => set({ avatarFrameIndex }),
   avatarIndex: 0,
   setAvatarIndex: avatarIndex => set({ avatarIndex }),
   joinLocal: () => {
-    set({ screen: 'game', mode: 'local', computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, room: null, notice: '' })
+    set({ screen: 'game', mode: 'local', computerDemo: false, computerDemoQueued: false, customPositionTrial: false, computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, room: null, notice: '' })
     get().append(`${get().name} đã vào phòng.`, true)
   },
-  enterOnline: room => set({ screen: 'game', room, mode: 'online', lobbyOpen: false, notice: '' }),
+  enterOnline: room => set({ screen: 'game', room, mode: 'online', computerDemo: false, computerDemoQueued: false, customPositionTrial: false, lobbyOpen: false, notice: '' }),
   receiveRoom: (room, playerId) => {
     const state = get()
     if (state.mode !== 'online' || state.room?.id !== room.id) return
@@ -71,9 +111,9 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     set({ room })
     if (started) get().consumeEnergy()
   },
-  leave: (notice = '') => set({ screen: 'home', room: null, mode: 'local', computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, notice }),
+  leave: (notice = '') => set({ screen: 'home', room: null, mode: 'local', computerDemo: false, computerDemoQueued: false, customPositionTrial: false, computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, notice }),
   append: (text, system = false) => set(state => ({ messages: [...state.messages, {
-    id: crypto.randomUUID(), name: system ? '' : state.name, text: text.trim().slice(0, 300), system,
+    id: createClientId(), name: system ? '' : state.name, text: text.trim().slice(0, 300), system,
   }].slice(-100) })),
   recordMatchLike: record => set(state => state.matchLikeRecords.some(existing => existing.matchId === record.matchId && existing.actorId === record.actorId) ? state : { matchLikeRecords: [...state.matchLikeRecords, record] }),
   clearMatchLikes: matchId => set(state => {

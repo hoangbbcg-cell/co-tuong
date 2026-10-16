@@ -1,3 +1,4 @@
+import { getComputerAvatar } from '../../lib/computerAvatar'
 import { CrispUiImage } from '../../lib/CrispUiImage'
 import { getCrispUiLayout } from '../../lib/crispUiRendering'
 import { useRef, useState } from 'react'
@@ -20,15 +21,17 @@ import concealedPiece from '../../assets/history/history-hidden-user.png'
 import energyGold from '../../assets/home-actions/energy-gold.png'
 import energyIcon from '../../assets/home-actions/energy-icon.png'
 import goldIcon from '../../assets/home-actions/gold-icon.png'
-import nameFrame from '../../assets/player/name-frame.png'
+import { PlayerNameplate } from '../../features/game/components/PlayerNameplate'
 import eloFrame from '../../assets/player/elo-frame.png'
 import { HomeIcon, type HomeIconName } from '../../features/lobby/components/HomeIcon'
 import { useHomeMusic } from '../../features/lobby/hooks/useHomeMusic'
 import { ProfileDialog } from '../../features/lobby/components/ProfileDialog'
 import { useProfileLayout } from '../../features/lobby/hooks/useProfileLayout'
 import { RankingDialog } from '../../features/lobby/components/RankingDialog'
+import { MessagesDialog } from '../../features/lobby/components/MessagesDialog'
+import type { MessageConversationRequest } from '../../features/lobby/components/MessagesDialog'
 import { useRankingLayout } from '../../features/lobby/hooks/useRankingLayout'
-import { FriendsDialog, isExistingFriend } from '../../features/lobby/components/FriendsDialog'
+import { FriendsDialog } from '../../features/lobby/components/FriendsDialog'
 import { useFriendsLayout } from '../../features/lobby/hooks/useFriendsLayout'
 import { HistoryDialog } from '../../features/lobby/components/HistoryDialog'
 import { useHistoryLayout } from '../../features/lobby/hooks/useHistoryLayout'
@@ -53,8 +56,16 @@ export function HomePage() {
   const historyLayout = useHistoryLayout()
   const music = useHomeMusic()
   const historyPlayerProfileRef = useRef<HTMLDialogElement>(null)
+  const messagesRef = useRef<HTMLDialogElement>(null)
+  const messageRequestId = useRef(0)
+  const [messageRequest, setMessageRequest] = useState<MessageConversationRequest | null>(null)
+  const openMessages = (name?: string, image?: string, status?: 'online' | 'offline', playerId?: string) => {
+    if (name) setMessageRequest({ id: ++messageRequestId.current, name, image, status, playerId })
+    if (!messagesRef.current?.open) messagesRef.current?.showModal()
+  }
   const [historyPlayerName, setHistoryPlayerName] = useState('')
   const openHistoryPlayerProfile = (playerName: string) => {
+    if (getComputerAvatar(playerName)) return
     if (playerName === home.name) {
       home.openProfile()
       return
@@ -64,7 +75,15 @@ export function HomePage() {
   }
 
   return <main className="relative isolate h-dvh w-full overflow-hidden bg-[#263a35] text-[#f7e6c1]" aria-label="Màn hình chính">
-    <div className="absolute top-1/2 left-1/2 isolate flex origin-center flex-col overflow-hidden border-[length:var(--ui-p-5,5px)] border-[#80582c] bg-[#d9d4bf] px-8 py-5 shadow-[inset_0_0_0_2px_#efd397,0_0_0_1px_#e1c993,0_8px_30px_#101d18aa] compact:px-4 compact:py-3" style={{ ...getCrispUiLayout(layout.scale, layout.width, layout.height), transform: 'translate(-50%, -50%)' }}>
+    <div className="relative flex h-full flex-col gap-4 overflow-y-auto bg-[#241007] p-4 pb-[max(20px,env(safe-area-inset-bottom))] desktop:hidden">
+      <header className="flex items-center justify-between gap-3 rounded-xl border border-[#79501e] p-3"><button className="min-h-12 min-w-0 text-left" onClick={home.openProfile}><strong className="block truncate font-heading text-2xl text-[#ffe5a6]">{home.name}</strong><span className="text-sm">H? s? ? {elo} ?i?m</span></button><span className="shrink-0 text-right text-sm" title={home.energyCountdown}>? {home.energy}/5<br/>?? {home.gold}</span></header>
+      <h1 className="text-center font-heading text-4xl text-[#ffe5a6]">C? T??ng</h1>
+      {home.notice && <p role="status" className="rounded-lg bg-[#613014] p-3 text-sm">{home.notice}</p>}
+      <section aria-label="Ch? ?? ch?i tr?n ?i?n tho?i" className="grid grid-cols-2 gap-3">{modes.map(mode => <button key={mode.action} disabled={home.joining} onClick={() => mode.action === 'computer' ? home.openComputer() : mode.action === 'hidden' ? home.playHidden() : mode.action === 'quick' ? home.quickPlay() : home.openRooms()} className={buttonInteraction + ' flex min-h-36 flex-col items-center justify-center gap-3 rounded-xl border border-[#ffe08b] bg-[linear-gradient(#613014,#241007)] p-3 text-[#ffe5a6] disabled:opacity-50'}><span aria-hidden="true" className="text-4xl">{mode.action === 'quick' ? '?' : mode.action === 'rooms' ? '?' : mode.action === 'computer' ? '?' : '?'}</span><span className="font-heading text-2xl">{mode.name}</span></button>)}</section>
+      <nav aria-label="Ti?n ?ch tr?n ?i?n tho?i" className="grid grid-cols-3 gap-2">{[{label:'X?p h?ng',run:home.openRanking},{label:'L?ch s?',run:home.openHistory},{label:'B?n b?',run:home.openFriends},{label:'Tin nh?n',run:()=>openMessages()},{label:music.playing?'T?t nh?c':'B?t nh?c',run:()=>void music.toggle().catch(()=>home.setMessage('Kh?ng th? ph?t nh?c.'))},{label:'To?n m?n h?nh',run:()=>void home.fullscreen()}].map(item=><button key={item.label} onClick={item.run} className={buttonInteraction + ' min-h-12 rounded-lg border border-[#79501e] px-2 py-3 text-sm text-[#ffe5a6]'}>{item.label}</button>)}</nav>
+      <button className={buttonInteraction + ' min-h-12 rounded-lg border border-[#79501e] text-[#ffe5a6]'} disabled={home.joining} onClick={home.playLocal}>Hai ng??i c?ng m?y</button>
+    </div>
+    <div className="absolute top-1/2 left-1/2 isolate flex compact:hidden origin-center flex-col overflow-hidden border-[length:var(--ui-p-5,5px)] border-[#80582c] bg-[#d9d4bf] px-8 py-5 shadow-[inset_0_0_0_2px_#efd397,0_0_0_1px_#e1c993,0_8px_30px_#101d18aa] compact:px-4 compact:py-3" style={{ ...getCrispUiLayout(layout.scale, layout.width, layout.height), transform: 'translate(-50%, -50%)' }}>
       <CrispUiImage src={background} alt="" className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover object-center" />
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,#f4e8cd11,transparent_50%,#344b4233)]" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-[var(--ui-p-2,2px)] z-10 border border-[#e3bf78] shadow-[inset_0_0_0_2px_#63472055]" />
@@ -79,10 +98,10 @@ export function HomePage() {
             </span>
           </span>
           <span className="w-[var(--ui-p-180,180px)] pt-3">
-            <strong className="grid h-[var(--ui-p-38,38px)] w-[var(--ui-p-180,180px)] place-items-center bg-contain bg-center bg-no-repeat px-6 font-georgia text-[length:var(--ui-p-20,20px)] leading-none font-normal text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${nameFrame})` }}><span className="max-w-full truncate">{home.name}</span></strong>
+            <strong className="block font-normal"><PlayerNameplate name={home.name} className="[--nameplate-width:var(--ui-p-180,180px)]" /></strong>
             <span className="mt-2 grid w-full grid-cols-2 gap-1 text-[length:var(--ui-p-16,16px)] leading-tight text-[#fff0cf]">
-              <span className="relative flex h-[var(--ui-p-32,32px)] min-w-0 items-center justify-center bg-center bg-no-repeat bg-[length:100%_100%] pl-8 pr-3 font-georgia text-[#ffe7ae] whitespace-nowrap [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}><CrispUiImage src={redGeneral} alt="Cờ Tướng" className="absolute left-[var(--ui-p-8,8px)] size-[var(--ui-p-22,22px)] shrink-0 object-contain" /><span className="font-[Times_New_Roman,serif] text-[length:var(--ui-p-18,18px)] leading-none lining-nums tabular-nums">{elo}</span></span>
-              <span className="relative flex h-[var(--ui-p-32,32px)] min-w-0 items-center justify-center bg-center bg-no-repeat bg-[length:100%_100%] pl-8 pr-3 font-georgia text-[#ffe7ae] whitespace-nowrap [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}><CrispUiImage src={concealedPiece} alt="Cờ Úp" className="absolute left-[var(--ui-p-8,8px)] m-0 block size-[var(--ui-p-20,20px)] shrink-0 border-0 p-0 object-contain" /><span className="font-[Times_New_Roman,serif] text-[length:var(--ui-p-18,18px)] leading-none lining-nums tabular-nums">1000</span></span>
+              <span className="relative flex h-[var(--ui-p-32,32px)] min-w-0 items-center justify-center bg-center bg-no-repeat bg-[length:100%_100%] pl-8 pr-3 font-georgia text-[#ffe7ae] whitespace-nowrap [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}><CrispUiImage src={redGeneral} alt="Cờ Tướng" className="absolute left-[var(--ui-p-8,8px)] size-[var(--ui-p-22,22px)] shrink-0 object-contain" /><span className="font-number text-[length:var(--ui-p-18,18px)] leading-none lining-nums tabular-nums">{elo}</span></span>
+              <span className="relative flex h-[var(--ui-p-32,32px)] min-w-0 items-center justify-center bg-center bg-no-repeat bg-[length:100%_100%] pl-8 pr-3 font-georgia text-[#ffe7ae] whitespace-nowrap [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}><CrispUiImage src={concealedPiece} alt="Cờ Úp" className="absolute left-[var(--ui-p-8,8px)] m-0 block size-[var(--ui-p-20,20px)] shrink-0 border-0 p-0 object-contain" /><span className="font-number text-[length:var(--ui-p-18,18px)] leading-none lining-nums tabular-nums">1000</span></span>
             </span>
           </span>
         </div>
@@ -93,8 +112,8 @@ export function HomePage() {
           <CrispUiImage src={energyGold} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 m-0 block h-full w-full border-0 p-0 object-fill [clip-path:inset(0_0_0_90%)]" />
           <CrispUiImage src={energyIcon} alt="Năng lượng" className="pointer-events-none absolute top-1/2 left-[10%] z-10 m-0 block h-[var(--ui-p-31,31px)] w-auto max-w-none -translate-y-1/2 border-0 p-0 object-contain compact:h-[var(--ui-p-24,24px)]" />
           <CrispUiImage src={goldIcon} alt="Vàng" className="absolute top-1/2 left-[54%] z-10 m-0 block h-[var(--ui-p-32,32px)] w-auto max-w-none -translate-y-1/2 border-0 p-0 object-contain compact:h-[var(--ui-p-25,25px)]" />
-          <span aria-label={`Năng lượng: ${home.energy}/5. ${home.energyCountdown}`} className="pointer-events-none absolute top-1/2 left-[28%] -translate-x-1/2 -translate-y-1/2 font-[Times_New_Roman,serif] text-[length:var(--ui-p-20,20px)] leading-none text-[#ffe7ae] lining-nums tabular-nums [text-shadow:0_1px_2px_#2a1008]">{home.energy}/5</span>
-          <span aria-label={`Vàng: ${home.gold}`} className="absolute top-1/2 left-[72%] -translate-x-1/2 -translate-y-1/2 font-[Times_New_Roman,serif] text-[length:var(--ui-p-20,20px)] leading-none text-[#ffe7ae] lining-nums tabular-nums [text-shadow:0_1px_2px_#2a1008]">{home.gold}</span>
+          <span aria-label={`Năng lượng: ${home.energy}/5. ${home.energyCountdown}`} className="pointer-events-none absolute top-1/2 left-[28%] -translate-x-1/2 -translate-y-1/2 font-number text-[length:var(--ui-p-20,20px)] leading-none text-[#ffe7ae] lining-nums tabular-nums [text-shadow:0_1px_2px_#2a1008]">{home.energy}/5</span>
+          <span aria-label={`Vàng: ${home.gold}`} className="absolute top-1/2 left-[72%] -translate-x-1/2 -translate-y-1/2 font-number text-[length:var(--ui-p-20,20px)] leading-none text-[#ffe7ae] lining-nums tabular-nums [text-shadow:0_1px_2px_#2a1008]">{home.gold}</span>
           {[{ label: 'Thêm năng lượng', position: 'left-[41%]' }, { label: 'Thêm vàng', position: 'left-[85%]' }].map(action => <button key={action.label} type="button" aria-label={action.label} onClick={() => home.setMessage('Tính năng bổ sung năng lượng và vàng chưa được hỗ trợ.')} className={`${buttonInteraction} absolute top-[calc(50%-var(--ui-p-1,1px))] ${action.position} grid size-[var(--ui-p-24,24px)] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-[var(--ui-p-4,4px)] border border-[#ffe08b] bg-[linear-gradient(to_top,#806006_0%,#806006_50%,#d9ac24_75%,#ffe078_100%)] p-0 text-[#fff9df] shadow-[inset_0_0_0_1px_#d8b548,inset_0_2px_2px_#ffdf6b66,0_1px_2px_#241007] compact:size-[var(--ui-p-19,19px)]`}>
             <svg aria-hidden="true" viewBox="0 0 16 16" className="block size-[var(--ui-p-16,16px)] drop-shadow-[0_1px_1px_#4b350a] compact:size-[var(--ui-p-13,13px)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><path d="M8 3v10M3 8h10" /></svg>
           </button>)}
@@ -104,7 +123,8 @@ export function HomePage() {
             ['trophy', 'Thành tích', 'Thành tích sẽ có khi hệ thống tài khoản được mở.'],
             ['history', 'Lịch sử', 'Lịch sử ván đấu chưa được lưu.'],
             ['friends', 'Bạn bè', 'Tính năng bạn bè sắp ra mắt.'],
-          ].map(([icon, label, message]) => <button key={label} className={utility} aria-label={label} onClick={() => icon === 'trophy' ? home.openRanking() : icon === 'history' ? home.openHistory() : icon === 'friends' ? home.openFriends() : home.setMessage(message)}><HomeIcon name={icon as HomeIconName} /></button>)}
+            ['messages', 'Tin nhắn', ''],
+          ].map(([icon, label, message]) => <button key={label} className={utility} aria-label={label} onClick={() => icon === 'trophy' ? home.openRanking() : icon === 'history' ? home.openHistory() : icon === 'friends' ? home.openFriends() : icon === 'messages' ? openMessages() : home.setMessage(message)}><HomeIcon name={icon as HomeIconName} /></button>)}
           <button className={utility} aria-label={music.playing ? 'Tắt nhạc' : 'Bật nhạc'} aria-pressed={music.playing} onClick={() => void music.toggle().catch(() => home.setMessage('Không thể phát nhạc trên trình duyệt này.'))}><HomeIcon name={music.playing ? 'sound' : 'muted'} /></button>
           <button className={utility} aria-label="Toàn màn hình" onClick={() => void home.fullscreen()}><HomeIcon name="fullscreen" /></button>
         </nav>
@@ -140,12 +160,13 @@ export function HomePage() {
         <p className="leading-relaxed">{home.message}</p><button autoFocus className={`${utility} mx-auto mt-5 w-auto px-6 text-base`} onClick={() => home.setMessage('')}>Đã hiểu</button>
     </dialog>
     <ProfileDialog layout={profileLayout} dialogRef={home.profileRef} name={home.name} editable onClose={home.closeProfile} primaryActionLabel="Liên kết tài khoản" onPrimaryAction={() => home.setMessage('Liên kết tài khoản sắp ra mắt. Hiện bạn đang chơi với tư cách khách.')} />
-    <ProfileDialog layout={profileLayout} dialogRef={historyPlayerProfileRef} name={historyPlayerName} isFriend={isExistingFriend(historyPlayerName)} onClose={() => historyPlayerProfileRef.current?.close()} primaryActionLabel="Kết bạn" onPrimaryAction={() => {
+    <MessagesDialog layout={rankingLayout} dialogRef={messagesRef} openRequest={messageRequest} onViewInfo={openHistoryPlayerProfile} onClose={() => messagesRef.current?.close()} />
+    <ProfileDialog layout={profileLayout} dialogRef={historyPlayerProfileRef} name={historyPlayerName} onOpenMessages={(name, playerId) => openMessages(name, undefined, undefined, playerId)} onClose={() => historyPlayerProfileRef.current?.close()} primaryActionLabel="Kết bạn" onPrimaryAction={() => {
       historyPlayerProfileRef.current?.close()
       home.setMessage('Tính năng kết bạn sắp ra mắt.')
     }} />
-    <RankingDialog layout={rankingLayout} dialogRef={home.rankingRef} onClose={home.closeRanking} onView={name => home.setMessage(`Đang chuẩn bị xem ván của ${name}.`)} onOpenProfile={openHistoryPlayerProfile} />
-    <FriendsDialog layout={friendsLayout} dialogRef={home.friendsRef} onClose={home.closeFriends} onOpenProfile={openHistoryPlayerProfile} />
+    <RankingDialog layout={rankingLayout} dialogRef={home.rankingRef} onClose={home.closeRanking} onOpenProfile={openHistoryPlayerProfile} />
+    <FriendsDialog layout={friendsLayout} dialogRef={home.friendsRef} onClose={home.closeFriends} onOpenProfile={openHistoryPlayerProfile} onOpenMessages={openMessages} />
     <HistoryDialog layout={historyLayout} dialogRef={home.historyRef} name={home.name} onClose={home.closeHistory} onReplay={opponent => home.setMessage(`Đang chuẩn bị xem lại ván với ${opponent}.`)} onOpenProfile={openHistoryPlayerProfile} />
   </main>
 }

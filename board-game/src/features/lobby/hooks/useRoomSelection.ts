@@ -1,18 +1,32 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { useLobby } from './useLobby'
+import { useLobbyPresence } from './useLobbyPresence'
 
 export function useRoomSelection(lobby: ReturnType<typeof useLobby>) {
-  const [vacantOnly, setVacantOnly] = useState(false)
+  const [province, setProvince] = useState(lobby.province)
+  const presence = useLobbyPresence(province)
+  const [roomFilter, setRoomFilter] = useState<'all' | 'vacant' | 'locked'>('all')
+  const vacantOnly = roomFilter === 'vacant'
   const [creating, setCreating] = useState(false)
+  const [provincePickerOpen, setProvincePickerOpen] = useState(false)
   const [timeOpen, setTimeOpen] = useState(false)
+  const quickTimeRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!timeOpen) return
+    const closeOutside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !quickTimeRef.current?.contains(event.target)) setTimeOpen(false)
+    }
+    document.addEventListener('pointerdown', closeOutside)
+    return () => document.removeEventListener('pointerdown', closeOutside)
+  }, [timeOpen])
+  const [quickMinutes, setQuickMinutes] = useState(10)
   const [message, setMessage] = useState('')
-  const available = lobby.rooms.filter(room => room.players < 2 && room.phase !== 'playing')
+  const provinceRooms = lobby.rooms.filter(room => room.province === province)
+  const available = provinceRooms.filter(room => room.players === 1 && room.phase !== 'playing')
   const quickPlay = () => {
-    const match = available.find(room => (room.minutes ?? 10) === lobby.minutes)
-    if (match) lobby.join(match.id)
-    else setCreating(true)
+    lobby.quickPlay(() => setCreating(true), quickMinutes)
   }
-  return { timeOpen, setTimeOpen, vacantOnly, setVacantOnly, creating, setCreating, message, setMessage, quickPlay,
-    rooms: vacantOnly ? available : lobby.rooms,
-    players: lobby.rooms.reduce((total, room) => total + room.players, 0) }
+  return { quickTimeRef, timeOpen, setTimeOpen, quickMinutes, setQuickMinutes, provincePickerOpen, setProvincePickerOpen, province, setProvince, vacantOnly, roomFilter, setRoomFilter, creating, setCreating, message, setMessage, quickPlay,
+    rooms: roomFilter === 'locked' ? provinceRooms.filter(room => room.locked) : vacantOnly ? available : provinceRooms,
+    players: presence.provinceCounts[province] ?? (presence.province === province ? presence.players : 0), provinceCounts: presence.provinceCounts }
 }

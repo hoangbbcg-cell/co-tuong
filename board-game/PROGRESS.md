@@ -1,5 +1,506 @@
 # Tiến độ
 
+- 2026-10-14: Hover Lùi/Tiến đổi vàng nhạt8%, bỏ transition để hiện ngay. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-14: Bỏ viền focus Máy đi; Lùi/Tiến khả dụng hover trắng nhẹ10%, disabled vẫn mờ/không hover. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Lùi trial theo cặp người/máy (1 nước khi chưa có phản hồi, 2 sau máy đáp), nối nút và ←; replay gốc giữ nguyên. 2/2 test hook gồm regression lùi1/lùi2 PASS, typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Sửa dim Lùi/Tiến bằng crop img riêng/brightness0.35, Máy đi render img riêng thay background atlas. Giữ glow/scale. Typecheck/build PASS, dist có3 asset crop; đã xem asset robot, chưa browser QA.
+
+- 2026-10-14: Tăng nổi bật Máy đi bật theo ảnh mẫu: viền vàng2px, glow vàng/cam, sáng125%, scale1.03. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Hoàn tác UI trial240→220px, chữ20→17px, giữ hiệu ứng active Máy đi và toàn bộ logic/phím tắt/search1s. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-14: Bỏ dòng Pikafish đang tính, trial cấp10 tính1s qua thinkMs1000; server validate override, giữ profile các luồng khác. 2/2 hook test PASS, typecheck/build PASS, dist cập nhật; chưa engine/browser QA trực tiếp.
+
+- 2026-10-14: Nới trial controls240px, giãn nút theo tỷ lệ, chữ Máy đi20px; active scale1.02/viền vàng1px/glow nhẹ. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Hoàn tác UI nới244px/dim/glow trial về bản220px trước đó, giữ phím tắt. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-14: Nới trial controls244px, dim Lùi/Tiến theo khả dụng, Máy đi active phóng nhẹ/glow vàng. Thêm phím trial ←/→/↑/↓/Enter, giữ Enter replay và Space chuyển bàn; chặn vượt biên/ô nhập/dialog. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Thay cả khung/nút trial bằng cụm giữa ảnh4470bd4d (crop alpha937×525, nhãn máy động). Hai nút Phân tích/Gợi ý72px tách dưới gap10px. Typecheck/build PASS, dist cập nhật; đã xem asset crop, chưa browser QA.
+
+- 2026-10-14: Thay Phân tích/Gợi ý bằng hai artwork dưới ảnh4470bd4d, crop323×300/324×296 góc alpha, kiểm tra ảnh cắt; đặt ngang trong ReplayControls trial. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Trial Máy đi dùng Pikafish cấp10 qua backend với FEN gốc/UCI nhánh; bỏ chooseComputerMove, thêm thinking/error/retry, abort phản hồi cũ và giữ animation. 2/2 test hook (mock API, xác nhận level/FEN/UCI) PASS, typecheck/build PASS, dist cập nhật. Chưa thử engine thật/browser trong nhiệm vụ này; Cờ Úp chưa hỗ trợ Pikafish.
+
+- 2026-10-14: Giới hạn ghim replay: bàn chính Thế cờ ẩn, bàn thử và bàn chính Ván đấu hiện. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-14: Ẩn Phát/Tua 0/0 của bàn gốc Thế cờ qua replayKind, giữ icon chuyển chế độ; bật ghim Lưu thế trong replay và trial. Giữ số nước gốc qua initialMoveCount khi lưu tiếp từ thế. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Tắt Máy đi mỗi lần chuyển replay/trial; thêm animation Board cho nước thử người/máy và khóa nước chồng. 2/2 regression nhánh/animation/máy/toggle PASS; typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Gán Enter cho Phát/Tạm dừng replay, Space chuyển hai chế độ ngay cả khi nút focus; thêm tooltip/aria-keyshortcuts. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Đồng bộ gap hàng Thế cờ với Ván đấu5px responsive, giữ hai hàng; đưa scrollbar mảnh ra khoảng trống phải, track/corner trong suốt. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Thêm useReplayTrial độc lập cho nhánh thử tại snapshot replay; icon trái/Space chuyển chế độ, ReplayControls bên phải có lùi/reset/tiến, Máy đi toggle cơ bản, Phân tích/Gợi ý UI. Ván gốc và gameStore không đổi. 2/2 test nhánh/reset/redo/máy-hủy PASS; typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Tăng icon đảo hướng replay64→84px desktop,40→52px compact. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Thêm icon0a700f7c đảo hướng bàn replay, tâm cột phải/tâm chiều cao bàn desktop; giữ user và dữ liệu. Asset crop alpha1242×1187, nguồn ghi riêng. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Căn mép phải Mở thế với thùng rác, thu cột thao tác còn151px responsive để cột thông tin giãn vào phần trống; bỏ offset5px. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Dịch cụm thông tin và nút Mở thế sang phải5px; giữ bàn mini/thùng rác. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Đưa thùng rác Thế cờ lên góc trên phải mỗi hàng. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Đồng bộ chiều rộng hàng Thế cờ với Ván đấu bằng bỏ gutter riêng; Mở thế dùng asset nút gỗ Xem lại, Xóa dùng thùng rác cùng style/kích thước, đặt ngang. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Phóng icon metadata/ghi chú Thế cờ24px và chấm lượt18px; tăng lề chữ ghi chú theo icon. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: vs gap17px; icon tờ báo cho số nước/ghi chú; bút ghi chú riêng góc phải, editor giữ nền hiện hành. Nút ghim lưu ngay không hỏi, xóa SavePositionDialog. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Avatar nhỏ Thế cờ28→34px theo yêu cầu; vs tách giữa hai cụm user, khoảng cách mỗi bên10px. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Sửa thứ tự hai người ở Thế cờ theo savedMatchSide: mình bên trái dù cầm Đen; người lạ đấu mặc định Đỏ trái. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Bỏ bóng mini Board Thế cờ qua prop shadow=false, gap nội dung10px, tên24px/font-black. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Phóng mini Board Thế cờ theo chiều cao hàng, chừa5px trên/dưới và giữ tỷ lệ; cột bàn đo theo viewport thay178px. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Áp dụng style ảnh mẫu cho hàng Thế cờ: giấy vàng, đường chia nâu, tên highlight/bút sửa, người đấu vs/avatar nhỏ, metadata/chấm lượt, ghi chú nền nhẹ cuộn riêng. Bút sửa tên/ghi chú lưu thật. Giữ Board dọc, hai hàng/modal/Ván đấu. Typecheck/build PASS, dist cập nhật; chưa QA browser trực tiếp.
+
+- 2026-10-14: Luôn hiện Âm thanh/Toàn màn hình khi replay ván hoặc mở thế; GameTools dùng showMatchTools để chỉ ẩn các lệnh trận. Bỏ compact:hidden của Toàn màn hình trình chỉnh thế. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Hoàn thiện Đã lưu/Thế cờ: một hàng một thế, hai hàng trong viewport, mini Board thật, thông tin và ghi chú cuộn riêng; Mở thế chỉ đọc qua GamePage, Xóa localStorage. Theo bổ sung người dùng, nối nút ghim lưu snapshot/tên/ghi chú vào savedPositionsStore. Giữ kích thước modal và Ván đấu. Typecheck/build PASS; dist index-7-lGdWLL.js có store/list/dialog. Chưa browser QA trực tiếp.
+
+- 2026-10-14: Bỏ thanh chú thích cuối Lịch sử, mở rộng vùng danh sách; Đã chơi thêm một dòng mẫu thành 8 dòng, hỗ trợ cuộn; Đã lưu dùng vùng trống cho thêm hàng. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Đổi icon Lưu thế cờ thành cây ghim vàng trong PositionIcon; giữ thứ tự nút và hành vi. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Bỏ Camera trong GameTools, thứ tự Lưu ván/Lưu thế/Bạn bè/Âm thanh/Toàn màn hình; icon Lưu thế dạng bàn cờ, bấm báo đang phát triển. Giữ điều kiện Lưu ván. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-14: Siết nhận bản lưu online: mới vào giữa ván không lấy archive cũ, chờ kết thúc; giữ ván 1 đã nhận trong lúc ván 2 đang đấu, hết ván 2 thay mục tiêu Lưu. 4/4 test hook/RoomService PASS; typecheck/build PASS, dist cập nhật. Chưa QA nhiều trình duyệt.
+
+- 2026-10-14: Sửa thiếu nối leftSide vào hai Player của hàng Đã lưu: chủ danh sách ở trái ở cả hai phe, đảo biểu tượng và giữ kết quả tương ứng. Regression DOM hai phe + lưu/perspective: 5/5 PASS; typecheck/build PASS, dist cập nhật. Chưa QA browser trực tiếp.
+
+- 2026-10-13: Vị trí tùy chỉnh: đặt/di chuyển sai vị trí báo lỗi rồi bỏ chọn quân. Kéo trực tiếp từ khay hoặc từ bàn mà không cần bấm chọn; thả trong bàn đặt vào giao điểm gần nhất theo hướng bàn và luật hiện hành, thả quân trên bàn ra ngoài thì xóa; thả quân khay ngoài bàn không thêm quân. Pointer cancel không xóa; click sau kéo bị chặn. Chỉ áp dụng trình chỉnh thế. 11/11 test chỉnh thế/FEN PASS; typecheck/build PASS, dist cập nhật; chưa QA browser kéo thả trực tiếp.
+
+- 2026-10-13: Bỏ nhãn hiện Đổi bên; khay quân desktop căn giữa chiều dọc vùng từ dưới hàng tiện ích đến mép dưới. Tạo bàn cờ từ ảnh chỉ hiện Đang trong quá trình phát triển, chưa mở chọn ảnh.
+
+- 2026-10-13: Đổi nút Lưu Vị trí tùy chỉnh sang icon đĩa mềm nét viền vàng, chữ Lưu bên dưới theo mẫu. Build/typecheck PASS; dist index-CVkcW6Od.js có icon mới. Chưa QA browser trực tiếp.
+
+- 2026-10-13: Siết luật đặt quân Vị trí tùy chỉnh: giới hạn mỗi bên1 Tướng/2 Sĩ/2 Tượng/2 Mã/2 Xe/2 Pháo/5 Tốt; hết quân thì nút khay mờ/disabled và tự bỏ chọn quân cuối. Chặn ô sai của Tướng/Sĩ/Tượng/Tốt, Tướng đối mặt ngay lúc đặt/di chuyển. 10/10 test liên quan PASS; typecheck/build PASS; dist/assets/index-BM4Q0ywa.js có logic giới hạn và kiểm tra ô. Chưa QA browser trực tiếp.
+
+- 2026-10-13: Bỏ drop-shadow riêng14 quân trong khay Vị trí tùy chỉnh qua prop shadow=false; quân trên bàn giữ nguyên. Typecheck/build PASS, xác nhận bundle dist có shadow=false; chưa QA browser trực tiếp lần tinh chỉnh này.
+
+- 2026-10-13: Hoàn thiện Vị trí tùy chỉnh từ màn máy: khay14 loại quân bên phải/gap10px/không cuộn khay, chỉ Xóa quân/Cài lại với icon; header Lưu/Tạo từ ảnh, nút gỗ Sẵn sàng đổi chữ Đấu ngay. Xếp/di chuyển/xóa/reset/lưu FEN/đọc ảnh cục bộ/đấu Pikafish đúng thế và chơi lại thế gốc. Server xác thực FEN+lịch sử, không tác động online. Sửa nhận nhầm nút ảnh trước: ẩn Hoàn nước của máy, khôi phục Sẵn sàng sau ván. 27/27 test liên quan PASS, typecheck/build PASS; dist index-BoZjm0Gr.js có custom-position-start-iJLbhod-.png. QA headless1280×720 xác nhận14 nút, scroll=false, gap10; ảnh khai cuộc nhận đúng32 quân/FEN. Đã xem compact390px, xử lý overflow ngang; chưa thử điện thoại thật/ảnh bộ quân khác.
+
+- 2026-10-13: Ẩn nút giữa bàn sau khi ván đấu với máy kết thúc; giữ nguyên nút ở local/online hai người và tự bắt đầu Pikafish. Build PASS, dist cập nhật; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Nới tiếp Luyện cờ thêm30px mỗi bên (width1268px), giữ tỷ lệ/căn giữa và fit màn. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-13: Nới banner Luyện cờ thêm30px mỗi bên, giữ căn giữa/tỷ lệ. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-13: Thay banner Cờ thế bằng ảnh Luyện cờ63e5f151, crop sát2132×348/góc alpha, giữ tỷ lệ và fit màn hình. Typecheck/build PASS, dist có banner mới; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Đổi nhãn Đấu lại về Sẵn sàng theo yêu cầu. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-13: Ẩn Cầu hòa/Xin thua ở máy, giữ Đi lại; loại computer khỏi trạng thái bận mời chơi. Xác nhận máy không tạo phòng server và nhận lời mời chuyển sang phòng online. 19/19 test liên quan, typecheck/build PASS; dist cập nhật. Chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Tắt intro đối thủ/âm thanh intro khi start máy; ẩn đồng hồ và vòng xanh cả2 avatar trong mode computer. Typecheck/build PASS, dist cập nhật; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Đối chiếu trực tiếp Chọn Bàn và áp dụng avatar45/33px, offset1px, gap12px và font tên24/18px cho Chơi với máy; bỏ overlay tối/shadow riêng. Typecheck/build PASS, dist cập nhật; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Tăng avatar header Chơi với máy40→44px desktop/36→40px compact; tên giữ font-heading chính. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-13: Bỏ dropdown máy, dùng Pikafish cố định; avatar/khung và tên thật ở header, tiện ích gap8px. Vào ván Pikafish tự bắt đầu, giữ khai cuộc1300ms; chơi lại ghi Đấu lại. Typecheck,7/7 test computer và build PASS; dist cập nhật. Chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Thêm MultiPV/xác suất10 cấp, bộ lọc nước hợp lệ và sai lầm quá nặng. Engine thật xác nhận depth1 đủ5 PV (64 nodes chỉ2); cấp1–3 depth1/2/3. 21/21 test liên quan PASS; typecheck PASS, kiểm tra lại7 test profile/candidate PASS. Giữ yêu cầu không build của tác vụ engine.
+
+- 2026-10-13: Đọc UCI thật, thêm10 profile Pikafish và apply options có hỗ trợ trước search; giữ lựa chọn cấp trong session. Typecheck PASS; 15/15 test liên quan PASS (gồm engine thật cấp1/5/10, hủy request và lưu/truyền cấp). Không build theo yêu cầu task này.
+
+- 2026-10-13: Hạ Cờ thế về vị trí cũ, giãn bảng giữa thêm82px; sửa footer đè cấp độ bằng flow dưới banner. Typecheck/build PASS, dist cập nhật; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Bỏ tiêu đề Chơi với máy, dồn bảng và banner lên; căn baseline Cấp/số với font-heading/font-number. Typecheck/build PASS, dist cập nhật; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Căn tâm quân Đỏ theo chiều ngang, tăng dịch phải từ 2 lên 4px theo scale bàn. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-13: Hoàn tác lần thay bộ quân theo yêu cầu; ChessPiece và ảnh chụp dùng lại codo-coden-v2, giữ căn chỉnh quân Đỏ và quân úp hiện tại. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-13: Thay khung Tạo bàn bằng ảnh72f80581 dùng chung với khung chọn tỉnh/thành; giữ field/nút bằng crop từ skin cũ, căn lại theo aspect mới. Ba asset crop đã làm alpha trong suốt ở góc. Typecheck/build PASS, dist cập nhật; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Tăng tiêu đề chọn tỉnh/thành30→34px desktop,20→22px compact; giữ vị trí. Build PASS, dist cập nhật.
+
+- 2026-10-13: Hoàn tác lần thu nhỏ bảng Tạo bàn theo yêu cầu; trở lại680px/73dvh. Build PASS, dist cập nhật.
+
+- 2026-10-13: Thu nhỏ bảng Tạo bàn trong Chọn Bàn từ max680px/73dvh xuống620px/67dvh, giữ tỷ lệ và bố cục nội dung. Build PASS, dist cập nhật.
+
+- 2026-10-13: Sửa presence theo tỉnh/thành đang chọn thay vì hồ sơ; chuyển nơi cập nhật server trực tiếp, reconnect giữ lựa chọn, rời màn gỡ presence. Hai regression hook/service PASS, typecheck/build PASS, dist cập nhật; chưa QA nhiều trình duyệt.
+
+- 2026-10-13: Tăng icon thẻ tỉnh/thành lên ô26cqw/cao đầy thẻ, giữ tỷ lệ; tăng tên font-heading36px/7cqw và số liệu font-number28px/5.5cqw (lấy giá trị nhỏ hơn). Giữ4 dòng/gap8px. Typecheck/build PASS, ba thay đổi có trong dist; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Sửa thẻ chọn tỉnh/thành giãn đầy4 hàng, gap dọc8px theo phản hồi; artwork thẻ object-fill theo yêu cầu giãn, không còn khoảng trắng giữa slot và thẻ. Typecheck/build PASS, thay đổi có trong dist; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Thêm Bạn bè vào GameTools; thứ tự Chụp hình/Bạn bè/Âm thanh/Toàn màn hình. Mở FriendsDialog dùng chung, nối hồ sơ/nhắn tin hiện có; giữ geometry avatar và UI Bạn bè. Typecheck/build PASS, callback mới có trong dist; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Chọn tỉnh/thành chia viewport danh sách thành4 hàng, giữ2 cột desktop/1 cột compact, các hàng sau cuộn; thẻ giữ tỷ lệ gốc. Typecheck/build PASS, dist cập nhật; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Thay riêng khung chọn tỉnh/thành về72f80581 (crop1369×953), giữ thẻ e05c67be. Căn hit area đóng theo X có sẵn, tránh chồng dấu X desktop. Typecheck/build PASS, dist chứa đúng cặp asset mới; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Nối Mời chơi Bạn bè vào challenge socket; khi đồng ý dùng phòng người gửi hoặc tạo mới nếu chưa có phòng, chuyển người nhận khỏi phòng cũ và phát snapshot phòng đích. Giữ UI Bạn bè đã khóa, kiểm tra bận và vai trò ghế/người xem. 8 test service/socket PASS, typecheck/build PASS, dist chứa luồng nút mới; chưa QA hai trình duyệt. Danh sách bạn bè vẫn mẫu, chỉ người online thật khớp tên mới nhận lời mời.
+
+- 2026-10-13: Theo yêu cầu mở phạm vi avatar header Chọn Bàn trong task này: hạ1px, bấm mở hồ sơ hiện có; sau sửa khóa lại geometry. Đổi thứ tự tiện ích Cúp/Bạn bè/Loa, không đổi UI trong các popup. Typecheck/build PASS, callback và vị trí mới có trong dist; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Tách ảnh e05c67be thành khung1360×720/thẻ1066×187, crop sát alpha; thay artwork chọn tỉnh/thành, nội dung co theo thẻ và bổ sung SVG đóng. Typecheck/build PASS, asset mới có trong dist; đã xem ảnh crop, chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Ghép nhanh dùng chung chỉ chọn đúng1 người ngồi/chưa đấu; Chọn Bàn giữ lọc thời lượng và fallback Tạo bàn. Regression loại phòng0/2 người, không cộng viewers: 2 test PASS. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-13: Thay hai artwork khung/thẻ chọn tỉnh/thành, crop sát và đối chiếu ảnh xuất; cập nhật tỷ lệ và nội dung vừa thẻ mới. Typecheck/build PASS, asset mới có trong dist, góc alpha trong suốt; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Căn X Tạo bàn theo tâm vòng tròn trên asset v2, giữ SVG vuông khi co giãn. Typecheck/build PASS, kiểm tra tọa độ mới có trong dist; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Kiểm tra Chơi nhanh Chọn Bàn đã lọc đúng thời lượng, vào thẳng phòng còn ghế/chưa đấu; chỉ mở Tạo bàn khi không có phòng phù hợp. Bổ sung regression chọn phòng theo thời lượng: 2 test PASS; typecheck/build PASS, dist cập nhật. Không đổi UI hoặc luồng Home.
+
+- 2026-10-10: Sửa hàng chờ demo: xếp hàng cục bộ trước nước thứ3 sẽ thay Máy Đen, tiếp tục ván với Máy Đỏ; bỏ hàng thì không được vào. Build/typecheck PASS; dist/assets/index-BHNTZlV9.js.
+
+- 2026-10-10: Nút Vô hàng/Thoát hàng có cursor pointer (disabled vẫn là wait); demo hai máy kết thúc sau3 nửa-nước với Đỏ thắng. Build/typecheck PASS; dist được cập nhật.
+
+- 2026-10-10: Cho bấm bàn mẫu mở demo hai máy cơ bản tự đấu; người dùng xem, tên Máy Đỏ/Đen, thời gian theo bàn, không trừ năng lượng. Hủy timer khi rời. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-10: Đổi con trỏ thẻ bàn thành pointer, kể cả bàn mẫu; giữ hành vi disabled. Build/typecheck PASS; xác nhận class pointer trong dist.
+
+- 2026-10-10: Sửa nguyên nhân bàn không lớn và người còn xa: vùng hình78%, bàn theo chiều cao thực; người width:auto neo ngoài hai cạnh bàn3px. Build/typecheck PASS; xác nhận vị trí neo3px trong dist. Chưa browser QA.
+
+- 2026-10-10: Phóng bàn trong thẻ từ46% lên50%, tăng vùng hình60% lên64%; hai người đặt trực tiếp hai bên với gap3px, slot trống giữ cân giữa. Build/typecheck PASS; dist được cập nhật.
+
+- 2026-10-10: Xác nhận tie-break khi tổng người bằng nhau giữ thứ tự tạo phòng từ Map insertion order, nên phòng cũ xếp trước; ghi rõ trong component và tài liệu. Build/typecheck PASS; dist được cập nhật.
+
+- 2026-10-10: Tăng bàn cờ từ42% lên46% vùng hình, đưa mỗi hình người22% áp sát bàn với gap3px; giữ cân giữa khi phòng chỉ có một người. Build/typecheck PASS; dist được cập nhật.
+
+- 2026-10-10: Dành sẵn gutter ổn định cho thanh cuộn RoomTableGrid; thanh chỉ hiện khi nội dung tràn, giữ lưới đứng yên và sát mép trong bảng. Build/typecheck PASS; dist được cập nhật.
+
+- 2026-10-10: Ưu tiên phòng có nhiều người nhất bằng cách sắp xếp giảm dần theo tổng người chơi và khán giả; các phòng bằng số giữ thứ tự API. Build/typecheck PASS; dist được cập nhật.
+
+- 2026-10-10: Đặt huy hiệu mắt/số người bên ngoài hình bàn với khoảng cách5px; giữ nguyên tổng số người và tương tác vào phòng thật. Build/typecheck PASS; dist được cập nhật.
+
+- 2026-10-10: Giữ thẻ phòng thật bấm vào để vào/xem đúng phòng; thêm icon mắt và tổng người (`players + viewerCount`) phía trên mỗi bàn. Bàn mẫu không gọi join. Build/typecheck PASS; dist được cập nhật.
+
+- 2026-10-10: Nối tiện ích Chọn Bàn với hành vi Home: mở FriendsDialog/RankingDialog hiện hành và chia sẻ useHomeMusic; giữ icon, nút và bố cục. Typecheck/build PASS; dist/assets/index-B_Xwi7i7.js. Chưa browser QA.
+
+- 2026-10-10: Ngăn lưới preview chớp/reset thanh cuộn mỗi lần polling5 giây: prop loading chỉ theo lần tải đầu (`isLoading`), không theo refetch nền (`isFetching`). Build/typecheck PASS; dist/assets/index-BHSLzXFi.js.
+
+- 2026-10-10: Dịch màu thumb RoomTableGrid nhẹ từ xanh lá sang xanh ngọc #22c1a8; giữ alpha30%/45% hover và track trong suốt. Build/typecheck PASS; dist/assets/index-CGCQwMOp.css và index-Ggs-vNyW.js.
+
+- 2026-10-10: Đổi thumb RoomTableGrid từ xanh lam sang xanh lá #22c55e và giảm alpha45→30% (hover65→45%); track vẫn trong suốt. Build/typecheck PASS; dist/assets/index-C4Km54L4.css và index-zbB2C4fL.js.
+
+- 2026-10-10: RoomTableGrid hiện thanh cuộn mảnh màu xanh lam trong suốt nhẹ; track vẫn trong suốt, không có nền bao. Build/typecheck PASS; dist/assets/index-DRE5pXKI.css và index-cPOmqoSa.js.
+
+- 2026-10-10: Tăng dữ liệu bàn mẫu xem thử từ12 lên22 để kiểm tra thanh cuộn; vẫn không gọi API/không đổi phòng thật. Build/typecheck PASS; dist/assets/index-DqMAj_hE.js.
+
+- 2026-10-10: Bỏ ngoại lệ chủ phòng sau khi thua. Server luôn đưa người thua xuống cuối hàng và người đầu tiên đang xếp hàng lên ghế; xóa prompt đấu tiếp, creator identity/token và các field/protocol liên quan. Regression mục tiêu PASS (2); typecheck/build PASS, dist index-B51ZYaHX.js. Chưa browser QA.
+
+- 2026-10-10: Ngoại lệ cho creator đấu tiếp từng được triển khai rồi bị gỡ theo yêu cầu mới nhất ở mục đầu tiến độ.
+
+- 2026-10-10: Xác nhận luồng rời phòng: người đầu hàng chờ được đưa lên ghế ngay, không lấy người xem chưa xếp hàng; regression người đang chơi rời phòng PASS. Typecheck/build PASS; dist/assets/index-C8C6yh2k.js được tạo.
+
+
+- 2026-10-10: Giữ phòng có khán giả dù không còn người chơi; thêm viewerCount riêng, không ảnh hưởng số ghế/icon. Chỉ lọc phòng hoàn toàn vắng; tránh preview giả khi bộ lọc không có kết quả. Regression mục tiêu PASS; build/typecheck PASS, dist index-C8FuL2u8.js. Bộ rooms.test đầy đủ còn7 lỗi ở các kiểm tra khác (chuỗi encoding và kỳ vọng chặn người thứ ba).
+
+- 2026-10-10: Tab “Còn trống” chỉ lọc phòng đúng1 người đang ngồi (chưa vào ván), không tính khán giả; preview cũng lọc các bàn một người. Build/typecheck PASS; dist cập nhật index-DCsYFGJm.js.
+
+- 2026-10-10: Ẩn phòng có 0 người chơi khỏi lưới Chọn Bàn; phòng có 1 người vẫn hiện và số người xem không ảnh hưởng. Dữ liệu xem thử cũng chỉ có phòng 1 hoặc 2 người. Build/typecheck PASS; dist cập nhật index-BNzCrpzv.js.
+
+- 2026-10-10: Căn dấu đóng Tạo bàn bằng SVG đối xứng/grid center, giữ nguyên hit area. Build/typecheck PASS; dist cập nhật. Chưa browser QA.
+
+- 2026-10-10: Thu hình bàn/người trong ô; bỏ tên “Bàn 1…”, thay bằng thời lượng + tên người ở ghế đầu. `RoomSummary.playerNames` lấy room.players theo thứ tự server, không gồm viewers; người còn lại tự lên đầu khi ghế đầu rời. Build/typecheck PASS; dist index-D9Ti5fS5.js. Chưa browser QA.
+
+- 2026-10-10: Số phút trên nhãn bàn dùng font-number, lining/tabular numerals, căn baseline cạnh tên bàn font-heading. Build/typecheck PASS, dist cập nhật.
+
+- 2026-10-10: Hai bàn mẫu đầu tiên hiển thị đủ2 người để xem bố cục icon hai bên; các mẫu còn lại giữ biến thể0/1/2. Build/typecheck PASS, dist cập nhật.
+
+- 2026-10-10: Lưới xem thử đủ12 bàn thường, bỏ ô Tạo bàn và dòng Mẫu/số người; nhãn dùng font-heading cho chữ/số,20px/14px theo chữ Tạo bàn cũ. Build/typecheck PASS; dist cập nhật. Chưa browser QA.
+
+- 2026-10-10: Thêm preview tạm thời11 bàn mẫu khi danh sách trống, cùng ô Tạo bàn đủ4×3; mẫu0/1/2 người và nhiều thời lượng. Không join bàn mẫu hoặc tăng số bàn thật. Build/typecheck PASS; dist cập nhật. Chưa browser QA.
+
+- 2026-10-10: Thay hình bàn/ghế danh sách bằng hai asset mới, crop riêng alpha; RoomTableGrid4 cột×3 hàng, ô Tạo bàn đầu tiên, cuộn khi vượt vùng. Giữ tạo/vào/xem/xếp hàng và dữ liệu phòng thật. Build/typecheck PASS; dist có table-board/table-player-blue/table-player-red. Chưa browser QA.
+
+- 2026-10-10: Giảm nhẹ độ trong suốt nền khung danh sách65→60% (#1c0e07 alpha40%); giữ bản A. Build/typecheck PASS, xác nhận class trong dist.
+
+- 2026-10-10: Thử nền khung danh sách nâu đen #1c0e07/35, trong suốt65%; bản A giữ nguyên. Build/typecheck PASS, xác nhận trong dist. Chưa browser QA.
+
+- 2026-10-10: Thử nền khung danh sách #613014/50 theo tông nâu thẻ địa chỉ, tăng trong suốt40→50%; bản A giữ nguyên. Build/typecheck PASS, xác nhận class trong dist. Chưa browser QA.
+
+- 2026-10-10: Lưu bản A của Chọn Bàn tại docs/checkpoints/room-selection-A trước thử màu. Nền khung danh sách đổi #2C1408/65→#48230D/60, nâu rõ hơn và trong suốt40%. Build/typecheck PASS; xác nhận màu mới trong dist. Chưa browser QA.
+
+- 2026-10-10: Tăng khoảng hở giữa từng nút tiện ích Chọn Bàn9→10px, neo mép phải để không dịch cả cụm. Build/typecheck PASS.
+
+- 2026-10-10: Nới khoảng cách cụm tiện ích Chọn Bàn thêm1px, gap9px. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-10: Giảm avatar header Chọn Bàn3px:48→45px desktop,36→33px compact; giữ tên/căn giữa. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-10: Header Chọn Bàn tăng avatar40→48px desktop/32→36px compact, tên20→24px/16→18px; cụm căn giữa dọc bằng items-center. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-10: Đo theo Home: nút tiện ích48×48px từ homeUtilityButton, gap-2=8px. Đồng bộ nav Chọn Bàn cùng flex-wrap/justify-end/gap-2, giữ kích thước nút/icon dùng chung. Build/typecheck PASS. Chưa browser QA.
+
+- 2026-10-10: Bỏ lựa chọn “Tất cả” khỏi dropdown Chơi nhanh; mặc định10 phút và còn các mốc3/5/10/15/30. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-10: Bọc ba nút tiện ích Chọn Bàn trong nav dùng gap-2 trùng Home, giữ button/icon dùng chung. Build/typecheck PASS, dist cập nhật. Chưa browser QA.
+
+- 2026-10-10: Nhãn thời gian trên nút Chơi nhanh dùng font-number cho số, font-heading cho chữ; cỡ chữ kế thừa22px/18px bằng Chơi nhanh/Tạo bàn. Build/typecheck PASS, xác nhận nhãn cập nhật trong dist. Chưa browser QA.
+
+- 2026-10-10: Menu thời gian Chơi nhanh đóng khi pointerdown ngoài cụm nút/menu; cleanup listener khi đóng/unmount. Build/typecheck PASS, xác nhận handler/ref trong dist. Chưa browser QA.
+
+- 2026-10-10: Chơi nhanh trong Chọn Bàn mặc định10 phút theo yêu cầu mới; vẫn chọn được Tất cả và các mốc khác. Build/typecheck PASS; dist cập nhật. Chưa browser QA.
+
+- 2026-10-10: Khôi phục mũi tên/dropdown thời gian Chơi nhanh (Tất cả,3/5/10/15/30 phút); mặc định Tất cả giữ ghép ngẫu nhiên mọi nơi/thời gian, chọn mốc cụ thể lọc thời gian trên mọi tỉnh/thành. Chữ Chơi nhanh22px/18px bằng Tạo bàn. Cấu hình Tạo bàn vẫn độc lập. Build/typecheck PASS, dropdown đã có trong dist. Chưa browser QA.
+
+- 2026-10-10: Bỏ mũi tên cạnh tên trên thẻ địa chỉ, tăng tên20→22px desktop/16→18px compact. Build/typecheck PASS; xác nhận class mới trong dist. Chưa browser QA.
+
+- 2026-10-10: Thẻ địa chỉ Chọn Bàn căn trái tên/số liệu và thay nhà cố định bằng icon tỉnh/thành theo selection.province (mặc định hồ sơ, đổi khi chọn khu vực). Build/typecheck PASS, xác nhận class căn trái/kích thước icon trong bundle dist. Chưa browser QA.
+
+- 2026-10-10: Đồng bộ Chơi nhanh Home/Chọn Bàn qua randomAvailableRoom, tải danh sách mới và chọn ngẫu nhiên mọi tỉnh/thành/thời lượng, loại bàn đủ/đang chơi. Bỏ bộ lọc thời gian Chơi nhanh; giữ fallback khi không có bàn và kiểm tra năng lượng/lỗi mạng. Đối chiếu tạo bàn: khu vực đang chọn, mặc định tỉnh hồ sơ; số bàn lấy danh sách API theo province, refresh5 giây và invalidate khi tạo/vào. Test quickRoom PASS; build/typecheck PASS, dist/index-DUTuq3Oq.js đã cập nhật. Chưa browser/multiclient QA.
+
+- 2026-10-10: Sửa cách hiểu “font chính” theo xác nhận: dùng font của tên người chơi (font-heading) cho tiêu đề và tên tỉnh/thành trong bảng chọn, giữ cỡ chữ. Build/typecheck PASS; xác nhận cả hai trong dist/index-6o_1hM0n.js. Chưa browser QA.
+
+- 2026-10-10: Đổi tên tỉnh/thành trong thẻ chọn sang font chính font-body, giữ cỡ28px/24px. Build/typecheck PASS; xác nhận font mới trong dist/index-C5-MqfJN.js. Chưa browser QA.
+
+- 2026-10-10: Tăng tiếp icon tỉnh/thành lên104px desktop/80px compact, tên lên28px/24px; giữ ẩn thanh cuộn. Build/typecheck PASS, xác nhận class mới trong dist/index-DqKsmpVK.js. Chưa browser QA.
+
+- 2026-10-10: Tăng icon thẻ tỉnh/thành68→88px desktop,48→64px compact; ẩn thanh cuộn trực quan, vẫn cuộn được danh sách. Build/typecheck PASS, xác nhận class mới trong dist/index-8Enznegk.js. Chưa browser QA.
+
+- 2026-10-10: Tạo mới đủ 34 icon tỉnh/thành bằng image_gen theo danh sách người dùng chốt; PNG riêng có tên số thứ tự/tỉnh, alpha thật và crop sát, cạnh dài tối đa256px. Bảng tổng hợp6 cột, ô35–36 trống; manifest lưu tên/biểu tượng/prompt. Thẻ tỉnh/thành Chọn Bàn dùng ảnh thay emoji, dữ liệu API giữ nguyên. Đã xem bảng ảnh và kiểm tra tự động alpha/bounding box đủ34 file. Build/typecheck PASS; dist có đủ34 PNG và bundle index-DbwIOQjn.js. Chưa browser QA.
+
+- 2026-10-10: Tiêu đề chọn tỉnh/thành dùng font chính font-body, tăng24→30px desktop/16→20px compact và bỏ bộ đếm34 bên cạnh. Build/typecheck PASS; đã xác nhận tiêu đề mới trong bundle dist. Chưa browser QA.
+
+- 2026-10-10: Thay khung bộ chọn tỉnh/thành bằng ảnh 8ee5ac91 và các thẻ bằng f6d81a33 theo xác nhận. Crop sát, loại nhiễu alpha rời; giữ tỷ lệ ảnh, dữ liệu API, cuộn/chọn/đóng. Build/typecheck PASS; dist có province-card-D55XZreL.png, province-picker-frame-CNnG5rPy.png và bundle index-DTMi-JvS.js. Đã xem asset crop; chưa browser QA.
+
+- 2026-10-10: Sắp xếp asset rời trong `src/assets/`: ảnh/video nguồn gom vào `references/uploads/`; bốn khung avatar chạy chuyển vào `player/avatar-frames/` và cập nhật import. Giữ các file nguồn, gồm bản trùng byte; cập nhật manifest, đường dẫn script crop và tài liệu nguồn. `npm.cmd run build` và typecheck PASS; dist có đủ bốn asset khung avatar đã chuyển. Chưa browser QA.
+
+
+- 2026-10-10: Bộ chọn Chọn Bàn tải toàn bộ danh sách tỉnh/thành từ API dùng chung với hồ sơ, bỏ danh sách hard-code 7 nơi; tăng cỡ chữ tên và bộ đếm, giữ scroll cho danh sách dài. `npm.cmd run build` PASS, dist cập nhật (`index-D622sMMI.js`); chưa browser QA.
+
+- 2026-10-09: Thêm bộ chọn khu vực Chọn Bàn với TP.HCM, Hà Nội, Đà Nẵng, Cần Thơ, Huế, Hải Phòng và Bình Dương; thẻ có số bàn/người theo dữ liệu server, khu vực chọn lọc danh sách và Chơi nhanh. Tạo phòng lưu tỉnh/thành. `npm.cmd run build` PASS, dist cập nhật (`index-C1xzSAmJ.js`); chưa browser QA (không có cửa sổ trình duyệt khả dụng trong phiên).
+
+- 2026-10-09: Tách cấu hình thời lượng của Tạo bàn khỏi bộ lọc Chơi nhanh; Tạo bàn có lựa chọn riêng, mặc định 10 phút/60 giây. `npm.cmd run build` PASS, dist cập nhật (`index-Bpi3kx9M.js`); chưa browser QA.
+
+- 2026-10-09: Làm trạng thái hover hai nút đáy Tạo bàn sáng/nổi rõ hơn bằng tăng brightness và saturation. Build/typecheck PASS; dist cập nhật (index-BToC58k3.js). Chưa browser QA.
+
+- 2026-10-09: Thu hai nút đáy của skin Tạo bàn và đồng bộ hit area/chữ; panel và các điều khiển khác giữ nguyên. Đã xem asset; build/typecheck PASS, dist có dialog-skin-v2-B7F8DVD6.png. Chưa browser QA.
+
+- 2026-10-09: Thu nhỏ bảng Tạo bàn khoảng15% (max800→680px, giới hạn cao86→73dvh); skin/chữ/điều khiển co theo cùng tỷ lệ. Build/typecheck PASS; dist cập nhật (index-Bkze7UO0.js). Chưa browser QA.
+
+- 2026-10-09: Dựng lại Tạo bàn theo ảnh riêng mới nhất bằng skin trống bám mẫu; HTML/select/nút thật phủ đúng tỷ lệ, không lớp nền nâu chồng. Giữ mặc định10p/60s và các mốc/server flow. Đã xem asset, trim1488×926/alpha góc0; build/typecheck PASS, dist có dialog-skin-PnGTtC5C.png và index-CvpFYbdw.js. Chưa browser QA.
+
+- 2026-10-09: Bỏ nền nâu đặc trên form Tạo bàn, phần trong transparent để thấy nền cảnh trang; giữ viền và thông tin/điều khiển. Build/typecheck PASS; dist cập nhật (index-Bx5XHiUy.js). Chưa browser QA.
+
+- 2026-10-09: Bảng Tạo bàn bỏ ảnh phong cảnh và lớp phủ gradient chồng, dùng duy nhất nền nâu #47250B trực tiếp trên form; giữ viền/điều khiển và mặc định10p/60s. Build/typecheck PASS; dist cập nhật (index-DtrBJwCo.js). Chưa browser QA.
+
+- 2026-10-09: Chỉnh nền khung danh sách thành nâu tối #2C1408 alpha65%, vẫn thấy cảnh phía sau, không blur. Build/typecheck PASS; dist cập nhật (index-BQJ1pmdU.js). Chưa browser QA.
+
+- 2026-10-09: Làm lại CreateRoomForm theo mẫu đầu tiên với panel phong cảnh nâu/viền vàng, tiêu đề, nút đóng và hai select có icon; reset mặc định10 phút/60 giây mỗi lần mở. Bỏ wrapper popup cũ trong Chọn Bàn; component dùng chung cập nhật cả LobbyDialog. Build/typecheck PASS; dist cập nhật (index-BoKfdGLx.js). Chưa browser QA.
+
+- 2026-10-09: Giữ #47250B, giảm alpha nền55% xuống40% (trong suốt60%); không thêm blur hoặc làm mờ viền/nội dung. Build/typecheck PASS; dist cập nhật (index-DetMNgIN.js). Chưa browser QA.
+
+- 2026-10-09: Đổi nền khung giữa sang màu người dùng chỉ định #47250B, giữ alpha55% (trong suốt45%). Build/typecheck PASS; dist cập nhật (index-BccuLUdR.js). Chưa browser QA.
+
+- 2026-10-09: Chỉnh nền khung giữa thiên nâu sẫm như thẻ thành phố trong mẫu, giữ độ trong suốt45%. Build/typecheck PASS; dist cập nhật (index-cWypuE7B.js). Chưa browser QA.
+
+- 2026-10-09: Tăng sắc nâu nền khung giữa, giảm alpha65% xuống55% (trong suốt45%); giữ viền/góc. Build/typecheck PASS; dist cập nhật (index-BID0HoJ4.js). Chưa browser QA.
+
+- 2026-10-09: Hoàn tác lần chỉnh nền gần nhất, đưa #754b28b3/#583519b3/#3e200eb3 về #45220ca6/#301506a6/#1e0c03a6. Build/typecheck PASS; dist cập nhật (index-Dcvo2OpG.js). Chưa browser QA.
+
+- 2026-10-09: Khôi phục nền nâu ấm bán trong suốt #754b28/#583519/#3e200e alpha70%, sửa việc chọn nhầm bản nâu sẫm. Build/typecheck PASS; dist cập nhật (index-C6WcHVrt.js). Chưa browser QA.
+
+- 2026-10-09: Khôi phục riêng nền khung về trạng thái ngay trước lần hoàn tác màu (#45220c/#301506/#1e0c03, alpha65%); giữ màu viền/góc cũ. Build/typecheck PASS; dist cập nhật (index-Dcvo2OpG.js). Chưa browser QA.
+
+- 2026-10-09: Thu nhẹ chữ/số và icon đếm của thẻ địa chỉ; tăng icon kiếm Chơi nhanh lên cùng cỡ dấu cộng Tạo bàn. Giữ cỡ thẻ. Build/typecheck PASS; dist cập nhật (index-DTaXCuim.js). Chưa browser QA.
+
+- 2026-10-09: Hoàn tác riêng màu hai viền về #bd914e và góc về #f4d995; giữ nền nâu hiện hành nguyên trạng. Build/typecheck PASS; dist có màu viền/góc đã hoàn tác (index-ChqwkQX_.js). Chưa browser QA.
+
+- 2026-10-09: Đồng bộ font ba thẻ Chọn Bàn: nhãn/đơn vị dùng font chính, số và dấu cộng dùng font-number; giữ cỡ/bố cục. Build/typecheck PASS; dist cập nhật (index-BjKcdp0V.js). Chưa browser QA.
+
+- 2026-10-09: Hoàn tác riêng màu nền khung giữa về gradient nâu trước đó (alpha80%); giữ viền và góc gold. Build/typecheck PASS; dist có màu đã hoàn tác (index-DhGz11zR.js). Chưa browser QA.
+
+- 2026-10-09: Đổi hai viền và bốn họa tiết góc khung giữa sang vàng gold #ffd700, giữ nền/kích thước. Build/typecheck PASS; dist có màu gold (index-DEI-l4VN.js). Chưa browser QA.
+
+- 2026-10-09: Tăng tông nâu sẫm và độ trong suốt nền khung giữa từ20% lên35%; giữ viền và nội dung. Build/typecheck PASS; dist có màu/alpha mới (index-DXcGRYia.js). Chưa browser QA.
+
+- 2026-10-09: Chỉnh nền giữa sang nâu sẫm theo mẫu thẻ địa chỉ, alpha80% để vẫn xuyên nền nhưng giảm sắc vàng cảnh phía sau. Build/typecheck PASS; dist có màu mới (index-DhcHiA-Y.js). Chưa browser QA.
+
+- 2026-10-09: Sửa tông nền khung giữa sang nâu đậm thiên đỏ rõ hơn, bỏ nâu vàng nhạt; giữ alpha70% và hình học. Build/typecheck PASS; dist có tông mới (index-DBnJFCVg.js). Chưa browser QA.
+
+- 2026-10-09: Tăng độ trong suốt nền khung giữa từ15% lên30%, đổi gradient sang nâu ấm hơn; giữ viền và nội dung. Build/typecheck PASS; dist có màu/alpha mới (index-CeNDAyPi.js). Chưa browser QA.
+
+- 2026-10-09: Giảm alpha nền gradient khung giữa xuống85%, chỉ nền trong suốt nhẹ, giữ viền/họa tiết/chữ/icon. Build/typecheck PASS; dist có alpha mới (index-CKDfin_r.js). Chưa browser QA.
+
+- 2026-10-09: Đổi nền phẳng khung giữa thành nâu chuyển sắc theo thẻ địa chỉ, dùng màu nâu trong palette chung; giữ viền/họa tiết/kích thước. Build/typecheck PASS; dist có gradient mới (index-Blcwl45V.js). Chưa browser QA.
+
+- 2026-10-09: Đồng nhất nền nâu #483019 từ mép tới giữa, bỏ gradient; thêm viền vàng mảnh và họa tiết bốn góc theo mẫu, giữ kích thước khung. Build/typecheck PASS; dist có màu mới (index-r-LeyJfX.js). Chưa browser QA.
+
+- 2026-10-09: Chỉnh nền khung giữa sang nâu ấm kín, sáng giữa/tối mép theo mẫu; giữ viền1px và kích thước hiện tại. Build/typecheck PASS; dist có gradient mới (index-Cb5F-ogz.js). Chưa browser QA.
+
+- 2026-10-09: Dựng lại khung giữa Chọn Bàn bằng nền nâu85% và viền vàng1px, bỏ khung ảnh/trang trí cũ; giữ nguyên hình học container, hình bàn/chữ và dữ liệu phòng. Build/typecheck PASS; dist có nền mới (index-BfSO6oRW.js). Chưa browser QA.
+
+- 2026-10-09: Sửa hiểu nhầm yêu cầu bỏ lớp trong: khôi phục viền khung danh sách panel.png, giữ chiều cao đã tăng và không thêm nền phủ. Build/typecheck PASS; dist có viền khung (index-DJHUrrlv.js). Chưa browser QA.
+
+- 2026-10-09: Theo yêu cầu giữ nền lớn, bỏ viền panel.png lồng trong danh sách; giữ hình bàn/chữ trên nền cảnh chung và dữ liệu phòng thật. Build/typecheck PASS; dist cập nhật (index-D-pSPPv-.js). Chưa browser QA.
+
+- 2026-10-09: Thay nhạc tổng hợp bằng file người dùng cung cấp, player chung xuyên màn hình; ended chờ5s phát lại, tắt nhạc hủy timer. Build/typecheck PASS; dist có background-music-B1RLsviN.mp4. Chưa nghe kiểm tra trình duyệt.
+
+- 2026-10-09: Kéo mép dưới khung danh sách Chọn Bàn xuống32px bằng giảm khoảng dưới56px xuống24px; giữ mép trên và vị trí hai nút lọc. Build/typecheck PASS; dist có class mới (index-qhekh8r4.js). Chưa browser QA.
+- 2026-10-09: Bỏ lớp phủ nền nâu riêng trong khung danh sách Chọn Bàn; hình bàn và chữ đặt trực tiếp trên nền trang. Build/typecheck PASS; dist cập nhật (index-gRHJ1AGq.js). Chưa browser QA.
+- 2026-10-09: Hoàn tác ảnh thẻ nâu kéo dãn ở bảng giữa, khôi phục khung panel.png viền mảnh và nền bán trong suốt. Build/typecheck PASS; dist cập nhật. Chưa browser QA.
+
+- 2026-10-09: Hoàn tác riêng khung giữa về vị trí/chiều cao trước lần hạ xuống; giữ vị trí tiện ích và nút lọc đã chỉnh. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-09: Bỏ nút Video, chuyển Bạn bè lên header bên phải; bỏ hàng tiện ích dưới, hạ nút lọc và mở rộng bảng giữa xuống dưới, tăng khoảng trên bảng lên16px. Build/typecheck PASS; dist cập nhật. Chưa browser QA.
+
+- 2026-10-09: Bảng giữa Chọn Bàn dùng ảnh thẻ nâu người dùng cung cấp, object-fill toàn ô và opacity60; bỏ nền CSS. Build/typecheck PASS; dist cập nhật. Chưa browser QA.
+
+- 2026-10-09: Tạo bàn dùng CreateRoomForm chung, bỏ tên phòng, chọn 3/5/10/15/30 phút và giới hạn mỗi nước 30/60/90/120 giây. Cấu hình đi qua API→Controller→Service, engine/clock/vòng avatar dùng giới hạn thực tế, reset/rematch giữ cấu hình. 33 test liên quan PASS; build/typecheck PASS, dist cập nhật. Chưa browser QA.
+
+- 2026-10-09: Dựng mới bảng danh sách giữa bằng nền nâu/viền vàng đơn giản, bỏ khung ảnh và lớp phủ cũ; giữ hình bàn/chữ khi trống và danh sách phòng khi có bàn. Build/typecheck PASS; dist cập nhật. Chưa browser QA.
+
+- 2026-10-09: Đặt các mốc phút trong bảng xổ dưới mũi tên; mỗi nút giờ bằng nhau 112×32px. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-09: Làm rõ ảnh thẻ nâu dùng trực tiếp cho cả ô giữa Tạo bàn; render img object-fill phủ đủ kích thước và đặt chữ/dấu cộng ở lớp trên. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-09: Thay popover/select thời gian bằng danh sách nút mốc phút xổ trực tiếp dưới mũi tên Chơi nhanh. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-09: Hoàn nguyên bố trí nút Tạo bàn về chữ và dấu cộng cạnh nhau, căn giữa cả cụm theo yêu cầu người dùng. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-09: Căn chữ Tạo bàn độc lập ở tâm thẻ, neo dấu cộng cách mép phải 8px. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-09: Hạ riêng dòng tỉnh/thành trong thẻ địa chỉ 5px vì padding cha không làm dịch vị trí nội dung đã căn giữa. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-09: Chuyển py5 từ riêng dòng thành phố sang toàn bộ nội dung thẻ địa chỉ để tạo khoảng cách với viền trên/dưới. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-09: Thêm py5 cho nhãn thành phố, giảm cụm chữ Chơi nhanh/thời lượng xuống 18px desktop/16px compact để cân bằng với Tạo bàn. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-09: Đồng bộ chữ thẻ địa chỉ và Chơi nhanh theo cỡ “Tạo bàn” (22px desktop/18px compact), gồm số đếm và thời gian. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-09: Giảm chiều cao ba thẻ Chọn Bàn 8px: 80→72px desktop, 72→64px compact. Build/typecheck PASS; dist cập nhật.
+
+- 2026-10-09: Thay hình giữa danh sách bàn trống bằng ảnh người dùng 44c73279; crop sát 1093×776, bỏ blend-screen để giữ màu gốc. Build/typecheck PASS; dist cập nhật. Chưa browser QA.
+
+- 2026-10-09: Thay icon nhà có nền nâu bằng icon imagegen nền trong suốt, crop sát và bỏ nhiễu rời; tăng chữ địa chỉ, số đếm, Tạo bàn/Chơi nhanh. Build/typecheck PASS; dist cập nhật. Đã xem asset, chưa browser QA.
+
+- 2026-10-09: Bỏ border trong suốt cũ khiến ảnh nền thẻ bị thu nhỏ; chữ/icon trực tiếp trên ảnh toàn ô. Tăng ba thẻ lên 80px desktop/72px compact. Build/typecheck PASS; dist cập nhật. Chưa browser QA.
+
+- 2026-10-09: Thay thẻ Chọn Bàn bằng hai ảnh mới: nâu cho địa chỉ/Tạo bàn, đỏ cho Chơi nhanh. Crop sát và loại nhiễu alpha <=8; giữ bản nguồn, kích thước ô và nội dung. Build/typecheck PASS; dist có asset mới. Đã xem ảnh crop; chưa browser QA.
+
+- 2026-10-09: Dựng lại hai thẻ địa chỉ/Tạo bàn bằng nền gradient nâu liền mạch từ palette chung, giữ viền ảnh và nội dung HTML trên nền. Build/typecheck PASS; dist cập nhật. Chưa browser QA.
+
+- 2026-10-09: Bỏ nền nâu fill trong hai ô địa chỉ/Tạo bàn, giữ viền ảnh và đặt nội dung trên nền trang. Build/typecheck PASS; dist cập nhật. Chưa browser QA.
+
+- 2026-10-09: Chọn Bàn: lớp nền nâu phủ toàn khung danh sách; border-image/họa tiết góc chuyển sang overlay phía trên nền và nội dung. Giữ khoảng đệm desktop20px/compact14px. Chưa browser QA.
+
+- 2026-10-09: Sửa màu Bỏ qua sau phản hồi chưa thấy đổi: bỏ nền vàng thừa từ lobbyButton, dùng buttonInteraction và nền nâu riêng; hover sáng hơn. Build/typecheck PASS.
+
+- 2026-10-09: Năng lượng hồi 1 điểm mỗi7 phút; mỗi ván bắt đầu trừ1 cho cả local/online/đấu máy. Chặn Sẵn sàng và xếp hàng khi hết năng lượng bằng dialog cục bộ giữa màn hình. “Xem video” báo chưa tích hợp. Typecheck/build PASS; chưa browser QA.
+- 2026-10-09: Điều chỉnh phạm vi chặn: Home chặn bắt đầu chơi khi hết năng lượng; Chọn Bàn vẫn mở và phòng đang chơi vẫn vào xem được. Tạo/vào phòng chưa chơi và xếp hàng bị chặn. Giữ kiểm tra Sẵn sàng cho ván tiếp theo trong phòng. Cùng dialog được đưa lên App để hiện ở mọi màn.
+- 2026-10-09: Người dùng đổi quy tắc: năng lượng chỉ áp dụng online. Bỏ trừ/chặn ở Home, local và đấu máy/Cờ Úp; giữ trừ khi trận online bắt đầu và các chặn online tương ứng, vẫn cho vào phòng đang chơi để xem.
+- 2026-10-09: Thêm bộ đếm năng lượng góc trên trái EnergyNotice và dropdown đếm ngược mở sẵn, hướng lên. Click trong khung đóng dropdown; click ngoài khung đóng bảng; Bỏ qua đóng bảng. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-08: Bỏ opacity giảm sáng trên nút Sẵn sàng khi nó hiện trong lúc OpeningCover đang chạy; giữ disabled cho đến khi mở xong. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-08: Nút Sẵn sàng hiện ngay khi bàn ở phase ready trong lúc OpeningCover đang mở; vẫn disabled cho đến khi animation kết thúc. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-08: Khung khai cuộc nhận mọi chuyển vào playing từ ready/finished hoặc đổi phòng, sửa bỏ qua khung khi reset/start đấu lại bị React gộp. Giữ1300ms và tên hai đối thủ từ trạng thái hiện tại. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-08: Thêm tích tắc cảnh báo10s cuối trước timeout (tổng thời gian hoặc lượt60s), dùng Web Audio/kênh clock riêng; dừng khi đổi lượt/kết thúc/reset/rời bàn. Build/typecheck PASS, dist cập nhật; chưa kiểm tra âm thanh trực tiếp trên trình duyệt.
+
+- 2026-10-08: Tăng cỡ số đồng hồ PlayerCard từ16px lên18px, giữ khung/vị trí. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-08: Khi ván bắt đầu, bỏ icon quân Tướng trước đồng hồ PlayerCard; giữ thời gian số và nền/trạng thái đồng hồ. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-08: Sửa trễ câu intro sau khi bấm Bắt đầu: track phụ giữ offset một phần năm nhưng phát ngay cùng track chính, bỏ delay 1–2 giây. `npm.cmd run build` PASS (typecheck + Vite), dist cập nhật; chưa browser QA/audio loopback.
+
+- 2026-10-08: Giới hạn tên người chơi mới tối đa10 ký tự theo NFC/trim qua helper client/store/server. Xác nhận tên quá dài ở luồng vào/tạo/chơi nhanh/local hiện dialog “Vui lòng nhập tối đa 10 ký tự”, giữ tên để sửa; bỏ cắt âm thầm24 ký tự. Tên nhóm/phòng giữ quy tắc riêng. Build/typecheck PASS, dist có thông báo; chưa browser QA.
+
+- 2026-10-08: Chuẩn hóa bảng tên có khung theo Home180×38/font24/padding24 bằng PlayerNameplate. Home và PlayerCard desktop170/compact120 dùng chung tỷ lệ; chiều cao/chữ/padding tính từ chiều rộng, lưu quy tắc toàn project trong AGENTS/PROJECT-MEMORY. Build/typecheck PASS, dist có component/tỷ lệ mới; chưa browser QA. Renderer worker cũ không nằm trong luồng chụp DOM hiện hành.
+
+- 2026-10-08: Bỏ track trắng của thanh cuộn danh sách chat bàn cờ, dùng track trong suốt và thumb xanh lam50% qua Chat chung. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-08: Theo quyền mở bảng Thông tin cho task typography, tăng hai số Elo của PlayerInfoCard từ medium lên semibold, đồng bộ hồ sơ mình/người khác/preview. Build/typecheck PASS; dist cập nhật; chưa browser QA. Phạm vi mở riêng task trở về khóa theo quy tắc trước đó.
+
+- 2026-10-08: Đưa nút back Chọn Bàn/Chơi Với Máy lên trong dải header đen: top4px, compact top0px; giữ trái12px, kích thước48px và bấm ngay trong entrance. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-08: Thay icon Elo trên PlayerCard theo biến thể: Cờ Tướng dùng quân Tướng đỏ, Cờ Úp dùng quân trống vàng như hai chỉ số ở Home; truyền `game.variant` vào hai PlayerCard. `npm.cmd run build` PASS (typecheck + Vite), dist được cập nhật; chưa browser QA.
+
+- 2026-10-08: Nút quay lại Chọn Bàn/Chơi Với Máy dùng được ngay trong OpeningCover1500ms; chuyển `inert` khỏi phần tử cha và chỉ khóa nội dung còn lại, bảo toàn hành vi chờ hiệu ứng của các điều khiển khác. `npm.cmd run build` PASS (typecheck + Vite), dist được cập nhật; chưa browser QA.
+
+- 2026-10-08: Đồng bộ nút quay lại của Chọn Bàn/Chơi Với Máy với nút rời bàn cờ (icon, màu, kích thước48×48, vị trí cách góc trên trái12px); dùng chung GameBackIcon với GamePage và giữ nguyên khoảng trống header. `npm.cmd run build` PASS (typecheck + Vite), dist được cập nhật; chưa browser QA.
+
+- 2026-10-08: Đồng bộ mở Chọn Bàn/Đấu với máy theo Cờ Tướng/Cờ Úp: OpeningCover hai lớp che trượt ngang1500ms, ROOM_OPENING_MODE chung. Giữ khóa thao tác trong entrance và reduced-motion; không đổi khai cuộc/gameplay. Build/typecheck PASS, dist có cover chung; chưa browser QA.
+
+- 2026-10-08: Giảm weight số trong PlayerInfoCard về medium cho tên/điểm/bộ đếm, giữ cỡ chữ và baseline; áp dụng chung hồ sơ/preview avatar. Build/typecheck PASS, dist có weight mới; chưa browser QA.
+
+- 2026-10-08: Theo quyền mở phần avatar cho task typography, sửa số trong tên/địa chỉ của PlayerInfoCard dùng font-number lining/tabular; số trong tên0.9em cùng baseline. Card dùng chung hồ sơ mình/người khác/preview Tùy chỉnh avatar. Không sửa hình học avatar. Build/typecheck PASS, dist có soften=false cho card; chưa browser QA. Phạm vi avatar trở về khóa sau task theo quy tắc mở khóa một lần.
+
+- 2026-10-08: Sửa chiều cao icon quan hệ: hai asset friend1106×1091/remove-friend1250×1220 khác tỷ lệ. Dùng ô chung32% aspect1106/1091 và ảnh height100%/width auto, nên Thêm bạn/Chấp nhận/Hủy thêm/Xóa bạn cùng chiều cao, không bóp ảnh. Build/typecheck PASS, dist có ô mới; chưa browser QA.
+
+- 2026-10-08: Hồ sơ người gửi lời mời hiển thị Chấp nhận, giữ icon Thêm bạn. Đồng bộ lời mời nhận trong sessionStore và useMessageFriendship; chấp nhận ở hồ sơ/header chat cập nhật Bạn bè và bỏ lời mời nhận, từ chối ở danh sách lưu chung. Header chat không hiện toast Đã gửi khi chấp nhận. Build/typecheck PASS, dist có trạng thái incoming mới; chưa browser QA/backend.
+
+- 2026-10-08: Tách PlayerInfoCard chung từ khung thông tin hồ sơ mình, dùng cho hồ sơ người khác và preview Tùy chỉnh avatar; thay dữ liệu qua props. Bỏ chiều cao90% riêng của hồ sơ người khác, thống nhất nội dung/gap/padding theo hồ sơ mình. Giữ ID/copy/địa chỉ/Theo dõi và handler các nút. Build/typecheck PASS, dist có card mới; chưa browser QA.
+
+- 2026-10-08: Theo dõi hồ sơ tăng120→121, đổi Bỏ theo dõi và làm tối riêng nền/khung, icon/chữ giữ sáng; bỏ theo dõi đảo lại. State chung sessionStore theo tên giữ khi đóng/mở và đồng bộ Home/trong ván. Build/typecheck PASS, dist có trạng thái mới; chưa browser QA/backend.
+
+- 2026-10-08: Nút Nhắn tin trong ProfileDialog đóng hồ sơ trước khi mở/chọn đúng hội thoại, sửa tình huống hồ sơ mở từ Tin nhắn vẫn che chat. Handler dùng chung Home/trong ván. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-08: Icon Thêm bạn/Hủy thêm/Xóa bạn trong hồ sơ dùng cùng32% bề rộng, bỏ tăng lên36% khi pending/đã là bạn. Build/typecheck PASS, dist có class chung mới; chưa browser QA.
+
+- 2026-10-08: Thêm huy hiệu tròn đỏ số tin chưa đọc thay thời gian trong danh sách Tin nhắn, lấy số tin nhận sau mốc đọc; chọn hội thoại cập nhật mốc đọc và bỏ huy hiệu. Tin gửi không tăng số; thread bị xóa không còn số. Fixture Picolozz4/Khôi1/An1 để xem thử. Build/typecheck PASS, dist có huy hiệu mới; chưa browser QA/backend sync.
+
+- 2026-10-08: Thêm fixture tạm nhóm “Nhóm Kỳ Hữu”, tài khoản hiện tại là thành viên thường; creator riêng là MinhQuang (LinhMeo99 nếu trùng tài khoản). Mở sẵn nhóm khi vào Tin nhắn trực tiếp để người dùng test việc ẩn camera/Đổi tên và chìa khóa người tạo. Build/typecheck PASS, fixture có trong dist; chưa browser QA.
+
+- 2026-10-08: Sửa lại Chặn/Bỏ chặn và Xem thành viên sau phản hồi mảng nâu vẫn còn: bỏ toàn bộ nền gradient HTML/border-image ghép; dùng ảnh nền hàng trống action-row-blank.png, chữ đặt trực tiếp lên ảnh. Đã xem asset sau tight-crop2164×236/góc alpha0. Build/typecheck PASS, dist có asset mới; chưa browser QA.
+
+- 2026-10-08: Tạm ẩn Tắt thông báo bằng cờ notificationMuteEnabled=false; giữ modal/state đã làm. Dồn Xóa cuộc trò chuyện/Báo cáo lên để các hàng nhóm liên tiếp. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-08: Tăng nhãn1h/4h/8h từ18 lên20px, cả h dùng font-number. Bọc chung span tránh gap của hàng radio tách số khỏi h. Build/typecheck PASS, dist có nhãn mới; chưa browser QA.
+
+- 2026-10-08: Bỏ lớp chữ nhật nâu che chữ của Chặn/Bỏ chặn và Xem thành viên; dùng OptionRowBackground chung, chữ nằm trực tiếp trên nền hàng. Đã tìm các overlay tương tự trong Messages*.tsx; hai lớp cũ không còn. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-08: Tắt thông báo nhóm mở hộp thời gian1h/4h/8h/Cho đến khi mở lại, radio vòng tròn/chấm tròn, Hủy/OK. Thiết lập thời hạn lưu riêng theo nhóm trong client state Tin nhắn; chưa nối thông báo/backend. Build/typecheck PASS, hộp và radio có trong dist/assets/index-CZhQwRky.js; chưa browser QA.
+
+- 2026-10-08: Chỉnh câu xác nhận xóa tin nhắn theo yêu cầu: tiêu đề “Xóa toàn bộ tin nhắn?”, giữ một dòng giải thích “Tin nhắn người bên kia vẫn được giữ, chỉ xóa ở phía bạn.” Build/typecheck PASS; đã xác nhận câu mới có trong dist/assets/index-CP6L0DKU.js.
+
+- 2026-10-08: Ảnh tải lên của avatar nhóm vẫn crop tròn bằng object-cover nhưng bỏ hoàn toàn asset khung vàng mặc định phủ lên ảnh; avatar mặc định chưa đổi. Đồng bộ component dùng chung ở Tạo nhóm/Tùy chọn/danh sách/header/chat. Build/typecheck PASS; dist cập nhật. Chưa browser QA.
+
+- 2026-10-08: Giảm thêm độ đậm thị giác chữ số trong Tin nhắn/Bạn bè: opacity94% xuống88% qua NumberText và huy hiệu lời mời; giữ cỡ chữ và baseline. Cập nhật quy tắc font tương ứng. Build/typecheck PASS, CSS dist có opacity88%; chưa browser QA.
+
+- 2026-10-08: Sửa path SVG icon nhóm cạnh tên bị méo thành icon ba người vàng, giữ kích thước/vị trí. Build/typecheck PASS; path mới có trong dist/assets/index-BDGXAig5.js. Chưa browser QA.
+
+- 2026-10-08: Sửa MessagesGroupAvatar: ảnh upload phủ toàn box như ảnh mặc định thay vì82%; mask vòng vàng dùng circle closest-side để vòng không bị mất. Đồng bộ mọi nơi dùng component. Build/typecheck PASS, kiểm tra mask mới trong dist/assets/index-Dql-KoJq.js; chưa browser QA.
+
+- 2026-10-08: Bảng thành viên nhóm dành sẵn8 dòng, vượt8 người cuộn dọc; dùng chung token thanh cuộn vàng với danh sách Tin nhắn. Giới hạn chiều cao trong popup, giữ avatar và quyền chìa khóa. Build/typecheck PASS; đã kiểm tra mã cuộn trong dist/assets/index-LXd0ucwX.js và màu thanh cuộn trong CSS; chưa browser QA.
+
+- 2026-10-08: Căn số trong Tin nhắn bằng NumberText dùng font-number/lining-nums/tabular-nums; số trong tên0.9em cùng baseline, đồng bộ danh sách/header/tùy chọn/chọn thành viên. Preview và tin nhắn cũng tách số; thời gian có lining/tabular. Build/typecheck PASS, dist/assets/index-CQ54nvKH.js cập nhật; chưa browser QA.
+
+- 2026-10-08: Thu phần số trong tên Lịch sử xuống0.9em (90% cỡ tên) để cân bằng Times New Roman với Cormorant; tự co theo cỡ tên, giữ baseline và độ đậm. Build/typecheck PASS; dist cập nhật. Lịch sử vẫn mở khóa; chưa browser QA.
+
+- 2026-10-08: Tăng tên trong Lịch sử20→21px; phần chữ dùng font-heading, các đoạn số trong tên dùng font-number/lining-nums cùng cỡ và độ đậm để tránh số oldstyle cao thấp. Giữ nguyên chuỗi tên. Build/typecheck PASS; dist/assets/index-BOP0LFji.js cập nhật. Lịch sử tiếp tục mở khóa; chưa browser QA.
+
+- 2026-10-07: Nới ô bong bóng chat (padding ngang20/dọc6px), căn giữa bong bóng với avatar và thu avatar chat48px. Browser QA xác nhận avatar và bong bóng căn giữa theo trục dọc, nội dung đủ, không hiện thời gian/tick. Ảnh outputs/tin-nhan-bong-bong-can-giua.png. `npm.cmd run build` PASS (typecheck + Vite), dist/assets/index-CQ7nWuDn.js.
+
+- 2026-10-07: Tinh chỉnh tin nhắn theo yêu cầu: ẩn timestamp/dấu tick bên trong bong bóng, thu avatar cạnh bong bóng58→52px, tăng chữ21→23px. Timestamp preview danh sách vẫn còn. Browser QA xác nhận vùng chat chỉ còn nội dung7 tin, timestamp/tick không xuất hiện trong cây accessibility; ảnh outputs/tin-nhan-tinh-chinh.png. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-wqgT3osx.js.
+
+- 2026-10-07: Tách Tin nhắn thành MessagesSidebar và MessagesChatPane với hai asset cắt từ ảnhff79830f (trái465×998, phải890×989 sau trim9 hàng alpha trên); width/height từng bên chỉnh riêng qua MESSAGE_PANEL_SIZE trong messagesPanelLayout.ts. Giữ bố cục/nội dung mặc định và mức giãn ngang20%. Browser QA1280×720: hai ảnh nối đúng đường phân cột, nội dung đủ8 hội thoại/7 tin nhắn/thanh nhập, không lệch bố cục mặc định; ảnh outputs/tin-nhan-tach-hai-khung.png. Giữ font nút đóng riêng sau đối chiếu. Build/typecheck cuối PASS; dist/assets/index-CG1o3yZC.js và hai asset khung cập nhật. Viewport QA đã reset; chưa nối logic nhắn tin.
+
+- 2026-10-07: Tăng riêng chiều ngang khung Tin nhắn thêm20%, giới hạn màn hình chừa6px mỗi cạnh; giữ chiều cao và kích thước chữ/avatar. Khung ảnh giãn ngang theo yêu cầu, nội dung HTML theo hai khoang rộng hơn. Browser QA1280×720: khung khoảng1134×696 (ngang trước945px), đủ8 hội thoại/7 tin nhắn/thanh nhập, không tràn khung. Ảnh outputs/tin-nhan-khung-rong.png; đã reset viewport xem thử. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-PV2TjKkq.js.
+
+- 2026-10-07: Theo chỉnh sửa mới, bỏ banner/chữ Tin nhắn phía trên; chỉ giữ khung ảnhff79830f và phóng to theo viewport (lề12px, tối đa1120px ngang), giữ tỷ lệ ảnh và nội dung bản trước. Browser QA tab xem thử714×668: không còn banner, khung rộng690px (trước khoảng582px), đủ8 hội thoại/7 tin nhắn và thanh nhập trong khung. Cập nhật outputs/tin-nhan-khung-moi.png. `npm.cmd run build` PASS (typecheck + Vite), dist/assets/index-CPEjZFKr.js cùng chat-frame-CkHbCwHa.png; chưa kiểm tra viewport khác ở lần này.
+
+- 2026-10-07: Thay khung Tin nhắn bằng ảnhff79830f, crop runtime1355×998 với alpha thật ngoài khung; bỏ khung CSS/SVG và nền chat cũ khỏi MessagesDialog dùng chung Home/Game. Giữ banner và8 hội thoại/7 tin nhắn/thanh nhập/nút bản trước; nội dung đặt đúng hai khoang ảnh, giữ tỷ lệ khung. Browser QA ở tab xem thử: khung mới tải/hiển thị đủ, nội dung nằm trong hai khoang, đóng bằng X rồi mở lại từ Home thành công. Ảnh outputs/tin-nhan-khung-moi.png. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-BYbJpeP0.js và chat-frame-CkHbCwHa.png cập nhật. Game dùng chung component; chưa kiểm tra thao tác trực tiếp trong bàn hoặc viewport khác ở lần này.
+
+- 2026-10-07: Dựng MessagesDialog theo ảnh01f4e691 với hình học/khung Xếp hạng1120×750, banner đổi chữ Tin nhắn; cột8 hội thoại,7 bong bóng/timestamp/checkmarks, thanh nhập/emoji/ảnh/gửi. Mở từ nút Nhắn tin trong Bạn bè/hồ sơ Home/Game; bổ sung icon hội thoại ở hàng tiện ích Home để mở xem thử trực tiếp. Fixture cố định, logic để sau. Asset crop có alpha thật/tight bbox, phong cảnh chat phục hồi riêng bằng built-in imagegen; nguồn/prompt trong assets/messages/source.md. Không sửa RankingDialog, avatar hoặc bố cục các màn khóa. Browser QA: nút tiện ích mới hiện ở Home và mở hộp thoại; cây accessibility hiển thị tiêu đề Tin nhắn, đủ8 hội thoại, nội dung chat và thanh nhập. Screenshot outputs/tin-nhan-ui.png từ trước; hộp thoại đang mở trong tab xem thử. Kích thước responsive 1280×720 và800×620 đã kiểm tra ở lần trước; Game dùng chung component, chưa thao tác trực tiếp trong bàn. `npm.cmd run build` PASS (typecheck + Vite), dist bundle mới `index-mHEaYRUt.js`; cảnh báo hiện có về chunk JS >500 kB.
+
+- 2026-10-07: Cho phép lời mời So tài độc lập tồn tại đồng thời. Khi có lời mời mới đến cùng người nhận, máy chủ xóa lời cũ, báo người gửi cũ và gửi lời mời mới; trả lời lời cũ không còn hợp lệ. `npm.cmd run build` (gồm typecheck) PASS; frontend dist được tạo, bundle `index-BZ3K4c6R.js` không đổi vì task chỉ thay server.
+
+- 2026-10-07: Trạng thái “Hủy thêm” chỉ làm tối khung nút bằng brightness(0.55); icon và chữ giữ sáng, thao tác hủy vẫn hoạt động. Cập nhật PROJECT-MEMORY. `npm.cmd run build` (gồm typecheck) PASS; dist/index.html dùng `index-BZ3K4c6R.js`.
+
+- 2026-10-07: Lời mời So tài hết hạn sau5 giây theo đồng hồ server; phía nhận tự đóng bảng đúng hạn, và sự kiện dọn dẹp server không mở thêm thông báo sau đó. Đồng bộ quy tắc trong PROJECT-MEMORY. `npm.cmd run build` (gồm typecheck) PASS; dist/index.html dùng `index-DEpPbX2A.js`.
+
+- 2026-10-07: Hồ sơ dùng lời mời kết bạn chờ trong session store: “Hủy thêm” mờ nhưng bấm được để rút; khi state quan hệ báo đã là bạn, nút thành “Xóa bạn” sáng. Thêm hộp xác nhận xóa với Hủy/Đồng ý và checkbox bỏ hỏi trong10 phút, hết hạn thì hỏi lại. Cập nhật FRIENDS-UI-RULES và PROJECT-MEMORY; gửi/nhận kết bạn qua backend chưa tích hợp. `npm.cmd run build` (gồm typecheck) PASS; dist/index-B6x2wLTn.js có UI hiện tại. Browser QA: Hủy thêm vẫn mờ và giữ trạng thái khi đóng/mở hồ sơ; bấm Hủy thêm rút lời mời; hộp xác nhận hiện đúng tên/nút/checkbox; chọn bỏ hỏi rồi Đồng ý thì lần xóa kế tiếp chạy trực tiếp. Tải lại trang khôi phục dữ liệu mẫu.
+
+- 2026-10-07: Đồng bộ icon Xóa bạn với bộ icon thao tác hồ sơ mới. Tạo `src/assets/profile/actions/remove-friend.png` theo icon `friend.png`, giữ huy hiệu vàng và thay dấu cộng bằng dấu trừ; crop alpha dư còn 1250×1220px. Cập nhật `ProfileDialog`, FRIENDS-UI-RULES, PROJECT-MEMORY và ghi nguồn asset. Giữ nguyên bố cục, trạng thái và avatar. `npm.cmd run build` (gồm typecheck) PASS; `dist/assets/remove-friend-DapGtU55.png` đã được cập nhật. Chưa browser QA.
+
 - 2026-09-29: Giữ tên đầy đủ trong `name`, thêm `displayName` rút gọn cho các tên dài; chữ trong khung Phong Tặng nằm giữa vùng 70%, một dòng, tự co cỡ 30/27/24/21px và không hiện ellipsis. Khung giữ nguyên scale 1.36. Build/typecheck PASS.
 - 2026-09-29: Thay 5 khung Phong Tặng bằng năm khung cắt từ sprite `52405c8d-34f5-4789-a46c-20e1d0674b2e.png` theo thứ tự VIP 1→5; giữ alpha, tỷ lệ gốc và canvas 1500×500, căn thân đặt chữ cùng tâm/bề rộng 580px. Tăng render scale chung lên 1.36 để vùng thân đạt xấp xỉ chuẩn 790px; build/typecheck PASS, asset đã kiểm tra trực quan.
 - 2026-09-29: Sửa dấu/chữ trong tên Phong Tặng: dùng Cormorant Garamond có glyph tiếng Việt, chuẩn hóa NFC, nới line-height và giảm stroke để dấu không dính chữ. Build/typecheck PASS; chưa browser QA.
@@ -859,13 +1360,27 @@ Build/typecheck PASS, dist cập nhật.
 
 ## Phạm vi khóa đang có hiệu lực
 
+- 2026-10-08: Giảm nhẹ độ đậm các chữ số trong Tin nhắn và Bạn bè: hạ weight một bậc riêng trên digit runs và opacity94%, giữ nguyên cỡ chữ/vị trí và độ đậm chữ cái. Build/typecheck PASS; dist/assets/index-HOwsRn5X.js và index-BfX_6rZw.css cập nhật; chưa browser QA.
+
+- 2026-10-08: Lịch sử/Xếp hạng và Danh hiệu tiếp tục khóa. Cập nhật mới: toàn bộ UI Bạn bè và các thao tác quan hệ trong hồ sơ người khác được mở liên tục cho đến khi người dùng yêu cầu khóa lại; kích thước/vị trí avatar và nội dung Danh hiệu vẫn khóa riêng.
+- 2026-10-08: Theo yêu cầu mở khóa Bạn bè, căn chữ số trong tên bằng NumberText/font-number 0.9em, lining-nums/tabular-nums; bộ đếm lời mời dùng cùng font số và lining/tabular. Build/typecheck PASS; dist/assets/index-D9O4Le9R.js cập nhật; chưa browser QA. UI Bạn bè tiếp tục mở đến khi người dùng yêu cầu khóa.
+
+- 2026-10-08: Khôi phục tính năng bị mất sau khi ProfileDialog bị phục hồi từ HEAD cũ: So tài gọi service Socket.IO, Nhắn tin gọi callback Home/Game, lời mời chờ hiện Hủy thêm/icon trừ/khung tối, danh sách lời mời và chấp nhận dùng state chung. Phục hồi hiển thị/sao chép ID của người đang xem (thiếu ID thì — và tắt copy). Theo dõi/Tặng quà chưa triển khai theo ghi nhớ trước đó. Build/typecheck PASS; dist `index-DmTXpWit.js`. Chưa kiểm chứng trình duyệt với hai phiên online.
+
+- 2026-10-08: Theo yêu cầu, khóa lại toàn bộ UI Lịch sử và mở riêng Bạn bè để hoàn tác giao diện về bản trước. Giữ nguyên các luồng tin nhắn và trạng thái kết bạn đang được nơi khác dùng; khóa lại Bạn bè sau khi hoàn tác. Build/typecheck PASS; `dist/assets/index-KntOnEkV.js` được tạo. Chưa browser QA.
+- 2026-10-08: Người dùng mở khóa riêng phần khung Bạn bè; sửa lớp chồng: banner tiêu đề chuyển xuống dưới hàng tab bằng z-index thấp hơn, giữ nguyên kích thước và vị trí các vùng. Khóa lại khung sau chỉnh sửa. Build/typecheck PASS; `dist/assets/index-Cd9034XK.js` được tạo. Chưa browser QA.
+- 2026-10-08: Người dùng mở liên tục toàn bộ khu vực Bạn bè và thao tác quan hệ trong hồ sơ người khác cho đến khi họ yêu cầu khóa. Đổi tên người chơi sang `font-heading`; đồng bộ trạng thái danh sách với hồ sơ, thêm nhãn/thao tác xóa bạn có xác nhận và lọc người đã xóa khỏi danh sách. Build/typecheck PASS; `dist/assets/index-B5RETVAn.js` được tạo. Chưa browser QA.
+- 2026-10-08: Áp dụng độ đậm tên Xếp hạng cho Bạn bè (`font-black`, viền0.65px), giữ cỡ22px; tách chữ số sang `font-number` 0.9em/lining-nums để thẳng baseline. Build/typecheck PASS; `dist/assets/index-CUOiBudt.js` được tạo. Chưa browser QA.
+- 2026-10-08: Đổi icon thao tác trong hồ sơ theo trạng thái quan hệ: bạn hiện tại dùng `remove-friend.png`, chưa kết bạn dùng `friend.png`. Build/typecheck PASS; `dist/assets/index-SLJK37un.js` được tạo. Chưa browser QA.
+
 - Mốc Bạn bè hiện hành2026-10-05: nền nâu dài thêm50px responsive về bên trái, mép phải giữ mốc cũ; danh hiệu/sao/tên bậc dịch trái50px là tọa độ tham chiếu cũ, riêng khung/ảnh danh hiệu và cụm sao hiện mở khóa để thử nghiệm. Avatar, nền, cột và nhóm nút vẫn khóa; giữ nguyên bố cục hàng.
 
-- Mở khóa đang có hiệu lực theo yêu cầu2026-10-06: toàn bộ UI Danh hiệu (catalog, popup Thông tin danh hiệu, hiển thị trong/ngoài thông tin user) và hình học ảnh/khung danh hiệu cùng cụm sao đi kèm trên mọi consumer để thử nghiệm; giữ mở đến khi người dùng yêu cầu khóa lại.
+- Theo yêu cầu2026-10-08, UI Lịch sử đã khóa lại sau đợt chỉnh typography. UI Bạn bè hiện được mở liên tục theo yêu cầu mới; phần Danh hiệu và kích thước/vị trí avatar vẫn khóa riêng.
+- Khóa Danh hiệu theo yêu cầu2026-10-08: catalog, popup Thông tin danh hiệu, hình/khung/sao và nơi hiển thị trong/ngoài hồ sơ bị khóa toàn project cho đến khi người dùng mở khóa rõ ràng.
 
 - Kích thước/vị trí avatar người chơi và khung avatar trên toàn project. Mốc responsive tại docs/PROJECT-MEMORY.md và docs/RANK-SYSTEM.md; Bạn bè tại docs/FRIENDS-UI-RULES.md. Phải hỏi mở khóa trước khi thay đổi.
 
-- Khóa UI hiện hành của Lịch sử, Xếp hạng và toàn bộ khu vực Bạn bè, ngoại trừ hình học ảnh/khung danh hiệu và cụm sao đã được mở khóa riêng: giữ nguyên bố cục/hình học phần còn lại, kiểu chữ, màu và asset như trạng thái UI đã chốt.
+- Khóa UI hiện hành của Xếp hạng và toàn bộ Lịch sử. Khu vực Bạn bè và thao tác quan hệ bạn bè trong hồ sơ người khác đang mở; avatar và Danh hiệu giữ phạm vi khóa riêng.
 - 2026-10-05: Đối chiếu Bạn bè ở viewport1280×720: khung Gợi ý cho bạn sau khi thu cao50px responsive và khung Lời mời đã nhận/đã gửi cùng43px CSS; cùng width843.2px và ảnh nền. Bọc Gợi ý nằm trong hàng54px để giữ mốc Danh sách/Thêm bạn. Screenshot hai tab xác nhận trực quan. Không cần sửa code thêm lượt này; dist đã build sau khi dùng friendSectionTitle chung.
 
 - 2026-10-05: Icon tìm kiếm ô Danh sách dùng chung SearchIcon với ô tìm kiếm Thêm bạn: cùng hình học SVG,31px responsive và stroke3.5. Giữ màu vàng/bóng cho nền tối. Cập nhật FRIENDS-UI-RULES. Build/typecheck PASS; dist index-Bhk2LSwb.js được tạo mới. Browser QA trực quan chưa chạy vì tab localhost trước đó không còn mở sau khi nối lại phiên.
@@ -982,3 +1497,844 @@ Build/typecheck PASS, dist cập nhật.
 - 2026-10-06: Theo mẫu b99a1e64-d36b-41e2-8824-05088d378d56, thay nhóm6 nút hồ sơ người khác bằng bộ7 asset mới:1 khung,6 icon. Tạo bản runtime tight-crop tại src/assets/profile/actions, loại alpha nhiễu dưới8/255; giữ tỷ lệ và nguồn gốc trong source.md. Căn3×2 với icon trái/chữ Cormorant phải, không sửa hình học avatar hay các màn khóa. Browser QA6 ảnh/icon tải đủ, cả6 nhãn không tràn, tâm2 hàng ở28.1%/69.5% chiều cao panel so với mẫu28.2%/70.2%; Xem thông tin/Quay lại hoạt động. Ảnh outputs/ho-so-nut-asset-moi.png. Typecheck/build PASS; dist index-CIu3iwLG.js. Mẫu chỉ đối chiếu, không import vào runtime; nguồn được giữ để tra lại.
 
 - 2026-10-06: Tăng icon thao tác hồ sơ người khác từ30% lên32% vùng nội dung, đổi lề trái7%→9% để dịch phải; lề phải3%, gap1%. Chữ10→10.7cqw, tracking-0.025em để nhãn dài nằm gọn. Browser QA tại viewport hiện tại:icon39.2→42.79px (+9.15%), dịch phải3.04px; font15.19→16.26px (+7%),6 nhãn không tràn, Xem thông tin cách icon2.2px. Giữ hình học khung nút, avatar và panel. Typecheck/build PASS; dist index-93CaZUgw.js; ảnh outputs/ho-so-nut-asset-moi.png.
+
+- 2026-10-06: Theo yêu cầu tăng nhẹ chiều cao6 khung nút hồ sơ người khác, đổi tỷ lệ ô1471:606→1471:680. Khung ảnh render bằng border-image chia9 vùng slice200px/width13.596cqw để kéo phần giữa, giữ nguyên tỷ lệ các góc. Browser QA6 nút đều rộng151.95px/cao70.24px (cao thêm7.64px), icon42.79px và cỡ chữ16.26px giữ nguyên; nhãn không tràn, nội dung vẫn căn giữa. Cập nhật PROJECT-MEMORY/HONOR-SYSTEM. Typecheck/build PASS; dist index-Brzn5FvK.js; ảnh outputs/ho-so-nut-asset-moi.png.
+
+- 2026-10-06: Hồ sơ người khác hiển thị đủ các trường chung như hồ sơ mình: bỏ nhánh giảm ô thông tin xuống90%, mở dòng ID/sao chép cho cả2 loại hồ sơ và giữ chiều cao dòng địa chỉ min-h-8 để căn hàng thống nhất. Thêm prop playerId cho ID người được xem; thiếu dữ liệu thì hiện — và vô hiệu sao chép, không hiển thị/sao chép ID của mình cho người khác. Copy dùng displayedProfileId và reset feedback khi ID đổi. Các quyền sửa avatar/địa chỉ vẫn giới hạn hồ sơ mình;6 nút giữ nguyên. Browser QA tại Home→Bạn bè:ô thông tin mình/người khác cùng152.14px, người khác có ID:—/copy disabled và đủ6 nút; chưa kiểm tra trực tiếp trong bàn chơi nhưng dùng cùng component. Typecheck/build PASS; dist index-BauwrnPy.js; ảnh outputs/ho-so-nguoi-khac-day-du.png.
+
+- 2026-10-06: Theo yêu cầu, tăng chữ cả6 nút hồ sơ từ10.7 lên11cqw (font tại browser QA từ16.26 lên16.71px, +2.8%). Nhãn Xem thông tin và5 nhãn còn lại đều fit trong nút; chiều cao/chiều ngang nút và tâm các hàng giữ nguyên. Icon giữ vị trí13.68px và kích thước42.73px. Cập nhật PROJECT-MEMORY/HONOR-SYSTEM. Browser QA PASS; build/typecheck PASS; dist index-ClKa-vgJ.js; ảnh outputs/ho-so-nguoi-khac-day-du.png.
+
+
+## 2026-10-06 — So tài qua Socket.IO
+
+- Nối nút So tài chung trong ProfileDialog tới challenge service/controller/repository, giữ bố cục/avatar đang khóa. Hồ sơ mở từ phòng truyền socket target ID riêng, không hiển thị nhầm thành ID hồ sơ.
+- Presence duy trì ngoài phòng; trạng thái online ready/playing kiểm tra tại server, kiểm tra lại hai phía khi nhận ✓. Chấp nhận tạo phòng10 phút với hai ghế chưa ready; × từ chối, hết hạn60s/mất kết nối hủy lời mời, chặn lời mời trùng.
+- Notification fixed góc phải dưới, trượt vào420ms, avatar/khung/danh hiệu/sao dùng component chung; manual popover + portal vào modal trên cùng giữ khả năng tương tác và nằm trên hồ sơ.
+- Quan sát trình duyệt với hai phiên Picolozz/LinhMeo99: gửi từ hồ sơ hiện thông báo thành công; người nhận đang mở hồ sơ vẫn thấy và bấm được ✓; hai phiên chuyển vào cùng bàn online. Ảnh: outputs/so-tai-loi-moi.png của chat. Không chạy bộ test tự động trong task này.
+- Build cuối: npm.cmd run build thành công (typecheck + Vite); dist/index.html dùng index-BjLEWgha.js.
+
+
+## 2026-10-06 — Thêm/Xóa bạn trong hồ sơ
+
+- Nút Thêm bạn hiện cập nhật friendshipOverrides dùng chung trong session; hồ sơ khác phản ánh trạng thái ngay. Gỡ quan hệ qua Xóa bạn. Danh sách thêm bạn mới và Gợi ý lọc họ ra; khi xóa người từng được gợi ý, họ trở lại Gợi ý.
+- Ngay sau Thêm bạn, nhãn thành Xóa bạn, nút tối `brightness(0.55)` và disabled với cursor-pointer; đóng dialog reset trạng thái nhấn, mở lại Xóa bạn hoạt động.
+- Browser QA localhost: thêm ThanhVan92 hiện nút disabled Xóa bạn; đóng/mở hồ sơ lại nút Xóa bạn active; tính năng chỉ lưu trong phiên. Build/typecheck PASS; dist index-Dy1TiNGf.js trước phần đồng bộ Danh sách cuối cùng.
+- Kiểm tra cuối sau đồng bộ dữ liệu danh sách: npm.cmd run build PASS (typecheck + Vite), dist/index.html dùng index-BO96pC3C.js. Browser kiểm tra Thêm bạn → Xóa bạn tối/disabled → đóng/mở lại hoạt động; liên hệ thử ThanhVan92 được xóa ngay sau kiểm tra để trả lại trạng thái demo ban đầu.
+
+## 2026-10-06 — Lưu quy tắc Theo dõi/Nhắn tin/Tặng quà
+
+- Theo dõi: sau khi bấm, nút mờ/tối và bị khóa; giữ trạng thái khi đóng rồi mở hồ sơ; tăng follower count người nhận thêm1.
+- Tặng quà: dự kiến vàng với giá trị món quà >3.000 vàng để hạn chế lạm dụng tài khoản phụ; thêm lựa chọn skin, hiệu ứng, khung viền, avatar. UI làm sau.
+- Nhắn tin: chưa chốt hành vi cụ thể; đợi yêu cầu tiếp theo.
+- Chỉ cập nhật tài liệu quy tắc; chưa sửa code/UI, chưa chạy build.
+
+
+## 2026-10-06 — Icon Xóa bạn
+
+- Dùng asset 1c7141e5-e240-4d7b-abfe-9b66335606a0.png (người kèm dấu trừ) khi hồ sơ ở trạng thái bạn bè; giữ icon Thêm bạn cho trạng thái chưa kết bạn. Đổi icon đồng thời khi label chuyển.
+
+
+
+## 2026-10-07 — Client ID fallback cho HTTP LAN
+
+- Quét toàn bộ mã nguồn ngoài node_modules/dist: tìm thấy đúng hai lời gọi trực tiếp crypto.randomUUID trong GamePage và sessionStore; giữ nguyên crypto.getRandomValues đang dùng cho chức năng khác trong ProfileDialog.
+- Thêm src/lib/clientId.ts và thay hai call site bằng helper. Helper ưu tiên randomUUID; nếu không có thì tạo UUID v4 bằng getRandomValues (122 bit ngẫu nhiên), và cuối cùng fallback timestamp/counter/Math.random dành cho ID client không nhạy cảm. Không đổi UI, gameplay, mạng, Socket.IO hay âm thanh.
+- Thêm tests/client-id.test.ts cho ba nhánh. Test helper: 3/3 PASS. npm run typecheck PASS. npm run build PASS, dist/assets/index-DDnEI4XN.js; còn cảnh báo chunk JS lớn hơn500 kB. npm test tổng thể: 101 PASS, 27 FAIL trong4 file (lỗi API môi trường test AudioContext/document.fonts và các kỳ vọng phòng/animation khác; không phát sinh từ helper).
+## 2026-10-07 — Cân kích thước icon Xóa bạn
+
+- Tăng riêng icon trạng thái Hủy thêm/Xóa bạn từ31.6% lên36% vùng nội dung để huy hiệu nhìn bằng cỡ các icon cùng hàng; giữ nguyên khung, vị trí, nhãn và các icon khác. Cập nhật PROJECT-MEMORY.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` cập nhật, bundle JS `index-D96WUBsx.js` và asset `remove-friend-DapGtU55.png`. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Điều chỉnh thanh nhập Tin nhắn
+
+- Đổi vị trí nút đính kèm ảnh và biểu tượng cảm xúc: ảnh bên trái ô nhập, mặt cười bên phải. Thu nút gửi từ70px xuống63px theo đơn vị thiết kế.
+- Cập nhật quy cách UI xem thử trong `docs/MESSAGES-UI.md` và `docs/PROJECT-MEMORY.md`; gửi/đính kèm vẫn chưa có logic.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` cập nhật với bundle `index-Dj2kB7-F.js`. Vite còn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Cập nhật phần đầu Tin nhắn
+
+- Cột trái hiện chỉ còn nút ba chấm ở góc; bỏ danh sách/tìm kiếm/tạo nhóm khỏi UI xem thử. Header chat và avatar cạnh tin đến lấy tên/avatar/trạng thái từ hội thoại đang mở (hiện fixture Picolozz).
+- Cập nhật `docs/MESSAGES-UI.md` và `docs/PROJECT-MEMORY.md`. `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` cập nhật với bundle `index-TgHyXCPi.js`. Vite còn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Cân kích thước icon thanh Tin nhắn
+
+- Đặt icon ảnh 30px làm mốc, mặt cười 32px, icon gửi34px; khung nút ảnh giữ46px và vị trí ba nút không đổi.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` cập nhật với bundle `index-BXHlypX8.js`. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Sửa lại header Tin nhắn
+
+- Hoàn tác thử nghiệm kích thước icon thanh nhập: trở lại ảnh trong khung46px/padding8px, mặt cười42px, ảnh gửi63px.
+- Header chat giữ avatar/tên/trạng thái người đang chat ở trái; bỏ nút thông tin, chỉ để nút ba chấm ở phải. Panel trái bên ngoài vẫn giữ nút ba chấm theo yêu cầu trước.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` cập nhật với bundle `index-CKcoELlP.js`. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Tăng kích thước icon thanh Tin nhắn
+
+- Đặt icon ảnh và mặt cười cùng45px (mốc mặt cười42px +3px); icon gửi50px (mốc +5px), khung ảnh ngoài giữ46px.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` cập nhật với bundle `index-BDk1J1DZ.js`. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Khôi phục danh sách hội thoại
+
+- Khôi phục nút Tạo nhóm, ô tìm kiếm và 8 hội thoại ở panel trái. Header chat vẫn giữ avatar/tên bên trái và nút ba chấm bên phải.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` cập nhật với bundle `index-DPo83tDT.js`. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Thu icon ảnh thanh nhập
+
+- Thu hình SVG đính kèm từ45px xuống30px để cân thị giác với mặt cười; giữ khung46px và các icon khác.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` cập nhật với bundle `index-Ctr1D8My.js`. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Chỉnh nút đóng Tin nhắn
+
+- Dịch nút đóng lên3px, sang phải5px; giảm khung56px xuống52px và dấu ×42px xuống40px.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` cập nhật với bundle `index-DgHTslqB.js`. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Cân lại nút đóng Tin nhắn
+
+- Tăng nút từ52px lên54px và dấu × từ40px lên42px; dịch thêm2px sang phải và xuống2px.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` cập nhật với bundle `index-ClleHZ_p.js`. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Cập nhật danh sách Tin nhắn
+
+- Tên hội thoại dùng font-cormorant và tăng18px→20px. Chuẩn hóa trạng thái thành online/offline (chấm xanh/xám); thay chữ trạng thái bằng tin nhắn gần nhất cạnh chấm.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` cập nhật với bundle `index-DMnLY9jc.js`. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Khôi phục khung Tin nhắn chung
+
+- Dùng lại chat-frame.png nguyên khung; bỏ MessagesPanels và messagesPanelLayout. Nội dung hai bên định vị theo cùng khung; giữ các chỉnh sửa tên, trạng thái, tin gần nhất và nút đã chốt.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` dùng bundle `index-BNMzD3ja.js`, đã kiểm tra source không còn import component/asset hai pane riêng. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Tách lại khung và đưa họa tiết lên trên
+
+- Khôi phục hai pane độc lập; thêm lớp foreground viền/họa tiết góc dưới bên phải trên thanh nhập, không chặn chuột.
+- `npm.cmd run build` PASS (typecheck + Vite); bundle `index-rvJiI8CY.js`. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Chỉnh chiều cao danh sách Tin nhắn
+
+- Nút Tạo nhóm hạ còn56px; ô tìm kiếm tăng lên50px. Chia đều 8 hàng trên phần còn lại, giữ min-height58px.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` cập nhật với bundle `index-DwC6TCUd.js`. Vite còn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Tăng cỡ chữ tin nhắn xem trước
+
+- Dòng tin nhắn mới nhất trong mỗi hàng tăng15px→17px; tên/thời gian không đổi.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` dùng bundle `index-BV-DniY8.js`. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Thời gian tương đối tin nhắn
+
+- Thay giờ cố định bằng thời gian đã trôi qua từ tin mới nhất (phút/giờ/ngày/tháng/năm trước), cập nhật30 giây/lần. Thời điểm vẫn là fixture, chưa lấy từ backend.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` dùng bundle `index-kOU_Rme-.js`. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Định dạng thời gian tin nhắn
+
+- Thay nhãn “phút/giờ trước” bằng giờ HH:mm trong24 giờ; sau24 giờ hiện thứ, qua30 ngày hoặc sang tháng hiện thứ + tháng. Tăng cỡ nhãn thời gian12px→14px.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` dùng bundle `index-B3F1jc4N.js`. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB.
+
+## 2026-10-07 — Đồng bộ chấm trạng thái Tin nhắn
+
+- Thay chấm trạng thái bằng kiểu đang dùng trong Bạn bè:21px, viền nâu, bóng và gradient radial xanh/xám.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` dùng bundle `index-Dz1PB0CF.js`. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB.
+
+## 2026-10-07 — Đồng bộ tin xem trước với chat
+
+- Dòng của Picolozz lấy trực tiếp text từ tin cuối của mảng chat để luôn trùng tin mới nhất đang hiển thị.
+- `npm.cmd run build` PASS (typecheck + Vite); `dist/index.html` dùng bundle `index-3sYEhAvN.js`. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB.
+
+## 2026-10-07 — Font tên header Tin nhắn và vị trí nút đóng
+
+- Tên Picolozz trong header dùng font-cormorant như tên ở thông tin người dùng, giữ cỡ28px; nút đóng dịch thêm3px sang phải.
+- npm.cmd run build PASS (typecheck + Vite); dist/index.html dùng bundle index-D4GcNvwZ.js. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB. Chưa kiểm tra trực quan trên trình duyệt.
+
+## 2026-10-07 — Tăng cỡ thời gian hội thoại
+
+- Nhãn giờ/ngày trong danh sách Tin nhắn tăng14px lên16px, giữ nguyên định dạng.
+- npm.cmd run build PASS (typecheck + Vite); dist/index.html dùng bundle index-pW5ZEL6O.js. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB.
+
+## 2026-10-07 — Chỉnh tên và chấm trạng thái hội thoại
+
+- Tên hội thoại tăng20px lên22px; chấm online/offline giảm21px xuống18px.
+- npm.cmd run build PASS; dist/index.html dùng bundle index-Dj4vcJ-Q.js. Vite còn cảnh báo chunk JavaScript trên500 kB.
+
+## 2026-10-07 — Thu chấm trạng thái hội thoại
+
+- Chấm online/offline giảm18px xuống16px, màu/gradient giữ nguyên.
+- npm.cmd run build PASS; dist/index.html dùng bundle index-BlCZzBaX.js. Vite còn cảnh báo chunk JavaScript trên500 kB.
+
+## 2026-10-07 — Thử chữ trắng cho ô tìm kiếm và nhập tin nhắn
+
+- Chữ nhập và placeholder của hai ô chuyển sang trắng.
+- npm.cmd run build PASS; dist/index.html dùng bundle index-DigJKc3-.js. Vite còn cảnh báo chunk JavaScript trên500 kB.
+
+## 2026-10-07 — Tăng cỡ chữ hai ô Tin nhắn
+
+- Ô tìm kiếm và ô nhập chat tăng18px lên20px, giữ màu trắng.
+- npm.cmd run build PASS; dist/index.html dùng bundle index-B-hIEeOR.js. Vite còn cảnh báo chunk JavaScript trên500 kB.
+
+## 2026-10-07 — Vầng sáng chỉ xuất hiện khi chọn hội thoại
+
+- Bỏ chọn sáng cố định ở hàng Picolozz. Tách vầng sáng thành lớp overlay, mặc định không chọn; bấm hàng nào thì sáng hàng đó. Dùng nút hỗ trợ cả bàn phím, chưa nối chuyển dữ liệu chat.
+- npm.cmd run build PASS (typecheck + Vite); kiểm tra lớp chọn và aria-pressed đã có trong dist/assets/index-CpmyjQ4u.js. Chưa kiểm tra tương tác/trực quan trên trình duyệt.
+
+## 2026-10-07 — Mốc thời gian giữa tin và giờ gửi khi bấm
+
+- Mỗi tin mẫu có sentAt; khoảng cách giữa hai tin từ10 phút chèn giờ gửi tin sau căn giữa. Bấm bong bóng hiện giờ HH:mm dưới tin; bấm lại ẩn. Thời gian preview Picolozz dùng sentAt tin cuối.
+- Ghi quy tắc database tương lai: lưu nội dung và thời điểm gửi do server xác lập cho từng tin. Chưa triển khai database/backend nhắn tin.
+- npm.cmd run build PASS (typecheck + Vite); dist/assets/index-Ci8Dd_Q1.js đã chứa mốc giờ và thao tác bật/tắt. Chưa kiểm tra trực quan/tương tác trên trình duyệt.
+
+## 2026-10-07 — Mở chức năng gửi tin trong hội thoại
+
+- Ô nhập và nút gửi/Enter thêm tin vào thread đang chọn; tin có giờ gửi, preview/thời gian danh sách cập nhật, hội thoại mới nhất lên đầu, và khung cuộn tới tin cuối. Giới hạn300 ký tự.
+- Dữ liệu chat hiện chỉ ở state trình duyệt; chưa có API, đồng bộ giữa người dùng/thiết bị, xác thực hay lưu database. Đã ghi yêu cầu database phải lưu nội dung cùng thời điểm gửi server UTC.
+- npm.cmd run build PASS (typecheck + Vite); dist/index.html dùng bundle index-Cvtn-Lki.js. Vite vẫn cảnh báo chunk JavaScript lớn hơn500 kB. Không chạy test theo phạm vi xác minh của task.
+
+## 2026-10-07 — Popup tùy chọn hội thoại theo ảnh8109d221
+
+- Bấm avatar header hoặc ba chấm mở MessagesOptionsPanel theo ảnh gốc; bỏ tiêu đề Tùy chọn trò chuyện. Nút Quay lại/Escape/bấm ngoài đóng popup. Avatar lấy từ hội thoại đang mở. Các mục trong popup hiện chỉ là UI, chưa nối thao tác chặn/xóa/báo cáo.
+- Crop asset riêng bằng scripts/crop-message-options.ps1; giữ ảnh nguồn trong references/uploads; kiểm tra kích thước và alpha góc, trim1px dư của nút và đồng bộ wrapper.
+- Đã đối chiếu bản ghép asset với ảnh nguồn và sửa crop nền header để bỏ hết chữ. Không kiểm tra browser được vì không có browser khả dụng trong phiên công cụ.
+- npm.cmd run build PASS (typecheck + Vite); dist/index.html dùng bundle index-CpF2Ig9I.js. Vite còn cảnh báo chunk lớn hơn500 kB.
+
+## 2026-10-07 — Thu nhỏ popup tùy chọn chat
+
+- Popup hiển thị ở84% kích thước giới hạn trước đó, giữ tỷ lệ ảnh gốc.
+- npm.cmd run build PASS; dist/index.html dùng bundle index-B3mvSrCU.js. Vite còn cảnh báo chunk JavaScript trên500 kB.
+
+## 2026-10-07 — Avatar popup rõ hơn và nhỏ hơn
+
+- Picolozz dùng AvatarPortrait index0 từ sprite1619×971 thay crop86×86 bị phóng mờ. Chân dung popup giảm208 xuống200px và giữ tâm. Kích thước avatar các vùng khác không đổi.
+- npm.cmd run build PASS (typecheck + Vite); dist/index.html dùng bundle index-KzK-CCBm.js. Chưa kiểm tra browser vì browser không khả dụng trong phiên công cụ.
+
+## 2026-10-07 — Chỉnh tỷ lệ popup tùy chọn chat
+
+- Giảm giới hạn chiều rộng popup84%→80%, tăng chiều cao84%→88% vùng tham chiếu; nút và ảnh chân dung giữ hình tròn.
+- npm.cmd run build PASS; dist/index.html dùng bundle index-B2GykHPg.js. Vite còn cảnh báo chunk JavaScript trên500 kB.
+
+- 2026-10-07: popup tùy chọn Tin nhắn bỏ chân dung mặc định/vòng vàng trong nền, dùng scene-background.png và avatar thật dạng tròn (width=height pixel, giữ tâm); sửa méo do height% theo tỷ lệ panel khác width%. Chỉ mở sửa avatar popup theo yêu cầu hiện tại, các vùng avatar khác tiếp tục khóa. Đã xem ảnh nền mới không còn portrait/khung, npm.cmd run build thành công (typecheck + Vite), dist có scene-background-BNu6T-cZ.png và bundle index-C1MIulr_.js tham chiếu nền mới. Chưa QA popup trực tiếp trong trình duyệt vì browser không khả dụng trong phiên; không chạy test.
+
+
+- 2026-10-07: popup tùy chọn chat hiển thị tên người đang nhắn dưới avatar, căn giữa; không đổi bố cục/kích thước các phần. 
+pm.cmd run build đang chờ hoàn tất.
+
+
+- Hoàn tất 2026-10-07: thêm tên ngay dưới avatar popup, giữ nguyên các tọa độ/kích thước thành phần hiện có; tên dài truncate một dòng. 
+pm.cmd run build thành công (typecheck + Vite), dist bundle index-BfNHzN3O.js có thay đổi. Chưa kiểm tra UI trực tiếp trong browser.
+
+
+- 2026-10-07: popup tùy chọn chat bỏ dải nâu header, nền cảnh phủ tới mép trên phần trong khung bằng object-cover; avatar và tên cùng lên32 đơn vị thiết kế, đường kính avatar giữ nguyên và tròn. Nút/khung không dịch. npm.cmd run build thành công (typecheck + Vite); dist index-DUQq-YPz.js có nền scene-background và đã bỏ lớp header cũ. Chưa QA trực tiếp trên browser trong phiên.
+
+- 2026-10-07: avatar và tên popup tùy chọn chat dịch lên thêm8 đơn vị thiết kế. npm.cmd run build thành công (typecheck + Vite), bundle dist index-CSOnLN1P.js cập nhật.
+
+- 2026-10-07: làm hòa mép nối dưới ảnh phong cảnh popup bằng gradient tới màu nền nâu; gradient ở dưới avatar/tên, không đổi vị trí/kích thước. npm.cmd run build thành công (typecheck + Vite); bundle dist index-CVHK43Wy.js cập nhật. Chưa xem popup trực tiếp trong browser phiên này.
+
+- 2026-10-07: popup avatar và tên nâng thêm10 đơn vị thiết kế; npm.cmd run build thành công, dist bundle index-B8dJ9B71.js cập nhật.
+
+- 2026-10-07: vùng chuyển sắc popup kéo sâu hơn vào nền nâu (kết thúc y460); không dịch chuyển ảnh/avatar/nội dung. Build thành công (typecheck + Vite), bundle dist index-BTtuJm6L.js cập nhật. Chưa kiểm tra browser trực tiếp.
+
+
+- 2026-10-07: popup tùy chọn chat thêm danh hiệu/sao dưới tên qua RankTitleBadge dùng chung; vì dữ liệu liên hệ chưa có Elo riêng nên đang dùng mặc định Tân Binh1 sao. Avatar/tên đưa lên để đủ chỗ phía trên nút. npm.cmd run build thành công (typecheck + Vite), dist bundle index-DecnxZgz.js đã build.
+
+- 2026-10-07: sửa popup tùy chọn chat thành avatar → danh hiệu/sao → tên; AvatarRankBadge dùng tỷ lệ chung theo box avatar thay huy hiệu nhỏ riêng. Nâng cụm để không chạm hàng nút; avatar giữ đường kính/tròn. npm.cmd run build thành công (typecheck + Vite), dist index-BWBBg4pS.js đã cập nhật. Chưa QA trực tiếp trong browser.
+
+- 2026-10-07: tên trong popup dịch lên8 đơn vị thiết kế, vẫn ở dưới danh hiệu/sao. Build thành công; dist bundle index-WwhlYNob.js cập nhật.
+
+
+- 2026-10-07: tên popup dịch lên thêm8 đơn vị thiết kế nữa; build thành công, dist bundle index-bMoXFkWa.js cập nhật.
+
+
+- 2026-10-07: tên popup dịch lên thêm10 đơn vị thiết kế; build thành công, dist bundle index-ClT8u7-I.js cập nhật.
+
+
+- 2026-10-07: dùng khung tên chung player/name-frame.png trong popup; tên căn giữa, giữ cụm/avatar/nút. npm.cmd run build thành công, dist bundle index-Cy-4UvGN.js cập nhật.
+
+
+- 2026-10-07: thu khung tên còn290×64 đơn vị thiết kế, căn chính giữa theo chiều ngang, giữ tâm dọc tên; build thành công, bundle index-Bj3p1aPk.js cập nhật.
+
+
+- 2026-10-07: khung tên popup thu còn270×59, chữ tên giảm28→24px. Build thành công, dist bundle index-5j29UL9_.js cập nhật.
+
+
+- 2026-10-07: bỏ khung tên popup theo yêu cầu, chữ căn giữa dưới danh hiệu/sao và tăng24→26px. Build thành công, dist bundle index-COxm3fTH.js cập nhật.
+
+
+- 2026-10-07: tên popup tăng26→28px, dịch lên10 đơn vị thiết kế; build thành công, dist bundle index-C5BswKw8.js cập nhật.
+
+
+- 2026-10-07: thêm viền chữ tên popup nâu đậm1px; build thành công (typecheck + Vite), dist bundle index-DNnDTF7U.js cập nhật. Chưa QA browser trực tiếp.
+
+
+- 2026-10-07: nền cảnh vùng tin nhắn tối15% và mờ nhẹ0.6px, tin nhắn/avatar không blur. npm.cmd run build thành công (typecheck + Vite); dist index-DO2tYqKJ.js và CSS index-DtmTy9-c.css cập nhật. Chưa QA trực tiếp trong browser.
+
+- 2026-10-07: popup chat thêm khung avatar vàng bằng AvatarFrameOverlay chung, giữ avatar hiện tại và huy hiệu phủ trên khung; dùng khung mặc định do chưa có khung của từng liên hệ. Build thành công (typecheck + Vite), dist index-BYbG0heD.js cập nhật. Chưa QA trực tiếp browser.
+
+
+- 2026-10-07: nền vùng tin chat tối45% giống backdrop Xếp hạng, bỏ blur. Thêm icon kết bạn có sẵn bên trái ba chấm, cùng42px (UI, chưa nối lời mời). Build thành công; dist index-CRw11JDc.js cập nhật. Chưa QA browser trực tiếp.
+
+
+- 2026-10-07: header chat dùng icon SVG người+/người− giản lược42px giống nút ba chấm. Gửi/hủy lời mời nối pendingFriendRequests; trạng thái bạn nối friendshipOverrides và danh sách bạn sẵn có. Nền pending tối, glyph vẫn sáng; xóa bạn có xác nhận và tùy chọn bỏ hỏi10 phút chung với hồ sơ. Hook useMessageFriendship xử lý state, UI MessagesFriendButton riêng. npm.cmd run build thành công (typecheck + Vite), dist index-BbY3dPDK.js chứa icon và trạng thái mới. Chưa QA browser trực tiếp; backend kết bạn giữa tài khoản chưa tích hợp.
+
+- 2026-10-07: nền nút header chat đang chờ kết bạn đổi sang xanh lá, icon giữ sáng. Build thành công, dist index-MPPDXmBt.js cập nhật.
+
+
+- 2026-10-07: bỏ nền xanh nút kết bạn đang chờ, làm mờ toàn nút bằng opacity50%, giữ thao tác hủy lời mời. Build thành công, dist index-B-Czuk4C.js cập nhật.
+
+
+- 2026-10-07: thời gian giữa các tin và giờ mở dưới bong bóng tăng16→18px. Build thành công; dist bundle index-_1dHJ99s.js cập nhật.
+
+
+- 2026-10-07: lưu quy tắc lâu dài hướng chat vào PROJECT-MEMORY.md và MESSAGES-UI.md: người đang đăng nhập gửi ở phải/bong bóng sáng, đối phương ở trái/kèm avatar. Đối chiếu MessagesDialog đang đúng (tin gửi outgoing:true, căn phải, nền kem). Chỉ cập nhật tài liệu. Build thành công, dist index-_1dHJ99s.js có sẵn; chưa QA browser trực tiếp.
+
+
+- 2026-10-07: Thêm popup Tạo nhóm mở từ MessagesDialog theo reference03cff998. Bỏ Thư viện/Tệp; icon đổi avatar trên phải, avatar tròn; nhập tên, tabs/chọn người và preview ảnh hoạt động trong state UI; quay lại/nền/Escape đóng, trả focus. Nút dưới dùng mẫu nâu Xem thông tin với chữ Tạo nhóm. Chưa nối API/tạo hội thoại nhóm. Asset crop/source riêng và ghi nhớ cập nhật. `npm.cmd run build` PASS gồm typecheck; xác nhận dist/assets/index-BXulcEHN.js chứa điều khiển avatar/tên và asset create-button. Đã xem trực tiếp asset khung/nút; chưa browser QA popup, không chạy test. Giữ phạm vi các màn/avatars đang khóa.
+
+- 2026-10-07: Tinh chỉnh Tạo nhóm theo feedback: nới nền nâu phủ sát dưới viền ngoài/bo góc, clip góc nền dư banner; đổi icon chọn avatar sang camera SVG. Hai tab dùng viền options/block.png qua border-image, nền/vầng vàng khi chọn chia sẻ messageSelectionHighlight với hàng hội thoại (giữ nguyên hình thức hàng cũ). Không đổi vị trí/kích thước điều khiển hoặc UI màn đang khóa. `npm.cmd run build` PASS gồm typecheck; dist/assets/index-Btmax4oZ.js chứa borderImageSlice12, camera và màu lựa chọn. Đối chiếu asset/markup với ảnh người dùng; chưa kiểm tra trực tiếp trong trình duyệt, không chạy test.
+
+- 2026-10-07: Chỉnh gradient trạng thái chọn: tâm sáng ấm #724018, vùng giữa #51280f, góc tối #241007; hạ glow phía trong. Token dùng chung tab Tạo nhóm/hàng hội thoại. `npm.cmd run build` PASS gồm typecheck; CSS dist/assets/index-B6t3IoOG.css xác nhận có hai màu tâm/góc. Chưa browser QA; không chạy test.
+
+- 2026-10-07: Hạ avatar tạo nhóm34 đơn vị thiết kế để tâm avatar nằm giữa banner và hàng tên nhóm; camera đi cùng. `npm.cmd run build` PASS gồm typecheck; xác nhận dist/assets/index-DDhkFXzM.js có vị trí avatar151/997 và camera159/997. Chưa browser QA; không chạy test.
+
+- 2026-10-07: Hai thẻ Bạn bè/1 mình dùng chính lớp bo góc, viền vàng2px và vầng sáng của hàng hội thoại khi được chọn; bỏ clip glow/viền asset ở trạng thái chọn. Thẻ chưa chọn giữ khung ảnh. Build/typecheck PASS; dist/assets/index-DUgH87Ch.js có lớp viền chọn và bỏ brightness1.8 cũ. Đối chiếu markup với hiệu ứng reference; chưa browser QA.
+
+- 2026-10-07: Đưa nền nâu Tạo nhóm vào vùng trong khung30,28,884,940, bo góc24 và z0; khung/họa tiết z30 phủ trên. Build/typecheck PASS; dist/assets/index-yhSH5DUM.js có lớp khung z30/nền z0. Chưa browser QA; không chạy test.
+
+- 2026-10-07: Tăng nhãn Tên nhóm30→32; giữ ô nhập/vị trí. `npm.cmd run build` PASS gồm typecheck; dist CSS index-CLwPqH80.css có token32px. Chưa browser QA.
+
+- 2026-10-07: Thay ô vuông chọn thành tick ở cuối mỗi hàng Tạo nhóm; chưa chọn vàng dịu, chọn vàng sáng/glow; giữ checkbox ẩn và focus bàn phím. `npm.cmd run build` PASS gồm typecheck; dist/assets/index-enHcXU2o.js có SVG tick. Chưa browser QA.
+
+- 2026-10-07: Nút Tạo nhóm nới từ315×77 lên380×81, giữ tâm ngang và vị trí chữ. `npm.cmd run build` PASS gồm typecheck; dist/assets/index-D3y2CX_c.js có kích thước mới. Chưa browser QA.
+
+- 2026-10-07: Hai thẻ chế độ Tạo nhóm dùng màu được chọn theo ảnh mới: nền vàng sáng ở trên chuyển xuống nâu, viền #ffdf70, glow; thẻ chưa chọn vẫn nâu tối. Quy tắc này thay màu chọn trước đó của riêng hai thẻ. `npm.cmd run build` PASS gồm typecheck; dist/assets/index-BhZZa6rT.css xác nhận gradient/viền/glow. Chưa browser QA.
+
+- 2026-10-07: Nới bong bóng chat padding ngang20→24/dọc6→8; tăng cả thời gian phân cách và thời gian mở khi bấm tin18→20px. `npm.cmd run build` PASS gồm typecheck; dist/assets/index-zFHiuxQB.js có padding mới và timestamp20px. Chưa browser QA; không chạy test.
+
+- 2026-10-07: Sửa đúng ý ô tick trong chọn thành viên Tạo nhóm: giữ ô vuông bo nhẹ/viền vàng, chỉ khi chọn hiện dấu V cao nhánh phải dài. Checkbox native/click hàng/bàn phím giữ nguyên. Ghi nhớ thay quy tắc tick đứng riêng cũ. Build/typecheck PASS; dist/assets/index-D3XDlTnJ.js có path V mới và bỏ path cũ. Chưa browser QA.
+
+- 2026-10-07: Nút Tạo nhóm bỏ icon người, dùng viền asset qua border-image không fill; chữ căn giữa toàn nút, tăng28→32. Build/typecheck PASS; bundle index-Cbc0Hapc.js xác nhận viền không fill/chữ giữa. Chưa browser QA.
+
+- 2026-10-07: Khung chọn thành viên Tạo nhóm hiện5 hàng, render toàn bộ contacts và cuộn dọc; ẩn scrollbar cả chuẩn/WebKit. Build/typecheck PASS; bundle index-B0vUb_rI.js xác nhận h-1/5 và class ẩn scrollbar. Chưa browser QA.
+
+- 2026-10-07: Tăng đồng bộ hai icon người/nhóm của thẻ Bạn bè/1 mình30→36, giữ căn giữa. Build/typecheck PASS; dist/assets/index-Bb8ELErk.js xác nhận icon36. Chưa browser QA.
+
+- 2026-10-07: Thay cả khung và nền popup Tạo nhóm bằng ảnh3b29fb3a, tight-crop thành phần alpha chính1159×1150 (65,14); giữ tọa độ/kích thước mọi điều khiển. Asset dùng border-image slice210, width75 có fill ở nền và không fill ở foreground z30. Đã xem crop/đối chiếu source và lớp render; chưa browser QA. Build/typecheck PASS; dist/assets/index-Ciehut1Q.js xác nhận ảnh/lớp fill mới cùng tọa độ nút cũ, asset frame-background được xuất.
+
+- 2026-10-07: Sửa lỗi lớp foreground khung mới che tiêu đề/quay lại và nút Tạo nhóm cuối. Bỏ lớp foreground; nền/khung ảnh3b29fb3a chỉ render một lần z0, các điều khiển gom vào lớp nội dung HTML z10 trực tiếp trên nền. Tọa độ/kích thước điều khiển giữ nguyên. Build/typecheck PASS; xác nhận source chỉ1 lớp ảnh khung, không foreground z30 và dist/assets/index-BWUakDah.js có lớp nội dung z10. Đối chiếu nguyên nhân với screenshot người dùng; chưa browser QA.
+
+- 2026-10-07: Bỏ nền gradient nâu phủ giữa nút Tạo nhóm; chữ đặt trực tiếp trong khung nút, căn giữa và tăng32→36. Build/typecheck PASS; dist/assets/index-D0_iHjYS.js xác nhận button trong suốt/chữ36. Chưa browser QA.
+
+- 2026-10-07: Sửa nền nâu còn sót ở nút Tạo nhóm: các lát border-image của ảnh cũ chứa mặt nâu. Built-in imagegen tách viền vàng rỗng, bỏ icon/mặt nâu; crop thành phần alpha chính2172×536 tại0,94. Thay bằng img viền trong suốt, giữ chữ36 và hình học380×81. Đã xem ảnh và kiểm tra vùng trong x200..1971/y120..415 có0 pixel alpha khác0. Build/typecheck PASS; dist/assets/index-dOKCxBPO.js dùng create-button-outline-CziQQSJA.png, bỏ borderImageSlice70/240. Chưa browser QA.
+
+- 2026-10-07: Theo lựa chọn mới, lấy mẫu nút Xem thông tin và bỏ icon/chữ gốc bằng built-in imagegen, giữ mặt nút nâu liền mạch/viền vàng; thay viền rỗng bằng create-button-blank.png. Crop alpha chính2200×549 (0,85), ảnh nguồn/prompt giữ riêng. Chữ Tạo nhóm HTML36 căn giữa; vị trí/kích thước hiện hành giữ nguyên. Đã xem ảnh nút chỉnh và crop; chưa browser QA. Build/typecheck PASS; dist/assets/index-Bt9Qty4H.js xác nhận ảnh blank/chữ36, không còn import outline.
+
+- 2026-10-07: Nút Tạo nhóm tối hơn khi hover (brightness75%, transition150ms), trở lại khi rời chuột, hỗ trợ reduced-motion. Build/typecheck PASS; dist/assets/index-DEl11szg.js xác nhận hover class. Chưa browser QA.
+
+- 2026-10-07: Đổi hover Tạo nhóm từ tối75% sang sáng125%, giữ chuyển150ms/reduced-motion. Build/typecheck PASS; dist/assets/index-CiJC6ydd.js xác nhận class sáng mới. Chưa browser QA.
+
+- 2026-10-07: Ghi quy tắc lâu dài cho Tin nhắn: danh sách hội thoại có thể gồm bạn bè và người lạ; trạng thái kết bạn độc lập với việc có hội thoại. Cập nhật `docs/PROJECT-MEMORY.md` và `docs/MESSAGES-UI.md`; chỉ sửa tài liệu, không đổi UI/chức năng. `npm.cmd run build` PASS (typecheck + Vite, dist được cập nhật); không chạy test vì chỉ sửa tài liệu.
+
+- 2026-10-07: Quy tắc danh sách Tin nhắn: xếp hội thoại theo thời điểm tin nhắn mới nhất, dù tin mới do mình gửi hay đối phương gửi; hội thoại có tin mới nhất lên đầu. Cập nhật PROJECT-MEMORY.md và MESSAGES-UI.md.
+
+- 2026-10-07: Quy tắc Nhắn tin: khi mở chat với ai, thêm/tái sử dụng dòng của người đó và đưa lên đầu danh sách ngay, dù chưa gửi tin; không tạo dòng trùng nếu hội thoại đã tồn tại.
+
+- 2026-10-07: Nối nút Nhắn tin từ hồ sơ và danh sách Bạn bè vào MessagesDialog ở Home/Game. Yêu cầu chat tạo hoặc tái sử dụng hội thoại, chọn nó và đưa lên đầu ngay cả khi preview trống; hội thoại có sẵn không bị tạo trùng. State phía client, chưa persist/backend. npm.cmd run build PASS (typecheck + Vite); dist/assets/index-3SpwOWlT.js được cập nhật. Chưa browser QA.
+
+- 2026-10-07: Sửa vùng chat đang dùng justify-between làm các tin bị dàn cách xa từ đầu đến cuối khung. Đổi sang xếp từ trên xuống với gap-2; overflow-y và tự cuộn đến tin mới giữ nguyên. Cập nhật PROJECT-MEMORY và MESSAGES-UI. npm.cmd run build PASS (typecheck + Vite), dist/assets/index-CFT5hpD_.js. Chưa browser QA.
+
+- 2026-10-07: Nối Xem thông tin trong popup tùy chọn chat tới hồ sơ của người đang chat. Biệt danh mở ô nhập với Hủy/OK; OK cập nhật tên hiển thị ở danh sách chat và header, còn hội thoại tiếp tục dùng tên gốc làm khóa. Nickname chỉ ở state client, chưa persist. npm.cmd run build PASS (typecheck + Vite), dist/assets/index-CxXdmYF-.js và index-BI6VWMhC.css. Chưa browser QA.
+
+- 2026-10-07: Nối mục Chặn bằng hộp xác nhận tên người chơi với Hủy/Đồng ý; xác nhận lần nữa ở cùng mục để bỏ chặn. Khi đang chặn, gửi không thêm tin và hiện “Vui lòng bỏ chặn để gửi.” căn giữa dưới danh sách tin; tin nhận mới sau mốc chặn hiển thị “Bạn đã bị chặn”. State demo phía client; chưa có sự kiện chat từ đối phương/backend. npm.cmd run build PASS (typecheck + Vite), dist/assets/index-C4-vaR0o.js và index-Dv6Jtq5a.css. Chưa browser QA.
+
+- 2026-10-07: Nối Xóa cuộc trò chuyện với xác nhận; xác nhận xóa toàn bộ messages/thread và dòng hội thoại ở client state của người hiện tại, chuyển sang hội thoại kế tiếp hoặc trạng thái danh sách trống. Bản phía người kia không bị chạm; ghi quy tắc database hai phía có record riêng vào PROJECT-MEMORY/MESSAGES-UI. npm.cmd run build PASS (typecheck + Vite), dist/assets/index-Dmv7Mt95.js và index-6hiKjIIj.css. Chưa browser QA.
+
+- 2026-10-07: Mục Xóa bạn trong popup chat đóng options và gọi requestRemoval của useMessageFriendship; dùng lại MessagesFriendRemovalConfirmation hiện hữu cùng friendship state/chính sách bỏ qua 10 phút. Build/typecheck PASS; dist/assets/index-DWPsRo3l.js. Chưa browser QA.
+
+- 2026-10-07: Điều chỉnh quy tắc chat bị chặn theo yêu cầu mới: vẫn thêm tin gửi vào thread; nếu gửi trong lúc chặn, đặt “Vui lòng bỏ chặn để gửi.” ngay dưới bong bóng, cùng kiểu dòng thời gian. Bỏ hành vi chặn submit/notice rời. Cập nhật PROJECT-MEMORY và MESSAGES-UI. npm.cmd run build PASS (typecheck + Vite), dist/assets/index-ZGMSDxbk.js và index-CgwUkZt6.css. Chưa browser QA.
+
+- 2026-10-07: Chỉnh Xóa cuộc trò chuyện theo yêu cầu mới: chỉ xóa thread messages phía mình, giữ dòng hội thoại bên trái; xóa preview và ẩn thời gian tin cuối. Nội dung phía người kia vẫn giữ. Cập nhật PROJECT-MEMORY/MESSAGES-UI. npm.cmd run build PASS (typecheck + Vite), dist/assets/index-zBAIHhMU.js. Chưa browser QA.
+- 2026-10-07: Nối luồng Tạo nhóm ở Tin nhắn: tab Bạn bè chỉ lấy quan hệ đang là bạn; tên rỗng sau trim hiện “Vui lòng nhập tên”; ảnh bỏ trống dùng avatar mặc định. Khi tạo, mở hội thoại nhóm mới lên đầu, thread rỗng, giữ danh sách thành viên gồm tài khoản hiện tại và những người đã tick (tab 1 mình chỉ có tài khoản hiện tại). Ẩn các thao tác cá nhân Xem thông tin/Chặn/Xóa bạn trong tùy chọn nhóm. Đã ghi quy tắc vào PROJECT-MEMORY/MESSAGES-UI. `npm.cmd run build` PASS (TypeScript + Vite), dist/assets/index-DyG3lyQH.js và index-DIgpPiIr.css cập nhật; chưa browser QA, không chạy test. Giới hạn: nhóm/thread chỉ ở client state của phiên, chưa đồng bộ server hoặc persistence.
+- 2026-10-08: Căn dòng báo chặn giữa toàn vùng chat, giữ bong bóng ở vị trí gửi/nhận; tin đến không còn bị thay nội dung. Khi cuộc trò chuyện đang bị chặn, dòng thông báo ngược giữ ở giữa cùng thao tác Bỏ chặn. Bật tìm kiếm hội thoại theo tên gốc/tên nhóm/biệt danh và player ID được truyền từ hồ sơ trong ván; tìm không phân biệt dấu. Xác nhận Xóa bạn trong Tin nhắn đồng bộ khung/nút với mẫu Hồ sơ. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-D-9etmHt.js và index-BT_9-xWd.css. Chưa browser QA, không chạy test. Tìm kiếm hiện lọc các hội thoại đã có; chưa tra cứu người chơi mới qua server. Block/reverse notice hiện chỉ mô phỏng client, không gửi thông báo sang tài khoản khác.
+
+
+- 2026-10-08: Chuẩn hóa avatar nhóm: ảnh upload được crop tròn bên trong vòng vàng mặc định; avatar mặc định không đổi. Dùng MessagesGroupAvatar ở preview tạo nhóm, hàng danh sách, header, tin nhắn đến và popup tùy chọn nhóm; không đổi avatar người chơi. `npm.cmd run build` PASS (TypeScript + Vite); dist/assets/index-AFuqlNgX.js và index-DsgZ-vji.css. Chưa browser QA; không chạy test.
+- 2026-10-08: Khi lọc Tin nhắn, giữ nguyên thứ tự hiện tại để hội thoại ưu tiên/đang ở đầu vẫn đứng trước; bỏ flex-grow khỏi các hàng kết quả để chúng tụ lại ở trên thay vì giãn dọc toàn panel. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-CEEK8EZr.js và index-DsgZ-vji.css. Chưa browser QA; không chạy test.
+
+
+- 2026-10-08: Sửa bộ chọn tỉnh/thành hồ sơ bị kẹt ở trạng thái tải: chỉ tải danh sách tỉnh ban đầu (depth=1), tải xã/phường theo tỉnh khi chọn (/p/{code}?depth=2), timeout 12 giây và retry riêng cho từng bước. Cập nhật PROJECT-MEMORY để tránh tải toàn bộ dữ liệu địa chỉ cùng lúc. npm.cmd run build PASS (typecheck + Vite), dist/assets/index-MF-ISSVF.js và index-DsgZ-vji.css. Chưa kiểm tra trực tiếp trên trình duyệt.
+
+- 2026-10-08: Cố định chiều cao dòng trong danh sách chat khi tìm kiếm. Dòng lọc lấy chiều cao gốc theo vùng danh sách và tổng số hội thoại trước lọc; không phình theo nội dung nhóm hay số kết quả. Cập nhật docs/MESSAGES-UI.md và PROJECT-MEMORY.md. npm.cmd run build PASS (typecheck + Vite), dist/assets/index-hh3xcY5p.js; chưa browser QA.
+
+- 2026-10-08: Thêm icon ba người màu vàng trước tên các nhóm trong danh sách hội thoại; dòng chat cá nhân giữ nguyên. Cập nhật docs/MESSAGES-UI.md. npm.cmd run build PASS (typecheck + Vite), dist/assets/index-CA2nYFX8.js; chưa browser QA.
+
+- 2026-10-08: Cố định chiều cao mọi dòng danh sách Tin nhắn ở --ui-p-58 trong mọi trạng thái. Thêm nhóm/hội thoại không làm các dòng cũ co lại; danh sách cuộn khi tràn. npm.cmd run build PASS (typecheck + Vite), dist/assets/index-D30asALj.js; chưa browser QA.
+
+
+- 2026-10-08: Tăng icon nhóm trước tên trong danh sách Tin nhắn từ18px lên22px theo tỉ lệ UI; không đổi chiều cao cố định dòng. npm.cmd run build PASS, dist/assets/index-B93tJvhf.js; chưa browser QA.
+
+- 2026-10-08: Chia vùng danh sách hội thoại thành8 chiều cao dòng bằng nhau để hiển thị đủ8 dòng; chiều cao cố định theo vùng chứa, không thay đổi khi tìm kiếm/thêm hội thoại. Các dòng sau8 cuộn bên trong. Cập nhật docs/MESSAGES-UI.md và PROJECT-MEMORY.md. npm.cmd run build PASS, dist/assets/index-BjD-YOf7.js; chưa browser QA.
+
+- 2026-10-08: Chuyển lỗi tên nhóm rỗng thành bong bóng hình chữ nhật nền vàng kem, đặt ngay phía trên nút Tạo nhóm; bỏ dòng lỗi dưới ô nhập để giữ bố cục. npm.cmd run build PASS, dist/assets/index-Cqw2VX9_.js và index-BkHvTrbb.css; chưa browser QA.
+
+- 2026-10-08: Popup tùy chọn nhóm: căn giữa nút Đổi tên, thêm hàng Xem thành viên (N) bên dưới và mở danh sách tên thành viên khi bấm. Dời các hàng còn lại lên theo thứ tự, không để khoảng trống của hành động riêng cho cá nhân. npm.cmd run build PASS, dist/assets/index-BGoh-yxa.js và index-D6nVTml6.css; chưa browser QA.
+
+- 2026-10-08: Sắp xếp lại menu tùy chọn nhóm thành cụm: Xem thành viên, Tắt thông báo, Xóa cuộc trò chuyện, Báo cáo; mỗi hàng cách6 đơn vị thiết kế để không còn khoảng trống do mục cá nhân ẩn. npm.cmd run build PASS, dist/assets/index-CFF48mPf.js; chưa browser QA.
+
+- 2026-10-08: Chỉnh hàng Xem thành viên: chữ Times New Roman24px cùng nhóm hàng, icon thu42→34px, số lượng dùng font Arial để hiện chữ số Latin 1/2/3... Build PASS, dist/assets/index-DFE62PqJ.js; chưa browser QA.
+
+- 2026-10-08: Bỏ lớp nâu che chữ trên nút Đổi tên; tái sử dụng create-button-blank.png, đặt icon bút và chữ trực tiếp trên mặt nút. Build/typecheck PASS, dist/assets/index-B710-gq2.js. Chưa browser QA.
+2026-10-08: Giảm chữ Xem thành viên/tiêu đề bảng xuống22px và dùng Cormorant theo tên hội thoại; số lượng lining-nums cùng baseline. Nút Đổi tên24px. Thêm avatar tròn cho từng thành viên, dùng ảnh Bạn bè/hội thoại và avatar session cho bản thân. Build/typecheck PASS, dist/assets/index-bOOQKOtK.js; chưa browser QA.
+- 2026-10-08: Đổi placeholder ô Đổi tên nhóm thành Nhập tên. npm.cmd run build PASS (typecheck + Vite), dist đã cập nhật; chưa browser QA.
+- 2026-10-08: Đổi font riêng hàng Xem thành viên sang Times New Roman22px nét thường theo mẫu các hàng tùy chọn bên dưới. Build/typecheck PASS, dist/assets/index-B7eGzUzq.js; chưa browser QA.
+- 2026-10-08: Bảng thành viên lấy chiều rộng panel và chiều cao dòng danh sách chat qua ResizeObserver, avatar50px. Lưu creatorName khi tạo nhóm; sắp người tạo đầu bảng và thêm chìa khóa vàng dưới phải avatar. Build/typecheck PASS; chưa browser QA.
+- 2026-10-08: Thêm icon camera lên avatar nhóm trong popup tùy chọn; cho chọn ảnh mới và cập nhật hội thoại hiện tại để đồng bộ avatar ở danh sách/header/chat. Build/typecheck PASS, dist/assets/index-Bj-Xo8QT.js; chưa browser QA.
+- 2026-10-08: Căn camera avatar nhóm trong popup Tùy chọn về cùng tỉ lệ và độ chồng góc trên phải như popup Tạo nhóm. Build PASS, dist được cập nhật; chưa browser QA.
+- 2026-10-08: Thu chìa khóa người tạo trong danh sách thành viên và đặt trong vòng tròn xám. Build/typecheck PASS, dist đã cập nhật; chưa browser QA.
+- 2026-10-08: Căn giữa tên nhóm dưới avatar trong popup tùy chọn, cách mép avatar15px theo đơn vị thiết kế. Build PASS, dist đã cập nhật; chưa browser QA.
+- 2026-10-08: Đổi chìa khóa người tạo sang #FBD65B và nền/vòng tròn sang #666666. Build/typecheck PASS; dist được cập nhật, chưa browser QA.
+- 2026-10-08: Căn avatar, tên nhóm và nút Đổi tên cùng trục giữa trong popup tùy chọn; camera bám theo góc phải avatar sau chỉnh tâm. Build PASS, dist được cập nhật; chưa browser QA.
+
+- 2026-10-08: Matched group member popup rows to chat list dimensions/typography and removed the extra avatar border. Build passed with npm.cmd run build; dist regenerated and references index-D2AVa3Na.js.
+
+
+- 2026-10-08: Removed the separate Remove Friend row from conversation options; friend request/removal remain together on the header friend control. Report row moved into the freed position. Build pending.
+- Build confirmation for the 2026-10-08 friend action move: `npm.cmd run build` passed (typecheck + Vite); dist references index-CFpkPENr.js.
+
+- 2026-10-08: Vertically centered the group avatar in the options popup between the upper frame edge and Rename button; moved camera and group name with it. Build pending.
+- Build confirmation: `npm.cmd run build` passed (typecheck + Vite); dist references index-CrP7qWzk.js.
+- 2026-10-08: Added the centered green sent toast on new friend requests from the message header; reused the Friends animation class. npm.cmd run build passed (typecheck + Vite); dist references index-DPSmdfv5.js.
+- 2026-10-08: Shifted group avatar, camera and name upward by 10 design pixels in the options popup. Build pending.
+- Build confirmation: `npm.cmd run build` passed (typecheck + Vite); dist references index-Ds7JGcqV.js.
+- 2026-10-08: Hid Mute Notifications for individual conversations, kept it for groups, and compacted the remaining personal options. Build pending.
+- Build confirmation: npm.cmd run build passed (typecheck + Vite); dist references index-DBizLL_1.js.
+- 2026-10-08: Added semantic font-heading (Cormorant Garamond) and font-body (Arial) tokens; switched the app body to font-body while preserving existing aliases. npm.cmd run build passed (typecheck + Vite); dist references index-BGPq5PZf.js.
+
+- 2026-10-08: Applied semantic typography to player/group names and ELO values (font-heading), with profile social metrics, Win/Loss labels and Owned text on font-body; preserved sizes and weights. Typecheck/build verification pending.
+
+- Typography convention implementation verified: npm.cmd run typecheck and npm.cmd run build passed; dist regenerated as index-BcSlm2pT.js / index-CSoGlx4M.css.
+
+- 2026-10-08: Per follow-up, moved ELO numerals in Home, player cards, ranking, profile rating badges and screenshot renderer to font-body; sizes/weights unchanged. Build verification pending.
+
+- 2026-10-08: Slightly reduced the profile rating numerals from 24px bold to 22px semibold; build verification pending.
+
+- 2026-10-08: Changed the Profile honors heading to font-heading, preserving 24px bold italic styling. Build verification pending.
+
+- 2026-10-08: Reverted profile ELO/rating numerals to their prior Times New Roman 24px bold styling.
+
+- 2026-10-08: Added font-number token for Times New Roman and applied it to profile scores, social metrics, ID, wins/losses, owned count, Home energy/gold, ELO values, room code and screenshot rendering. Build verification pending.
+
+- 2026-10-08: Profile social metric numerals (friends/followers/likes) increased from 22px semibold to 23px medium.
+
+- 2026-10-08: Saved compact count formatting convention: values >=1,000 use K notation, while identifiers, room codes and timestamps retain exact digits. Build verification pending.
+
+- 2026-10-08: Increased profile social metric numeral weight slightly from medium to semibold; size remains 23px.
+
+- 2026-10-08: Enlarged the Profile honors title to 26px and increased its weight to extra-bold; surrounding metrics/layout unchanged.
+
+- 2026-10-08: Reduced the Profile honors title to 24px while retaining extra-bold weight per follow-up.
+
+- 2026-10-08: Increased the Profile honors title weight to black while keeping 24px size.
+
+- 2026-10-08: Enlarged the game player name plaque from 20px to 22px (compact 14px to 16px), retaining font-heading and normal weight.
+
+- 2026-10-08: Increased the game player name plaque another 3px: 22px to 25px, compact 16px to 19px.
+
+- 2026-10-08: Increased the game player name plaque another 2px: 25px to 27px, compact 19px to 21px.
+
+- 2026-10-08: Confirmed game PlayerCard name uses 27px; increased the separate Home name plaque from 20px to 24px so both corresponding name plates reflect the requested larger title. Build verification pending.
+
+- 2026-10-08: Profile honors heading increased by 3px to 27px and given a subtle text stroke for more weight; Owned row reduced from 22px to 20px.
+
+- 2026-10-08: Reduced the Profile honors title from 27px to 25px, preserving black weight and text stroke.
+
+- 2026-10-08: Increased the Owned count numeral to 22px, 2px larger than the 20px Owned label.
+
+- 2026-10-08: Reduced the Owned count numeral from 22px to 20px, matching its label.
+
+- Recovery: Restored ProfileDialog.tsx from HEAD after accidental truncation by shell redirection; reapplied the Owned count size 20px. Prior uncommitted ProfileDialog changes were not recoverable from source, note this limitation.
+
+- Typecheck recovered after restoring ProfileDialog; required ProfileDialog optional playerId/challengeTargetId/onOpenMessages prop types were reapplied. Build verification pending.
+
+- 2026-10-08: Enforced font-number on displayed UI numerals across profile metrics, room counts/times, message timestamps, invite counts, player clocks, room viewer count, Elo and energy/gold. Updated the global rule for all current/future visible numbers. Build verification pending.
+
+- 2026-10-08: Bảng hồ sơ trong Tùy chỉnh avatar dùng nguyên bảng thông tin dùng chung, hiện thêm dòng ID và nút sao chép như phần Thông tin. 
+pm.cmd run build (typecheck + Vite) PASS; dist/assets/index-Cgh9GUJJ.js đã cập nhật. Chưa browser QA.
+
+- 2026-10-08: Theo yêu cầu người dùng, khóa lại toàn bộ UI/nội dung Danh hiệu trên project (catalog, ảnh/khung, cụm sao, popup chi tiết và các vị trí hiển thị); không chỉnh đến khi được mở khóa rõ ràng. Đồng bộ phạm vi trong AGENTS.md và PROJECT-MEMORY.md. Không cần build vì chỉ cập nhật hướng dẫn.
+
+- 2026-10-08: Theo xác nhận mở khóa phạm vi typography của Xếp hạng cho task này: tiêu đề cột chuyển sang font-heading giống tên người chơi; tên tăng font-weight 700→800. Build/typecheck PASS; dist/assets/index-D2QJtDY2.js và index-BYqQA81a.css cập nhật. Đã khóa lại Xếp hạng sau khi hoàn tất; chưa browser QA.
+
+- 2026-10-08: Mở khóa Lịch sử cho lần hoàn tác này; khôi phục HistoryDialog.tsx về bản HEAD trước đó, giữ nguyên MatchResultBadge artwork Thắng/Thua. Build/typecheck PASS; dist/assets/index-DD9T2z74.js và index-CRdrARoj.css cập nhật. Đã khóa lại Lịch sử; chưa browser QA.
+
+- 2026-10-08: Theo yêu cầu tăng thêm độ đậm typography Xếp hạng, tiêu đề cột đổi bold→extrabold, tên người chơi extrabold→black; cỡ chữ/font giữ nguyên. Build/typecheck PASS; dist được cập nhật. Đã khóa lại typography Xếp hạng sau task; chưa browser QA.
+
+- 2026-10-08: Tăng độ đậm thêm cho tiêu đề cột và tên Xếp hạng bằng text stroke 0.35px/0.45px; giữ font-size và vị trí. Lý do lần tăng font-weight trước khó thấy: Cormorant Garamond hiện chỉ khai báo face weight 600. Build/typecheck PASS; dist cập nhật. Đã khóa lại Xếp hạng; chưa browser QA.
+
+- 2026-10-08: Theo phản hồi tên trong Xếp hạng vẫn cần đậm hơn, tăng riêng text-stroke tên người chơi từ 0.45px lên 0.8px; tiêu đề và kích thước giữ nguyên. Build/typecheck PASS; dist đã cập nhật. Đã khóa lại Xếp hạng; chưa browser QA.
+
+- 2026-10-08: Theo yêu cầu, giảm nhẹ nét tên Xếp hạng 0.8→0.65px và gắn cỡ tên với token avatar theo tỷ lệ22/84 để tự scale cùng avatar khi thay kích thước. Ghi quy tắc vào PROJECT-MEMORY và RANK-SYSTEM. Build/typecheck PASS; dist cập nhật. Đã khóa lại Xếp hạng; chưa browser QA.
+
+- 2026-10-08: Người dùng mở khóa liên tục toàn bộ UI Lịch sử cho đến khi họ yêu cầu khóa lại; đổi tên hai bên trong hàng lịch sử sang font-heading, giữ cỡ18px và font-weight. Đồng bộ phạm vi vào AGENTS.md/PROJECT-MEMORY.md và ghi kiểu tên vào ghi nhớ. Build/typecheck PASS; dist đã cập nhật; chưa browser QA.
+
+- 2026-10-08: Tăng tên người chơi trong danh sách Lịch sử 18→20px, giữ font-heading và font-weight. Cập nhật PROJECT-MEMORY. Build/typecheck PASS; dist được cập nhật; chưa browser QA.
+- 2026-10-08: Popup Tao nhom: moved the empty-name warning above the name field and clear it on the first typed character; trim validation on submit remains. Rule recorded in docs/MESSAGES-UI.md. npm.cmd run build PASS (TypeScript + Vite), dist/assets/index-CqEcjWy6.js updated; no browser QA.
+- 2026-10-08: Tin nhan: made player avatars circular and cropped with object-cover in conversation rows, chat header/messages, group member picker, and options; group avatar rendering already clipped to a circle. Added the persistent rule to PROJECT-MEMORY and MESSAGES-UI. npm.cmd run build PASS (TypeScript + Vite); dist/assets/index-Dij9JIZl.js updated; no browser QA.
+- 2026-10-08: Tin nhan: preserve conversation order; newly created groups go to the top, and when sending a message promote only that conversation while retaining relative order of all others. Updated PROJECT-MEMORY and MESSAGES-UI. npm.cmd run build PASS (TypeScript + Vite), dist/assets/index-B-uuW9md.js updated; no browser QA.
+- 2026-10-08: Tin nhan groups: only the creator identified by creatorName (gold key) can see/use rename and change-avatar controls. Updated PROJECT-MEMORY and MESSAGES-UI. npm.cmd run build PASS (TypeScript + Vite), dist/assets/index-BAz5tLNx.js updated; no browser QA.
+- 2026-10-08: Tin nhan block action: dynamically show “Chặn” or “Bỏ chặn” based on current state, masking the baked-in asset label; confirmation remains for either action. Updated PROJECT-MEMORY and MESSAGES-UI. npm.cmd run build PASS (TypeScript + Vite), dist/assets/index-eyitcAUr.js and index-B5eRYPUH.css updated; no browser QA.
+- 2026-10-08: Added a hover hint to shared player rank badges and right-click enlargement using the same artwork/stars; close with the button, backdrop, or Escape. Kept avatar/rank geometry and artwork unchanged. Updated PROJECT-MEMORY. `npm.cmd run build` PASS (TypeScript + Vite); `dist/assets/index-B4qKfQt9.js` regenerated. Browser QA not performed.
+- 2026-10-08: Raised the shared checkmate piece-lift heights by 2px per intensity and increased airborne hold from 300ms to 400ms. Preserved 100ms ascent/descent and extended total duration to 600ms. Updated PROJECT-MEMORY. `npm.cmd run build` PASS (TypeScript + Vite); `dist/assets/index-v0ThFJbr.js` regenerated. Browser QA not performed.
+- 2026-10-08: Shortened the checkmate piece-lift effect by 100ms, restoring total duration to 500ms and raised hold to 300ms; kept the increased lift height and 100ms ascent/descent. Updated PROJECT-MEMORY. `npm.cmd run build` PASS (TypeScript + Vite); `dist/assets/index-CWctVsgP.js` regenerated. Browser QA not performed.
+- 2026-10-08: Added the Phong danh hiệu panel to the other-player profile’s Tặng quà action. It lists all 15 existing awarded honors in level order, gives the first three a gold sparkle, shows eight rows with vertical scrolling, and tracks grants only for the current dialog session. Reused the existing ornate panel and selection-glow assets. Updated PROJECT-MEMORY and HONOR-SYSTEM. `npm.cmd run build` PASS (TypeScript + Vite); `dist/assets/index-BaLQNYfl.js` and `index-CgJlFJc0.css` regenerated. Browser QA not performed because the required node_repl computer-use runtime is unavailable in this session.
+- 2026-10-08: Changed the Phong danh hiệu trigger to right-clicking the title badge beneath an in-game avatar. Left-click avatar still opens the player profile; the shared badge uses the new context callback in game and retains enlargement elsewhere. Updated PROJECT-MEMORY and HONOR-SYSTEM.
+
+- 2026-10-08: Corrected Phong danh hiệu to open on right-click directly on the in-game avatar. Panel is anchored beneath the clicked avatar with a transparent dismiss layer, uses both tight-cropped frames from a062d2ab (first three level1 rows sparkle), preserves all15 catalog entries and displays8 scrollable rows. Row selection records a UI-session grant per recipient and closes the panel. Restored Tặng quà to its separate unavailable notice; badge enlargement remains separate. TypeScript + Vite build PASS; dist/assets/index-BtSEaNoU.js and index-RCI55Z4e.css generated and checked for the new row assets. Browser visual QA not performed.
+- 2026-10-08: Added persistent per-recipient honor toggles via useHonorGrants/localStorage. Each active title appears once; granted rows dim50% but remain clickable for revocation, which restores brightness. Keep the menu open and show green friend-request-style grant/revoke feedback (500ms visible, existing320ms rise/fade). Storage errors report failure; cross-tab storage events refresh state. Removed obsolete unreachable profile-grant state. Updated HONOR-SYSTEM/PROJECT-MEMORY. npm.cmd run build PASS (TypeScript/Vite); dist/assets/index-Bk7Fw6Zt.js and index-CBpS2thX.css regenerated; persistence key and both notification texts confirmed in dist. Browser interaction QA not performed. Persistence is local to the browser profile, not backend/account or cross-device storage.
+- 2026-10-08: Changed grant/revoke notifications to the existing regular brown/gold card asset grant-row.png, preserving its1340:290 ratio and cream text; retained500ms visibility and existing320ms upward fade. Updated HONOR-SYSTEM/PROJECT-MEMORY. npm.cmd run build PASS (TypeScript/Vite); dist/assets/index-DaJIbXOt.js and index-1MXL_CJf.css regenerated and verified for the notice card ratio/asset. Browser visual QA not performed.
+- 2026-10-08: User authorized the avatar/profile honor count area for this task. Restored the eye/count badge on profile preview honors using the same AwardedHonorCount component as catalog levels2–5; kept level1 visibility rule and avatar/frame geometry. Replaced hardcoded1 with active persistent grant count for the viewed recipient/title (0 or1 from this browser profile). Local grants/revocations update catalog and preview immediately through a shared same-page event, with existing cross-tab sync. Updated HONOR-SYSTEM/PROJECT-MEMORY. Existing avatar/honor locks apply again after this task. npm.cmd run build PASS (TypeScript/Vite); dist/assets/index-DvhxDKDe.js and index-1MXL_CJf.css updated, counter label and sync event confirmed in dist. Browser visual QA not performed. Counts are local contributions; no authenticated community/backend totals exist yet.
+- 2026-10-08: Enlarged the shared bestowed-honor eye icon1em→1.2em in catalog/profile preview. Updated memory/honor rules. npm.cmd run build PASS; dist/assets/index-BzQRxwQD.js and index-CdTpvt96.css updated; new icon class confirmed in dist. Browser visual QA not performed.
+
+- 2026-10-08: Applied honor-menu role rules: seated player may open/grant only on the opponent side; viewers may use both occupied seats. Shared permission predicate guards opening, rendering and toggling, and hides unavailable avatar hints. Documented rule in memory/honor docs. npm.cmd run build PASS; dist/assets/index-BhoWRLGK.js updated and confirmed in dist/index.html. Browser interaction QA not performed.
+
+- 2026-10-08: Removed right-click enlargement and hover hint from shared AvatarRankBadge throughout the app. Badge context events stop at the badge so they cannot open the parent avatar menu. Direct avatar right-click and its role rules remain. Updated PROJECT-MEMORY/HONOR-SYSTEM. npm.cmd run build PASS; dist/assets/index-CC3rWLce.js and index-Bqbx7Sxk.css updated, obsolete enlargement hint absent from source/dist. Browser interaction QA not performed.
+
+- 2026-10-08: Saved/applied no default bestowed ownership. Levels2–5 require1 active distinct-person grant; level1's three titles require20 each and have no eye. Owned count/All/profile-preview/selection eligibility use the same threshold, and stale saved selections cannot unlock titles or block valid new selections. Full15 remain in dedicated catalog/grant menu. Documented future database unique grantor/recipient/title records, zero initial data, stable IDs and server aggregation in AGENTS/HONOR-SYSTEM/PROJECT-MEMORY. Final npm.cmd run build PASS (TypeScript/Vite); dist regenerated and current entry checked. Browser QA not performed. Existing local storage contributes0/1 per title/recipient; multi-user database aggregation is still pending.
+- 2026-10-08: Increased shared honor eye icon1.2em→1.35em and reduced counter corner radius from full pill to0.45em; catalog/profile preview synchronized. Updated memory/honor docs. npm.cmd run build PASS; dist/assets/index-CdPxCJ9B.js regenerated and both values confirmed in dist. Browser visual QA not performed.
+
+- 2026-10-08: Removed forced first-move checkmate from local useGame/gameStore, shared applyMove and online RoomService. Restored checkmate visual trigger to actual checkmate result. Added regression assertions to opening-clock room test that first legal move stays playing with no result and opponent can reply. Rules/store/hidden tests PASS; overall selected run45/46 PASS, with existing unrelated rooms test failure expecting third player rejection although viewers are allowed. Focused opening/first-move regression PASS. Final npm.cmd run build PASS; dist/assets/index-BA410JDs.js regenerated and entry verified. No forced-checkmate identifiers remain in source/server. Browser QA not performed.
+- 2026-10-08: Increased checkmate airborne hold300→800ms (+500ms), shared with piece/shadow/filter animations. Defined landing duration explicitly and derived total from phases (currently100+800+100=1000ms). Requested clarification before reducing ascent/descent by200ms because their combined existing time is only200ms. Build/typecheck PASS and dist updated; browser QA not performed. Travel-speed change remains pending user clarification.
+
+- 2026-10-09: Restricted both in-game Like buttons to occupied human seats in online room snapshots. Hidden for computer/local placeholder/viewer-preview avatars and empty seats; kept opponent-only rule for players and both occupied seats for viewers. Updated memory. npm.cmd run build PASS; dist/assets/index-BBOlelzY.js updated and confirmed via dist/index.html. Browser interaction QA not performed.
+# 2026-10-09 — Chống lặp toàn bộ thế cờ
+
+- Thêm `game/rules/repetition.ts`: khóa 90 ô + bên đến lượt, simulation thuần, bộ đếm từng thế và hints legal/repetition-forbidden. Seed thế đầu 1; lần 3 cảnh báo sau animation, lần 4 cho đi, lần 5 bị chặn trước commit, không kết luận hòa/thua.
+- Đồng bộ `applyMove`, Zustand, useGame/Board/GamePage và RoomService. Click chấm đỏ giữ quân chọn, không phát sound/animation/socket/AI hoặc thay clock do click. Snapshot clock online không phát lại thông báo.
+- Hoàn tác local/server phục hồi bộ đếm từ snapshot; reset/ván mới/rematch seed lại 1. Máy cơ bản tránh nước bị cấm; Pikafish tái dựng lịch sử và giới hạn root moves bằng UCI searchmoves, kiểm tra lại phản hồi.
+- Lưu quy tắc vào AGENTS.md, PROJECT-MEMORY.md, REPETITION-RULES.md và cập nhật ghi chú Cờ Úp. Giữ UI/avatar/danh hiệu ngoài phạm vi.
+- Kiểm chứng: typecheck thành công; 9 file test liên quan, 59 test qua (rules/store/Cờ Úp/computer/repetition/UI/move sound/Pikafish). Có kiểm chứng engine Pikafish thật tránh lần 5 và từ chối lịch sử chứa nước bị cấm; DOM test click local/online và cảnh báo sau animation. Chưa QA trình duyệt. Không chạy production build theo phạm vi yêu cầu trong attachment.
+# 2026-10-09 — Xem thử lặp Pháo Đen
+
+- Home Cờ Tướng tạm vào `repetition-test`: người chơi Đỏ đi trước, máy Đen đưa Pháo trái (hàng2/cột1) vào giữa (cột4) rồi về chỗ cũ. Không thay lựa chọn máy cơ bản/Pikafish hoặc online/Cờ Úp.
+- Pháo chỉ đi khi hợp lệ, không ăn quân trong kịch bản; nếu nước tạo lần5 bị cấm thì dừng và báo lý do, không ép commit. Người dùng cần đi một quân qua lại để toàn thế lặp.
+- Typecheck và production build thành công; đã kiểm tra bundle dist chứa repetition-test. Chưa thao tác thử trên trình duyệt.
+# 2026-10-09 — Sửa entry thử để người dùng cầm Đỏ đi trước
+
+- Nguyên nhân: cấu hình repetition-test trước đó đặt ở playLocal (nút sr-only), trong khi nút Cờ Tướng thực tế gọi quickPlay và vẫn vào máy cơ bản/người Đen. Nối quickPlay vào playRepetitionTest tạm, giữ playLocal hai người; phiên thử dùng humanSide=red và engine=repetition-test, không bị nhánh start basic đổi sang Đen.
+- Typecheck/build thành công, dist chứa entry thử mới. Chưa QA trình duyệt.
+# 2026-10-09 — Chuyển chống lặp sang chu kỳ quân theo từng bên
+
+- Thay khóa toàn bàn bằng `GameState.repetition.cycles.red/black`; mỗi chu kỳ lưu ID quân, hai ô, hướng gần nhất và bộ đếm A↔B riêng. Nước khác của bên đó tạo chu kỳ mới; lượt đối thủ không đụng bộ đếm. Không tính khóa bàn hoặc mô phỏng đích trong render.
+- `applyMoveWithResult` giữ validation cờ tướng và trả lý do bị cấm để store/server không xác nhận lại luật riêng. Marker đỏ, click message, undo/rematch và warning được giữ đồng bộ; Pikafish dựng chu kỳ từ lịch sử thật.
+- Thêm hồi quy đúng ví dụ: Đỏ bắt đầu luân phiên trước, Đen đổi quân rồi bắt đầu Pháo; Đỏ bị chặn lần5 khi Đen mới lần3. Test server xác nhận cùng kết quả.
+- Typecheck thành công; 8 file test liên quan, 41 test qua, gồm Pikafish thật. Không chạy build theo yêu cầu.
+# 2026-10-09 — Fixture thủ công thử đuổi Pháo
+
+- Đổi nước máy `repetition-test`: Pháo Đen trái hàng2 cột1↔0 thay cho đường cột1↔4. Người chơi Đỏ vẫn đi trước, có thể đưa Xe trái lên cùng cánh. Luật đuổi quân chưa được triển khai trong bước này.
+
+# 2026-10-09 — Chuyển luật lặp sang chu kỳ phối hợp hai bên
+
+- Thay quy tắc mỗi bên tự đếm bằng một chu kỳ chung ghi `starter`, quân/ô shuttle của hai bên, pha và số vòng. Chỉ tăng vòng sau chuỗi starter đi, đối thủ đi, starter quay, đối thủ quay; nước lệch từ bên nào cũng reset chu kỳ. Cảnh báo starter khi xong vòng3; chặn nước mở vòng5 của starter. Không thêm luật đuổi quân.
+- Dùng chung `applyMoveWithResult` để client/server validate một lần; nước cấm trả lý do riêng, marker đỏ lấy từ hint hợp lệ trong `Board.tsx`. Snapshot undo giữ state cũ; reset/rematch tạo game mới.
+- Khôi phục nút Cờ Tướng Home về quick play; không ép người dùng vào fixture repetition-test. Giữ helper test riêng cho test tự động.
+- Kiểm chứng: typecheck và bộ test liên quan chạy ở bước bàn giao bên dưới; không chạy build theo yêu cầu.
+
+# 2026-10-09 — Đưa nhắc nhở lặp vào giữa màn hình
+
+- Tách cảnh báo chu kỳ lần3 và thông báo chặn nước lặp khỏi dòng status nhỏ. Hiển thị hai nội dung trong thẻ nâu viền vàng ở tâm màn hình, chữ lớn; các trạng thái khác không đổi vị trí.
+- Dùng lại asset thẻ nâu đã có; thẻ không nhận click và không xuất hiện trong ảnh chụp bàn.
+- Kiểm chứng typecheck/build thực hiện trước bàn giao.
+
+# 2026-10-09 — Tạm dừng clock trong thẻ nhắc lặp
+
+- Thu nhỏ chữ thẻ nhắc, đóng tự động sau2 giây và thêm vùng bấm ngoài để đóng ngay. Ván local neo clock đến mốc mở lại; online thêm trạng thái pause authoritative, broadcast trong RoomSnapshot, khóa lệnh ván trong thời gian pause và tự resume ở server sau2 giây nếu client mất kết nối.
+- Kiểm chứng typecheck/build thực hiện trước bàn giao.
+
+# 2026-10-09 — Đồng bộ nhắc lặp cho hai phía
+
+- Nội dung cảnh báo vòng3 nêu rõ cả hai bên cùng lặp chu kỳ. Online snapshot mang loại notice (warning/forbidden) để cả hai người chơi cùng hiện thẻ kể cả khi chỉ một phía bấm chấm đỏ; đóng ở một phía đóng notice và tiếp tục clock cho cả phòng.
+- Kiểm chứng typecheck/build thực hiện trước bàn giao.
+
+# 2026-10-09 — Dùng chung bảng cảnh báo vòng3 trong phòng
+
+- Chuyển cảnh báo hoàn tất vòng3 thành trạng thái phòng do server bật ngay khi nước hoàn tất vòng được commit. Đồng bộ một thẻ duy nhất cho cả hai người chơi và khán giả; clock pause không thời hạn đến khi một trong hai người chơi đóng bằng cách bấm ngoài. Khán giả không thể dismiss.
+- Giữ thông báo nước chấm đỏ bị chặn thành notice riêng có timeout2 giây. Local cảnh báo vòng3 cũng giữ clock dừng cho tới dismiss.
+- Kiểm chứng typecheck/build thực hiện trước bàn giao.
+
+# 2026-10-09 — Fixture lặp Pháo cho người chơi Đen
+
+- Nút thử Cờ Tướng mở local `repetition-test` với người dùng cầm Đen và đi trước; máy cầm Đỏ. Cả Pháo Đỏ hàng7 và Pháo Đen hàng2 đi ngang giữa cột1↔4 rồi quay lại để người dùng kiểm tra chu kỳ mà Đen khởi đầu.
+- Máy không tự đi tiếp khi cảnh báo vòng3 còn mở. Đóng bảng bằng tay mới cho phép máy tiếp tục; chặn lần5 vẫn do luật lặp thật xử lý.
+- Kiểm chứng typecheck/build trước bàn giao.
+
+# 2026-10-09 — Cho máy Đỏ đi trước trong fixture lặp Pháo
+
+- Đặt lượt mở đầu theo mặc định: máy Đỏ đi Pháo cột1→4 trước, người chơi cầm Đen và shuttle Pháo cột1↔4. Giữ pause khi cảnh báo vòng3; máy không đi tiếp cho tới khi người dùng tự bấm đóng bảng để xác minh đồng bộ.
+- Kiểm chứng typecheck/build trước bàn giao.
+- Build/typecheck PASS; dist cập nhật để người dùng mở thử. Chưa browser QA.
+
+- 2026-10-09: Updated repetition notices: only round 3 uses the shared centered panel. A forbidden fifth-move red-dot click has no notice for the actor; online server validates it and sends a short status only to the opponent. The test AI reports its forbidden attempt in the ordinary status line, without opening the retry-error state. Typecheck and production build pass; bundle in dist updated. No browser QA.
+
+- 2026-10-09: Bỏ chiếu lặp khỏi repetition: candidate move tạo chiếu sẽ reset cycle về null; chỉ chu kỳ đi quân phối hợp không chiếu được đếm. Chạy typecheck và production build thành công; dist cập nhật. Không chạy tests theo yêu cầu phiên làm việc.
+
+- 2026-10-09: Fixed repetition-test machine error after an off-script human move: preserve the scripted cannon shuttle when legal, otherwise fall back to a regular legal computer move. Typecheck/build pass; dist updated; no browser QA.
+
+- 2026-10-09: Removed the scripted cannon AI fixture and restored Home quick play room-matching. Basic AI now chooses freely from legal moves filtered through repetition validation; Pikafish remains server-validated. Typecheck/build pass; dist updated. No tests run.
+
+- 2026-10-09: Updated Room Selection header to show the selected player avatar and frame through shared AvatarPortrait/AvatarFrameOverlay, and render the editable name in font-heading. Typecheck/build pass; dist updated. No browser QA.
+
+- 2026-10-09: Replaced the playing check-status text with the shared white ring around the checked general, using the existing last-move ring style. Other status and result messages remain. Typecheck/build pass; dist updated. No browser QA.
+
+- 2026-10-09: Removed the name input underline in Room Selection and vertically centered its avatar/name cluster in the header. Typecheck/build pass; dist updated. No browser QA.
+
+- 2026-10-09: Fixed the takeback-decline “Từ chối” badge stacking in PlayerCard by raising it above the portrait/frame/timer overlays; geometry and animation unchanged. Typecheck/build pass; dist updated. No browser QA.
+- 2026-10-09: Enlarged Room Selection header name from 18/14px to 20/16px and enabled lining/tabular numerals for aligned digits. Build including typecheck PASS; dist updated (index-dui-04Of.js). No browser QA.
+# 2026-10-09 — Ô địa chỉ Chọn Bàn
+
+- EnergyNotice: đưa bộ đếm vào góc trên trái bên trong khung, chừa khoảng trên tiêu đề; dropdown mở lại mặc định mỗi lần mở bảng. Build/typecheck PASS, xác nhận class mới trong dist. Chưa kiểm tra trình duyệt.
+- Theo ảnh người dùng: giữ nguyên padding/bố cục chữ của khung; chỉ phủ ô năng lượng ở góc trên trái bên trong khung. Build/typecheck PASS, dist cập nhật; chưa kiểm tra trình duyệt.
+- Mở rộng nhẹ EnergyNotice từ 430px lên 450px và tăng padding dọc để khung cao hơn; giữ năng lượng ở góc trên trái. Build/typecheck PASS, dist cập nhật; chưa kiểm tra trình duyệt.
+- Theo yêu cầu tiếp: mở rộng chiều ngang EnergyNotice từ 450px lên 490px, giữ nguyên chiều cao. Build/typecheck PASS; dist cập nhật.
+- Xem thử năng lượng: máy cơ bản ở Cờ Tướng và Cờ Úp kiểm tra năng lượng trước khi bắt đầu, mở EnergyNotice nếu hết và trừ1 khi ván bắt đầu; ngoại lệ tạm thời, không áp dụng local hotseat hay lựa chọn máy khác. Build/typecheck PASS; dist cập nhật.
+- Mở khóa nút Sẵn sàng trong lúc hiệu ứng mở phòng chạy; giữ khóa nước đi và vẫn chặn nút Sẵn sàng nếu lệnh đang chờ hoặc người chơi đã sẵn sàng. Build/typecheck PASS; dist cập nhật.
+- Chọn Bàn: rút gọn tiền tố địa chỉ “Thành phố” thành “TP.” trên nhãn; tăng nhẹ hai icon và số đếm. Build/typecheck PASS; dist cập nhật.
+- Nút giữa Chọn Bàn có nhãn “Tạo bàn” và dấu cộng bên phải, căn giữa theo cụm. Build/typecheck PASS; dist cập nhật.
+
+- Hiển thị tỉnh/thành từ địa chỉ hồ sơ dùng chung session, tăng nhẹ hai icon bộ đếm; giữ asset/khung hiện tại.
+- Tổng bàn dùng danh sách API; người cùng tỉnh/thành đang ở Chọn Bàn dùng socket presence server qua Controller → Service → Repository. Cleanup khi rời trang/disconnect, đăng ký lại khi reconnect.
+- Typecheck/build PASS; dist cập nhật. Chưa kiểm tra đa trình duyệt; chưa có auth nên số người tính theo kết nối.
+
+
+- 2026-10-10 ? Theo y?u c?u l?m nhanh UI ?i?n tho?i: Home c? b? c?c 2?2 n?t ch?i v? ti?n ?ch d? ch?m; Ch?i V?i M?y c? form mobile ri?ng d?ng c?ng hook; Ch?n B?n d?ng k?ch th??c CSS th?c, l??i2 c?t v? ch?n t?nh cao80dvh. Trong v?n, chat mobile m? b?ng n?t, thao t?c v?n l?n h?n v? d?nh v?ng ??y ri?ng. Ch? ??i tr?nh b?y compact, gi? logic/API v? UI desktop; kh?ng s?a avatar, khung avatar ho?c b? c?c c?c dialog x? h?i ?? kh?a. Build/typecheck th?nh c?ng; ch?a ki?m ch?ng tr?c quan tr?n ?i?n tho?i th?t.
+
+- 2026-10-10 ? Sau khi v?n k?t th?c c? ng??i th?ng, gi? k?t qu? ?t nh?t3 gi?y r?i m?i ??a ng??i ??u h?ng hi?n t?i l?n thay ng??i thua; ng??i thua xu?ng cu?i h?ng. Ch?n ready/reset ?? kh?ng b? qua h?ng ch? trong3 gi?y. Server tick th?c hi?n chuy?n gh?; ng??i xem kh?ng x?p h?ng v?n kh?ng ???c ??a l?n. R?i ph?ng v?n l?p gh? ngay theo quy t?c tr??c. Demo hai m?y c?ng k?t th?c tr??c, ??i3 gi?y r?i cho ng??i x?p h?ng v?o v?n m?i.
+
+- Ki?m ch?ng task ch?3 gi?y: 2 test li?n quan chuy?n h?ng/r?i ph?ng pass, g?m gi? nguy?n gh? ?2999ms v? ??i ?3000ms. To?n b? rooms.test.ts:13 pass/7 fail ? th?ng b?o ti?ng Vi?t l?i m? h?a v? k? v?ng c? ch?n ng??i th? ba (ngo?i ph?m vi). Typecheck/build th?nh c?ng, dist ?? c?p nh?t; ch?a QA tr?nh duy?t.
+
+- 2026-10-10 ? Ng??i ch?i b?t ??u phi?n v?i ??5 n?ng l??ng (MAX_ENERGY), kh?ng kh?i t?o0. Gi? c? ch? tr?/h?i v? l?u trong phi?n hi?n t?i.
+
+- 2026-10-10: Queue/rematch rule verified: loser stays seated without queued viewers; late queue entries replace loser after the 3s result window only before rematch readiness. First ready closes old rotation. Six focused service tests pass.
+
+- 2026-10-10: Queue timing supersedes prior minimum delay: entries queued before match end wait 3 seconds; entries queued after match end promote immediately when first in line. Rematch readiness still prevents replacement. Preserve FIFO; demo follows the same timing.
+
+- 2026-10-13: Theo đính chính, hoàn tác thay đổi ô Cờ Úp Home và dùng ảnh 63d54150 cho mặt sau quân úp trên bàn. Ảnh cắt và trim alpha còn 441×435; typecheck/build PASS, dist có concealed-back-Clukm56z.png. Chưa QA trình duyệt trực tiếp.
+
+
+
+
+- 2026-10-13: Cân ảnh mặt quân úp mới vào đúng khung 108×112 như quân mở, dùng cùng bóng đổ; typecheck/build PASS, dist có ảnh quân úp và class object-fill. Chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Cân màu mặt quân úp bằng saturate 0.84 trên Board; đo mẫu viền quân úp 202/131/55 so với quân mở đỏ 202/145/86, đen 182/124/65. Typecheck/build PASS, dist có lớp saturate(0.84); chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Căn tâm hình quân Đỏ đã mở sang phải 2px theo scale Board trong ChessPiece; đo alpha asset cân giữa nhưng hiệu chỉnh vị trí thị giác theo phản hồi. Typecheck/build PASS, dist cập nhật; chưa QA trình duyệt trực tiếp.
+
+- 2026-10-13: Dựng lại vùng thiết lập desktop Chơi với máy theo ảnh: một robot, 10 cấp, chọn phe, hành động/banner; giữ Máy · Cơ bản trong biển tên. Cấp nối session/API/server thời gian suy nghĩ, xác thực 1–10. Typecheck/build PASS, 6/6 pikafish tests PASS, dist có nhãn cấp. Chưa QA browser vì công cụ Computer Use dừng do chưa hỗ trợ kiểm soát URL trên Windows browser.
+
+- Kiểm chứng bố cục Vị trí tùy chỉnh: typecheck/build PASS; dist có thông báo đang phát triển và class căn giữa khay. Chưa QA browser trực tiếp.
+
+- 2026-10-13: Icon Lưu đổi sang vàng đặc32px như các tiện ích, bỏ chữ bên dưới. Typecheck/build PASS; dist index-C71Fo5ZO.js đã xác nhận icon mới. Chưa QA browser trực tiếp.
+
+- 2026-10-13: Đấu ngay dùng asset đỏ/hai rồng mới dưới khay quân, gap10px và căn giữa cả cụm; ẩn nút giữa bàn chỉ ở trình chỉnh thế. Asset trim alpha2022×355, nguồn được lưu. Typecheck/build PASS; dist index-CgpIF6SV.js có asset mới. Chưa QA browser trực tiếp.
+
+- 2026-10-13: Xóa quân dọn toàn bộ quân thường, giữ Tướng; bỏ chế độ xóa từng quân bằng nút. Cho xếp thế Tướng đối mặt, chỉ chặn Đấu ngay/server. 12/12 test liên quan PASS; typecheck/build PASS; dist index-pUbNjYQj.js có hành vi mới. Chưa QA browser trực tiếp.
+
+- 2026-10-13: Sửa hình icon Lưu theo mẫu mới, thân bo nhẹ/khe trên có chốt vàng/ô dưới rộng,32px không chữ. Typecheck/build PASS; dist index-BsoFwvCt.js xác nhận path mới. Chưa QA browser trực tiếp.
+
+- 2026-10-13: Khay quân bỏ nhãn màu, thêm số1–7 bấm được; ↑/↓ chọn khay Đen/Đỏ viền vàng, phím số chọn quân tương ứng. 7/7 test editor PASS; typecheck/build PASS; dist index-kKDHB2xO.js cập nhật. Chưa QA browser trực tiếp.
+
+- 2026-10-13: Tăng độ nổi khay đang chọn bằng selectionPalette nền/viền/glow và outline vàng; click khay chọn màu. Đổi phím/nhãn6,7 thành Q,W (Pháo,Tốt). 7/7 test editor PASS; typecheck/build PASS; dist index-DgYTp5jk.js cập nhật. Chưa QA browser trực tiếp.
+
+- 2026-10-13: Khay màu được chọn bằng click hoặc ↑/↓, giữ lựa chọn khi rê sang khay khác; hover chỉ sáng viền. Typecheck/build PASS; dist index-D8buVIeh.js xác nhận cập nhật. Chưa QA browser trực tiếp.
+
+- 2026-10-14: Icon Lưu theo mẫu mới: thân vàng đặc, ô dưới kín và rãnh ngang, chốt vàng phía trên; giữ32px không chữ. Typecheck/build PASS; dist index-DE1x7fXJ.js xác nhận path mới. Chưa QA browser trực tiếp.
+
+- 2026-10-14: Saved rollback A before edits in .checkpoints/A-2026-10-14.zip (879 files, SHA256 manifest verified). Git object writes unavailable, used ZIP preserving tracked/nonignored untracked files; dist rebuilt after restore. Synchronized revealed pieces via ChessPiece object-fill/no red4px offset and shared black wood filter; animation/image templates matched. 13/13 custom/editor tests PASS; typecheck/build PASS; dist index-BcuPLWob.js verified. No browser visual QA.
+
+- 2026-10-14: Căn riêng mặt tròn quân Đỏ bằng displacement map (dịch phải2% vùng mặt, trung tính ngoài thân), giữ geometry chung và mốc A. Đồng bộ filter trong animation. Typecheck/build PASS; dist index-CGXqwlWq.js có filter. Chưa QA browser trực tiếp, cần đối chiếu thị giác người dùng.
+
+- 2026-10-14: Cân tông gỗ quân Đen theo Đỏ bằng RGB gamma/mask giữ chữ tối, dùng chung ChessPiece và animation. Geometry/mốc A giữ nguyên. Typecheck/build PASS; dist có wood-mask. Chưa QA browser trực tiếp.
+
+- 2026-10-14: Thông báo trong Vị trí tùy chỉnh tự ẩn sau3 giây; timer cũ được thay khi có thông báo mới và dọn khi unmount. Regression timer 8/8 PASS; typecheck/build PASS, dist được tạo thành công; chưa QA trình duyệt.
+
+- 2026-10-14: Thêm công tắc Đi tiên dưới Đổi bên, mặc định Đen; nền đỏ khi Đen/trắng vàng khi Đỏ. Tách bên đi trước khỏi phe cầm, đồng bộ FEN/validation/start. 9/9 test editor PASS; typecheck/build PASS; dist index-c3FDRM1Q.js chứa công tắc. Chưa QA browser.
+
+- 2026-10-14: Đảo công tắc theo mẫu: phải/nền đỏ là Đỏ tiên; trái/nền trắng vàng là Đen tiên; tăng khoảng cách nhãn Đi tiên thêm8px. Typecheck/build PASS; dist index-C1oD4YFG.js đã kiểm tra nhãn mới; chưa QA browser.
+
+- 2026-10-14: Mặc định công tắc Đi tiên là Đỏ; biểu tượng ⇄ dịch lên2px. 9/9 test editor PASS; typecheck/build PASS, dist index-BNu91Z8n.js cập nhật. Chưa QA browser.
+
+- 2026-10-14: Bỏ cụm user ở Vị trí tùy chỉnh, tăng chữ Đi tiên20px; compact bỏ hàng avatar trống. Typecheck/build PASS; dist index-FlDgcPDV.js đã kiểm tra class chữ mới. Chưa QA browser.
+
+- 2026-10-14: Chọn bên/Đi tiên cách10px; chữ Đỏ/Đen20px, switch48×24, khung224px giữ tâm. Đối chiếu code xác nhận side→humanSide, firstSide→FEN/validation độc lập. Typecheck/build PASS; dist index-CFhfXBGS.js có thay đổi; chưa QA browser.
+
+- 2026-10-14: Mở riêng tab Đã lưu theo yêu cầu, thêm Ván đấu/Thế cờ; mặc định Ván đấu, Thế cờ trạng thái trống chưa nối dữ liệu. Typecheck/build PASS; dist index-CZbxceAd.js có lựa chọn mới. Chưa QA browser; khóa lại phạm vi Lịch sử sau task.
+
+- 2026-10-14: Thêm lưu ván đã kết thúc cho người chơi/khán giả, archive server trước chuyển ghế, localStorage theo tên, chống trùng/quota, xóa và xem lại từng nước. Đã lưu dùng dữ liệu thật; lưu từ lịch sử mình/người khác ghi đang phát triển. 13/13 test lưu/archive/replay/store PASS; typecheck/build PASS, dist cập nhật. Bộ rooms cũ17/24 PASS,7 lỗi kỳ vọng cũ (chuỗi tiếng Việt bị lỗi mã hóa và chặn khán giả); chưa QA browser. Chi tiết docs/MATCH-SAVING.md.
+
+- 2026-10-14: Chuyển Lưu ván lên GameTools giữa Camera và Bạn bè, tái dùng icon save; bỏ nút lưu nổi, giữ báo lỗi lưu. Typecheck/build PASS; dist đã kiểm tra tooltip mới. Chưa QA browser.
+
+- 2026-10-14: Xem lại ván đã lưu mở screen replay toàn màn hình, đóng HistoryDialog; dùng Board/PlayerCard, thanh diễn biến riêng và quay về Home. Không nạp gameStore/engine hoặc phòng. 2/2 test saving/replay PASS; typecheck/build PASS; dist index-CvCfzFmU.js đã kiểm tra. Chưa QA browser.
+
+- 2026-10-14: Replay tự phát1,2 giây/nước với animation Board; tua/phát/tạm dừng bên trái desktop, không chat/view. Tua tạm dừng, cuối tự dừng. 3/3 test replay/saving PASS; typecheck/build PASS; dist có nút Tạm dừng. Chưa QA browser.
+
+- 2026-10-14: Chốt lại Xem lại điều hướng chính GamePage(replayData), không bàn/layout replay riêng; xóa SavedMatchReplay. Dùng useGame nguồn trạng thái chỉ đọc, vô hiệu AI/tick/socket/game commands/chat; giữ Board/PlayerCard/layout/animation gameplay. Tự phát sau entrance, controls trong PlayerCard trái, back không reset trận thật. 21/21 test computer/replay-isolation/playback/saving/archive/store PASS; typecheck/build PASS, dist đã kiểm tra replayData/controls và xóa component cũ. Bộ repetition-ui cũ1/4 PASS,3 lỗi kỳ vọng cảnh báo cũ (click đỏ/auto dismiss), không sửa ngoài phạm vi. Chưa browser QA.
+
+- 2026-10-14: Làm lại ReplayControls220px: phát/dừng hàng trên, lùi–số nước–tiến hàng dưới; bỏ đầu/cuối và thanh range. Nút dùng selectionPalette nâu/vàng và icon chung. Typecheck/build PASS; dist đã kiểm tra grid hàng tua; chưa QA browser.
+
+- 2026-10-14: ?? l?u/V?n ??u ??t m?nh b?n tr?i, phe/k?t qu? theo ng??i; replay qu?n m?nh ? d??i ??c l?p b?n ?i tr??c. D?ng helper chung, b?n l?u c? x?c ??nh theo t?n; kh?n gi? fallback ??. 3/3 test l?u/perspective PASS, typecheck/build PASS, x?c nh?n logic trong dist index-B69CF8kO.js. Ch?a QA browser tr?c ti?p.
+
+- 2026-10-14: B? d?ng th?ng b?o ?ang ph?t tri?n ? tab ?? ch?i trong L?ch s?. Typecheck/build PASS; dist/assets/index-CkKb3W5d.js ?? c?p nh?t.
+
+- 2026-10-14: Đã chuyển icon đổi Xem lại/Đánh thử xuống dưới Phân tích/Gợi ý; phím Space giữ nguyên.
+
+- 2026-10-14: Sửa khựng đầu/cuối animation quân (độ nhấc theo lựa chọn thực và delta làm tròn đồng nhất); bỏ chờ550ms dư trước Pikafish bàn thử, giữ thinkMs500. Replay trial2/2 PASS; typecheck/build PASS, dist cập nhật. Chưa QA độ mượt trực tiếp trên trình duyệt.
+
+- 2026-10-14: Bổ sung nút đổi bàn dưới user phải50px ở bàn gốc Thế cờ; dùng chung ReplayModeButton, click/Space cùng toggleTrial. Typecheck/build PASS, dist cập nhật; chưa QA trình duyệt.
+
+- 2026-10-14: Pikafish đánh thử tăng thời gian tính lên800ms theo yêu cầu; cập nhật kỳ vọng test. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-14: Bổ sung icon đổi bàn dưới cụm điều khiển replay Ván đấu; phím Space dùng chung. Build kiểm chứng ở lượt hiện tại.
+
+- 2026-10-14: Đổi kiểu nút Lùi/Tiến/Phát replay sang gỗ viền vàng cắt góc từ asset bàn thử. Typecheck/build PASS, dist cập nhật; chưa QA trình duyệt.
+
+- 2026-10-14: Hàng Đã lưu → Ván đấu hiển thị quân đỏ trước quân đen bất kể phe người lưu. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-14: Đồng bộ mũi tên playback52.8×43.14px với trial; Phát cao43.14px, chỉnh nền gỗ cùng kiểu viền. Typecheck/build PASS, dist cập nhật; chưa QA trình duyệt.
+
+- 2026-10-14: Tạo asset Phát mới2089×444 alpha crop sát, thay viền dựng cũ. Đã chơi dùng playedMatchesStore tự ghi ván hoàn tất của bản thân, danh sách/replay dữ liệu thật, tách Đã lưu. Test match-saving-ui3/3 PASS; typecheck/build PASS, dist có asset mới; chưa QA trình duyệt.
+
+- 2026-10-14: Nút Phát playback tăng cao43.14→52.8px theo yêu cầu cân bằng với mũi tên. Typecheck/build PASS, dist cập nhật.
+
+- 2026-10-14: Đã chơi lọc/lưu chỉ online; máy/local ẩn. Rời ván online đang chơi đã được confirm client và RoomService xử thua, archive trước đổi ghế. Typecheck/build PASS.
+
+- 2026-10-14: Replay Đã chơi chỉ vào trial sau save match/position, ẩn icon và Space nhắc; lưu ván được nối vào savedMatchesStore. Played history tự xóa theo hạn một tháng lịch/ván. Test3/3 và typecheck PASS; build đang chạy.
+
+- 2026-10-14: Phân tích/Gợi ý chuyển sang pointer và click hiện thông báo Đang phát triển. Typecheck/build PASS.
+
+- 2026-10-14: Pikafish trong đánh thử replay đã lưu tăng thinkMs800→2500, cấp10; kiểm tra test và build.
+
+- 2026-10-14: Toast replay chuyển sang style thông báo Vị trí tùy chỉnh, neo giữa cạnh dưới bàn, tự ẩn3s. Typecheck/build PASS.
+
+- 2026-10-14: Pikafish trial vẫn level10, giảm thinkMs2500→700ms. Test/build chạy.
+- 2026-10-14: Đã lưu/Thế cờ: số trong tên dùng NumberText, căn baseline cùng chữ. Kiểm chứng bằng typecheck/build; chưa QA trình duyệt.
+- 2026-10-14: Giảm riêng độ đậm chữ số tên thế cờ về normal; typecheck/build thành công.
+- 2026-10-14: Đấu ngay từ Vị trí tùy chỉnh nay vào bàn thử cô lập với Pikafish bật sẵn; thay mã phòng/lượt xem/chat bằng cụm thử. Chưa QA browser.
+- 2026-10-14: Bàn thử tùy chỉnh: số nước vào giữa cụm lùi/tiến, Reset xuống dưới khung; typecheck/build.
+- 2026-10-14: Hoàn tác bố trí Reset xuống dưới; trả cụm bàn thử tùy chỉnh về ban đầu. Build đã chạy.
+- 2026-10-14: Thay bộ artwork replay/trial bằng 8 crop 6c0cdab5; tách nút thật, nhãn/số động. Kiểm tra crop alpha góc và ảnh kết quả; typecheck/build thành công, dist/index-DpYluRXT.js đã có. Chưa QA trình duyệt.
+- 2026-10-14: Reset ảnh 0fed4f87 crop alpha 879x800, đặt bên phải Gợi ý trên mọi bàn thử; giữa hàng hiển thị step/total bằng font số. Alpha góc=0; typecheck/build thành công, dist cập nhật. Chưa QA browser.
+
+- 2026-10-15: Căn số trong ô sửa tên Thế cờ theo NumberText hiển thị (Times New Roman regular90%, lining/tabular); giữ input/bố cục. Typecheck/build PASS, dist đã xác nhận font mới; chưa QA trình duyệt.
+
+- 2026-10-15: Đổi thumb thanh cuộn Thế cờ sang nâu đậm#613014, giữ hình học/track. Typecheck/build PASS, xác nhận màu trong dist; chưa QA trình duyệt.
+
+- 2026-10-15: Ghi quy tắc Pikafish mạnh nhất/search700ms cho mọi trợ giúp và máy ngoài chế độ10 cấp; đồng bộ AGENTS, memory, tài liệu bàn thử/thế tùy chỉnh và backlog Phân tích/Gợi ý. Chỉ đổi tài liệu, chưa sửa hoặc kiểm chứng runtime.
+
+- 2026-10-15: Gợi ý dùng Pikafish level10/search700ms, trả1 mũi tên xanh trong Board, không đi quân/ghi game state. Hook riêng hủy request/bỏ phản hồi cũ; clear khi đổi thế/lượt/reset/undo/thoát, giữ qua clock tick. Nối nút ở đấu máy và bàn thử tùy chỉnh; chặn online/demo/replay/Cờ Úp. 4 test gợi ý/overlay PASS; các test replay-trial/computer/Pikafish liên quan PASS; typecheck/build PASS, dist/assets/index-BvXeGI0R.js xác nhận arrow. Chưa QA browser hoặc kiểm chứng trực tiếp engine thật cho luồng gợi ý.
+
+- 2026-10-15: Thêm hover vàng8% cho Phân tích/Gợi ý/Reset; Gợi ý nhấn và đang tính thu94%/tối35%, hết tính hoặc hủy trở lại bình thường. Dùng chung cả nút Gợi ý đấu máy.4/4 test hint (gồm trạng thái thinking/hủy) PASS; typecheck/build PASS, dist xác nhận scale mới. Chưa QA trình duyệt.
+
+- 2026-10-15: Người dùng báo quân đi hơi không mượt ở mọi chế độ. Chưa xác định nguyên nhân/chưa tái hiện trên browser (không có browser kết nối). Regression move-animation-stability xác nhận xóa hint/render lại không restart/cancel animation, giữ DOM quân, lift6px tại scale0.5, đích/top nhất quán và duration400ms.7/7 test stability/hint/trial PASS; chưa sửa production animation. Cần kiểm tra frame thực tế trước khi chốt đã sửa. Typecheck/build PASS, dist được build lại.
+
+- 2026-10-15: Bỏ render dư khi xóa Gợi ý lúc đi quân bằng kết quả gắn context/ẩn đồng bộ; regression trước FAIL2 render, sau PASS1 render.15/15 test liên quan PASS; typecheck/build PASS, dist index--k1JWhbu.js cập nhật. Không đổi thời lượng/đường animation; chưa browser QA, chưa khẳng định hết khựng thực tế.
+
+- 2026-10-15: Người dùng báo mọi thao tác kém mượt từ khi thêm Gợi ý. Giảm tải liên quan: ToolArtworkButton mask hover display:none khi không hover; useReplayTrial memo nước hợp lệ theo game/selected, không tính lại khi UI Gợi ý render. Regression giữ reference moves/không gọi lại rules và đổi chọn tính mới PASS.16/16 test hint/stability/trial/computer PASS; typecheck/build PASS. Không đổi geometry/luật/animation. Chưa đo frame browser, chưa xác nhận hết vấn đề toàn ứng dụng; cần reload tab để nạp dist mới.
+
+- 2026-10-15: Đồng bộ Gợi ý Pikafish700ms cho mọi bàn thử replay/tùy chỉnh; bỏ nút riêng trong ván thường. Lùi đổi từng1 nước, phím/nút dùng chung; test lùi2→1→0 PASS.9/9 test trial/hint/stability PASS, typecheck/build PASS; dist index-B6dBIPkw.js đã kiểm tra. Chưa QA browser/engine thật.
+
+- 2026-10-15: Đổi tên máy hiển thị Pikafish→Ông Hoàng trên thiết lập/bàn chơi/thông báo/tooltips và lỗi API; giữ engine ID/path/license, nhận diện máy So tài tương thích tên cũ/mới.23/23 test computer/hint/trial/Pikafish PASS; typecheck/build PASS, dist index-Dc7XnMPb.js có tên mới. Chưa QA browser.
+
+- 2026-10-15: Chat trong bàn chơi tăng gap dọc từng tin6→12px. Typecheck/build PASS, dist CSS đã có gap12px; chưa QA browser.
+
+- 2026-10-15: Thay avatar máy bằng ảnh6626838d, clip tròn theo khung; dùng helper/source chung cả bàn chơi, Thế cờ, hồ sơ, chat/Tin nhắn và thiết lập máy desktop. Không đổi geometry avatar/khung. Nguồn upload giữ tại references/uploads. Typecheck/build PASS, dist có ong-hoang-avatar; đã xem ảnh nguồn, chưa browser QA.
+
+- 2026-10-15: Theo yêu cầu mới, avatar máy dùng chân dung GIỮA ảnhc876e59c-c77c-411e-a467-31b5f5b4df21. Runtime ong-hoang-avatar-v2.svg nhúng nguyên pixel nguồn, clip circle(cx1086,cy348,r288), viewBox79860 576576 bỏ vòng vàng nguồn, ngoài tròn trong suốt; không vẽ lại ảnh. Máy chỉ giữ avatar và tên Ông Hoàng: bỏ overlay khung/danh hiệu/sao, khung tên/ELO và trang trí kết quả trên PlayerCard; hồ sơ/chat bỏ khung/huy hiệu máy; thiết lập bỏ khung biển tên. Dùng helper chung cho mọi avatar máy, gồm tên cũ. Quyền sửa này chỉ cho ảnh/trang trí máy, avatar người thật vẫn khóa. Nguồn giữ references/uploads. Typecheck/build PASS; chưa browser QA.
+
+- 2026-10-15: Giữ trọn hình giữa c876e59c, gồm vòng vàng gốc; bỏ circle clip, dùng object-contain đúng kích thước avatar cũ. Khôi phục khung tên Ông Hoàng trên bàn và thiết lập. Bbox pixel alpha kiểm tra698×694; typecheck/build PASS, dist có avatar-v3. Chưa browser QA.
+
+- 2026-10-15: Chốt căn máy: thẻ tên Ông Hoàng dùng cùng margin/translate/breakpoint với thẻ tên người chơi, giữ ngang hàng thay margin riêng mt2. Avatar máy phóng theo đường kính HIỂN THỊ của viền mặc định (156/128×0.896=1.092), giữ nguyên ảnh nguồn và ô anchor. AVATAR_FRAME_VISIBLE_SCALE dùng chung PlayerCard/chat/hồ sơ, không đổi avatar/khung người thật. Không thêm danh hiệu/sao/ELO lại cho máy. Typecheck/build PASS, chưa browser QA.
+
+- 2026-10-15: Sửa chữ trong thẻ tên bị cắt dấu/nét do truncate kết hợp line-height1: PlayerNameplate đặt line-height1.4 riêng vùng chữ, giữ khung/kích thước/font/vị trí. Component chung áp dụng Home và mọi PlayerCard, gồm Ông Hoàng. Typecheck/build PASS, chưa browser QA.
+
+- 2026-10-15: Máy không mở bảng thông tin/hồ sơ. Avatar máy ở PlayerCard disabled nhưng giữ độ sáng100%, không pointer/context menu phong danh hiệu. Chặn tên máy tại điểm mở Profile của Game/Home/Chọn Bàn, bao gồm đường chat/Tin nhắn/lịch sử. Người thật giữ luồng cũ. Typecheck/build PASS, dist index-DS34NNzo.js xác nhận; chưa browser QA.
+
+- 2026-10-15: Ẩn Lưu/Ghim/mã phòng/view/chat cho ván đấu máy thông thường; tắt hook chat/lưu trong mode này.2/2 regression UI mới Cờ Tướng/Cờ Úp PASS (20 test khác không chạy), typecheck/build PASS; dist index-CpLM637d.js đã kiểm tra. Chưa browser QA.
+
+- 2026-10-15: Giảm tải sau báo kém mượt: thay SVGv3 nhúng cả sheet avatar3.023.811 byte/2172×724 bằng PNG crop đúng bbox698×694/1.117.868 byte; kiểm tra484.412 pixel ARGB giống nguồn100%, giữ toàn bộ hình/viền gốc. Runtime import ong-hoang-avatar-full.png, ảnh nguồn vẫn giữ. useReplayTrial.select useCallback theo state thực để Board memo không render lại do UI khác; regression giữ callback/moves khi rerender PASS. GamePage memo kiểm tra chiếu theo board/turn/phase; useGame bỏ kiểm tra chiếu dư chỉ để trả status rỗng khi playing, giữ status kết quả.16/16 test hint/trial/animation/computer PASS; typecheck/build PASS. Đã xem PNG xuất, chưa đo FPS trên browser, không khẳng định hết mọi khựng.
+
+- 2026-10-15: Ông Hoàng có danh hiệu riêng Kỳ Thủ AI và họa tiết sao riêng từ ảnh205ea2ea; thay quy tắc bỏ toàn bộ danh hiệu/sao máy trước đó. AvatarRankBadge/RankTitleBadge thêm prop computer, tái dùng vị trí/tỷ lệ slot và hàng sao chung, chỉ PlayerCard máy bật. Asset PNG title1168×383 tại(34,154), stars853×199 tại(1270,242), trim alpha<=16 loại nhiễu vô hình, corners alpha0; nguồn giữ references/uploads. Giữ avatar/khung tên/khóa hồ sơ máy. Typecheck/build PASS, đã xem2 crop và xác nhận dist, chưa browser QA.
+
+- 2026-10-15: Màn Chơi với máy dùng PlayerNameplate chung cho Ông Hoàng thay khung chữ CSS cũ, desktop/compact cùng thẻ tên width250px. Desktop giữ slot top171/h53/w330 và căn giữa; avatar/cấp/phe/hành vi giữ nguyên. Typecheck/build PASS, dist index-wVJBr8a_.js có width250; chưa browser QA.
+
+- 2026-10-15: Vị trí tùy chỉnh: kéo lấy quân từ khay tự chọn khay bên đó và loại quân đó (chooseForDrag không toggle). PositionPalette đồng bộ activeSide theo piece. Thả hợp lệ giữ chọn nếu loại đó còn trong khay, hết số lượng bỏ chọn/khóa như trước. Kéo quân trên bàn ra ngoài trả khay thì chọn đúng bên/loại vừa lấy xuống. Hover/click/phím tắt, kiểm tra đặt sai và hủy kéo giữ quy tắc hiện tại.10/10 test editor gồm đổi khay/aria-pressed/giữ chọn/hết quân PASS; typecheck/build PASS, chưa browser QA.
+
+- 2026-10-15: Màn Vị trí tùy chỉnh bỏ nút Lưu thế cờ ở thanh tiện ích theo yêu cầu; giữ Tạo từ ảnh, Âm thanh và Toàn màn hình. Typecheck/build PASS, dist đã cập nhật; chưa QA browser.
+
+- 2026-10-15: Chuột phải lấy quân trong Vị trí tùy chỉnh tự chọn đúng khay bên/loại quân vừa lấy, đồng bộ với kéo quân ra ngoài. 11/11 regression position-editor PASS; typecheck/build PASS, dist cập nhật; chưa QA browser.
+
+- 2026-10-15: Header Chơi với máy bỏ Thành tích, đổi thành Âm thanh bên trái và Toàn màn hình bên phải (desktop/compact). Fullscreen API bật/tắt dùng dialog báo lỗi hiện có. Typecheck/build PASS, dist index-DjscL8db.js cập nhật; chưa QA browser.
+
+- 2026-10-15: Click quân trong khay vào vị trí không hợp lệ giờ chỉ báo lỗi và giữ lựa chọn để thử điểm khác. 11/11 regression position-editor PASS; typecheck/build PASS, dist index-BPxj-ZHo.js cập nhật; chưa QA browser.
+
+- 2026-10-15: Header Chọn Bàn thêm nút Toàn màn hình cuối cụm tiện ích, dùng chung Home fullscreen handler; thứ tự Cúp/Bạn bè/Âm thanh/Toàn màn hình. Typecheck/build PASS, dist index-wIAqh5PP.js cập nhật; chưa QA browser.
+
+- 2026-10-15: Tạo bàn tái dùng khung tỉnh/thành, thay nút Hủy/Tạo và ô thời gian bằng crop nguồn10f8e709/6ff86838; thêm switch Bàn khóa, ô mật khẩu và nút xem/ẩn. Theo xác nhận chỉ UI xem trước, chưa khóa server. Typecheck/build PASS; dist index-gBlcJ7MY.js có3 asset mới. Đã xem crop nút, kiểm tra bbox/corner alpha; chưa QA browser.
+
+- 2026-10-15: Sửa select thời gian bị ảnh khung che bằng relative z10; password focus giữ artwork, bỏ ring, autocomplete off/text-security che ký tự và nút xem-ẩn giữ input text; Hủy/Tạo hover opacity90%. Typecheck/build PASS, dist index-Cfc2IKcG.js đã kiểm tra lớp thời gian/mask/hover; chưa browser QA hoặc kiểm chứng trình quản lý mật khẩu của trình duyệt.
+
+- 2026-10-15: Bỏ outline/ring focus toàn project theo yêu cầu qua body Tailwind; công tắc Bàn khóa nhỏ80%/tắt tối50%; mật khẩu hiện rõ, bỏ mask/con mắt. Typecheck/build PASS, dist index-CevrN0M7.js/index-CB7a1c4s.css cập nhật; chưa browser QA.
+
+- 2026-10-15: Hủy/Tạo bàn hover phủ vàng nhẹ10% mask theo artwork; công tắc khóa bàn off dùng nền nâu/núm kem nâu rõ và hover vàng, bỏ dim filter khiến giống disabled. Typecheck/build PASS, dist index-D_nXBzMz.js đã kiểm tra; chưa browser QA.
+
+- 2026-10-15: Tạo bàn hover vàng nhạt tăng10→30%; Hủy giữ10%. Không khóa thì nhãn/ô thời gian lên11% chiều cao form, có mật khẩu trở lại vị trí cũ. Hai nút Hủy/Tạo giữ nguyên. Typecheck/build PASS, dist index-DWj8LjlY.js đã kiểm tra; chưa browser QA.
+
+- 2026-10-15: Nhạc nền thay bằng3 MP3 mới theo thứ tự155926→247345→618302→lặp, chờ4s giữa bài; tắt nhạc hủy timer, bật lại sau ended chờ4s. Bỏ runtime background-music.mp4 cũ, giữ nguồn archive/âm thanh đi quân. Regression playlist/thời gian/chuyển màn1/1 PASS; typecheck/build PASS, dist index-CeQgzWpB.js có3 MP3 mới và không có nhạc cũ. Chưa nghe thử trên trình duyệt/loa thật.
+
+- 2026-10-15: Sẵn sàng online: ribbon z110 trên avatar/kết quả, chỉ hiện phase ready; nút ẩn sau ready không chữ chờ. Có người xếp hàng: cặp đang ngồi chưa ready chờ10s rồi countdown20→0 tự bắt đầu; một người ready đếm ngầm30s từ lần bấm, người kia quá hạn ghi thua not-ready/xuống khán giả không queued, đầu hàng lên đúng ghế. Không queue không ép/phạt; giữ đổi người thua sau ván hiện hành. Snapshot/server tick quản lý countdown; reset không vượt mốc.27/27 readiness/time/HTTP-Socket/challenge PASS; rooms cũ17/24 PASS,7 lỗi tồn tại (6 chuỗi mojibake,1 kỳ vọng chặn khán giả). Typecheck/build PASS, dist index-BcF0AOoS.js xác nhận countdown/ribbon; chưa browser QA. Docs ROOM-READINESS.md.
+
+- 2026-10-15: Theo đính chính, bỏ xử thua/not-ready khi chậm Sẵn sàng30s; chỉ chuyển xuống khán giả/đổi ghế, không tạo kết quả hoặc archive mới, giữ archive ván thật trước. Regression thêm bảo toàn archive;28/28 readiness/time/HTTP-Socket/challenge PASS. Typecheck/build PASS, dist index-D3tkSJDu.js xác nhận bỏ reason/giữ countdown; chưa browser QA.
+
+- 2026-10-15: Bật XEM THỬ TẠM bàn mẫu Chọn Bàn: vào phase ready, countdown20 ngay rồi hai máy bắt đầu; hook riêng hủy timer khi rời, không online/replay/trial.1/1 regression countdown/start/unmount PASS, typecheck/build PASS; dist index-BozWwrnx.js cập nhật. Không có browser kết nối (IAB không khả dụng), chưa trực tiếp mở/QA giao diện. Người dùng mở Chọn Bàn→bàn mẫu để xem.
+
+- 2026-10-15: Nối Bàn khóa thật: create password1–64, server scrypt/salt kiểm tra join ghế/viewer, Repository giữ hash riêng và xóa cùng phòng, không phát secret. Chọn Bàn thêm lọc Bàn khóa phải Còn trống theo khu vực; RoomPasswordDialog dùng chung Chọn Bàn/LobbyDialog, lỗi giữ bảng/sửa lại; Chơi nhanh bỏ khóa, challenge không bypass và không rời phòng cũ trước kiểm tra.19/19 locked service/UI/HTTP-Socket/quick/challenge/server PASS; typecheck/build PASS, dist index-DF0fjbrG.js xác nhận tab/dialog. Chưa browser QA. Docs ROOM-LOCKS.md, thay bản chỉ UI trước.
+
+- 2026-10-15: Countdown Board đen/cỡ72×scale (tăng50%), bỏ shadow chữ; dùng chung online/preview. Typecheck/build PASS, dist index-DU6X5QJn.js kiểm tra màu/cỡ; chưa browser QA.
+
+- 2026-10-15: Thay artwork bàn locked=true bằng65c16869, crop alpha107,140,1041,964/góc0; runtime room-selection/table-board-locked.png, nguồn references/uploads. RoomTableGrid áp dụng mọi tab, giữ tỷ lệ bằng object-contain/slot chung. Đã xem ảnh crop; typecheck/build PASS, dist index-CSX53sHH.js có asset mới; chưa browser QA.
+
+- 2026-10-15: Dựng lại RankingViewButton ôm asset/sát góc alpha, bỏ shadow chữ nhật; useRankingWatch chỉ bật nút top có phòng thật playing, poll khi dialog mở và kiểm tra lại lúc click. Vào bằng asViewer=true, server chặn ván chưa/hết đấu, khóa vẫn hỏi mật khẩu qua RoomPasswordDialog props chung; Home/Chọn Bàn bỏ toast cũ.13/13 ranking DOM/hook/locked/server/HTTP-Socket PASS; typecheck/build PASS, dist index-BjBBwG6e.js xác nhận. Top/ELO còn fixture theo tên, chưa browser QA; docs RANKING-WATCH.md.
+
+- 2026-10-15: Bật1 nút Vào xem mẫu tạm ởtop1 khi chưa có trận thật; click thông báo mẫu, không socket. Có trận thật vẫn vào xem. Thanh cuộn Xếp hạng chỉ thumb nâu vàng/hover nâu đậm, track/corner trong suốt, bỏ nút cuộn native. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-15: Thanh kéo Xếp hạng trắng#fff, giữ track/corner trong suốt. Bạn bè ẩn nút Mời chơi của offline, chỉ hiện khi presenceonline; giữ Nhắn tin và bố cục. Typecheck/build PASS, dist index-RiGjfF6E.js cập nhật; chưa browser QA.
+
+- 2026-10-16: Căn icon Đổi bên Vị trí tùy chỉnh giữa dọc hàng Đỏ/Đen: bỏ translate-2px, dùng SVG đối xứng20px trong vòng32px thay glyph lệch baseline. Typecheck/build PASS, dist index-Dlnsah7i.js xác nhận SVG; chưa browser QA.
+
+- 2026-10-16: Đã lưu bảng quyền Guest/đã liên kết và phạm vi thiết kế vào docs/ACCOUNT-MODEL.md; đồng bộ AGENTS.md/PROJECT-MEMORY.md. Chưa code, chưa tạo DB hoặc duyệt schema. Không thay giới hạn từng mode. Kiểm chứng tài liệu và build được thực hiện trong nhiệm vụ này.
+- Kiểm chứng: bảng ACCOUNT-MODEL đủ 16 mục theo yêu cầu; npm.cmd run build từ board-game PASS (typecheck + Vite), dist/index.html trỏ index-Dlnsah7i.js. Chỉ thay tài liệu; không thay code hoặc tạo database.
+
+- 2026-10-16: Bút đổi tên hồ sơ: Guest không có; đăng nhập Google/đã liên kết và chưa đổi tên thành công mới hiện bút vàng ở cuối dòng tên như bút địa chỉ trong ảnh người dùng. Đổi tên thành công thì ẩn bút; hủy/lỗi vẫn giữ. Trạng thái theo tài khoản, giữ qua đăng nhập lại/đổi thiết bị. Chưa có quy tắc cấp lại quyền. Chỉ lưu thiết kế tại docs/ACCOUNT-MODEL.md, chưa code/UI/database.
+- Kiểm chứng nhiệm vụ bút đổi tên: chỉ cập nhật tài liệu; npm.cmd run build (typecheck + Vite) PASS, dist/index.html vẫn tham chiếu index-Dlnsah7i.js; chưa triển khai UI/database.
+
+- 2026-10-16: Tạo LoginPage/EntryGate, artwork imagegen alpha trim1202×1307, nền Home chung. Lần đầu chọn đăng nhập, chơi khách lưu co-tuong-entry-v1 và lần sau vào Home; không giả lập Google OAuth. Không DB, không đổi App/game UI. 4/4 entry regression PASS; typecheck/build PASS, dist index-BOAZed-V.js có key entry và login-panel-TqdqErsY.png. Mở rộng UI suite: 2/22 PASS,20 FAIL (có lỗi mock HTMLMediaElement.play trả undefined tại useHomeMusic và kỳ vọng UI cũ); chưa sửa ngoài phạm vi. Không có browser kết nối/IAB unavailable nên chưa browser QA desktop/compact; đã xem artwork và kiểm tra bbox/corners alpha0.
+
+- 2026-10-16: Guest tự sinh Kỳ thủ +6 số random (giữ số0 đầu), lưu/khôi phục tên cùng entry; nâng cấp entry cũ thiếu tên một lần. Ngoại lệ mẫu tên khách trong validator dùng chung client/server, không đổi giới hạn tên khác hoặc UI.22/22 entry/locked-room/challenge regression PASS gồm restore session/vào online; typecheck/build PASS, xác nhận dist có mẫu tên/padStart6. Không DB, chưa browser QA.
+
+- 2026-10-16: Nâng riêng cảnh báo khách lên1.5% chiều cao khung đăng nhập (top82.8%) theo ảnh người dùng. Typecheck/build PASS, đã xác nhận CSS82.8% trong dist; chưa browser QA vì không có browser khả dụng. Không thay font/nút hoặc luồng đăng nhập.
+
+- 2026-10-16: Số trong tên PlayerNameplate chuyển sang NumberText compact90%/font-number/lining/tabular, cùng baseline và giữ độ sáng; đồng bộ Home/PlayerCard/thiết lập. Không đổi hình học/avatar/khung. Typecheck/build PASS, dist đã cập nhật; chưa browser QA do browser unavailable.
+
+- 2026-10-16: Theo quyền sửa typography Bạn bè trong yêu cầu, chữ tên/trạng thái/tìm kiếm dùng font-heading; tên semibold bỏ stroke, số dùng NumberText medium90% cùng baseline. Đồng bộ mọi tab qua component chung/cả2 input; giữ hình học/avatar/UI khác và khóa lại phạm vi. Typecheck/build PASS, dist cập nhật; chưa browser QA do không có browser khả dụng.
+
+- 2026-10-16: Nút Thoát hồ sơ mình thành Đăng xuất, xác nhận native dialog Hủy/Đồng ý; logout về LoginPage, ngắt socket/reset ván, giữ tên khách/bản lưu và marker signedOut qua reload. Người khác giữ Thoát.9/9 entry/profile logout regression PASS gồm hủy/xác nhận/giữ identity-dữ liệu; typecheck/build PASS, xác nhận dist có signedOut/xác nhận. Không DB/OAuth; chưa browser QA.
+
+- 2026-10-16: Tăng nhẹ độ đậm tên/số/trạng thái Bạn bè qua component chung (bold/semibold/semibold), giữ font/cỡ/spacing/avatar. Typecheck/build PASS, dist cập nhật/xác nhận weight semibold. Chưa browser QA.
+
+- 2026-10-16: Cân độ đậm tên Bạn bè: chữ extrabold/stroke0.2px, số normal/reset stroke0; trạng thái bold. Giữ font/cỡ/baseline/layout. Typecheck/build PASS, dist xác nhận stroke0.2px; chưa browser QA.
+
+- 2026-10-16: Số trong tên Bạn bè tăng nhẹ stroke0.1px; Xếp hạng áp dụng typography tên/trạng thái cùng chuẩn qua SocialPlayerName/socialPresenceTextClass. Giữ font-size/baseline/hình học/avatar/các chỉ số và khóa lại phạm vi. Kiểm chứng ranking-view và typecheck/build trong nhiệm vụ; dist đã xác nhận CSS0.1px. Chưa browser QA.
+
+- 2026-10-16: Tăng riêng stroke số SocialPlayerName0.1→0.2px theo yêu cầu, đồng bộ Bạn bè/Xếp hạng; không đổi chữ/layout. Typecheck/build PASS, dist cập nhật/xác nhận stroke0.2px. Chưa browser QA.
+
+- 2026-10-16: Sửa tên bị khuất nét bằng line-box1.4 trong SocialPlayerName; slot tên24px flex center không clip dọc ở Bạn bè/Xếp hạng, giữ row/avatar/độ đậm. Typecheck/build PASS, dist xác nhận line-box mới; chưa browser QA.
+
+- 2026-10-16: Lưu thiết kế ghép đấu theo cấp/sao tại docs/MATCHMAKING.md, đồng bộ AGENTS/PROJECT-MEMORY/RANK-SYSTEM. Chỉ sửa tài liệu, chưa DB/code/UI; chưa chốt cách tính qua ranh giới bậc/sao trần. Typecheck/build PASS, dist index-CZR8PMJ7.js xác nhận vẫn bản code hiện hành.
+
+- 2026-10-16: Ghi bảng ELO thắng/thua theo chênh sao vào MATCHMAKING.md, đồng bộ quy tắc ở AGENTS/PROJECT-MEMORY/RANK-SYSTEM. Chỉ tài liệu, chưa tính/lưu ELO thật hoặc DB. Đã đối chiếu7 dòng theo yêu cầu; typecheck/build PASS, dist vẫn index-CZR8PMJ7.js.
+
+- 2026-10-16: Chốt cách tính sao liên tục qua bậc cho matchmaking/ELO, cập nhật MATCHMAKING và ghi nhớ; thay phần chưa chốt ranh giới bậc. Chỉ tài liệu, bảng điểm/code/DB giữ nguyên. Đối chiếu ví dụ+/-1/2/3; typecheck/build PASS, dist vẫn index-CZR8PMJ7.js.
+
+- 2026-10-16: Kỳ Thánh tiếp tục tăng sao ở2900/3000, trần Kỳ Thánh3 sao; ELO thật không clamp. getRankProgress chung và tài liệu đồng bộ.7/7 regression mốc2799/2800/2899/2900/2999/3000/5000 PASS; typecheck/build PASS, dist đã cập nhật; không đổi UI hình học/tính điểm sau trận/DB.
+
+- 2026-10-16: Số tên Bạn bè/Xếp hạng đậm100% và stroke0.3px theo yêu cầu, SocialPlayerName chung giữ nguyên phần chữ/cỡ/căn chỉnh. Typecheck/build PASS; dist xác nhận CSS0.3px, chưa browser QA.
