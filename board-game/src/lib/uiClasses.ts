@@ -21,3 +21,5 @@ export const lobbyButton = `${buttonInteraction} rounded border border-[#c6a563]
 export const homeUtilityButton = `${buttonInteraction} grid size-12 place-items-center rounded-[3px] border-2 border-[#d8ac35] bg-[linear-gradient(#ad7e08,#805100)] text-xl text-[#ffe535] shadow-[inset_0_1px_0_#ffec8d,inset_0_0_0_1px_#6f400b,0_3px_5px_#0005] transition-[border-color,color,box-shadow] duration-150 hover:border-[#ffe78b] hover:bg-[linear-gradient(#d49b12,#a16a08)] hover:text-[#fff7a5] active:bg-[linear-gradient(#886005,#654000)] motion-reduce:transition-none`
 
 export const messageSelectionHighlight = 'bg-[radial-gradient(ellipse_at_center,#724018_0%,#51280f_54%,#241007_100%)] shadow-[inset_0_0_9px_#f8b73c55,0_0_4px_#f8b73c]'
+
+export const historyEmptyTextClass = 'text-center font-heading text-[length:var(--ui-p-28,28px)]'

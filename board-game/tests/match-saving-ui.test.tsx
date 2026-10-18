@@ -1,4 +1,4 @@
-﻿// @vitest-environment jsdom
+// @vitest-environment jsdom
 import { act, renderHook } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
 import { createGame } from '../src/game/state/initial'
@@ -9,7 +9,7 @@ import { useMatchSaving } from '../src/features/game/hooks/useMatchSaving'
 import { useReplayPlayback } from '../src/features/game/hooks/useReplayPlayback'
 import type { GameState } from '../src/types/game'
 import type { RecordedMatch } from '../src/types/recordedMatch'
-it('late viewers wait for completion and save the latest completed match across games', () => {
+it('late viewers wait for completion and save the latest completed match across games', async () => {
   useSavedMatches.setState({ entries: [] })
   const initial = createGame()
   const playing: GameState = { ...initial, phase: 'playing' }
@@ -18,19 +18,19 @@ it('late viewers wait for completion and save the latest completed match across 
   const props: { game: GameState; archive?: RecordedMatch } = { game: playing, archive: first }
   const { result, rerender } = renderHook(({ game, archive }: typeof props) => useMatchSaving(game, archive, true, 'Viewer', 'A', 'B'), { initialProps: props })
   expect(result.current.recording).toBeNull()
-  act(() => result.current.save())
+  await act(async () => {await result.current.save()})
   expect(useSavedMatches.getState().entries).toHaveLength(0)
   rerender({ game: first.states[1], archive: first })
   expect(result.current.recording?.id).toBe('first')
   rerender({ game: playing, archive: undefined })
-  act(() => result.current.save())
+  await act(async () => {await result.current.save()})
   expect(useSavedMatches.getState().entries.at(-1)?.id).toBe('first')
   rerender({ game: second.states[1], archive: second })
   expect(result.current.saved).toBe(false)
-  act(() => result.current.save())
+  await act(async () => {await result.current.save()})
   expect(useSavedMatches.getState().entries.at(-1)?.id).toBe('second')
 })
-it('local save only exists after finish, survives reset and is idempotent', () => {
+it('local save only exists after finish, survives reset and is idempotent', async () => {
   useSavedMatches.setState({ entries: [] })
   const initial = createGame()
   const { result, rerender } = renderHook(({ game }) => useMatchSaving(game, undefined, false, 'Owner', 'Owner', 'Pikafish'), { initialProps: { game: initial } })
@@ -38,12 +38,12 @@ it('local save only exists after finish, survives reset and is idempotent', () =
   useGameStore.setState({ history: [initial] })
   rerender({ game: finishGame(initial, 'red', 'resign') })
   expect(result.current.recording?.states).toHaveLength(2)
-  act(() => result.current.save())
+  await act(async () => {await result.current.save()})
   expect(result.current.saved).toBe(true)
   const id = result.current.recording?.id
   rerender({ game: createGame() })
   expect(result.current.recording?.id).toBe(id)
-  act(() => result.current.save())
+  await act(async () => {await result.current.save()})
   expect(useSavedMatches.getState().entries).toHaveLength(1)
 })
 it('playback supplies initial state, auto advances, seeks without mutations and resumes', () => {

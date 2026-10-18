@@ -13,3 +13,4 @@ Triển khai2026-10-15, thay bản UI xem trước trước đó.
 
 Kiểm chứng: unit service kiểm tra mật khẩu sai/thiếu/đúng ở cả ghế và người xem, giới hạn, không lộ secret qua JSON, giữ khóa sau reset; hook/UI kiểm tra lọc theo khu vực và gửi đúng mật khẩu; HTTP/Socket thật kiểm tra create→sai→đúng. QuickRoom/challenge/server regression liên quan cũng qua. Chưa QA trình duyệt trực tiếp.
 - 2026-10-15: Bàn khóa dùng room-selection/table-board-locked.png từ65c16869, crop107,140,1041,964; bàn mở giữ ảnh cũ. Áp dụng cả Tất cả/Còn trống/Bàn khóa thông qua RoomTableGrid.
+- 2026-10-16: Kết thúc xem thử bàn mẫu Chọn Bàn theo yêu cầu dữ liệu thật. RoomTableGrid chỉ dùng rooms API đã lọc khu vực/trạng thái, bỏ22 previewRooms và đường vào demo. Không có phòng hiện rỗng, không giả người/bàn; Tạo/vào/khóa/ghép nhanh giữ server thật.

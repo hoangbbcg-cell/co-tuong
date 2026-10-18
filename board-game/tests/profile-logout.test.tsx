@@ -15,10 +15,21 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
-it('confirms logout only in the own profile, and cancel keeps the profile open', () => {
+it('shows only the right close button for own profile opened outside Home', () => {
   const ref = createRef<HTMLDialogElement>()
   const onClose = vi.fn()
-  render(<ProfileDialog dialogRef={ref} layout={{ width: 740, height: 850, scale: 0.7, avatarWidth: 980, avatarHeight: 780, avatarScale: 0.7 }} name="Kỳ thủ000042" editable onClose={onClose} primaryActionLabel="Liên kết tài khoản" onPrimaryAction={() => {}} />)
+  render(<ProfileDialog dialogRef={ref} layout={{ width: 740, height: 850, scale: 0.7, avatarWidth: 980, avatarHeight: 780, avatarScale: 0.7 }} name="Kỳ thủ000042" isOwnProfile onClose={onClose} primaryActionLabel="Kết bạn" onPrimaryAction={vi.fn()} />)
+  act(() => ref.current?.showModal())
+  expect(screen.queryByRole('button', { name: 'Kết bạn' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Đăng xuất' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Thoát' }))
+  expect(onClose).toHaveBeenCalledOnce()
+})
+
+it('confirms logout only in the own profile, and cancel keeps the profile open', async () => {
+  const ref = createRef<HTMLDialogElement>()
+  const onClose = vi.fn()
+  render(<ProfileDialog dialogRef={ref} layout={{ width: 740, height: 850, scale: 0.7, avatarWidth: 980, avatarHeight: 780, avatarScale: 0.7 }} name="Kỳ thủ000042" editable accountActions onClose={onClose} primaryActionLabel="Liên kết tài khoản" onPrimaryAction={() => {}} />)
   act(() => ref.current?.showModal())
   fireEvent.click(screen.getByRole('button', { name: 'Đăng xuất' }))
   let confirmation = screen.getByRole('dialog', { name: 'Xác nhận đăng xuất' })
@@ -30,5 +41,6 @@ it('confirms logout only in the own profile, and cancel keeps the profile open',
   confirmation = screen.getByRole('dialog', { name: 'Xác nhận đăng xuất' })
   fireEvent.click(within(confirmation).getByRole('button', { name: 'Đồng ý' }))
   expect(logout).toHaveBeenCalledOnce()
+  await act(async()=>{})
   expect(onClose).toHaveBeenCalledOnce()
 })

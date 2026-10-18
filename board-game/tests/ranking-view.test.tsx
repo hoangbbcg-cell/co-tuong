@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+vi.mock('../src/features/lobby/hooks/useDatabaseRanking',()=>({useDatabaseRanking:()=>[{name:'ShopCoTuong',online:true,playing:'Đang chơi Cờ Tướng',elo:'2719'},{name:'NgocLinhAnh',online:true,playing:'Đang online',elo:'2719'},{name:'Tu_CoTuong',online:false,playing:'Offline',elo:'2719'}]}))
 import { createRef } from 'react'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'

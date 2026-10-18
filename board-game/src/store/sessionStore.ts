@@ -6,14 +6,19 @@ import type { Side } from '../types/game'
 import { ENERGY_RECOVERY_MS, MAX_ENERGY, recoverEnergy } from '../lib/energy'
 import { DEFAULT_PLAYER_ELO } from '../lib/rankProgression'
 import { createClientId } from '../lib/clientId'
+import { COUNTRY_CODES, readProfileLocation, saveProfileLocation } from '../lib/profileLocation'
+import type { AccountProfile } from '../types/account'
+import { accountApi } from '../services/accountApi'
 
 export type ComputerEngine = 'basic' | 'pikafish'
 export interface MatchLikeRecord { matchId: string; actorId: string; targetSide: Side }
 
 interface SessionStore {
+  account: AccountProfile | null
   address: string
   province: string
-  setAddress: (address: string, province: string) => void
+  countryCode: string | null
+  setAddress: (address: string, province: string, countryCode?: string) => void
   elo: number
   energy: number
   energyRecoveryAt: number | null
@@ -38,7 +43,7 @@ interface SessionStore {
   matchLikeRecords: MatchLikeRecord[]
   recordMatchLike: (record: MatchLikeRecord) => void
   clearMatchLikes: (matchId: string) => void
-  screen: 'home' | 'rooms' | 'computer' | 'position' | 'game' | 'replay'
+  screen: 'home' | 'rooms' | 'computer' | 'position' | 'game' | 'replay' | 'shop'
   mode: 'local' | 'online' | 'computer'
   computerDemo: boolean
   computerDemoQueued: boolean
@@ -64,9 +69,16 @@ interface SessionStore {
   setNotice: (notice: string) => void
 }
 export const useSessionStore = create<SessionStore>()((set, get) => ({
-  address: 'TP. Hồ Chí Minh',
-  province: 'Thành phố Hồ Chí Minh',
-  setAddress: (address, province) => set({ address, province }),
+  account:null,
+  address: readProfileLocation()?.address ?? 'TP. Hồ Chí Minh',
+  province: readProfileLocation()?.province ?? 'Thành phố Hồ Chí Minh',
+  countryCode: readProfileLocation()?.countryCode ?? null,
+  setAddress: (address, province, countryCode = 'VN') => {
+    if (get().countryCode || !COUNTRY_CODES.includes(countryCode)) return
+    const location = { address, province, countryCode }
+    saveProfileLocation(location)
+    set(location)
+  },
   elo: DEFAULT_PLAYER_ELO,
   energy: MAX_ENERGY,
   energyRecoveryAt: null,
@@ -76,11 +88,16 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
   dismissEnergyNotice: () => set({ energyNoticeOpen: false, energyVideoUnavailable: false }),
   showEnergyVideoUnavailable: () => set({ energyVideoUnavailable: true }),
   recoverEnergy: (now = Date.now()) => set(state => {
+    if(state.account)return state
     const next = recoverEnergy(state.energy, state.energyRecoveryAt, now)
     return next.energy === state.energy && next.energyRecoveryAt === state.energyRecoveryAt ? state : next
   }),
   gold: 10_000_000,
   consumeEnergy: () => set(state => {
+    if(state.account){
+      void accountApi.request.post('/demo-energy',{id:createClientId()}).then(()=>accountApi.me()).then(profile=>set({account:profile,energy:profile.energy,energyRecoveryAt:profile.energyRecoveryAt})).catch(()=>set({notice:'Không trừ được năng lượng. Vui lòng thử lại.'}))
+      return state
+    }
     const now = Date.now()
     const recovered = recoverEnergy(state.energy, state.energyRecoveryAt, now)
     return { energy: Math.max(0, recovered.energy - 1), energyRecoveryAt: recovered.energyRecoveryAt ?? now + ENERGY_RECOVERY_MS }
@@ -109,7 +126,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     if (state.mode !== 'online' || state.room?.id !== room.id) return
     const started = state.room.game.phase !== 'playing' && room.game.phase === 'playing' && room.players.some(player => player.id === playerId)
     set({ room })
-    if (started) get().consumeEnergy()
+    if (started && !get().account) get().consumeEnergy()
   },
   leave: (notice = '') => set({ screen: 'home', room: null, mode: 'local', computerDemo: false, computerDemoQueued: false, customPositionTrial: false, computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, notice }),
   append: (text, system = false) => set(state => ({ messages: [...state.messages, {

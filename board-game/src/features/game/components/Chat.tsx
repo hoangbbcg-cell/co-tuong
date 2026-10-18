@@ -1,9 +1,7 @@
+﻿import { MessageAccountAvatar } from '../../lobby/components/MessageAccountAvatar'
 import { getComputerAvatar } from '../../../lib/computerAvatar'
 import { memo } from 'react'
 import type { useChat } from '../hooks/useChat'
-import avatar from '../../../assets/icons/avatar.svg'
-import defaultAvatarFrame from '../../../assets/player/avatar-frames/gold-frame.png'
-import { AvatarFrameOverlay, AVATAR_FRAME_VISIBLE_SCALE } from './AvatarFrameOverlay'
 import { buttonInteraction } from '../../../lib/uiClasses'
 
 const suggestions = ['Chào bạn!', 'Nước đi hay!', 'Chúc bạn chơi vui!']
@@ -26,7 +24,7 @@ export const Chat = memo(function Chat({ chat, onAvatarClick }: { chat: ReturnTy
       {visibleMessages.map(message => message.system
         ? <p key={message.id} className="m-0 px-0.5 py-px text-[14px]/[1.4] text-white [overflow-wrap:anywhere] [&+*]:mt-[12px]">{message.text}</p>
         : <article key={message.id} className="flex items-center gap-2 px-0.5 py-0.5 text-white [text-shadow:0_1px_2px_#00151c] [&+*]:mt-[12px]">
-          <button type="button" aria-label={`Xem hồ sơ ${message.name}`} onClick={() => onAvatarClick?.(message.name)} className="relative m-0 block size-8 flex-[0_0_32px] cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe2a1]"><img src={getComputerAvatar(message.name) ?? avatar} alt="" className={getComputerAvatar(message.name) ? "block size-full border-0 object-contain" : "block size-full rounded-full border-0 object-cover"} style={getComputerAvatar(message.name) ? { transform: `scale(${AVATAR_FRAME_VISIBLE_SCALE})` } : undefined} />{!getComputerAvatar(message.name) && <AvatarFrameOverlay src={defaultAvatarFrame} />}</button>
+          <button type="button" aria-label={`Xem hồ sơ ${message.name}`} onClick={() => onAvatarClick?.(message.name)} className="relative m-0 block size-8 flex-[0_0_32px] cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe2a1]"><MessageAccountAvatar name={message.name} /></button>
           <div className="min-w-0 flex-1 text-[14px]/[1.4] [overflow-wrap:anywhere]">
             <strong className="font-semibold text-[#f2d58e]">{getComputerAvatar(message.name) ? 'Ông Hoàng' : message.name}: </strong>
             <span>{message.text}</span>
@@ -45,7 +43,7 @@ export const Chat = memo(function Chat({ chat, onAvatarClick }: { chat: ReturnTy
     <div id="emojiPicker" className={pickerStyle} hidden={chat.picker !== 'emoji'} aria-label="Biểu cảm">
       {['😀', '😂', '👍', '👏', '🤔', '❤️'].map(emoji => <button className={`${buttonInteraction} border-0 bg-transparent p-1 text-[21px] text-white hover:bg-[#436657]`} key={emoji} type="button" aria-label={`Chèn ${emoji}`} onClick={() => chat.emoji(emoji)}>{emoji}</button>)}
     </div>
-    <form id="chatForm" className="relative z-1 flex h-[40px] shrink-0 items-center overflow-hidden rounded-[16px] border border-[#77816e] bg-[#0b1c19]/95 shadow-[inset_0_1px_5px_#0005] compact:h-[38px]" onSubmit={event => { event.preventDefault(); void chat.send() }}>
+    <form id="chatForm" className="relative z-1 mt-auto flex h-[40px] shrink-0 items-center overflow-hidden rounded-[16px] border border-[#77816e] bg-[#0b1c19]/95 shadow-[inset_0_1px_5px_#0005] compact:h-[38px]" onSubmit={event => { event.preventDefault(); void chat.send() }}>
       <input id="chatInput" className="h-full w-0 min-w-0 flex-1 border-0 bg-transparent px-3 font-arial text-[15px] leading-[normal] text-white placeholder:text-[#a5aaa2] placeholder:opacity-100 focus:outline-none focus:ring-0 compact:px-2 compact:text-[13px]" ref={chat.inputRef} value={chat.input} onChange={event => chat.setInput(event.target.value)} aria-label="Nội dung chat" placeholder="Nhập nội dung chat..." maxLength={300} autoComplete="off" />
       <button id="emojiButton" className={`${buttonInteraction} grid size-7 shrink-0 place-items-center border-0 bg-transparent p-0 text-[#f0c995]`} type="button" aria-label="Biểu cảm" aria-expanded={chat.picker === 'emoji'} aria-controls="emojiPicker" onClick={() => togglePicker('emoji')}>
         <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true"><defs><linearGradient id="chatEmojiGold" x1="5" y1="4" x2="19" y2="20" gradientUnits="userSpaceOnUse"><stop stopColor="#ffe98c"/><stop offset="0.55" stopColor="#ffd34f"/><stop offset="1" stopColor="#f3ad28"/></linearGradient></defs><circle cx="12" cy="12" r="9" fill="url(#chatEmojiGold)" stroke="#d99a2b" strokeWidth="0.7"/><path d="M8 14s1.4 2 4 2 4-2 4-2" fill="none" stroke="#75451f" strokeWidth="1.8" strokeLinecap="round"/><circle cx="9" cy="9" r="1" fill="#75451f"/><circle cx="15" cy="9" r="1" fill="#75451f"/></svg>
@@ -69,4 +67,7 @@ export const Chat = memo(function Chat({ chat, onAvatarClick }: { chat: ReturnTy
     && before.messages === after.messages
     && before.mode === after.mode
 })
+
+
+
 

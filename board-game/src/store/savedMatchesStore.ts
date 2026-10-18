@@ -1,5 +1,7 @@
 ﻿import { create } from 'zustand'
 import type { RecordedMatch } from '../types/recordedMatch'
+import { accountApi } from '../services/accountApi'
+import { useSessionStore } from './sessionStore'
 
 const storageKey = 'xiangqi-saved-matches-v1'
 interface SavedEntry extends RecordedMatch { owner: string }
@@ -12,21 +14,23 @@ function read(): SavedEntry[] {
 export const useSavedMatches = create<{
   replay: RecordedMatch | null
   entries: SavedEntry[]
-  save: (owner: string, match: RecordedMatch) => void
-  remove: (owner: string, id: string) => void
+  save: (owner: string, match: RecordedMatch) => Promise<void>
+  remove: (owner: string, id: string) => Promise<void>
 }>((set, get) => ({
   replay: null,
   entries: read(),
-  save: (owner, match) => {
+  save: async (owner, match) => {
     if (match.states.at(-1)?.phase !== 'finished') throw new Error('Chỉ lưu được ván đã kết thúc.')
     if (get().entries.some(item => item.owner === owner && item.id === match.id)) return
     const entries = [...get().entries, { ...structuredClone(match), owner }]
+    if(useSessionStore.getState().account){await accountApi.bookmark(match.id,true);set({entries});return}
     try { localStorage.setItem(storageKey, JSON.stringify(entries)) }
     catch { throw new Error('Bộ nhớ đã đầy. Hãy xóa bớt ván đã lưu rồi thử lại.') }
     set({ entries })
   },
-  remove: (owner, id) => {
+  remove: async (owner, id) => {
     const entries = get().entries.filter(item => item.owner !== owner || item.id !== id)
+    if(useSessionStore.getState().account){await accountApi.bookmark(id,false);set({entries});return}
     localStorage.setItem(storageKey, JSON.stringify(entries))
     set({ entries })
   },

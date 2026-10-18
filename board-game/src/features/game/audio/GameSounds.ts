@@ -1,3 +1,5 @@
+import { useAudioSettingsStore } from '../../../store/audioSettingsStore'
+
 type SoundName = 'move' | 'capture' | 'check' | 'checkmate' | 'introOne' | 'introTwo'
 type Channel = 'effects' | 'intro' | 'checkmate' | 'clock'
 type Clip = { sound: SoundName; volume: number; delay?: number; offset?: number }
@@ -5,6 +7,8 @@ type Clip = { sound: SoundName; volume: number; delay?: number; offset?: number 
 /** Decodes each asset once per board and gives each cue its own playback source. */
 export class GameSounds {
   private readonly context = new AudioContext()
+  private readonly output = this.context.createGain()
+  private readonly unsubscribeAudio: () => void
   private readonly abort = new AbortController()
   private readonly buffers = new Map<SoundName, Promise<AudioBuffer>>()
   private readonly active: Record<Channel, Set<AudioBufferSourceNode>> = {
@@ -17,6 +21,10 @@ export class GameSounds {
   private disposed = false
 
   constructor(sources: Record<SoundName, string>) {
+    this.output.connect(this.context.destination)
+    const updateMute = () => this.output.gain.setValueAtTime(useAudioSettingsStore.getState().muted ? 0 : 1, this.context.currentTime)
+    updateMute()
+    this.unsubscribeAudio = useAudioSettingsStore.subscribe(updateMute)
     for (const name of Object.keys(sources) as SoundName[]) {
       const buffer = fetch(sources[name], { signal: this.abort.signal })
         .then(response => {
@@ -76,7 +84,7 @@ export class GameSounds {
     const gain = this.context.createGain()
     source.buffer = buffer
     gain.gain.setValueAtTime(clip.volume, time)
-    source.connect(gain).connect(this.context.destination)
+    source.connect(gain).connect(this.output)
     this.active[channel].add(source)
     source.onended = () => {
       this.active[channel].delete(source)
@@ -151,7 +159,7 @@ export class GameSounds {
       source.buffer = this.clockBuffer
       source.loop = true
       gain.gain.value = 0.35
-      source.connect(gain).connect(this.context.destination)
+      source.connect(gain).connect(this.output)
       this.active.clock.add(source)
       source.onended = () => { this.active.clock.delete(source); source.disconnect(); gain.disconnect() }
       source.start()
@@ -170,6 +178,8 @@ export class GameSounds {
   dispose() {
     if (this.disposed) return
     this.disposed = true
+    this.unsubscribeAudio()
+    this.output.disconnect()
     this.stopAll()
     this.abort.abort()
     window.removeEventListener('pointerdown', this.unlock, true)

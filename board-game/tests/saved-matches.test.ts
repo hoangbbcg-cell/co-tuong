@@ -1,13 +1,13 @@
-﻿// @vitest-environment jsdom
+// @vitest-environment jsdom
 import { beforeEach, expect, it, vi } from 'vitest'
 import { useSavedMatches } from '../src/store/savedMatchesStore'
 import { createGame } from '../src/game/state/initial'
 import { finishGame } from '../src/game/moves/actions'
 beforeEach(() => { localStorage.clear(); useSavedMatches.setState({ entries: [] }) })
-it('stores finished matches once, preserves boards and persists removal', () => {
+it('stores finished matches once, preserves boards and persists removal', async () => {
   const game = createGame()
   const recording = { id: 'one', endedAt: 1, redName: 'A', blackName: 'B', states: [game] }
-  expect(() => useSavedMatches.getState().save('me', recording)).toThrow('Chỉ lưu')
+  await expect(useSavedMatches.getState().save('me', recording)).rejects.toThrow('Chỉ lưu')
   recording.states.push(finishGame(game, 'red', 'resign'))
   useSavedMatches.getState().save('me', recording)
   useSavedMatches.getState().save('me', recording)
@@ -20,9 +20,9 @@ it('stores finished matches once, preserves boards and persists removal', () => 
   useSavedMatches.getState().remove('me', 'one')
   expect(JSON.parse(localStorage.getItem('xiangqi-saved-matches-v1')!)).toHaveLength(0)
 })
-it('quota failure does not report success', () => {
+it('quota failure does not report success', async () => {
   const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('QuotaExceeded') })
-  expect(() => useSavedMatches.getState().save('me', { id: 'two', endedAt: 1, redName: 'A', blackName: 'B', states: [finishGame(createGame(), 'red', 'resign')] })).toThrow('Bộ nhớ đã đầy')
+  await expect(useSavedMatches.getState().save('me', { id: 'two', endedAt: 1, redName: 'A', blackName: 'B', states: [finishGame(createGame(), 'red', 'resign')] })).rejects.toThrow('Bộ nhớ đã đầy')
   expect(useSavedMatches.getState().entries).toHaveLength(0)
   spy.mockRestore()
 })

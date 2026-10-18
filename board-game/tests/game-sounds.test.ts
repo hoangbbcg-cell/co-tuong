@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { GameSounds } from '../src/features/game/audio/GameSounds'
+import { useAudioSettingsStore } from '../src/store/audioSettingsStore'
 
 class FakeSource {
   buffer: AudioBuffer | null = null
@@ -10,6 +11,11 @@ class FakeSource {
   start = vi.fn()
   stop = vi.fn()
 }
+class FakeGain {
+  gain = { setValueAtTime: vi.fn() }
+  connect = vi.fn()
+  disconnect = vi.fn()
+}
 class FakeContext extends EventTarget {
   static instances: FakeContext[] = []
   state = 'suspended'
@@ -17,6 +23,7 @@ class FakeContext extends EventTarget {
   destination = {}
   allowResume = true
   sources: FakeSource[] = []
+  gains: FakeGain[] = []
   constructor() { super(); FakeContext.instances.push(this) }
   resume = vi.fn(async () => {
     if (this.allowResume) { this.state = 'running'; this.dispatchEvent(new Event('statechange')) }
@@ -24,7 +31,11 @@ class FakeContext extends EventTarget {
   close = vi.fn(async () => { this.state = 'closed' })
   decodeAudioData = vi.fn(async (data: ArrayBuffer) => ({ duration: new Uint8Array(data)[0] === 5 ? 10 : 20 }) as AudioBuffer)
   createBufferSource() { const source = new FakeSource(); this.sources.push(source); return source }
-  createGain() { return { gain: { setValueAtTime: vi.fn() }, disconnect: vi.fn() } }
+  createGain() {
+    const gain = new FakeGain()
+    this.gains.push(gain)
+    return gain
+  }
 }
 const sources = { move: '/move', capture: '/capture', check: '/check', checkmate: '/checkmate', introOne: '/introOne', introTwo: '/introTwo' }
 let sounds: GameSounds
@@ -32,6 +43,7 @@ let context: FakeContext
 let failedSource: string | null
 
 beforeEach(() => {
+  useAudioSettingsStore.setState({ muted: false })
   vi.stubGlobal('AudioContext', FakeContext)
   failedSource = null
   vi.stubGlobal('fetch', vi.fn(async (url: string) => {
@@ -41,7 +53,20 @@ beforeEach(() => {
   sounds = new GameSounds(sources)
   context = FakeContext.instances.at(-1)!
 })
-afterEach(() => { sounds.dispose(); vi.unstubAllGlobals(); FakeContext.instances = [] })
+afterEach(() => { sounds.dispose(); useAudioSettingsStore.setState({ muted: false }); vi.unstubAllGlobals(); FakeContext.instances = [] })
+
+it('mutes the shared game output immediately and keeps the preference across boards', async () => {
+  sounds.play('move')
+  await vi.waitFor(() => expect(context.sources).toHaveLength(1))
+  useAudioSettingsStore.getState().toggleMuted()
+  expect(context.gains[0].gain.setValueAtTime).toHaveBeenLastCalledWith(0, 2)
+  sounds.dispose()
+  sounds = new GameSounds(sources)
+  context = FakeContext.instances.at(-1)!
+  expect(context.gains[0].gain.setValueAtTime).toHaveBeenLastCalledWith(0, 2)
+  useAudioSettingsStore.getState().toggleMuted()
+  expect(context.gains[0].gain.setValueAtTime).toHaveBeenLastCalledWith(1, 2)
+})
 
 it('preloads every clip and lets successive cues play without interrupting each other', async () => {
   sounds.play('move')

@@ -3,11 +3,11 @@ import type { RecordedMatch } from './recordedMatch'
 import type { ChallengeProfile, ChallengeInvite, ChallengeResult, ChallengeAccepted } from './challenge'
 
 export interface ChatMessage { id: string; name: string; text: string; system: boolean }
-export interface RoomPlayer { id: string; name: string; side: Side; ready: boolean }
+export interface RoomPlayer { userId?: string; id: string; name: string; side: Side; ready: boolean }
 export interface RoomViewer { id: string; name: string; queued: boolean }
 export const ROOM_MINUTES = [3, 5, 10, 15, 30] as const
 export const ROOM_TURN_SECONDS = [30, 60, 90, 120] as const
-export interface RoomSummary { locked?: boolean; id: string; name: string; players: number; viewerCount?: number; playerNames?: string[]; phase: GameState['phase']; minutes?: number; province?: string }
+export interface RoomSummary { variant?: GameState['variant']; locked?: boolean; id: string; name: string; players: number; viewerCount?: number; playerNames?: string[]; phase: GameState['phase']; minutes?: number; province?: string }
 export interface RoomSnapshot {
   locked?: boolean
   readyCountdown?: number | null

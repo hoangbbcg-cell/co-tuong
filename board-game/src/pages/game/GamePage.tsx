@@ -1,4 +1,4 @@
-import { useDemoReadyCountdown } from '../../features/game/hooks/useDemoReadyCountdown'
+﻿import { useDemoReadyCountdown } from '../../features/game/hooks/useDemoReadyCountdown'
 import { getComputerAvatar } from '../../lib/computerAvatar'
 import { usePikafishHint } from '../../features/game/hooks/usePikafishHint'
 import { useReplayTrial } from '../../features/game/hooks/useReplayTrial'
@@ -127,7 +127,7 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
   const [profileName, setProfileName] = useState('')
   const [grantTargetName, setGrantTargetName] = useState<string | null>(null)
   const [grantTargetSide, setGrantTargetSide] = useState<Side | null>(null)
-  const { getGrantedHonorIds, toggleGrant } = useHonorGrants()
+  const { getGrantedHonorIds, toggleGrant } = useHonorGrants(grantTargetName??undefined)
   const [grantToast, setGrantToast] = useState<{ id: number; message: string; phase: 'visible' | 'exiting' } | null>(null)
   const grantToastId = useRef(0)
   useEffect(() => {
@@ -150,7 +150,7 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
   const lobby = useLobby()
   const name = useSessionStore(state => state.name)
   const [localLikeMatchId] = useState(() => 'local:' + createClientId())
-  const likeMatchId = match.online ? match.room?.id ?? 'online' : localLikeMatchId
+  const likeMatchId = match.online ? match.room?.lastCompletedMatch?.id ?? 'online' : localLikeMatchId
   const likeActorId = match.player?.id ?? 'session:' + name.trim().toLocaleLowerCase()
   const clearMatchLikes = useSessionStore(state => state.clearMatchLikes)
   const previousLikeResult = useRef(game.result)
@@ -214,11 +214,17 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
   const timerExpired = (side: Side) => game.result?.reason === 'timeout' && game.currentTurn === side
   const isReady = (side: 'red' | 'black') => match.online && game.phase === 'ready' && !!match.room?.players.find(player => player.side === side)?.ready
   const queuedViewers = match.room?.viewers?.filter(viewer => viewer.queued) ?? []
+  const roomOccupantCount = match.online
+    ? new Set([...(match.room?.players ?? []), ...(match.room?.viewers ?? [])].map(member => member.id)).size
+    : viewerPreview ? 1 : 0
   const queueNumbers = new Map(queuedViewers.map((viewer, index) => [viewer.id, index + 1]))
   const roomUsers: { id: string; name: string; queued?: boolean; queueNumber?: number }[] = viewerPreview
     ? [{ id: 'preview-self', name: name || 'Bạn (viewer)', queued: computerDemo ? computerDemoQueued : previewQueued, queueNumber: (computerDemo ? computerDemoQueued : previewQueued) ? 1 : undefined }]
     : match.online
-      ? (match.room?.viewers ?? []).map(viewer => ({ ...viewer, queueNumber: queueNumbers.get(viewer.id) }))
+      ? [
+          ...(match.room?.players ?? []).map(player => ({ id: player.id, name: player.name })),
+          ...(match.room?.viewers ?? []).map(viewer => ({ ...viewer, queueNumber: queueNumbers.get(viewer.id) })),
+        ]
       : []
   const viewerQueueAction = viewerPreview
     ? { queued: computerDemo ? computerDemoQueued : previewQueued, disabled: false, onToggle: () => computerDemo
@@ -232,9 +238,11 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
   const tools = useGameTools(screenshotRenderer.camera)
   const [positionSaveNotice, setPositionSaveNotice] = useState('')
   const hints = usePikafishHint(game, replayData ? savedMatchSide(replayData, replayOwner) : match.humanSide, trial.active && (replayMode || positionTrial), trial.revision, setPositionSaveNotice)
-  const openPositionSave = () => {
+  const canSavePosition = match.moveCount > 0
+  const openPositionSave = async () => {
+    if (!canSavePosition) return
     try {
-      useSavedPositions.getState().save({ id: createClientId(), owner: name, savedAt: Date.now(), title: `Thế cờ nước ${match.moveCount}`, note: '', redName: playerName('red'), blackName: playerName('black'), moveNumber: match.moveCount, boardState: structuredClone(game), ...(replayData?.replayRequiresSave ? { sourceMatchId: replayData.id } : {}) })
+      await useSavedPositions.getState().save({ id: createClientId(), owner: name, savedAt: Date.now(), title: `Thế cờ nước ${match.moveCount}`, note: '', redName: playerName('red'), blackName: playerName('black'), moveNumber: match.moveCount, boardState: structuredClone(game), ...(replayData?.replayRequiresSave ? { sourceMatchId: replayData.id } : {}) })
       setPositionSaveNotice('Đã lưu thế cờ.')
     } catch { setPositionSaveNotice('Không thể lưu thế cờ. Bộ nhớ có thể đã đầy.') }
   }
@@ -244,13 +252,13 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
     return () => window.clearTimeout(timer)
   }, [positionSaveNotice])
   const saving = useMatchSaving(game, match.room?.lastCompletedMatch, match.online, name, playerName('red'), playerName('black'), !replayMode && !positionTrial && !computerMatch)
-  const saveReplayMatch = () => {
+  const saveReplayMatch = async () => {
     if (!replayData) return
     const { replayRequiresSave: _replayRequiresSave, ...record } = replayData
-    try { useSavedMatches.getState().save(name, record); setPositionSaveNotice('Đã lưu ván đấu.') }
+    try { await useSavedMatches.getState().save(name, record); setPositionSaveNotice('Đã lưu ván đấu.') }
     catch { setPositionSaveNotice('Không thể lưu ván đấu. Bộ nhớ có thể đã đầy.') }
   }
-  return <div id="gameScreen" className="relative h-dvh w-full">
+  return <div id="gameScreen" onKeyDownCapture={event => { if (positionTrial && event.code === 'Space' && !(event.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]')) { event.preventDefault(); event.stopPropagation() } }} className="relative h-dvh w-full">
     {saving.error && <div data-screenshot-exclude="true" className="fixed bottom-4 left-1/2 z-40 -translate-x-1/2 text-center">
       {saving.error && <p role="alert" className="rounded bg-[#241007] p-2 text-[#ffe5a6]">{saving.error}</p>}
     </div>}
@@ -263,7 +271,6 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
         <img src={gameBackground} alt="" className="absolute -inset-[8%] h-[116%] w-[116%] max-w-none object-cover object-center contrast-[1.08] saturate-[1.08]" />
       </div>
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,#2110061f,transparent_35%,transparent_65%,#2110061f)]" />
-      {game.variant === 'jieqi' && <span className="pointer-events-none absolute top-3 left-1/2 z-20 -translate-x-1/2 rounded border border-[#bd914e] bg-[#382717]/90 px-3 py-1 text-sm font-semibold text-[#f4d598]">Cờ Úp</span>}
       <header data-room-content className="pointer-events-none absolute inset-x-3 top-3 z-20 flex h-12 items-center justify-start gap-[15px] p-0 compact:static compact:border-b compact:border-[#c4b27940]">
         <button id="backButton" type="button" className={gameUtilityButton} aria-label="Rời phòng" onClick={() => void match.leave()}>
           <GameBackIcon />
@@ -272,22 +279,22 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
           <img src={roomCodeFrame} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 m-0 block size-full border-0 p-0" />
           <span aria-hidden="true" className="absolute top-[44%] right-[22%] bottom-[22%] left-[22%] flex items-center justify-center overflow-hidden font-number text-[18px]/[1] font-bold lining-nums tabular-nums tracking-normal text-[#f6d696] [text-shadow:0_1px_2px_#160b04]">{Array.from('123456', (digit) => <span key={digit} className="inline-flex w-[0.7em] shrink-0 justify-center">{digit}</span>)}</span>
         </div>
-        <span inert={entrance.entering} className="contents"><GameTools showMatchTools={!replayMode} showSaveMatch={!computerMatch && (!replayMode || !!replayData?.replayRequiresSave)} showSavePosition={!computerMatch && (!replayMode || trial.active || replayData?.replayKind !== 'position')} onSave={replayMode ? saveReplayMatch : saving.save} saveDisabled={replayMode ? !replayData || replayData.replayKind === 'position' : !saving.recording} saved={replayMode ? replaySavedMatch : saving.saved} onFriends={() => friendsRef.current?.showModal()} playing={tools.playing} onSavePosition={openPositionSave} onSound={() => void tools.toggleMusic()} onFullscreen={() => void tools.fullscreen()} /></span>
+        <span inert={entrance.entering} className="contents"><GameTools showMatchTools={!replayMode} showSaveMatch={!computerMatch && (!replayMode || !!replayData?.replayRequiresSave)} showSavePosition={!computerMatch && (!replayMode || trial.active || replayData?.replayKind !== 'position')} onSave={replayMode ? saveReplayMatch : saving.save} saveDisabled={replayMode ? !replayData || replayData.replayKind === 'position' : !saving.recording} saved={replayMode ? replaySavedMatch : saving.saved} onFriends={() => friendsRef.current?.showModal()} playing={tools.playing} savePositionDisabled={!canSavePosition} onSavePosition={openPositionSave} onSound={() => void tools.toggleMusic()} onFullscreen={() => void tools.fullscreen()} /></span>
       </header>
       <div className="relative z-10 row-start-2 m-0 flex min-h-0 items-center justify-center gap-3"><div id="turnText" className="sr-only">{game.phase === 'finished' ? 'Ván cờ kết thúc' : `Lượt: ${sideName(game.currentTurn)}`}</div><div id="statusText" data-screenshot-exclude="true" className="absolute top-1 m-0 whitespace-pre-line rounded border border-[#dac086] bg-[#183f35] px-3 py-1.5 text-xs/[1.5] text-[#ffe2a1] empty:hidden" role="status">{screenshotRenderer.notice || tools.notice || match.repetitionAttemptNotice || (replayMode || game.result ? '' : match.status)}</div></div>
       <div className="relative row-start-3 grid min-h-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-2 compact:relative compact:grid-cols-2 compact:grid-rows-[114px_minmax(0,1fr)]" ref={layout.arenaRef} style={{ '--board-height': `${layout.frameHeight}px` } as CSSProperties}>
-        <div data-room-content className="relative h-full min-h-0 self-center pt-[72px] desktop:max-h-(--board-height) compact:pt-0"><PlayerCard showClock={!replayMode && !positionTrial && !match.computer} fillHeight={leftSide === 'red'} side={leftSide} variant={game.variant} name={playerName(leftSide)} started={game.phase !== 'ready'} active={!replayMode && !positionTrial && game.phase === 'playing' && game.currentTurn === leftSide} timerExpired={timerExpired(leftSide)} ready={isReady(leftSide)} remaining={game.remainingTime[leftSide]} turnElapsed={game.turnElapsed} turnTimeLimitMs={game.turnTimeLimitMs} outcome={outcome(leftSide)} takebackDeclineKey={declineNotice?.side === leftSide ? declineNotice.id : null} likeVisible={showLikeOnSide(leftSide)} likeMatchId={likeMatchId} likeActorId={likeActorId} likePosition="left" onAvatarClick={() => openPlayerProfile(playerName(leftSide))} onAvatarContextMenu={canGrantOnSide(leftSide) ? () => openGrantPanel(playerName(leftSide), leftSide) : undefined}>
+        <div data-room-content className="relative h-full min-h-0 self-center pt-[72px] desktop:max-h-(--board-height) compact:pt-0"><PlayerCard showClock={!replayMode && !positionTrial && !match.computer} fillHeight={leftSide === 'red'} side={leftSide} empty={match.online && !match.room?.players.some(p=>p.side===leftSide)} playerId={match.room?.players.find(p=>p.side===leftSide)?.userId} variant={game.variant} name={playerName(leftSide)} started={game.phase !== 'ready'} active={!replayMode && !positionTrial && game.phase === 'playing' && game.currentTurn === leftSide} timerExpired={timerExpired(leftSide)} ready={isReady(leftSide)} remaining={game.remainingTime[leftSide]} turnElapsed={game.turnElapsed} turnTimeLimitMs={game.turnTimeLimitMs} outcome={outcome(leftSide)} takebackDeclineKey={declineNotice?.side === leftSide ? declineNotice.id : null} likeVisible={showLikeOnSide(leftSide)} likeMatchId={likeMatchId} likeActorId={likeActorId} likePosition="left" onAvatarClick={() => openPlayerProfile(playerName(leftSide))} onAvatarContextMenu={canGrantOnSide(leftSide) ? () => openGrantPanel(playerName(leftSide), leftSide) : undefined}>
 
           {!replayMode && !positionTrial && actions}
         </PlayerCard>
 
-          <div className="pointer-events-auto absolute inset-x-0 top-[449px] bottom-0 z-8 translate-y-[10px] short-desktop:top-[369px] compact:fixed compact:right-auto compact:bottom-[44px] compact:left-3 compact:top-auto compact:h-[min(220px,calc(100dvh-116px))] compact:w-[330px] compact:max-w-[calc(100vw-24px)]" hidden={!showRoomFeatures || !showUsers}><RoomUsersPanel users={roomUsers} queued={viewerQueueAction?.queued ?? false} queueDisabled={viewerQueueAction?.disabled ?? false} onToggleQueue={viewerQueueAction?.onToggle} onAvatarClick={openPlayerProfile} /></div>
+          <div className="pointer-events-auto absolute inset-x-0 top-[459px] -bottom-[10px] z-8 short-desktop:top-[379px] compact:fixed compact:right-auto compact:bottom-[34px] compact:left-3 compact:top-auto compact:h-[min(220px,calc(100dvh-116px))] compact:w-[330px] compact:max-w-[calc(100vw-24px)]" hidden={!showRoomFeatures || !showUsers}><RoomUsersPanel users={roomUsers} queued={viewerQueueAction?.queued ?? false} queueDisabled={viewerQueueAction?.disabled ?? false} onToggleQueue={viewerQueueAction?.onToggle} onAvatarClick={openPlayerProfile} /></div>
         </div>
         <Board hintMove={hints.hint} hiddenChess={game.variant === 'jieqi'} checkmateEffect={playCheckmateEffect} checkSide={checkedSide} flipped={leftSide === 'black'} board={game.board} selected={trial.active ? trial.selected : match.selected} legalMoves={trial.active ? trial.moves : match.legalMoves} forbiddenMoves={match.forbiddenMoves} animation={trial.active ? trial.animation : match.animation} lastMove={game.lastMove} frameWidth={layout.frameWidth} scale={layout.scale}
           disabled={trial.active ? entrance.entering || !!trial.animation || game.phase !== 'playing' : isRoomViewer || match.computer && game.currentTurn !== match.humanSide || entrance.entering || intro.visible || game.phase !== 'playing' || !!match.animation || match.pending || match.online && match.player?.side !== game.currentTurn}
-          showStart={demoReadyCountdown !== null || !isRoomViewer && !(match.online && match.player?.ready) && (game.phase === 'ready' && !(match.computer && match.computerEngine === 'pikafish') || game.phase === 'finished' && resultReady)} startDisabled={match.pending || match.online && !!match.player?.ready} startLabel={startLabel} readyCountdown={match.online ? match.room?.readyCountdown : demoReadyCountdown} onSelect={trial.active ? trial.select : match.select} onStart={match.start} />
+          showStart={(!match.online || (match.room?.players.length ?? 0) === 2) && (demoReadyCountdown !== null || !isRoomViewer && !(match.online && match.player?.ready) && (game.phase === 'ready' && !(match.computer && match.computerEngine === 'pikafish') || game.phase === 'finished' && resultReady))} startDisabled={match.pending || match.online && !!match.player?.ready} startLabel={startLabel} readyCountdown={match.online ? match.room?.readyCountdown : demoReadyCountdown} onSelect={trial.active ? trial.select : match.select} onStart={match.start} />
         <div data-room-content className="relative flex h-full min-h-0 min-w-0 flex-col gap-[15px] self-center pt-[72px] desktop:max-h-(--board-height) compact:pt-0 compact:col-start-2 compact:row-start-1">
-          <PlayerCard showClock={!replayMode && !positionTrial && !match.computer} fillHeight={false} side={rightSide} variant={game.variant} name={playerName(rightSide)} started={game.phase !== 'ready'} active={!replayMode && !positionTrial && game.phase === 'playing' && game.currentTurn === rightSide} timerExpired={timerExpired(rightSide)} ready={isReady(rightSide)} remaining={game.remainingTime[rightSide]} turnElapsed={game.turnElapsed} turnTimeLimitMs={game.turnTimeLimitMs} outcome={outcome(rightSide)} takebackDeclineKey={declineNotice?.side === rightSide ? declineNotice.id : null} likeVisible={showLikeOnSide(rightSide)} likeMatchId={likeMatchId} likeActorId={likeActorId} likePosition="right" onAvatarClick={() => openPlayerProfile(playerName(rightSide))} onAvatarContextMenu={canGrantOnSide(rightSide) ? () => openGrantPanel(playerName(rightSide), rightSide) : undefined}>{positionTrial && <ReplayControls playback={playback} trial={trial} hintThinking={hints.thinking} onHint={() => void hints.request()} onNotice={setPositionSaveNotice} />}{replayMode && (trial.active || replayData?.replayKind !== 'position') && <ReplayControls playback={playback} trial={trial} hintThinking={hints.thinking} onHint={() => void hints.request()} onToggleMode={trialAllowed ? toggleTrial : undefined} onNotice={setPositionSaveNotice} />}{replayMode && !trial.active && replayData?.replayKind === 'position' && <ReplayModeButton active={false} onClick={toggleTrial} className="mt-[50px] compact:col-span-full compact:justify-self-center" />}</PlayerCard>
+          <PlayerCard showClock={!replayMode && !positionTrial && !match.computer} fillHeight={false} side={rightSide} empty={match.online && !match.room?.players.some(p=>p.side===rightSide)} playerId={match.room?.players.find(p=>p.side===rightSide)?.userId} variant={game.variant} name={playerName(rightSide)} started={game.phase !== 'ready'} active={!replayMode && !positionTrial && game.phase === 'playing' && game.currentTurn === rightSide} timerExpired={timerExpired(rightSide)} ready={isReady(rightSide)} remaining={game.remainingTime[rightSide]} turnElapsed={game.turnElapsed} turnTimeLimitMs={game.turnTimeLimitMs} outcome={outcome(rightSide)} takebackDeclineKey={declineNotice?.side === rightSide ? declineNotice.id : null} likeVisible={showLikeOnSide(rightSide)} likeMatchId={likeMatchId} likeActorId={likeActorId} likePosition="right" onAvatarClick={() => openPlayerProfile(playerName(rightSide))} onAvatarContextMenu={canGrantOnSide(rightSide) ? () => openGrantPanel(playerName(rightSide), rightSide) : undefined}>{positionTrial && <ReplayControls playback={playback} trial={trial} hintThinking={hints.thinking} onHint={() => void hints.request()} onNotice={setPositionSaveNotice} />}{replayMode && (trial.active || replayData?.replayKind !== 'position') && <ReplayControls playback={playback} trial={trial} hintThinking={hints.thinking} onHint={() => void hints.request()} onToggleMode={trialAllowed ? toggleTrial : undefined} onNotice={setPositionSaveNotice} />}{replayMode && !trial.active && replayData?.replayKind === 'position' && <ReplayModeButton active={false} onClick={toggleTrial} className="mt-[50px] compact:col-span-full compact:justify-self-center" />}</PlayerCard>
           {showRoomFeatures && <div className={mobileChatOpen ? 'desktop:contents compact:fixed compact:inset-x-3 compact:bottom-28 compact:z-40 compact:h-[min(300px,50dvh)]' : 'desktop:contents compact:hidden'}><button onClick={()=>setMobileChatOpen(false)} className="absolute right-0 -top-11 z-40 h-11 rounded-t-lg border border-[#79501e] bg-[#241007] px-4 desktop:hidden">??ng chat</button><Chat chat={chat} onAvatarClick={openPlayerProfile} /></div>}
         </div>
       </div>
@@ -301,7 +308,7 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
             <ellipse cx="20" cy="15" rx="7" ry="9" />
             <ellipse cx="20" cy="15" rx="2.5" ry="5" fill="currentColor" stroke="none" />
           </svg>
-          <span className="font-number text-base/none font-bold tabular-nums [text-shadow:0_1px_2px_#21190e]">{roomUsers.length}</span>
+          <span className="font-number text-base/none font-bold tabular-nums [text-shadow:0_1px_2px_#21190e]">{roomOccupantCount}</span>
         </button>
         {!showUsers && viewerQueueAction && <RoomQueueButton queued={viewerQueueAction.queued} disabled={viewerQueueAction.disabled} onToggleQueue={viewerQueueAction.onToggle} />}
       </footer>
@@ -339,10 +346,10 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
       profileDialogRef.current?.close()
       setProfileNotice('Tính năng kết bạn sắp ra mắt.')
     }} />
-    {grantTargetName && grantTargetSide && canGrantOnSide(grantTargetSide) && <AwardedHonorGrantPanel targetName={grantTargetName} anchor={grantAnchor} grantedHonorIds={getGrantedHonorIds(grantTargetName)} onGrant={honor => {
+    {grantTargetName && grantTargetSide && canGrantOnSide(grantTargetSide) && <AwardedHonorGrantPanel targetName={grantTargetName} anchor={grantAnchor} grantedHonorIds={getGrantedHonorIds(grantTargetName)} onGrant={async honor => {
       if (!canGrantOnSide(grantTargetSide)) return
       try {
-        const granting = toggleGrant(grantTargetName, honor.id)
+        const granting = await toggleGrant(grantTargetName, honor.id)
         setGrantToast({ id: ++grantToastId.current, message: granting ? 'Đã phong danh hiệu' : 'Bạn đã bỏ phong danh hiệu', phase: 'visible' })
       } catch {
         setGrantToast({ id: ++grantToastId.current, message: 'Không thể lưu trạng thái phong danh hiệu. Vui lòng thử lại.', phase: 'visible' })
@@ -357,3 +364,6 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
     {entrance.entering && OPENING_MODE === 'cover-transform' && <OpeningCover onComplete={entrance.finishEntrance} />}
   </div>
 }
+
+
+

@@ -4,6 +4,8 @@ dist/
 coverage/
 .env
 .env.local
+.env.*
+!.env.example
 *.log
 board-game/engines/pikafish/*.7z
 board-game/engines/pikafish/*.exe
@@ -50,3 +52,5 @@ board-game/src/assets/references/uploads/*
 
 # Local user rollback snapshots
 .checkpoints/
+# Local npm download cache
+.npm-cache/

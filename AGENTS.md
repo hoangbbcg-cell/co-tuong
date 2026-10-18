@@ -1,5 +1,15 @@
 # Hướng dẫn làm việc
 
+- 2026-10-16: Google Sign-In thật bằng GIS popup + google-auth-library verifyIdToken/audience GOOGLE_CLIENT_ID/nonce một lần. Migration004 thêm google_sub unique ascii_bin và session_expires_at, đã apply1 bước trên cotuong;001–003 không sửa. Guest link transaction giữ users.id/public ID/dữ liệu; Google cũ login lại; conflict409 không merge, revoke device hash user link. Session mới30 ngày hash DB/cookie HttpOnly, Socket.IO dùng auth hiện có. Client dùng VITE_GOOGLE_CLIENT_ID cùng ID backend, không Client Secret/token log/localStorage. Tests30/30 + MySQL tạm9/9 PASS; typecheck/build PASS, dist cập nhật; chưa Google popup QA thật vì Client ID chưa điền. Hướng dẫn/file/phạm vi: docs/GOOGLE-SIGN-IN.md.
+
+- 2026-10-16: Chơi nhanh/Đấu ở Home hết đối thủ thì tạo bàn online10 phút/60s mỗi nước theo tỉnh hồ sơ và join chờ một mình, không fallback máy. Chơi với máy/Cờ Úp riêng giữ nguyên; Chọn Bàn hết phòng vẫn mở Tạo bàn. Regression3/3 PASS, typecheck/build PASS; dist xác nhận, chưa browser QA.
+
+- 2026-10-16: Đã tích hợp MySQL thật theo docs/MYSQL-INTEGRATION.md, thay trạng thái foundation-only trước đó. Giữ nguyên001 đã apply; schema mới phải migration mới. Guest thật + cookie HttpOnly/hash, ID string/public ID8 số; DB authoritative profile/Elo/tài nguyên/history/saved/social/chat/honors. Energy5 là trần hồi tự nhiên, không trần số dư. Thắng ngoài±3 sao +20 Elo; thắng PvP nhận random125–150 vàng, thua không mất vàng, hòa Elo0. Runtime phòng/socket/presence/queue/Pikafish vẫn RAM; không fake Google. Giữ khóa UI/geometry/avatar.
+
+- 2026-10-16: Quốc gia/địa chỉ hồ sơ chỉ được lưu một lần; sau lưu thay bút địa chỉ bằng cờ quốc gia, không cho sửa. Việt Nam giữ chọn tỉnh/phường; nước khác lưu quốc gia. Hiện lưu localStorage theo Guest, chưa enforcement MySQL/auth; không đổi avatar hoặc bố cục vùng khóa.
+
+- 2026-10-16: MySQL foundation đã có 19 bảng và schema_migrations; mysql2/promise chỉ ở Repository. UserService tạo Guest Kỳ Thủ XXXXXX, ID string, chặn đổi tên chưa liên kết. Chưa nối auth/UI/localStorage/game persistence; runtime vẫn RAM. Không tự migrate khi start. Quy tắc này thay trạng thái chỉ kết nối trước đó. Xem board-game/docs/MYSQL-FOUNDATION.md.
+
 - 2026-10-14: Replay/đánh thử dùng chung GamePage; useReplayTrial giữ nhánh snapshot riêng, không ghi gameStore/recording/socket/clock. Icon cột trái hoặc Space chuyển chế độ; cụm điều khiển dưới user phải. Trial có lùi/reset/tiến, toggle máy cơ bản; Phân tích/Gợi ý mới UI. Xem docs/MATCH-SAVING.md.
 
 - 2026-10-14: Đã lưu/Thế cờ dùng savedPositionsStore localStorage theo owner, snapshot GameState tại lúc bấm ghim và nhập tên/ghi chú; danh sách một thế/hàng, vừa hai hàng, mini tái dùng Board dọc, ghi chú cuộn riêng. Mở thế dùng chính GamePage replay một snapshot chỉ đọc; không đổi ván thật. Chi tiết docs/MATCH-SAVING.md.
@@ -322,3 +332,22 @@ design system hiện tại đã có giá trị tương ứng.
 - 2026-10-16: Chốt sao liên tục qua bậc cho ghép đấu/ELO: index=(bậc-1)*3+(sao-1), chênh=index đối thủ-index mình. BậcN/3 sao +1/+2/+3 là bậcN+1/1/2/3 sao; bậcN/1 sao -1/-2/-3 là bậcN-1/3/2/1 sao. Chỉ xét bậc tồn tại, không dùng danh hiệu trang trí hoặc tự thêm sao ẩn. Thay ghi chú ranh giới bậc chưa chốt trước đó; bảng điểm giữ nguyên. Chỉ tài liệu, chưa code/DB. Xem docs/MATCHMAKING.md.
 
 - 2026-10-16: Chốt trần danh hiệu/sao: Kỳ Thánh1 sao2800–2899,2 sao2900–2999,3 sao từ3000; đạt đủ thì không tăng bậc/sao nữa nhưng ELO thật vẫn tăng. Thay trần sao2800 trước đây bằng3000, giữ mốc vào Kỳ Thánh2800. Đã áp dụng getRankProgress chung mọi consumer, không đổi UI/geometry/avatar hoặc triển khai tính điểm sau trận/DB.
+
+- 2026-10-16: MySQL mục tiêu8.0.45/cotuong, runtime cotuong_app, không root. Đã thêm mysql2/promise pool lazy tại server/repositories/mysqlPool.ts và CLI server/checkMysql.ts (npm.cmd run db:check, chỉ SELECT1, đóng pool). Node đọc board-game/.env qua --env-file-if-exists cho start/dev:server/db:check; .env.example không mật khẩu, env thật ignored, không VITE_ hoặc log secrets. Chỉ hạ tầng kết nối, repository game vẫn RAM, chưa users/migration/ORM/auth. mysql2 được người dùng ưu tiên cho nhiệm vụ này, quy tắc Prisma chỉ áp dụng khi có Prisma. Chờ người dùng xác nhận kết nối thật trước users. Xem board-game/docs/MYSQL-CONNECTION.md.
+
+- 2026-10-18: Home Cờ Úp chuyển sang phòng online cùng variant jieqi: ghép bàn mở có đúng1 người, hết bàn tạo10 phút/60s theo tỉnh hồ sơ và ngồi chờ, không fallback máy. Quick Cờ Tướng bỏ bàn jieqi. Server xác thực variant, xáo bằng crypto và giữ variant khi reset/đổi ghế; publicRoom che concealed trong broadcast/ack/challenge và archive, không sửa state authoritative. Bỏ nhãn Cờ Úp phủ trên bàn; giữ nút Home Chơi với máy. Thay quy tắc Cờ Úp chỉ local trước đây.
+
+- 2026-10-18: Home compact dùng MobileHome với bố cục ảnh tham chiếu và asset sẵn có; carousel2 trang/2 ô giữ4 chế độ thật, dock dùng chức năng hiện có. Desktop không đổi; geometry avatar riêng Home compact đã chốt theo task và khóa lại. Xem board-game/docs/MOBILE-HOME.md.
+
+
+- 2026-10-18: Thêm session screen shop, App render ShopPage phủ viewport; Home desktop/compact gọi useHome.openShop. Shop hiện1 sản phẩm demo read-only, chưa giao dịch/backend catalog/refresh. Nguồn và phạm vi tại board-game/docs/SHOP.md.
+
+
+- 2026-10-18: Đính chính khung Shop: screen shop phải nằm trọn trong khung ứng dụng cùng kích thước/lề/viền Home qua useHomeLayout/getCrispUiLayout; không trải nội dung sát viewport. Quy tắc này thay mô tả Shop phủ viewport trước đó.
+
+
+- 2026-10-18: Host dev Vite và backend mặc định0.0.0.0 hỗ trợ LAN; frontend API/socket giữ same-origin, proxy Vite tới127.0.0.1:3001 trên host, không đổi sang IP cố định. HOST env vẫn override được. Hướng dẫn LAN tại board-game/README.md.
+
+
+- 2026-10-18: Guest giữ theo cookie thiết bị của cùng trình duyệt/site; reload/mở lại sau logout tự resume Guest cũ qua /api/account/guest/restore khi /me401, endpoint restore không create. Mới/xóa dữ liệu phải chọn Guest mới; Google-linked không được resume bằng Guest credential đã revoke. Không chứng thực bằng localStorage/fingerprint. Xem board-game/docs/ACCOUNT-MODEL.md.
+

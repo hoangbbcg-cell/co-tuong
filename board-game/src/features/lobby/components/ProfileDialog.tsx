@@ -1,3 +1,12 @@
+﻿import { GoogleLinkDialog } from './GoogleLinkDialog'
+import { CountryFlag } from '../../../lib/CountryFlag'
+import { countryNames } from '../../../lib/profileLocation'
+import { useProfilePersistence } from '../hooks/useProfilePersistence'
+
+import { useDatabaseHonors } from '../hooks/useDatabaseHonors'
+import { honorCode } from '../../../lib/honorIdentity'
+import { useDatabaseProfile } from '../hooks/useDatabaseProfile'
+import { socialActionByName,useSocialStore } from '../../../store/socialStore'
 import { getComputerAvatar } from '../../../lib/computerAvatar'
 import { FittedUiArtwork } from '../../../lib/FittedUiArtwork'
 import { CrispUiImage } from '../../../lib/CrispUiImage'
@@ -565,16 +574,16 @@ function HonorDetailPopover({ honor, onBack, standalonePosition, honorColumn, is
   </div>
 }
 
-function HonorsFrame({ onClose, selectedHonor, onSelectHonor, onBack, selectedProfileHonors, onToggleProfileHonor, honorDetailsHidden, onToggleHonorDetailsHidden, resolveHonor }: { resolveHonor: (honor: HonorDetail) => HonorDetail; onClose: () => void; selectedHonor: HonorDetail | null; onSelectHonor: (honor: HonorDetail) => void; onBack: () => void; selectedProfileHonors: SelectedProfileHonors; onToggleProfileHonor: (honor: HonorDetail) => void; honorDetailsHidden: boolean; onToggleHonorDetailsHidden: () => void }) {
+function HonorsFrame({ onClose, selectedHonor, onSelectHonor, onBack, selectedProfileHonors, onToggleProfileHonor, honorDetailsHidden, onToggleHonorDetailsHidden, ownedIds, resolveHonor }: { ownedIds: string[]; resolveHonor: (honor: HonorDetail) => HonorDetail; onClose: () => void; selectedHonor: HonorDetail | null; onSelectHonor: (honor: HonorDetail) => void; onBack: () => void; selectedProfileHonors: SelectedProfileHonors; onToggleProfileHonor: (honor: HonorDetail) => void; honorDetailsHidden: boolean; onToggleHonorDetailsHidden: () => void }) {
   const [selectedCategory, setSelectedCategory] = useState<(typeof HONORS_CATEGORIES)[number]['id']>('all')
   const [illuminatedHonorId, setIlluminatedHonorId] = useState<string | null>(null)
   const [selectedHonorColumn, setSelectedHonorColumn] = useState<number | undefined>()
   const selectedItem = HONORS_CATEGORIES.find(category => category.id === selectedCategory)
   const honorsForCategory = (selectedCategory === 'all'
-    ? getUnlockedProfileHonors(resolveHonor)
-    : HONORS_BY_CATEGORY[selectedCategory]).map(resolveHonor)
+    ? PROFILE_HONOR_CATEGORIES.flatMap<HonorDetail>(category => HONORS_BY_CATEGORY[category]).filter(honor => ownedIds.includes(honor.id))
+    : HONORS_BY_CATEGORY[selectedCategory].filter(honor => selectedCategory !== 'arena' && selectedCategory !== 'awarded' || ownedIds.includes(honor.id))).map(resolveHonor)
   // Percentage row gaps use total content height; normalize to the All tab's row count.
-  const allHonorRowCount = Math.ceil(getUnlockedProfileHonors(resolveHonor).length / 3)
+  const allHonorRowCount = Math.max(1, Math.ceil(ownedIds.length / 3))
   const categoryHonorRowCount = Math.max(1, Math.ceil(honorsForCategory.length / 3))
   const honorRowGap = `${(3 * allHonorRowCount) / categoryHonorRowCount}%`
   const handleSelectHonor = (honor: HonorDetail, column: number) => {
@@ -589,12 +598,13 @@ function HonorsFrame({ onClose, selectedHonor, onSelectHonor, onBack, selectedPr
   }
   const renderHonor = (honor: HonorDetail, index: number) => {
     const category = getProfileHonorCategory(honor)
-    const isSelectable = isProfileHonorSelectable(honor)
+    const isSelectable = ownedIds.includes(honor.id)
     const isInProfile = selectedProfileHonors[category].includes(honor.id)
     const canSelect = isSelectable && (isInProfile || selectedProfileHonors[category].length < 3)
     const honorName = 'rank' in honor ? honor.title : honor.name
     return <div key={honor.id} className="relative [container-type:inline-size]">
-      <HonorCatalogBadge honor={honor} isSelected={illuminatedHonorId === honor.id} onSelect={selected => handleSelectHonor(selected, index % 3)} />
+      <div className={isSelectable ? '' : 'brightness-[0.35]'}><HonorCatalogBadge honor={honor} isSelected={illuminatedHonorId === honor.id} onSelect={selected => handleSelectHonor(selected, index % 3)} /></div>
+      {!isSelectable && <span aria-label="Danh hiệu chưa mở khóa" className="pointer-events-none absolute inset-0 z-30 grid place-items-center text-[#e4c581]"><svg viewBox="0 0 24 24" className="size-[16cqw] drop-shadow-[0_2px_3px_#140904]" fill="#321b0d" stroke="currentColor" strokeWidth="1.8"><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /><path d="M12 14v3" /></svg></span>}
       {isSelectable && <ProfileHonorSelectionButton honorName={honorName} isSelected={isInProfile} canSelect={canSelect} onToggle={() => onToggleProfileHonor(honor)} />}
     </div>
   }
@@ -651,11 +661,12 @@ function getOrCreateProfileId() {
   }
 }
 
-export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, onOpenMessages, onClose, primaryActionLabel, onPrimaryAction, layout, editable = false, isOwnProfile = editable }: {
+export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, onOpenMessages, onClose, primaryActionLabel, onPrimaryAction, layout, editable = false, accountActions = false, isOwnProfile: ownProfileOverride }: {
   layout: ReturnType<typeof useProfileLayout>
   dialogRef: RefObject<HTMLDialogElement | null>
   name: string
   editable?: boolean
+  accountActions?: boolean
   isOwnProfile?: boolean
   playerId?: string
   challengeTargetId?: string
@@ -664,14 +675,29 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
   primaryActionLabel: string
   onPrimaryAction: () => void
 }) {
+  const ownName=useSessionStore(state=>state.name)
+  const isOwnProfile=ownProfileOverride??(editable||name===ownName)
+  const showAccountActions=isOwnProfile&&accountActions
+  const [googleLinkOpen,setGoogleLinkOpen]=useState(false)
   const friendship = useMessageFriendship(name)
   const [otherAddress, setOtherAddress] = useState('TP. Hồ Chí Minh')
   const ownAddress = useSessionStore(state => state.address)
+  const account=useSessionStore(state=>state.account)
+  const displayedAccount=useDatabaseProfile(name,isOwnProfile)
+  const databaseHonors=useDatabaseHonors(name)
+  const profilePersistence=useProfilePersistence()
+  const countryCode = useSessionStore(state => state.countryCode)
   const setOwnAddress = useSessionStore(state => state.setAddress)
-  const address = isOwnProfile ? ownAddress : otherAddress
-  const [profileId] = useState(getOrCreateProfileId)
-  const displayedProfileId = isOwnProfile ? profileId : playerId
-  const [selectedProfileHonorIds, setSelectedProfileHonorIds] = useState<SelectedProfileHonors>(() => loadSelectedProfileHonors(profileId))
+  const address = isOwnProfile ? ownAddress : displayedAccount?[displayedAccount.wardName,displayedAccount.provinceName].filter(Boolean).join(', ')||(displayedAccount.countryCode?countryNames.of(displayedAccount.countryCode)??'Chưa chọn địa chỉ':'Chưa chọn địa chỉ'):otherAddress
+  const [profileId] = useState(()=>account?.publicId??getOrCreateProfileId())
+  const displayedProfileId = isOwnProfile ? account?.publicId??profileId : displayedAccount?.publicId??playerId
+  const [selectedProfileHonorIds, setSelectedProfileHonorIds] = useState<SelectedProfileHonors>(() => account?createEmptySelectedProfileHonors():loadSelectedProfileHonors(profileId))
+  useEffect(()=>{
+    if(!account)return
+    const next=createEmptySelectedProfileHonors()
+    for(const id of databaseHonors.selectedIds){const honor=PROFILE_HONOR_CATEGORIES.flatMap<HonorDetail>(c=>HONORS_BY_CATEGORY[c]).find(h=>h.id===id);if(honor)next[getProfileHonorCategory(honor)].push(id)}
+    setSelectedProfileHonorIds(next)
+  },[account?.id,databaseHonors.selectedIds.join('|')])
   const [honorDetailsHidden, setHonorDetailsHidden] = useState(false)
   const [locationPickerOpen, setLocationPickerOpen] = useState(false)
   const [avatarCustomizationOpen, setAvatarCustomizationOpen] = useState(false)
@@ -684,24 +710,25 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
   const logoutDialogRef = useRef<HTMLDialogElement>(null)
   const [logoutError, setLogoutError] = useState('')
   const logout = useAccountLogout()
-  const confirmLogout = () => {
-    try { logout(); logoutDialogRef.current?.close(); onClose() }
+  const confirmLogout = async () => {
+    try { await logout(); logoutDialogRef.current?.close(); onClose() }
     catch { setLogoutError('Không thể đăng xuất. Hãy cho phép lưu dữ liệu trình duyệt rồi thử lại.') }
   }
   const challenge = useProfileChallenge(name, challengeTargetId, setProfileActionFeedback)
   const [previewDetailPosition, setPreviewDetailPosition] = useState<{ side: 'left' | 'right'; anchorX: number } | null>(null)
   const [selectedHonor, setSelectedHonor] = useState<HonorDetail | null>(null)
   const ownAvatarIndex = useSessionStore(state => state.avatarIndex)
-  const isFollowing = useSessionStore(state => Boolean(state.followedPlayers[name]))
+  const followedIds=useSocialStore(s=>s.follows)
+  const isFollowing = !!displayedAccount && followedIds.includes(displayedAccount.id)
   const togglePlayerFollow = useSessionStore(state => state.togglePlayerFollow)
   const setSelectedAvatarIndex = useSessionStore(state => state.setAvatarIndex)
-  const selectedAvatarIndex = editable ? ownAvatarIndex : 0
+  const selectedAvatarIndex = editable ? ownAvatarIndex : Number(displayedAccount?.avatarCode.replace('avatar-',''))||0
   const ownFrameIndex = useSessionStore(state => state.avatarFrameIndex)
   const setSelectedFrameIndex = useSessionStore(state => state.setAvatarFrameIndex)
-  const selectedFrameIndex = editable ? ownFrameIndex : 0
-  const { getGrantCount } = useHonorGrants()
-  const resolveHonor = (honor: HonorDetail): HonorDetail => 'rank' in honor || 'frame' in honor ? honor : { ...honor, viewCount: getGrantCount(name, honor.id), endorsementCount: getGrantCount(name, honor.id) }
-  const ownedHonorCount = getUnlockedProfileHonors(resolveHonor).length
+  const selectedFrameIndex = editable ? ownFrameIndex : Number(displayedAccount?.avatarFrameCode.replace('frame-',''))||0
+  const { getGrantCount } = useHonorGrants(name)
+  const resolveHonor = (honor: HonorDetail): HonorDetail => 'rank' in honor || 'frame' in honor ? honor : { ...honor, viewCount: account?databaseHonors.counts[honorCode(honor.id)]??0:getGrantCount(name, honor.id), endorsementCount: account?databaseHonors.counts[honorCode(honor.id)]??0:getGrantCount(name, honor.id) }
+  const ownedHonorCount = account?databaseHonors.ownedIds.length:getUnlockedProfileHonors(resolveHonor).length
   const previewHonors = getSelectedProfileHonors(selectedProfileHonorIds).map(resolveHonor).filter(isProfileHonorSelectable)
   const eligibleProfileHonors: SelectedProfileHonors = {
     ...selectedProfileHonorIds,
@@ -803,6 +830,7 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
     if (copyFeedbackTimeout.current !== null) window.clearTimeout(copyFeedbackTimeout.current)
   }, [])
   useEffect(() => {
+    if(account)return
     try {
       window.localStorage.setItem(`profile-honors:${profileId}`, JSON.stringify(selectedProfileHonorIds))
     } catch {
@@ -810,6 +838,13 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
     }
   }, [profileId, selectedProfileHonorIds])
   const toggleProfileHonor = (honor: HonorDetail) => {
+    if(account){
+      if(!databaseHonors.ownedIds.includes(honor.id)){setProfileActionFeedback('Bạn chưa sở hữu danh hiệu này.');return}
+      const selected=databaseHonors.selectedIds
+      const next=selected.includes(honor.id)?selected.filter(id=>id!==honor.id):[...selected,honor.id]
+      void databaseHonors.select(next).catch(()=>setProfileActionFeedback('Không lưu được danh hiệu.'))
+      return
+    }
     const category = getProfileHonorCategory(honor)
     if (!isProfileHonorSelectable(honor)) return
     setSelectedProfileHonorIds(previous => {
@@ -862,7 +897,8 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
     }, 1600)
   }
   const editButton = `${buttonInteraction} grid size-8 shrink-0 place-items-center rounded-md text-[#f1bd58] hover:bg-[#f3dba71a] hover:text-[#ffe8ad]`
-  const editControl = () => <button type="button" aria-label="Đổi địa chỉ" onClick={() => setLocationPickerOpen(true)} className={`${editButton} ml-auto`}><CrispUiImage src={editIcon} alt="" aria-hidden="true" className="block size-9 object-contain" /></button>
+  const flagCode=isOwnProfile?countryCode:displayedAccount?.countryCode
+  const editControl = () => flagCode ? <CountryFlag code={flagCode} className="ml-auto h-[var(--ui-p-21,21px)] w-[var(--ui-p-28,28px)]" /> : <button type="button" aria-label="Đổi địa chỉ" onClick={() => setLocationPickerOpen(true)} className={`${editButton} ml-auto`}><CrispUiImage src={editIcon} alt="" aria-hidden="true" className="block size-9 object-contain" /></button>
   const dialogWidth = avatarCustomizationOpen ? layout.avatarWidth : layout.width
   const dialogHeight = avatarCustomizationOpen ? layout.avatarHeight : layout.height
   const dialogScale = avatarCustomizationOpen ? layout.avatarScale : layout.scale
@@ -873,8 +909,8 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
   }
   const renderPhotoPanel = (sizeClass: string) => <PlayerInfoCard
     className={sizeClass}
-    data={{ name, xiangqiScore: 1234, jieqiScore: 1234, friends: 10, followers: 120 + (isFollowing ? 1 : 0), likes: '2.4K', address, playerId: displayedProfileId }}
-    editControl={editable && !avatarCustomizationOpen ? editControl() : undefined}
+    data={{ name, xiangqiScore: displayedAccount?.stats.find(s=>s.variant==='xiangqi')?.elo??1000, jieqiScore: displayedAccount?.stats.find(s=>s.variant==='jieqi')?.elo??1000, friends: displayedAccount?.friends??0, followers: displayedAccount?.followers??0, likes: String(displayedAccount?.likes??0), address, playerId: displayedProfileId }}
+    editControl={(editable||flagCode) && !avatarCustomizationOpen ? editControl() : undefined}
     idCopied={profileIdCopied}
     onCopyId={() => { void copyProfileIdAndShowFeedback() }}
   />
@@ -897,7 +933,7 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
       else onClose()
     }
   }} onCancel={event => { event.preventDefault(); if (friendship.removalName) friendship.cancelRemoval(); else if (profileActionFeedback) setProfileActionFeedback(null); else if (previewHonorDetailOpen) closePreviewHonorDetail(); else if (selectedHonor) setSelectedHonor(null); else if (honorsOpen) setHonorsOpen(false); else if (locationPickerOpen) setLocationPickerOpen(false); else if (avatarCustomizationOpen) setAvatarCustomizationOpen(false); else onClose() }} onClose={() => { setSelectedHonor(null); setPreviewHonorDetailOpen(false); setPreviewDetailPosition(null); setAvatarCustomizationOpen(false); setLocationPickerOpen(false); setHonorsOpen(false); setViewOtherProfileInfo(false); setProfileActionFeedback(null); friendship.cancelRemoval() }} className="m-auto max-h-none max-w-none overflow-visible border-0 bg-transparent p-0 text-[#43240f] backdrop:bg-black/50" style={(honorsOpen || previewHonorDetailOpen ? { position: 'fixed', inset: 0, margin: 0, width: '100vw', height: '100dvh', display: 'grid', placeItems: 'center', transform: 'none' } : { width: dialogWidth * dialogScale, height: dialogHeight * dialogScale, transform: 'translateY(0px)' }) as CSSProperties}>
-    {honorsOpen ? <div style={{ width: 'min(90vw, 123.06dvh)' }}><HonorsFrame resolveHonor={resolveHonor} onClose={() => { setSelectedHonor(null); setHonorsOpen(false) }} selectedHonor={selectedHonor} onSelectHonor={setSelectedHonor} onBack={() => setSelectedHonor(null)} selectedProfileHonors={eligibleProfileHonors} onToggleProfileHonor={toggleProfileHonor} honorDetailsHidden={honorDetailsHidden} onToggleHonorDetailsHidden={toggleHonorDetailsHidden} /></div> : <div onDragStart={event => { if (event.target instanceof HTMLImageElement) event.preventDefault() }} className="absolute origin-top-left rounded-[var(--ui-p-22,22px)] border-[length:var(--ui-p-5,5px)] border-[#5e3014] bg-[linear-gradient(135deg,#7a431c,#2d160a)] p-4 shadow-[inset_0_0_0_2px_#e0b466,inset_0_0_0_7px_#875026,inset_0_0_0_9px_#160904] [&_img]:select-none [&_svg]:select-none" style={{ left: previewHonorDetailOpen ? `calc(50% - ${dialogWidth * dialogScale / 2}px)` : 0, top: previewHonorDetailOpen ? `calc(50% - ${dialogHeight * dialogScale / 2}px)` : 0, ...getCrispUiLayout(dialogScale, dialogWidth, dialogHeight) }}>
+    {honorsOpen ? <div style={{ width: 'min(90vw, 123.06dvh)' }}><HonorsFrame ownedIds={account ? databaseHonors.ownedIds : []} resolveHonor={resolveHonor} onClose={() => { setSelectedHonor(null); setHonorsOpen(false) }} selectedHonor={selectedHonor} onSelectHonor={setSelectedHonor} onBack={() => setSelectedHonor(null)} selectedProfileHonors={eligibleProfileHonors} onToggleProfileHonor={toggleProfileHonor} honorDetailsHidden={honorDetailsHidden} onToggleHonorDetailsHidden={toggleHonorDetailsHidden} /></div> : <div onDragStart={event => { if (event.target instanceof HTMLImageElement) event.preventDefault() }} className="absolute origin-top-left rounded-[var(--ui-p-22,22px)] border-[length:var(--ui-p-5,5px)] border-[#5e3014] bg-[linear-gradient(135deg,#7a431c,#2d160a)] p-4 shadow-[inset_0_0_0_2px_#e0b466,inset_0_0_0_7px_#875026,inset_0_0_0_9px_#160904] [&_img]:select-none [&_svg]:select-none" style={{ left: previewHonorDetailOpen ? `calc(50% - ${dialogWidth * dialogScale / 2}px)` : 0, top: previewHonorDetailOpen ? `calc(50% - ${dialogHeight * dialogScale / 2}px)` : 0, ...getCrispUiLayout(dialogScale, dialogWidth, dialogHeight) }}>
     <div inert={Boolean(profileActionFeedback || friendship.removalName)} className="relative flex h-full flex-col rounded-xl border-[length:var(--ui-p-3,3px)] border-[#d39a42] bg-[radial-gradient(ellipse_at_50%_20%,#b87a3344,transparent_43%),linear-gradient(135deg,#6e3718,#2b160b_48%,#5d2e14)] px-4 pb-3 shadow-[0_0_0_2px_#48220e,inset_0_0_18px_#160904]">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[var(--ui-p-10,10px)]">
         <CrispUiImage src={profileScene} alt="" className={`absolute top-0 object-cover object-[left_top] ${avatarCustomizationOpen ? 'left-0 h-[var(--ui-p-226,226px)] w-full' : 'left-0 h-[var(--ui-p-238,238px)] w-full'}`} />
@@ -911,7 +947,7 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
         <h2 id="profile-title" className="sr-only">{avatarCustomizationOpen ? 'Tùy chỉnh avatar' : 'Thông tin'}</h2>
       </header>
       <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-3">
-        {avatarCustomizationOpen ? <AvatarCustomization previewPanel={renderPhotoPanel('h-[var(--ui-p-185,185px)] self-center -translate-y-[var(--ui-p-30,30px)]')} selectedAvatarIndex={selectedAvatarIndex} selectedFrameIndex={selectedFrameIndex} onCancel={() => setAvatarCustomizationOpen(false)} onUse={(index, frameIndex) => { setSelectedAvatarIndex(index); setSelectedFrameIndex(frameIndex) }} /> : locationPickerOpen ? <VietnamAddressPicker onCancel={() => setLocationPickerOpen(false)} onSave={(value, province) => { if (isOwnProfile) setOwnAddress(value, province); else setOtherAddress(value); setLocationPickerOpen(false) }} /> : <>
+        {avatarCustomizationOpen ? <AvatarCustomization previewPanel={renderPhotoPanel('h-[var(--ui-p-185,185px)] self-center -translate-y-[var(--ui-p-30,30px)]')} selectedAvatarIndex={selectedAvatarIndex} selectedFrameIndex={selectedFrameIndex} onCancel={() => setAvatarCustomizationOpen(false)} onUse={(index, frameIndex) => { if(account) { void profilePersistence.avatar(index,frameIndex).catch(()=>setProfileActionFeedback('Không lưu được avatar hoặc khung chưa được mở khóa.')) } else {setSelectedAvatarIndex(index); setSelectedFrameIndex(frameIndex)} }} /> : locationPickerOpen ? <VietnamAddressPicker onCancel={() => setLocationPickerOpen(false)} onSave={async (value, province, country, provinceCode, wardCode, wardName) => { if (isOwnProfile && account) { await profilePersistence.location({countryCode:country,provinceCode,provinceName:province||null,wardCode,wardName}) } else if (isOwnProfile) setOwnAddress(value, province, country); else setOtherAddress(value); setLocationPickerOpen(false) }} /> : <>
         <section aria-label="Hồ sơ người chơi" className="relative isolate grid h-[var(--ui-p-190,190px)] shrink-0 grid-cols-[var(--ui-p-145,145px)_1fr] gap-3 rounded-[var(--ui-p-10,10px)]">
           <div className="relative z-10 flex min-h-0 flex-col items-center gap-1 pt-1 text-center">
             <button type="button" disabled={!editable} onClick={() => setAvatarCustomizationOpen(true)} aria-label={editable ? 'Tùy chỉnh avatar' : 'Avatar kỳ sĩ'} className={`${buttonInteraction} relative size-[var(--ui-p-128,128px)] shrink-0 rounded-full border-0 bg-transparent p-0 shadow-none disabled:cursor-default disabled:opacity-100`}>
@@ -922,11 +958,11 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
           </div>
           {renderPhotoPanel('h-full self-center -translate-y-[var(--ui-p-21,21px)]')}
         </section>
-        <section aria-label="Thống kê ván đấu minh họa" className="grid h-[var(--ui-p-132,132px)] shrink-0 grid-cols-2 gap-5">
+        <section aria-label="Thống kê ván đấu" className="grid h-[var(--ui-p-132,132px)] shrink-0 grid-cols-2 gap-5">
           {[{ name: 'Cờ Tướng', image: xiangqiMode }, { name: 'Cờ Úp', image: hiddenMode }].map(mode => <div key={mode.name} className="rounded-[var(--ui-p-12,12px)] border-2 border-[#b8782d] bg-[linear-gradient(135deg,#f8d99e,#efbd6b)] px-3 py-2 text-[#54270d] shadow-[inset_0_0_0_2px_#fff0bd,inset_0_0_0_4px_#ce9648,0_3px_4px_#2b120755]">
             <CrispUiImage src={mode.image} alt={mode.name} className="mx-auto mb-1 h-[var(--ui-p-36,36px)] w-auto object-contain" />
             <div className="grid grid-cols-2 divide-x divide-[#b77b43] text-center">
-              {['Thắng', 'Thua'].map(label => <div key={label}><p className="text-lg font-bold leading-5">{label}</p><p className="mt-1 font-number text-2xl font-bold text-[#c3261e]">1203</p></div>)}
+              {['Thắng', 'Thua'].map(label => <div key={label}><p className="text-lg font-bold leading-5">{label}</p><p className="mt-1 font-number text-2xl font-bold text-[#c3261e]">{displayedAccount?.stats.find(s=>s.variant===(mode.name==='Cờ Tướng'?'xiangqi':'jieqi'))?.[label==='Thắng'?'wins':'losses']??0}</p></div>)}
             </div>
           </div>)}
         </section>
@@ -941,7 +977,7 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
           ] as const).map(action => <button key={action.id} type="button" disabled={action.id === 'challenge' && challenge.pending} onClick={() => {
             if (action.id === 'info') setViewOtherProfileInfo(true)
             else if (action.id === 'friend') friendship.activate()
-            else if (action.id === 'follow') togglePlayerFollow(name)
+            else if (action.id === 'follow') void socialActionByName(name,'follow',!isFollowing).catch(()=>setProfileActionFeedback('Không cập nhật được theo dõi.'))
             else if (action.id === 'challenge') void challenge.invite()
             else if (action.id === 'message' && onOpenMessages) {
               onClose()
@@ -971,12 +1007,13 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
                   setPreviewHonorDetailOpen(true)
                 }} />)}
               </div>)}
-            </div> : <p className="grid h-full place-items-center text-center font-cormorant text-lg font-semibold text-[#f3d59a]">Chưa có danh hiệu</p>}
+            </div> : <p className="grid h-full place-items-center text-center font-cormorant text-2xl font-semibold text-[#f3d59a]">Chưa có danh hiệu</p>}
           </div>
         </section>}
         </>}
       </div>
-      {!avatarCustomizationOpen && !locationPickerOpen && <footer className="relative mt-4 flex shrink-0 items-center justify-between gap-3">{isOwnProfile ? <button type="button" className={goldButton} onClick={onPrimaryAction}>{primaryActionLabel}</button> : viewOtherProfileInfo ? <button type="button" className={goldButton} onClick={() => setViewOtherProfileInfo(false)}>Quay lại</button> : <span />}<button type="button" autoFocus className={goldButton} onClick={isOwnProfile ? () => { setLogoutError(''); logoutDialogRef.current?.showModal() } : onClose}>{isOwnProfile ? 'Đăng xuất' : 'Thoát'}</button></footer>}
+      {googleLinkOpen && <GoogleLinkDialog onClose={()=>setGoogleLinkOpen(false)} />}
+      {!avatarCustomizationOpen && !locationPickerOpen && <footer className="relative mt-4 flex shrink-0 items-center justify-between gap-3">{showAccountActions && !account?.linked ? <button type="button" className={goldButton} onClick={()=>account?setGoogleLinkOpen(true):onPrimaryAction()}>{primaryActionLabel}</button> : viewOtherProfileInfo ? <button type="button" className={goldButton} onClick={() => setViewOtherProfileInfo(false)}>Quay lại</button> : <span />}<button type="button" autoFocus className={goldButton} onClick={showAccountActions ? () => { setLogoutError(''); logoutDialogRef.current?.showModal() } : onClose}>{showAccountActions ? 'Đăng xuất' : 'Thoát'}</button></footer>}
     </div>
     {['top-0 left-0', 'top-0 right-0 -scale-x-100', 'bottom-0 left-0 -scale-y-100', 'bottom-0 right-0 -scale-x-100 -scale-y-100'].map(position => <svg key={position} aria-hidden="true" viewBox="0 0 90 90" className={`pointer-events-none absolute size-[var(--ui-p-76,76px)] ${position}`} fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M7 79V20Q7 7 21 7h58M16 66V26q0-10 12-10h37M14 47c40 7 6-48 38-34 14 7-5 25-13 21S44 6 62 9M21 74c-8-24 22-9 19-28" stroke="#64320f" strokeWidth="11"/><path d="M7 79V20Q7 7 21 7h58M16 66V26q0-10 12-10h37M14 47c40 7 6-48 38-34 14 7-5 25-13 21S44 6 62 9M21 74c-8-24 22-9 19-28" stroke="#d8a34e" strokeWidth="6"/><path d="M7 74V20Q7 7 21 7h52M16 42c26 4 10-30 27-29" stroke="#ffe1a0" strokeWidth="2"/></svg>)}
 
@@ -992,3 +1029,8 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
     {previewHonorDetailOpen && selectedHonor && previewDetailPosition && <HonorDetailPopover honor={selectedHonor} standalonePosition={previewDetailPosition} onBack={closePreviewHonorDetail} />}
   </dialog>
 }
+
+
+
+
+

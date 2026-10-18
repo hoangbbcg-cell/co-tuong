@@ -12,6 +12,12 @@ npm run dev
 ```
 
 Frontend: `http://127.0.0.1:5173`. Backend: `http://127.0.0.1:3001`.
+Vite dev và backend mặc định listen `0.0.0.0` để điện thoại cùng Wi-Fi truy cập.
+Trên điện thoại mở `http://<IPv4-LAN-của-laptop>:5173` khi chạy `npm.cmd run dev`,
+hoặc `http://<IPv4-LAN-của-laptop>:3001` khi chạy `npm.cmd start` sau build.
+Laptop vẫn dùng `localhost` hoặc `127.0.0.1` bình thường. Sau khi đổi cấu hình cần khởi động lại server.
+API và Socket.IO dùng cùng origin với trang đang mở; proxy `127.0.0.1:3001` của Vite chỉ chạy trên laptop.
+Nếu Windows hỏi quyền mạng cho Node.js, cho phép trên mạng Private; điện thoại cần cùng mạng và không bị Wi-Fi client isolation.
 Vite proxy `/api` và `/socket.io` sang backend. Nếu PowerShell chặn `npm.ps1`, dùng `npm.cmd` thay cho `npm`.
 Không dùng Live Server hoặc mở `index.html` bằng `file://` cho bản React.
 
@@ -37,7 +43,7 @@ npm start           # Backend phục vụ cả dist/, API và socket tại cổn
 ```
 
 `npm run dev:web` / `npm run dev:server` chạy riêng từng phần. `npm run preview` chỉ xem frontend build, không thay cho `npm start` khi kiểm tra online.
-Backend đọc biến môi trường `PORT` (mặc định 3001), `HOST` (mặc định 127.0.0.1). Bản build dùng cùng origin cho API/socket. Muốn dùng cổng backend khác khi dev, cập nhật proxy trong `vite.config.ts`.
+Backend đọc biến môi trường `PORT` (mặc định 3001), `HOST` (mặc định 0.0.0.0). Nếu đã đặt HOST=127.0.0.1 trong môi trường thì đổi thành HOST=0.0.0.0 để dùng LAN. Bản build dùng cùng origin cho API/socket. Muốn dùng cổng backend khác khi dev, cập nhật proxy trong `vite.config.ts`.
 
 ## Cấu trúc
 
@@ -82,3 +88,9 @@ Các thư mục gốc `js/`, `assets/` được giữ làm bản đối chiếu 
 - Test DOM không thay thế kiểm tra hình ảnh desktop/mobile. Phiên migration chưa kiểm tra trực quan vì không có trình duyệt được kết nối.
 
 Quy tắc làm việc: xem `../AGENTS.md`. Tiến độ: `../PROGRESS.md`.
+
+## MySQL foundation
+
+Xem [hướng dẫn MySQL](docs/MYSQL-FOUNDATION.md) để cấu hình .env và chạy db:check/db:migrate/db:verify/db:smoke. Migration chạy chủ động; game hiện tại vẫn dùng RAM/localStorage.
+
+Tích hợp hiện hành và báo cáo API/persistence: [MYSQL-INTEGRATION.md](docs/MYSQL-INTEGRATION.md). Guest mới được backend/MySQL cấp, không lấy tài nguyên mẫu hoặc xác thực bằng localStorage.

@@ -1,3 +1,4 @@
+﻿import { useDatabaseRanking } from '../hooks/useDatabaseRanking'
 import { useState, type CSSProperties, type RefObject } from 'react'
 import type { useRankingLayout } from '../hooks/useRankingLayout'
 import rankingTitle from '../../../assets/rankings/ranking-title-transparent.png'
@@ -17,11 +18,13 @@ import topOneCrown from '../../../assets/rankings/top-one-crown.png'
 import redGeneral from '../../../assets/pieces/red-general.png'
 import { buttonInteraction, selectedImageTabGlow } from '../../../lib/uiClasses'
 import { RankingRankBadge } from './RankingRankBadge'
-import defaultAvatar from '../../../assets/icons/avatar.svg'
+import { AccountAvatar } from './AccountAvatar'
+import { AvatarFrameOverlay } from '../../game/components/AvatarFrameOverlay'
+import { getAvatarFrame } from '../../../lib/avatarFrames'
 
 type Mode = 'xiangqi' | 'hidden'
 
-const players = [
+const demoPlayers = [
   { name: 'ShopCoTuong', online: true, playing: 'Đang chơi Cờ Tướng', elo: '2719' },
   { name: 'Tu_CoTuong', online: false, playing: 'Offline', elo: '2719' },
   { name: 'Fonsida_', online: false, playing: 'Offline', elo: '2719' },
@@ -44,6 +47,7 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
   onOpenProfile: (name: string) => void
 }) {
   const [mode, setMode] = useState<Mode>('xiangqi')
+  const players = useDatabaseRanking(mode)
   const [previewNotice, setPreviewNotice] = useState('')
   const watch = useRankingWatch(dialogRef, onClose, mode)
   const renderingStyle = {
@@ -127,10 +131,10 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
                   : <><img src={rankPlainFrame} alt="" className="pointer-events-none size-[var(--ranking-76)] object-contain" /><span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-['Times_New_Roman'] text-[length:var(--ranking-46)] leading-none font-bold italic text-[#ffe0a0] [text-shadow:0_2px_2px_#391b0b]">{index + 1}</span></>}
               </span>
               <div className="flex min-w-0 items-center gap-[var(--ranking-20)]">
-                <span className="ml-2 block h-[var(--ranking-132)] w-[var(--ranking-84)] shrink-0">
-                  <span className="relative top-[var(--ranking-5)] block size-[var(--ranking-84)] overflow-visible">
+                <span className="ml-2 relative block w-[var(--ranking-84)] shrink-0" style={{ height: Math.round(124 * layout.scale) }}>
+                  <span className="relative block size-[var(--ranking-84)] overflow-visible" style={{ top: Math.round(6 * layout.scale) }}>
                   {index === 0 && <svg aria-hidden="true" viewBox="0 0 157 119" className="pointer-events-none absolute -top-[var(--ranking-5)] left-1/2 z-20 h-[var(--ranking-19)] w-[var(--ranking-25)] -translate-x-1/2 overflow-visible drop-shadow-[0_1px_1px_#4a250f]"><defs><clipPath id="top-one-crown-curve"><path d="M0 0H157V87Q78.5 126 0 87Z" /></clipPath></defs><image href={topOneCrown} width="157" height="119" clipPath="url(#top-one-crown-curve)" /></svg>}
-                  <button type="button" onClick={() => onOpenProfile(player.name)} aria-label={`Mở hồ sơ của ${player.name}`} className={`${buttonInteraction} grid size-[var(--ranking-84)] place-items-center rounded-full border-0 bg-transparent p-0 [&>span]:size-[var(--ranking-84)]`}><span className="block size-full rounded-full bg-[linear-gradient(135deg,#fff9d9,#e9a244_42%,#8d541c_70%,#ffda88)] p-[var(--ranking-4)] shadow-[0_2px_3px_#432711] ring-1 ring-[#86511c]"><img src={defaultAvatar} alt="" width={Math.round(76 * layout.scale)} height={Math.round(76 * layout.scale)} className="block size-full rounded-full object-contain" /></span></button>
+                  <button type="button" onClick={() => onOpenProfile(player.name)} aria-label={`Mở hồ sơ của ${player.name}`} className={`${buttonInteraction} relative grid size-[var(--ranking-84)] place-items-center rounded-full border-0 bg-transparent p-0`}><AccountAvatar avatarCode={player.avatarCode} avatarFrameCode={player.avatarFrameCode} /></button>
                   <RankingRankBadge elo={Number(player.elo)} scale={layout.scale} />
                   </span>
                 </span>
@@ -139,7 +143,7 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
               <div className="my-[var(--ranking-17)] flex h-[calc(100%_-_var(--ranking-34))] items-center justify-center rounded-[var(--ranking-9)] bg-[#b68c53]/20">
                 <span className="relative flex h-[var(--ranking-44)] w-[var(--ranking-122)] items-center justify-center font-number text-[length:var(--ranking-22)] text-[#fff0d7]"><span aria-hidden="true" className="absolute inset-y-0 left-[var(--ranking-18)] right-0 rounded-r-lg border border-[#b4792d] bg-[linear-gradient(#673117,#2f1208)] shadow-[inset_0_0_0_1px_#9c5d23]" /><img src={redGeneral} alt={`Điểm ${mode === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}`} className="absolute -left-[var(--ranking-8)] z-10 size-[var(--ranking-50)] object-contain" /><span className="relative z-10 translate-x-[var(--ranking-15)]">{player.elo}</span></span>
               </div>
-              {(index === 0 || watch.matchFor(player.name)) && <RankingViewButton name={player.name} scale={layout.scale} onView={watch.matchFor(player.name) ? watch.watch : () => setPreviewNotice('Nút mẫu để xem giao diện, chưa vào phòng.')} />}
+              {watch.matchFor(player.name) && <RankingViewButton name={player.name} scale={layout.scale} onView={watch.watch} />}
             </li>)}
           </ol>
         </section>
@@ -150,3 +154,5 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
     <RoomPasswordDialog lobby={watch.passwordControls}/>
   </dialog>
 }
+
+

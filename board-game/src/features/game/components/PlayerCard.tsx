@@ -1,3 +1,5 @@
+import { saveMatchLike } from '../hooks/useMatchLike'
+import { useDatabaseProfile } from '../../lobby/hooks/useDatabaseProfile'
 import { getComputerAvatar } from '../../../lib/computerAvatar'
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
@@ -6,8 +8,8 @@ import { formatClock } from '../../../lib/format'
 import { CrispUiImage } from '../../../lib/CrispUiImage'
 import { TURN_TIME_LIMIT_MS } from '../../../game/state/initial'
 import { buttonInteraction } from '../../../lib/uiClasses'
-import avatar from '../../../assets/icons/avatar.svg'
-import defaultAvatarFrame from '../../../assets/player/avatar-frames/gold-frame.png'
+import { AvatarPortrait } from '../../lobby/components/AvatarCustomization'
+import { getAvatarFrame } from '../../../lib/avatarFrames'
 import { AvatarFrameOverlay, AVATAR_FRAME_VISIBLE_SCALE } from './AvatarFrameOverlay'
 import { AvatarRankBadge } from './AvatarRankBadge'
 import likeIcon from '../../../assets/icons/like-white.png'
@@ -19,7 +21,7 @@ import redGeneral from '../../../assets/pieces/red-general.png'
 import concealedPiece from '../../../assets/history/history-hidden-user.png'
 import takebackDecline from '../../../assets/takeback/takeback-decline.png'
 
-interface Props { entranceHidden?: boolean; fillHeight?: boolean; side: Side; variant?: GameVariant; name: string; started: boolean; active: boolean; timerExpired?: boolean; showClock?: boolean; ready?: boolean; remaining: number; turnElapsed: number; turnTimeLimitMs?: number; outcome?: 'win' | 'loss'; takebackDeclineKey?: string | number | null; likeVisible?: boolean; likePosition?: 'left' | 'right'; likeMatchId: string; likeActorId: string; onAvatarClick?: () => void; onAvatarContextMenu?: () => void; children?: ReactNode }
+interface Props { empty?: boolean; playerId?: string; entranceHidden?: boolean; fillHeight?: boolean; side: Side; variant?: GameVariant; name: string; started: boolean; active: boolean; timerExpired?: boolean; showClock?: boolean; ready?: boolean; remaining: number; turnElapsed: number; turnTimeLimitMs?: number; outcome?: 'win' | 'loss'; takebackDeclineKey?: string | number | null; likeVisible?: boolean; likePosition?: 'left' | 'right'; likeMatchId: string; likeActorId: string; onAvatarClick?: () => void; onAvatarContextMenu?: () => void; children?: ReactNode }
 const LIKE_BUBBLE_INTERVAL_MS = 100
 const LIKE_PICKER_HOVER_DELAY_MS = 400
 const LIKE_PICKER_REOPEN_DELAY_MS = 1000
@@ -54,7 +56,7 @@ function PlayerLikeButton({ name, position, matchId, actorId, targetSide, avatar
   }
   useEffect(() => () => clearPickerTimer(), [])
   const handleClick = (reaction = '👍', keepPickerOpen = false, fromPicker = false) => {
-    recordMatchLike({ matchId, actorId, targetSide })
+    void saveMatchLike(matchId,actorId,targetSide).catch(()=>useSessionStore.getState().setNotice('Không lưu được lượt thích.'))
     if (!keepPickerOpen) {
       reopenAt.current = Date.now() + LIKE_PICKER_REOPEN_DELAY_MS
       waitForLikeButtonHover.current = true
@@ -132,23 +134,27 @@ function ResultFace({ outcome }: { outcome: 'win' | 'loss' }) {
     </svg>
   </div>
 }
-export function PlayerCard({ entranceHidden = false, fillHeight = false, side, variant = 'xiangqi', name: originalName, started, active, timerExpired = false, showClock = true, ready = false, remaining, turnElapsed, turnTimeLimitMs = TURN_TIME_LIMIT_MS, outcome, takebackDeclineKey, likeVisible = false, likePosition = 'left', likeMatchId, likeActorId, onAvatarClick, onAvatarContextMenu, children }: Props) {
+export function PlayerCard({ empty = false, playerId, entranceHidden = false, fillHeight = false, side, variant = 'xiangqi', name: originalName, started, active, timerExpired = false, showClock = true, ready = false, remaining, turnElapsed, turnTimeLimitMs = TURN_TIME_LIMIT_MS, outcome, takebackDeclineKey, likeVisible = false, likePosition = 'left', likeMatchId, likeActorId, onAvatarClick, onAvatarContextMenu, children }: Props) {
+  const ownName=useSessionStore(s=>s.name)
+  const profile=useDatabaseProfile(empty?'':originalName,originalName===ownName,playerId)
+  const elo=profile?.stats.find(s=>s.variant===variant)?.elo??1000
   const machineAvatar = getComputerAvatar(originalName)
-  const name = machineAvatar ? 'Ông Hoàng' : originalName
+  const name = machineAvatar ? 'Ông Hoàng' : profile?.displayName ?? originalName
   const likeBubbleLayerRef = useRef<HTMLSpanElement>(null)
   const turnRatio = Math.max(0, Math.min(1, turnElapsed / turnTimeLimitMs))
   const turnAngle = turnRatio * 360
   const timerVisible = !machineAvatar && showClock && (active || timerExpired)
+  if(empty)return null
   return <section data-active={active} className={`mx-auto flex min-w-0 flex-col desktop:w-40 items-center pt-3 compact:grid compact:grid-cols-[60px_minmax(0,1fr)] compact:gap-x-2 compact:gap-y-[3px] compact:p-0 compact:text-left short-desktop:pt-0 ${fillHeight ? 'h-full compact:h-auto' : 'flex-none desktop:self-center'} ${side === 'red' ? 'compact:-translate-y-[10px]' : ''}`} id={`player-${side}`} aria-label={`Người chơi quân ${side === 'red' ? 'đỏ' : 'đen'}`} style={{ visibility: entranceHidden ? 'hidden' : undefined } as CSSProperties}>
     <div data-active={active} data-testid={`avatar-${side}`} className="relative size-[132px] shrink-0 rounded-full bg-transparent p-2 shadow-[0_5px_18px_#071c1b99] compact:size-[60px] compact:p-[5px] short-desktop:size-[88px]" style={machineAvatar ? { boxShadow: 'none' } : undefined}>
       {!machineAvatar && likeVisible && <PlayerLikeButton name={name} position={likePosition} matchId={likeMatchId} actorId={likeActorId} targetSide={side} avatarBubbleLayerRef={likeBubbleLayerRef} />}
       <button type="button" disabled={!!machineAvatar} aria-label={machineAvatar ? 'Avatar Ông Hoàng' : `Xem hồ sơ ${name}`} title={!machineAvatar && onAvatarContextMenu ? 'Bấm chuột phải để phong danh hiệu' : undefined} onClick={machineAvatar ? undefined : onAvatarClick} onContextMenu={event => { event.preventDefault(); if (!machineAvatar) onAvatarContextMenu?.() }} className={`${buttonInteraction} relative block size-full rounded-full border-0 bg-transparent p-0 disabled:opacity-100`}>
-        <img src={machineAvatar ?? avatar} alt="" className={machineAvatar ? "block size-full object-contain" : "block size-full rounded-full object-cover"} style={machineAvatar ? { transform: `scale(${AVATAR_FRAME_VISIBLE_SCALE})` } : undefined} /><span aria-hidden="true" className={`pointer-events-none absolute inset-0 z-2 rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: `conic-gradient(from 0deg, transparent 0deg ${turnAngle}deg, #187b1299 ${turnAngle}deg 360deg)` }} />
-        {!machineAvatar && <AvatarFrameOverlay src={defaultAvatarFrame} dimmed={timerVisible} />}
+        {machineAvatar ? <img src={machineAvatar} alt="" className="block size-full object-contain" style={{ transform: `scale(${AVATAR_FRAME_VISIBLE_SCALE})` }} /> : <AvatarPortrait avatarIndex={Number(profile?.avatarCode.replace('avatar-',''))||0} className="size-full rounded-full" />}<span aria-hidden="true" className={`pointer-events-none absolute inset-0 z-2 rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: `conic-gradient(from 0deg, transparent 0deg ${turnAngle}deg, #187b1299 ${turnAngle}deg 360deg)` }} />
+        {!machineAvatar && <AvatarFrameOverlay src={getAvatarFrame(Number(profile?.avatarFrameCode.replace('frame-',''))||0).image} dimmed={timerVisible} />}
         <svg aria-hidden="true" viewBox="0 0 100 100" className={`pointer-events-none absolute top-1/2 left-1/2 z-[11] size-[107%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`}>
           <path d={remainingArcPath(47, turnAngle)} fill="none" stroke="#48e600" strokeWidth="5.5" strokeLinecap="butt" />
           <path d={remainingArcPath(46.8, turnAngle)} fill="none" stroke="#d6d45a" strokeWidth="1.1" strokeLinecap="butt" />
-        </svg><AvatarRankBadge computer={!!machineAvatar} />
+        </svg><AvatarRankBadge elo={elo} computer={!!machineAvatar} />
 
       </button>
       <span ref={likeBubbleLayerRef} aria-hidden="true" className="pointer-events-none absolute inset-0 z-8 overflow-visible" />
@@ -159,7 +165,7 @@ export function PlayerCard({ entranceHidden = false, fillHeight = false, side, v
     <div className="mt-[78px] w-full min-w-0 -translate-y-[28px] compact:mt-0 short-desktop:mt-[54px]">
       <h2 className="relative mx-auto my-0 w-fit leading-none"><PlayerNameplate name={name} className="[--nameplate-width:170px] compact:[--nameplate-width:120px]" /></h2>
       <p hidden={started || !!machineAvatar} className="relative mx-auto mt-2 mb-[9px] flex h-[37px] w-fit items-center justify-center gap-2 bg-[length:100%_100%] bg-center bg-no-repeat px-[14px] font-georgia leading-none text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008] compact:mx-0 compact:mt-1 compact:mb-0.5 compact:h-[30px] compact:gap-1.5 compact:px-[14px]" style={{ backgroundImage: `url(${eloFrame})` }}>
-        <span role="img" aria-label={variant === 'jieqi' ? 'ELO · Cờ Úp' : 'ELO · Cờ Tướng'} className="grid size-[20px] shrink-0 place-items-center compact:size-[15px]"><CrispUiImage src={variant === 'jieqi' ? concealedPiece : redGeneral} alt="" className="block size-full object-contain" /></span><strong className="grid h-[20px] place-items-center font-number text-[18px] font-normal leading-none text-[#ffe5a3] lining-nums tabular-nums compact:h-[15px] compact:text-[13px]">{side === 'red' ? '2069' : '1983'}</strong>
+        <span role="img" aria-label={variant === 'jieqi' ? 'ELO · Cờ Úp' : 'ELO · Cờ Tướng'} className="grid size-[20px] shrink-0 place-items-center compact:size-[15px]"><CrispUiImage src={variant === 'jieqi' ? concealedPiece : redGeneral} alt="" className="block size-full object-contain" /></span><strong className="grid h-[20px] place-items-center font-number text-[18px] font-normal leading-none text-[#ffe5a3] lining-nums tabular-nums compact:h-[15px] compact:text-[13px]">{elo}</strong>
       </p>
     </div>
     {!machineAvatar && showClock && <div hidden={!started} className={`mt-3 flex w-fit min-w-[70px] -translate-y-[23px] items-center justify-center rounded-[3px] border px-2 py-0.5 transition-[background-color,border-color,box-shadow] duration-100 compact:col-span-full compact:mt-1.5 compact:justify-self-center compact:px-[5px] compact:text-center ${active ? 'border-[#e8c479] bg-[#244b40] shadow-[0_0_0_1px_#e8c47933]' : 'border-[#c5ad6b] bg-[#503a23]'}`}>

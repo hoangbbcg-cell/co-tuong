@@ -1,5 +1,7 @@
 # Ghép đấu theo cấp bậc và sao
 
+- 2026-10-16: Chơi nhanh/Đấu ở Home hết đối thủ thì tạo bàn online10 phút/60s mỗi nước theo tỉnh hồ sơ và join chờ một mình, không fallback máy. Chơi với máy/Cờ Úp riêng giữ nguyên; Chọn Bàn hết phòng vẫn mở Tạo bàn. Regression3/3 PASS, typecheck/build PASS; dist xác nhận, chưa browser QA.
+
 ## Quy tắc mục tiêu — người dùng chốt 2026-10-16
 
 - Áp dụng cho luồng tự động ghép đối thủ online; chưa thay đổi code trong nhiệm vụ ghi nhận này.
@@ -55,3 +57,6 @@ So sánh đối thủ với người đang được tính điểm, dùng cấp b
 - Đã lưu quy tắc thiết kế; chưa triển khai matchmaking mới, chưa tạo database hoặc thay đổi gameplay/UI.
 
 - 2026-10-16: Chốt trần danh hiệu/sao: Kỳ Thánh1 sao2800–2899,2 sao2900–2999,3 sao từ3000; đạt đủ thì không tăng bậc/sao nữa nhưng ELO thật vẫn tăng. Thay trần sao2800 trước đây bằng3000, giữ mốc vào Kỳ Thánh2800. Đã áp dụng getRankProgress chung mọi consumer, không đổi UI/geometry/avatar hoặc triển khai tính điểm sau trận/DB.
+
+## Triển khai persistence 2026-10-16
+Người dùng chốt bổ sung: thắng đối thủ chênh ngoài3 sao cộng20 Elo (cả hai hướng); mỗi trận PvP thắng nhận ngẫu nhiên125–150 vàng, không trừ vàng người thua. Thua giữ hướng đối thủ: cao hơn trừ10, thấp hơn trừ13. Hòa không cộng/trừ Elo và không thưởng thắng. Đã triển khai backend rating/transaction; chưa đổi thuật toán ghép nhanh.

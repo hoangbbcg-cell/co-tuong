@@ -1,10 +1,10 @@
 export const ENTRY_STORAGE_KEY = 'co-tuong-entry-v1'
-export const GUEST_NAME_PATTERN = /^Kỳ thủ\d{6}$/u
+export const GUEST_NAME_PATTERN = /^(?:Guest\d{5}|Kỳ thủ\d{5}|Kỳ thủ\d{6}|Kỳ Thủ \d{6})$/u
 export interface GuestEntry { version: 1; provider: 'guest'; name: string; signedOut?: true }
 
 export function createGuestName(): string {
   const value = crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000
-  return `Kỳ thủ${String(value).padStart(6, '0')}`
+  return `Guest${String(value % 100_000).padStart(5, '0')}`
 }
 
 export function readGuestEntry(): GuestEntry | null {

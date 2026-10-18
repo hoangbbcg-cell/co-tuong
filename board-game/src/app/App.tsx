@@ -5,6 +5,7 @@ import { useRoomConnection } from './useRoomConnection'
 import { useEnergyRecovery } from './useEnergyRecovery'
 import { useSessionStore } from '../store/sessionStore'
 import { HomePage } from '../pages/home/HomePage'
+import { ShopPage } from '../pages/shop/ShopPage'
 import { RoomSelectionPage } from '../pages/rooms/RoomSelectionPage'
 import { ComputerPage } from '../pages/computer/ComputerPage'
 import { CustomPositionPage } from '../pages/computer/CustomPositionPage'
@@ -28,6 +29,7 @@ export function App() {
     {screen === 'rooms' && <div className="fixed inset-0"><RoomSelectionPage onEntranceComplete={finishEntrance} /></div>}
     {screen === 'computer' && <div className="fixed inset-0"><ComputerPage onEntranceComplete={finishEntrance} /></div>}
     {screen === 'position' && <div className="fixed inset-0"><CustomPositionPage /></div>}
+    {screen === 'shop' && <ShopPage />}
     <EnergyNotice />
   </>
 }
