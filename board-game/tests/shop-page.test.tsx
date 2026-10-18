@@ -13,7 +13,7 @@ afterEach(() => {
   else Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal')
 })
 
-it('shows one demo product, filters it, previews without buying, and returns Home', () => {
+it('shows one demo product, filters it, switches markets, keeps demo purchase read-only, and returns Home', () => {
   useSessionStore.setState({ screen: 'shop', gold: 1000, energy: 5 })
   Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: function (this: HTMLDialogElement) { this.open = true } })
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -23,10 +23,17 @@ it('shows one demo product, filters it, previews without buying, and returns Hom
   const frame = view.container.querySelector<HTMLElement>('[data-shop-frame]')!
   expect(frame.style.width).toBe(`${window.innerWidth - 240}px`)
   expect(frame.style.height).toBe(`${window.innerHeight - 12}px`)
-  fireEvent.click(screen.getByRole('button', { name: 'Xem trước sản phẩm demo' }))
-  expect(screen.getByRole('dialog', { name: 'Xem trước Avatar' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Mua avatar' }))
+  expect(screen.getByRole('alert').textContent).toContain('chưa mở bán')
   expect(useSessionStore.getState().gold).toBe(1000)
-  expect(screen.getByRole('button', { name: /Cửa Hàng Cao Cấp/ }).hasAttribute('disabled')).toBe(true)
+  const premium = screen.getByRole('button', { name: 'Cửa Hàng Cao Cấp' })
+  expect(premium.hasAttribute('disabled')).toBe(false)
+  fireEvent.click(premium)
+  expect(premium.getAttribute('aria-pressed')).toBe('true')
+  expect(screen.queryByRole('article')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Sự Kiện' }))
+  expect(screen.getByRole('button', { name: 'Sự Kiện' }).getAttribute('aria-pressed')).toBe('true')
+  fireEvent.click(screen.getByRole('button', { name: 'Phiên Chợ Hàng Ngày' }))
   fireEvent.click(screen.getByRole('tab', { name: 'Khung Viền' }))
   expect(screen.queryByRole('article')).toBeNull()
   fireEvent.click(screen.getByRole('tab', { name: 'Avatar' }))
