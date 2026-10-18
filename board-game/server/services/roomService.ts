@@ -1,6 +1,7 @@
 import { playerNameError } from '../../src/lib/playerName'
-import { randomUUID, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
+import { randomUUID, randomBytes, randomInt, scryptSync, timingSafeEqual } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
+import { createHiddenGame } from '../../src/game/state/hidden'
 import { createGame, opposite } from '../../src/game/state/initial'
 import { advanceClock, applyMoveWithResult, finishGame, startGame, takebackSnapshot, MATCH_INTRO_MS } from '../../src/game/moves/actions'
 import { isInsideBoard } from '../../src/game/rules'
@@ -20,6 +21,10 @@ function position(value: unknown): value is Position {
   const point = value as Position
   return isInsideBoard(point.row, point.col)
 }
+function createRoomGame(now:number,minutes:number,turnSeconds:number,variant:GameState['variant']) {
+  const game=variant==='jieqi'?createHiddenGame(now,Array.from({length:28},()=>randomInt(0,2**24)/2**24)):createGame(now)
+  return {...game,remainingTime:{red:minutes*60000,black:minutes*60000},turnTimeLimitMs:turnSeconds*1000}
+}
 export class RoomService {
   private queueRotations = new Map<string, { result: GameState['result']; deadline: number; waitingAtFinish: Set<string> }>()
   private readyWaits = new Map<string, { pair: string; since: number; readyPlayer: string | null; readySince: number | null }>()
@@ -28,9 +33,11 @@ export class RoomService {
   constructor(private repository: RoomRepository, private now = () => performance.now()) {}
   list(): RoomSummary[] {
     this.repository.pruneEmpty()
-    return this.repository.all().map(({ id, name, players, viewers, game, minutes, province, locked }) => ({ id, name, players: players.length, viewerCount: viewers?.length ?? 0, playerNames: players.map(player => player.name), phase: game.phase, minutes: minutes ?? 10, province, locked: !!locked }))
+    return this.repository.all().map(({ id, name, players, viewers, game, minutes, province, locked }) => ({ id, name, players: players.length, viewerCount: viewers?.length ?? 0, playerNames: players.map(player => player.name), variant: game.variant ?? 'xiangqi', phase: game.phase, minutes: minutes ?? 10, province, locked: !!locked }))
   }
-  create(name: unknown, minutes: unknown = 10, turnSeconds: unknown = 60, province?: unknown, password?: unknown): RoomSummary {
+  readyPlayerIds(){return this.repository.all().filter(r=>r.game.phase==='ready'||r.game.phase==='finished').flatMap(r=>r.players.map(p=>p.id))}
+  create(name: unknown, minutes: unknown = 10, turnSeconds: unknown = 60, province?: unknown, password?: unknown, variant:unknown='xiangqi'): RoomSummary {
+    if(variant!=='xiangqi'&&variant!=='jieqi')throw new RoomError('Invalid game variant.')
     if (password !== undefined && (typeof password !== 'string' || password.length < 1 || password.length > 64)) throw new RoomError('Mật khẩu phải có từ 1 đến 64 ký tự.')
     if (typeof turnSeconds !== 'number' || !ROOM_TURN_SECONDS.some(value => value === turnSeconds)) throw new RoomError('Thời gian mỗi nước không hợp lệ.');
     if (typeof minutes !== 'number' || !ROOM_MINUTES.some(value => value === minutes)) throw new RoomError('Thá»i gian khÃ´ng há»£p lá»‡.')
@@ -38,7 +45,7 @@ export class RoomService {
     this.repository.pruneEmpty()
     if (this.repository.all().length >= 100) throw new RoomError('MÃ¡y chá»§ Ä‘Ã£ Ä‘á»§ phÃ²ng. Vui lÃ²ng dÃ¹ng phÃ²ng cÃ³ sáºµn.')
     const normalizedProvince = typeof province === 'string' ? province.trim().normalize('NFC') : undefined
-    const room: RoomSnapshot = { id: randomUUID(), name: textInput(name, 40), province: normalizedProvince, players: [], viewers: [], minutes, turnSeconds, game: createGame(this.now(), minutes * 60_000, turnSeconds * 1000), messages: [], drawOffer: null, takebackOffer: null, takebackDecline: null, takebackRemaining: { red: 2, black: 2 }, moveCount: 0, repetitionNoticePaused: false, repetitionNoticeKind: null, repetitionAttemptNotice: null }
+    const room: RoomSnapshot = { id: randomUUID(), name: textInput(name, 40), province: normalizedProvince, players: [], viewers: [], minutes, turnSeconds, game: createRoomGame(this.now(), minutes, turnSeconds, variant), messages: [], drawOffer: null, takebackOffer: null, takebackDecline: null, takebackRemaining: { red: 2, black: 2 }, moveCount: 0, repetitionNoticePaused: false, repetitionNoticeKind: null, repetitionAttemptNotice: null }
     this.histories.set(room.id, [])
     room.locked = password !== undefined
     if (typeof password === 'string') {
@@ -46,7 +53,7 @@ export class RoomService {
       this.repository.setPassword(room.id, { salt, hash: scryptSync(password, salt, 32) })
     }
     this.repository.save(room)
-    return { id: room.id, name: room.name, players: 0, viewerCount: 0, phase: 'ready', minutes, province: normalizedProvince, locked: room.locked }
+    return { id: room.id, name: room.name, players: 0, viewerCount: 0, variant, phase: 'ready', minutes, province: normalizedProvince, locked: room.locked }
   }
   private get(id: string) {
     const room = this.repository.get(id)
@@ -72,6 +79,7 @@ export class RoomService {
       blackName: room.players.find(player => player.side === 'black')?.name ?? 'Đen',
       states,
     }
+    this.repository.recordCompletion(room)
   }
   private advanceQueuedPlayer(room: RoomSnapshot, losingPlayer: RoomSnapshot['players'][number], nextViewer: NonNullable<RoomSnapshot['viewers']>[number], now: number, readinessTimeout = false) {
     room.players = room.players.map(member => member.id === losingPlayer.id
@@ -80,7 +88,7 @@ export class RoomService {
     room.viewers = [...(room.viewers ?? []).filter(viewer => viewer.id !== nextViewer.id), { id: losingPlayer.id, name: losingPlayer.name, queued: !readinessTimeout }]
     this.readyWaits.delete(room.id)
     room.readyCountdown = null
-    room.game = createGame(now, (room.minutes ?? 10) * 60_000, (room.turnSeconds ?? 60) * 1000)
+    room.game = createRoomGame(now, room.minutes ?? 10, room.turnSeconds ?? 60, room.game.variant)
     room.drawOffer = null
     room.takebackOffer = null
     room.takebackDecline = null
@@ -122,6 +130,7 @@ export class RoomService {
       wait.readySince = null
       const elapsed = now - wait.since
       if (elapsed >= 30_000) {
+        if(!this.repository.canStart(room)){room.readyCountdown=null;return true}
         room.players = room.players.map(player => ({ ...player, ready: true }))
         room.game = startGame(room.game, now, MATCH_INTRO_MS)
         delete room.lastCompletedMatch
@@ -290,7 +299,7 @@ export class RoomService {
           // Committing to a rematch closes the previous game's replacement window.
           // Later queue entries must wait for this new match to finish.
           this.queueRotations.delete(room.id)
-          room.game = createGame(now, (room.minutes ?? 10) * 60_000, (room.turnSeconds ?? 60) * 1000)
+          room.game = createRoomGame(now, room.minutes ?? 10, room.turnSeconds ?? 60, room.game.variant)
           room.players = room.players.map(member => ({ ...member, ready: false }))
           room.drawOffer = null
           room.takebackOffer = null
@@ -300,7 +309,7 @@ export class RoomService {
         }
         if (room.game.phase !== 'ready') throw new RoomError('VÃ¡n Ä‘Ã£ báº¯t Ä‘áº§u.')
         room.players.find(member => member.id === playerId)!.ready = true
-        if (room.players.length === 2 && room.players.every(player => player.ready)) { room.game = startGame(room.game, now, MATCH_INTRO_MS); delete room.lastCompletedMatch }
+        if (room.players.length === 2 && room.players.every(player => player.ready)) { if(!this.repository.canStart(room))throw new RoomError('Không đủ năng lượng hoặc tài khoản không hợp lệ.');room.game = startGame(room.game, now, MATCH_INTRO_MS); delete room.lastCompletedMatch }
         break
       case 'move': {
         if (room.takebackOffer) throw new RoomError('HÃ£y tráº£ lá»i yÃªu cáº§u Ä‘i láº¡i trÆ°á»›c.')
@@ -377,7 +386,7 @@ export class RoomService {
       case 'reset':
         if (room.game.phase === 'ready' && room.viewers?.some(viewer => viewer.queued)) throw new RoomError('Không thể cài lại khi đang có người chờ đấu.')
         if (room.game.phase === 'playing') throw new RoomError('HÃ£y káº¿t thÃºc vÃ¡n trÆ°á»›c khi chÆ¡i láº¡i.')
-        room.game = createGame(now, (room.minutes ?? 10) * 60_000, (room.turnSeconds ?? 60) * 1000)
+        room.game = createRoomGame(now, room.minutes ?? 10, room.turnSeconds ?? 60, room.game.variant)
         room.repetitionNoticePaused = false
         room.repetitionNoticeKind = null
         room.repetitionAttemptNotice = null

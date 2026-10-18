@@ -243,3 +243,20 @@ Bảng thành viên rộng bằng panel danh sách chat, luôn dành chỗ cho8 
 - 2026-10-08: The Mute Notifications action appears only in group conversation options. Hide it for one-to-one conversations and move Delete Conversation and Report up to close the gap; group option positions remain unchanged.
 
 - 2026-10-15: Trong chat bàn chơi, tăng khoảng cách dọc cố định giữa các tin từ6px lên12px; áp dụng cả tin hệ thống kế tiếp và tin thường. Giữ avatar, căn lề và cuộn.
+- 2026-10-16: Theo yêu cầu mở nguồn avatar/khung thật cho chat bàn và Tin nhắn: MessageAccountAvatar dùng AccountAvatar chung, session cho chính mình và Query search cho người khác; cache theo tên30s. Áp dụng chat bàn, danh sách hội thoại trực tiếp, header, avatar tin nhận và popup tùy chọn. Giữ kích thước/vị trí, ảnh nhóm và máy riêng; không thêm danh hiệu vào chat.
+- 2026-10-16: Tên trong Tin nhắn dùng SocialPlayerName của Bạn bè làm chuẩn: font-heading/extrabold, stroke chữ0.2px, số font-number90%/normal/opacity100%/stroke0.3px/cùng baseline. Đồng bộ danh sách/header/tùy chọn/thành viên/chọn người tạo nhóm; giữ cỡ theo ngữ cảnh/màu/layout/avatar.
+- 2026-10-16: Sửa giật popup nhóm Tin nhắn do polling1s thay conversationList mất members/creatorName rồi request members bổ sung lại: giữ metadata nhóm cũ trong lúc refresh. Giữ reference threads khi nội dung không đổi để không kích hoạt scroll xuống đáy mỗi poll. Không đổi interval/UI nhóm.
+- 2026-10-16: Đổi ảnh nhóm đã nối server thật thay thông báo chưa tích hợp. Frontend chọn ảnh≤10MB, crop vuông/resize256 và encode JPEG; PATCH conversations/:id/avatar kiểm tra JPEG≤120k base64 và owner còn membership. Repository ghi uploads/group-avatars bằng UUID, lưu URL vào avatar_object_key hiện có, rollback lỗi ghi DB dọn file mới. Static/media proxy dev; list trả avatarUrl và mọi vị trí ảnh nhóm đọc cùng URL. Không migration, uploads ignored và cần backup cùng DB.
+- 2026-10-16: Tin nhắn: nút mặt cười mở24 emoji/chèn tại caret, giới hạn300 ký tự. Nút ảnh chọn≤10MB, JPEG resize cạnh dài≤720px/nén≤120k base64, xem trước/bỏ ảnh và bấm Gửi. POST conversations/:id/images xác thực membership và send giữ block/idempotency/300char; file UUID uploads/message-images, body lưu đường dẫn /media/message-images/UUID.jpg, render img chỉ khi khớp mẫu path nội bộ nghiêm ngặt; preview hội thoại chỉ 📷 Ảnh. Không migration; static/dev proxy mới, backup uploads cùng DB.
+
+- 2026-10-17: Tin nhắn mở mặc định không tự chọn/tải/đánh dấu đọc hội thoại đầu; vùng chat hiện HOANGBBCG căn giữa hai chiều, Georgia đậm nghiêng/màu #936332 như bàn cờ. Bấm hội thoại, tạo nhóm hoặc Nhắn tin từ hồ sơ vẫn mở hội thoại được yêu cầu. Giữ avatar/bố cục danh sách. Thay quy tắc tự chọn hội thoại đầu trước đây.
+
+- 2026-10-17: Theo yêu cầu mới, riêng chữ HOANGBBCG ở trạng thái chưa chọn hội thoại Tin nhắn dùng trắng kem #fff1d6; giữ font/cỡ/vị trí, không đổi chữ trên bàn cờ.
+
+- 2026-10-17: Ảnh gửi/nhận trong Tin nhắn hiển thị trực tiếp, wrapper sát ảnh không nền/viền/padding/shadow, không đuôi bong bóng/họa tiết hoặc bo cắt ảnh. Tin chữ giữ bong bóng cũ; giữ bấm hiện giờ.
+
+- 2026-10-17: HOANGBBCG mặc định Tin nhắn đổi màu #E6BA86. Khởi tạo selection null và khi đóng reset selection/popup/draft/search để mỗi lần mở tiện ích đều hiện chữ, chưa chọn mục. Mở Nhắn tin đích từ hồ sơ/Bạn bè vẫn theo yêu cầu đích cụ thể.
+
+- 2026-10-17: Sửa ảnh Tin nhắn: bỏ canvas/nền trắng/resize/JPEG conversion, FileReader gửi nguyên bytes PNG/JPEG/WebP/GIF tối đa10MB. Backend validate signature, lưu đúng extension và bytes, parser riêng images14MB. Giữ URL jpg cũ; ảnh gửi căn phải với wrapper min-w-0, bỏ giới hạn min(360px,100%) gây khung rộng lệch. 6/6 regression hiện có PASS; kiểm tra PNG bytes/extension trực tiếp PASS; typecheck/build PASS, dist xác nhận FileReader. Không thêm được regression do EPERM file test; chưa browser QA. Backend cần restart. Ảnh cũ đã flatten trắng không khôi phục alpha, cần gửi lại nguồn.
+
+- 2026-10-17: Theo mẫu mới, chữ HOANGBBCG mặc định Tin nhắn đổi sang trắng ngả vàng nhẹ #FFF6DF thay #E6BA86; giữ vị trí/cỡ/font.

@@ -13,3 +13,4 @@ Kiểm chứng: test DOM điều kiện nút, hook vào phòng thật/kiểm tra
 - 2026-10-15: Ngoại lệ xem thử tạm: top1 có nút mẫu khi không có phòng đang đấu, click không gọi socket mà hiện thông báo mẫu. Có phòng thật dùng watch như cũ. Thanh cuộn mảnh nâu vàng#92612d, track/corner trong suốt; gỡ nút mẫu khi kết thúc xem UI.
 
 - 2026-10-15: Thumb thanh cuộn đổi trắng#fff theo yêu cầu, track/corner giữ trong suốt.
+- 2026-10-16: Người dùng mở khóa riêng avatar/khung avatar trong danh sách Xếp hạng cho task này. Ranking API trả avatarCode/avatarFrameCode từ users; hàng dùng AvatarPortrait/AvatarFrameOverlay/getAvatarFrame chung với hồ sơ. Danh hiệu/sao tiếp tục derive Elo thật riêng variant. Giữ slot84px và bố cục, khóa lại avatar/khung Xếp hạng sau task.

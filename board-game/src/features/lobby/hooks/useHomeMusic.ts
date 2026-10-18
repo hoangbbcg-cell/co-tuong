@@ -1,4 +1,5 @@
 import { useEffect, useSyncExternalStore } from 'react'
+import { readAudioPreference, saveAudioPreference } from '../../../lib/audioPreferences'
 import firstTrack from '../../../assets/audio/et11lx-chinese-ancient-style-music-love-et11lx-155926.mp3'
 import secondTrack from '../../../assets/audio/et11lx-chinese-ancient-style-music-love-etlx-247345.mp3'
 import thirdTrack from '../../../assets/audio/chinesezenmusic-chinese-bamboo-flute-amp-guzheng-relaxing-zen-music-618302.mp3'
@@ -7,7 +8,7 @@ const tracks = [firstTrack, secondTrack, thirdTrack]
 let trackIndex = 0
 
 const listeners = new Set<() => void>()
-let enabled = true
+let enabled = readAudioPreference('music', true)
 let audio: HTMLAudioElement | null = null
 let replayTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -46,6 +47,7 @@ function subscribe(listener: () => void) {
 
 async function toggle() {
   enabled = !enabled
+  saveAudioPreference('music', enabled)
   clearReplay()
   listeners.forEach(listener => listener())
   if (!enabled) { audio?.pause(); return }
@@ -53,6 +55,7 @@ async function toggle() {
   try { await getAudio().play() }
   catch (error) {
     enabled = false
+    saveAudioPreference('music', false)
     listeners.forEach(listener => listener())
     throw error
   }

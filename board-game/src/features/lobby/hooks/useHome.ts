@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { roomApi, errorMessage } from '../../../services/api'
 import { roomSocket } from '../../../services/socket'
 import { randomAvailableRoom } from '../../../lib/quickRoom'
+import { MAX_ENERGY } from '../../../lib/energy'
 
 export function useHome() {
   const name = useSessionStore(state => state.name)
@@ -19,7 +20,7 @@ export function useHome() {
     return () => window.clearInterval(timer)
   }, [energyRecoveryAt])
   const seconds = energyRecoveryAt === null ? 420 : Math.max(0, Math.ceil((energyRecoveryAt - energyNow) / 1000))
-  const energyCountdown = `Hồi năng lượng sau: ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
+  const energyCountdown = energy >= MAX_ENERGY ? 'Năng lượng đầy' : `Hồi năng lượng sau: ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
   const setName = useSessionStore(state => state.setName)
   const notice = useSessionStore(state => state.notice)
   const [message, setMessage] = useState('')
@@ -33,27 +34,22 @@ export function useHome() {
   const client = useQueryClient()
   const joiningRef = useRef(false)
   const quick = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (variant: 'xiangqi' | 'jieqi') => {
       const rooms = await client.fetchQuery({ queryKey: ['rooms'], queryFn: ({ signal }) => roomApi.list(signal), staleTime: 0 })
-      const room = randomAvailableRoom(rooms)
-      if (!room) return null
+      const room = randomAvailableRoom(rooms, Math.random, variant)
       if (!requireEnergy()) return { blocked: true as const }
-      return roomSocket.join(room.id, name)
+      const destination = room ?? await (variant === 'jieqi' ? roomApi.create('Bàn Cờ Úp', 10, 60, useSessionStore.getState().province, undefined, 'jieqi') : roomApi.create('Bàn cờ', 10, 60, useSessionStore.getState().province))
+      return roomSocket.join(destination.id, name)
     },
     onSuccess: room => {
       if (room && 'blocked' in room) return
       if (room) useSessionStore.getState().enterOnline(room)
-      else {
-        useGameStore.getState().reset(performance.now())
-        useSessionStore.getState().joinLocal()
-        useSessionStore.setState({ mode: 'computer' })
-      }
       void client.invalidateQueries({ queryKey: ['rooms'] })
     },
     onError: error => setMessage(errorMessage(error)),
     onSettled: () => { joiningRef.current = false },
   })
-  const quickPlay = () => { if (requireEnergy()) quick.mutate() }
+  const quickPlay = () => { if (requireEnergy()) quick.mutate('xiangqi') }
   const messageRef = useRef<HTMLDialogElement>(null)
   const profileRef = useRef<HTMLDialogElement>(null)
   const rankingRef = useRef<HTMLDialogElement>(null)
@@ -72,6 +68,7 @@ export function useHome() {
     if (!message && messageRef.current?.open) messageRef.current.close()
   }, [message])
   const openRooms = () => useSessionStore.setState({ screen: 'rooms', lobbyOpen: true })
+  const openShop = () => useSessionStore.setState({ screen: 'shop', lobbyOpen: false })
   const openComputer = () => useSessionStore.setState({ screen: 'computer', lobbyOpen: false })
   const closeRooms = () => useSessionStore.setState({ lobbyOpen: false })
   const playLocal = () => {
@@ -79,9 +76,7 @@ export function useHome() {
     useSessionStore.getState().joinLocal()
   }
   const playHidden = () => {
-    useGameStore.getState().reset(performance.now(), 'jieqi')
-    useSessionStore.getState().joinLocal()
-    useSessionStore.setState({ mode: 'computer' })
+    if (requireEnergy()) quick.mutate('jieqi')
   }
   const fullscreen = async () => {
     try {
@@ -97,5 +92,5 @@ export function useHome() {
       setMessage('Bạn có thể đóng tab trình duyệt để thoát trò chơi.')
     }
   }
-  return { energyCountdown, energy, gold, openComputer, playHidden, quickPlay, joining: quick.isPending, name, setName, notice, message, messageRef, profileRef, rankingRef, friendsRef, historyRef, openProfile, closeProfile, openRanking, closeRanking, openFriends, closeFriends, openHistory, closeHistory, setMessage, openRooms, closeRooms, playLocal, fullscreen, exit }
+  return { openShop, energyCountdown, energy, gold, openComputer, playHidden, quickPlay, joining: quick.isPending, name, setName, notice, message, messageRef, profileRef, rankingRef, friendsRef, historyRef, openProfile, closeProfile, openRanking, closeRanking, openFriends, closeFriends, openHistory, closeHistory, setMessage, openRooms, closeRooms, playLocal, fullscreen, exit }
 }

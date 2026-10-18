@@ -9,3 +9,5 @@ Tham chiếu: https://www.pychess.org/variants/jieqi (đọc ngày 2026-09-18).
 - UI không render danh tính quân úp vào chữ, nhãn truy cập hoặc thuộc tính DOM. Máy cơ bản chỉ đánh giá loại đã công khai; quân úp bị ăn đều có cùng điểm đánh giá.
 - Đây là ván local với máy cơ bản; danh tính vẫn nằm trong bộ nhớ client. Chống lặp toàn thế cờ dùng helper chung, gồm trạng thái úp/lật trong khóa (xem docs/REPETITION-RULES.md). Chưa hỗ trợ Cờ Úp online, lịch sử quân bị bắt hoặc luật chiếu dai/đuổi quân giải đấu. Không có panel xem riêng danh tính quân úp đã bắt như một số nền tảng.
 - Xáo tại store bằng Math.random; engine nhận mẫu số ngẫu nhiên để có thể test lại kết quả.
+
+- 2026-10-18: Home Cờ Úp chuyển sang phòng online cùng variant jieqi: ghép bàn mở có đúng1 người, hết bàn tạo10 phút/60s theo tỉnh hồ sơ và ngồi chờ, không fallback máy. Quick Cờ Tướng bỏ bàn jieqi. Server xác thực variant, xáo bằng crypto và giữ variant khi reset/đổi ghế; publicRoom che concealed trong broadcast/ack/challenge và archive, không sửa state authoritative. Bỏ nhãn Cờ Úp phủ trên bàn; giữ nút Home Chơi với máy. Thay quy tắc Cờ Úp chỉ local trước đây.

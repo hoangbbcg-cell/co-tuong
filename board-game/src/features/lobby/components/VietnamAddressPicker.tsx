@@ -5,6 +5,7 @@ import {
   type AdministrativeWard,
 } from '../hooks/useVietnamAdministrativeUnits'
 import { selectionPalette } from '../../../lib/uiClasses'
+import { COUNTRY_CODES, countryFlag, countryNames } from '../../../lib/profileLocation'
 
 function normalizeSearch(value: string) {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLocaleLowerCase('vi').trim()
@@ -12,8 +13,15 @@ function normalizeSearch(value: string) {
 
 export function VietnamAddressPicker({ onCancel, onSave }: {
   onCancel: () => void
-  onSave: (address: string, province: string) => void
+  onSave: (address: string, province: string, countryCode: string, provinceCode?:string, wardCode?:string, wardName?:string) => void | Promise<void>
 }) {
+  const [country, setCountry] = useState('VN')
+  const [choosingCountry, setChoosingCountry] = useState(true)
+  const [saveError, setSaveError] = useState('')
+  const save = async (address: string, provinceName: string) => {
+    try { await onSave(address, provinceName, country,province?String(province.code):undefined,ward?String(ward.code):undefined,ward?.name) }
+    catch { setSaveError('Không lưu được địa chỉ. Vui lòng thử lại.') }
+  }
   const [step, setStep] = useState<'province' | 'ward'>('province')
   const [province, setProvince] = useState<AdministrativeProvince | null>(null)
   const [ward, setWard] = useState<AdministrativeWard | null>(null)
@@ -35,7 +43,7 @@ export function VietnamAddressPicker({ onCancel, onSave }: {
     return () => window.removeEventListener('keydown', handleTypingToSearch)
   }, [])
   const { provinces, wards, provincesLoading, provincesError, wardsLoading, wardsError, retryProvinces, retryWards } =
-    useVietnamAdministrativeUnits(true, province?.code ?? null)
+    useVietnamAdministrativeUnits(!choosingCountry && country === 'VN', province?.code ?? null)
   const loading = step === 'ward' ? wardsLoading : provincesLoading
   const error = step === 'ward' ? wardsError : provincesError
   const retry = step === 'ward' ? retryWards : retryProvinces
@@ -63,6 +71,19 @@ export function VietnamAddressPicker({ onCancel, onSave }: {
   const pickerButton = 'flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-[16px] font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#efb75d]'
 
   return <section aria-label="Chọn địa chỉ" className="flex min-h-0 flex-1 flex-col rounded-xl border-2 border-[#b8782d] bg-[#1c0f08eF] p-3 text-[#f8dea6] shadow-[inset_0_0_0_2px_#532b13,inset_0_0_20px_#120904]">
+    {choosingCountry ? <>
+      <h3 className="text-2xl font-bold text-[#ffe5ac]">Chọn quốc gia</h3>
+      <select aria-label="Quốc gia" value={country} onChange={event => setCountry(event.target.value)} className="mt-3 rounded-lg border border-[#b17a36] bg-[#351a0b] p-3 text-[#ffe5ac]">
+        {COUNTRY_CODES.map(code => <option key={code} value={code}>{countryFlag(code)} {countryNames.of(code)}</option>)}
+      </select>
+      <p className="mt-3 text-sm text-[#e0c38e]">Sau khi lưu, bạn không thể thay đổi quốc gia và địa chỉ.</p>
+      {saveError && <p role="alert">{saveError}</p>}
+      <div className="mt-auto flex justify-end gap-2 pt-3">
+        <button type="button" onClick={onCancel} className="rounded-lg border border-[#a86e2c] bg-[#351a0b] px-5 py-2 font-bold">Hủy</button>
+        <button type="button" onClick={() => country === 'VN' ? setChoosingCountry(false) : save(countryNames.of(country) ?? country, '')} className="rounded-lg border-2 border-[#edba5a] bg-[linear-gradient(135deg,#ffe29a,#f1bb5e)] px-5 py-2 font-bold text-[#46220c]">{country === 'VN' ? 'Tiếp' : 'Lưu địa chỉ'}</button>
+      </div>
+    </> : <>
+    {step === 'province' && <button type="button" onClick={() => setChoosingCountry(true)} className="self-start text-[#e0c38e]">← {countryNames.of(country)}</button>}
     <div className="flex shrink-0 items-center gap-2">
       {step === 'ward' && <button type="button" aria-label="Quay lại chọn tỉnh/thành phố" onClick={returnToProvinces} className="grid size-9 shrink-0 place-items-center rounded-lg border border-[#9d6425] bg-[#351a0b] text-[#f1bd58] hover:bg-[#613014] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#efb75d]">
         <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6M9 12h11" /></svg>
@@ -109,11 +130,13 @@ export function VietnamAddressPicker({ onCancel, onSave }: {
     </div>
 
     <div className="mt-3 flex shrink-0 flex-col gap-2">
-      <div className="h-5" aria-hidden="true" />
+      <p className="text-sm text-[#e0c38e]">Sau khi lưu, bạn không thể thay đổi quốc gia và địa chỉ.</p>
+      {saveError && <p role="alert">{saveError}</p>}
       <div className="flex justify-end gap-2">
         <button type="button" onClick={onCancel} className="rounded-lg border border-[#a86e2c] bg-[#351a0b] px-5 py-2 font-bold text-[#f0d69e] hover:bg-[#4b250e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#efb75d]">Hủy</button>
-        <button type="button" disabled={step === 'province' ? !province : !ward} onClick={() => { if (step === 'province') continueToWards(); else if (province && ward) onSave(`${ward.name}, ${province.name}`, province.name) }} className="rounded-lg border-2 border-[#edba5a] bg-[linear-gradient(135deg,#ffe29a,#f1bb5e)] px-5 py-2 font-bold text-[#46220c] shadow-[inset_0_0_0_1px_#fff1c5] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fff0bf]">{step === 'province' ? 'Tiếp' : 'Lưu địa chỉ'}</button>
+        <button type="button" disabled={step === 'province' ? !province : !ward} onClick={() => { if (step === 'province') continueToWards(); else if (province && ward) save(`${ward.name}, ${province.name}`, province.name) }} className="rounded-lg border-2 border-[#edba5a] bg-[linear-gradient(135deg,#ffe29a,#f1bb5e)] px-5 py-2 font-bold text-[#46220c] shadow-[inset_0_0_0_1px_#fff1c5] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fff0bf]">{step === 'province' ? 'Tiếp' : 'Lưu địa chỉ'}</button>
       </div>
     </div>
+    </>}
   </section>
 }

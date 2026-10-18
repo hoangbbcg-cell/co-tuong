@@ -1,3 +1,5 @@
+﻿import { SocialPlayerName } from './SocialUi'
+import { MessageAccountAvatar } from './MessageAccountAvatar'
 import { NumberText } from '../../../lib/NumberText'
 import { useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import { CrispUiImage } from '../../../lib/CrispUiImage'
@@ -53,8 +55,8 @@ function OptionRowBackground({ showBlockIcon = false }: { showBlockIcon?: boolea
   </span>
 }
 
-export function MessagesOptionsPanel({ width, height, image, name, nicknameValue, isBlocked, isGroup = false, members = [], memberImages = {}, creatorName, memberRowHeight, memberListWidth, selfName, selfAvatarIndex = 0, notificationMuteDuration = 1, onSaveNotificationMute, onBack, onViewInfo, onSaveNickname, onChangeGroupImage, onToggleBlock, onDeleteConversation }: {
-  width: number; height: number; image: string; name: string; nicknameValue: string; isBlocked: boolean; isGroup?: boolean; members?: string[]; memberImages?: Record<string, string>; creatorName?: string; memberRowHeight?: number; memberListWidth?: number; selfName?: string; selfAvatarIndex?: number; onBack: () => void; onViewInfo: () => void; onSaveNickname: (nickname: string) => void; onChangeGroupImage: (image: string) => void; onToggleBlock: (blocked: boolean) => void; onDeleteConversation: () => void
+export function MessagesOptionsPanel({ width, height, image, name, accountName, nicknameValue, isBlocked, isGroup = false, members = [], memberImages = {}, creatorName, memberRowHeight, memberListWidth, selfName, selfAvatarIndex = 0, notificationMuteDuration = 1, onSaveNotificationMute, onBack, onViewInfo, onSaveNickname, onChangeGroupImage, onToggleBlock, onDeleteConversation }: {
+  width: number; height: number; image: string; name: string; accountName?: string; nicknameValue: string; isBlocked: boolean; isGroup?: boolean; members?: string[]; memberImages?: Record<string, string>; creatorName?: string; memberRowHeight?: number; memberListWidth?: number; selfName?: string; selfAvatarIndex?: number; onBack: () => void; onViewInfo: () => void; onSaveNickname: (nickname: string) => void; onChangeGroupImage: (image: string) => void; onToggleBlock: (blocked: boolean) => void; onDeleteConversation: () => void
   notificationMuteDuration?: NotificationMuteDuration; onSaveNotificationMute: (duration: NotificationMuteDuration) => void
 }) {
   const [editingNickname, setEditingNickname] = useState(false)
@@ -98,10 +100,10 @@ export function MessagesOptionsPanel({ width, height, image, name, nicknameValue
       <span className="absolute z-10 block" style={avatarStyle}>
         {isGroup
           ? <MessagesGroupAvatar src={image} alt={`Avatar ${name}`} className="block size-full" />
-          : image === picolozzAvatar
+          : accountName ? <MessageAccountAvatar name={accountName} /> : image === picolozzAvatar
           ? <span role="img" aria-label={`Avatar ${name}`} className="block h-full w-full overflow-hidden rounded-full"><AvatarPortrait avatarIndex={0} className="h-full w-full rounded-full" /></span>
           : <CrispUiImage src={image} alt={`Avatar ${name}`} className="block h-full w-full cursor-pointer rounded-full object-cover" />}
-        {!isGroup && <AvatarFrameOverlay src={getAvatarFrame(0).image} alt={getAvatarFrame(0).label} />}
+        {!isGroup && !accountName && <AvatarFrameOverlay src={getAvatarFrame(0).image} alt={getAvatarFrame(0).label} />}
         {!isGroup && <AvatarRankBadge />}
       </span>
       {canManageGroup && <>
@@ -109,13 +111,22 @@ export function MessagesOptionsPanel({ width, height, image, name, nicknameValue
           const file = event.currentTarget.files?.[0]
           event.currentTarget.value = ''
           if (!file || !file.type.startsWith('image/')) return
-          const reader = new FileReader()
-          reader.onload = () => { if (typeof reader.result === 'string') onChangeGroupImage(reader.result) }
-          reader.readAsDataURL(file)
+          if(file.size>10*1024*1024){window.alert('Chọn ảnh nhỏ hơn 10 MB.');return}
+          void createImageBitmap(file).then(bitmap=>{
+            const canvas=document.createElement('canvas')
+            canvas.width=256;canvas.height=256
+            const context=canvas.getContext('2d')
+            if(!context){bitmap.close();throw new Error('Không đọc được ảnh.')}
+            context.fillStyle='#fff';context.fillRect(0,0,256,256)
+            const size=Math.min(bitmap.width,bitmap.height)
+            context.drawImage(bitmap,(bitmap.width-size)/2,(bitmap.height-size)/2,size,size,0,0,256,256)
+            bitmap.close()
+            onChangeGroupImage(canvas.toDataURL('image/jpeg',0.8))
+          }).catch(()=>window.alert('Không đọc được ảnh. Hãy chọn PNG, JPEG hoặc WebP.'))
         }} />
         <button type="button" aria-label="Đổi ảnh nhóm" onClick={() => groupAvatarInputRef.current?.click()} className={`${buttonInteraction} absolute z-20 grid place-items-center rounded-full border border-[#e7b755] bg-[#2d160a] p-1 text-[#ffe08b] shadow-[0_1px_3px_#160904]`} style={place(499.5, 109, 48, 48)}><svg aria-hidden="true" viewBox="0 0 24 24" className="block size-full" fill="currentColor"><path d="M8 4 6 7H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2-3Z"/><circle cx="12" cy="13" r="4" fill="#2d160a"/><circle cx="12" cy="13" r="2.5" fill="currentColor"/></svg></button>
       </>}
-      <span className="absolute z-10 w-[80%] -translate-x-1/2 truncate text-center font-heading text-[length:var(--ui-p-28)] font-bold leading-none text-[#ffe8ad] [-webkit-text-stroke:1px_#2a1008] [paint-order:stroke_fill] [text-shadow:0_1px_2px_#2a1008]" style={{ left: `${(isGroup ? 447.5 : 447) / sourceWidth * 100}%`, top: `${(isGroup ? 315 : 316) / sourceHeight * 100}%` }}><NumberText text={name} compact weight="semibold" /></span>
+      <span className="absolute z-10 w-[80%] -translate-x-1/2 truncate text-center font-heading text-[length:var(--ui-p-28)] font-bold leading-none text-[#ffe8ad]" style={{ left: `${(isGroup ? 447.5 : 447) / sourceWidth * 100}%`, top: `${(isGroup ? 315 : 316) / sourceHeight * 100}%` }}><SocialPlayerName name={name} /></span>
       <button autoFocus type="button" aria-label="Quay lại hội thoại" onClick={onBack} className={`${buttonInteraction} absolute m-0 border-0 bg-transparent p-0 leading-none`} style={place(40, 35, 85, 77)}>
         <CrispUiImage src={back} alt="" className="block h-full w-full object-contain" />
       </button>
@@ -154,10 +165,10 @@ export function MessagesOptionsPanel({ width, height, image, name, nicknameValue
           <div className="mb-3 flex items-center justify-between gap-3"><h2 className="font-cormorant text-[length:var(--ui-p-22)] font-bold text-[#ffe5a6] [font-variant-numeric:lining-nums]">Thành viên (<span className="font-number">{members.length}</span>)</h2><button type="button" autoFocus onClick={() => setViewingMembers(false)} aria-label="Đóng danh sách thành viên" className={`${buttonInteraction} rounded-lg border border-[#b8873e] px-3 py-1 text-[#ffe5a6]`}>×</button></div>
           <ul className={`min-h-0 shrink-0 overflow-y-auto pr-1 ${messageScrollbarClass}`} style={{ height: memberViewportHeight }}>{sortedMembers.map(member => <li key={member} className="flex shrink-0 items-center gap-2 border-b border-[#79501e] px-1 py-1 font-heading text-[length:var(--ui-p-22)] font-bold text-[#fff6df] leading-tight" style={{ height: memberViewportHeight / 8 }}>
             <span className="relative block size-[var(--ui-p-50)] shrink-0 cursor-pointer">
-              {member === selfName ? <AvatarPortrait avatarIndex={selfAvatarIndex} className="size-full rounded-full object-contain" /> : <CrispUiImage src={memberImages[member] ?? defaultMemberAvatar} alt={`Avatar ${member}`} className="block size-full rounded-full object-contain" />}
+              {accountName ? <MessageAccountAvatar name={member} /> : member === selfName ? <AvatarPortrait avatarIndex={selfAvatarIndex} className="size-full rounded-full object-contain" /> : <CrispUiImage src={memberImages[member] ?? defaultMemberAvatar} alt={`Avatar ${member}`} className="block size-full rounded-full object-contain" />}
               {member === creatorName && <span role="img" aria-label="Người tạo nhóm" className="absolute -right-[var(--ui-p-2)] -bottom-[var(--ui-p-2)] grid size-[var(--ui-p-20)] place-items-center rounded-full border border-[#666666] bg-[#666666] shadow-[0_1px_2px_#1c0e07]"><svg aria-hidden="true" viewBox="0 0 24 24" className="size-[var(--ui-p-13)] text-[#FBD65B]" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="8" r="5" /><path d="m12.5 11.5-9 9H7v-4h4v-4" /></svg></span>}
             </span>
-            <span className="min-w-0 truncate"><NumberText text={member} compact weight="semibold" /></span>
+            <span className="min-w-0 truncate"><SocialPlayerName name={member} /></span>
           </li>)}</ul>
         </section>
       </div>}
@@ -211,3 +222,7 @@ export function MessagesOptionsPanel({ width, height, image, name, nicknameValue
     </div>
   </div>
 }
+
+
+
+

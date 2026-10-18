@@ -18,3 +18,4 @@ Kiểm chứng: tests/room-readiness.test.ts dùng đồng hồ giả kiểm tra
 Người dùng yêu cầu bật preview ở bàn mẫu Chọn Bàn: vào là hiện20 và đếm ngay, hết20s bắt đầu hai máy. Đây là ngoại lệ UI local dùng useDemoReadyCountdown; không đổi server, không ghi room hoặc tác động replay/trial. Rời bàn hủy timer. Gỡ sau khi người dùng kết thúc xem thử.
 
 - 2026-10-15: Số countdown dùng text-black, font-number72×scale, không bóng chữ; online và demo dùng chung Board.
+- 2026-10-16: Bàn online chưa đủ2 ghế có người thì ẩn nút Sẵn sàng. Lưu thế cờ chỉ khả dụng sau ít nhất1 nửa-nước (match.moveCount>0), disabled nút và guard callback khi0; áp dụng GamePage chung online/local/replay/trial. Không đổi đồng hồ/ready server.

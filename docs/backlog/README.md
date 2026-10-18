@@ -6,7 +6,7 @@ Mỗi ý tưởng có một file Markdown trong nhóm phù hợp: `gameplay/`, `
 
 ## Ưu tiên cao
 
-Chưa có ý tưởng được xác định ưu tiên cao.
+- **Cần làm sớm — [Bảng năng lượng: video và gói mua](system/ENERGY-PACKAGES.md)** (người dùng chốt2026-10-16): bấm mục Năng lượng mở bảng3 lựa chọn: xem video nhận1 năng lượng;19.000đ mua50 năng lượng;40.000đ mua vô hạn năng lượng trong1 tháng. Mới ghi backlog, chưa triển khai.
 
 ## Làm sau
 

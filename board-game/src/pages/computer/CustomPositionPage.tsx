@@ -1,4 +1,4 @@
-import positionStartButton from '../../assets/buttons/custom-position-dragon-start.png'
+﻿import positionStartButton from '../../assets/buttons/custom-position-dragon-start.png'
 import { createPortal } from 'react-dom'
 import { ChessPiece } from '../../features/game/components/ChessPiece'
 import { usePositionDrag } from '../../features/game/hooks/usePositionDrag'
@@ -25,7 +25,7 @@ export function CustomPositionPage() {
   const [image, setImage] = useState<File | null>(null)
   const icon = 'size-8 [filter:drop-shadow(1px_2px_1px_#392300)]'
   const sideButton = `${buttonInteraction} flex-1 rounded border px-2 py-1 font-heading text-lg`
-  return <div className="flex h-dvh w-full items-center justify-center overflow-hidden bg-[#263a35]">
+  return <div onKeyDownCapture={event => { if (event.code === 'Space' && !(event.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]')) { event.preventDefault(); event.stopPropagation() } }} className="flex h-dvh w-full items-center justify-center overflow-hidden bg-[#263a35]">
     <main {...dragHandlers} aria-label="Vị trí tùy chỉnh" className="[&_[data-testid=board-hit]]:touch-none [&_[data-position-type]]:touch-none relative h-[calc(100dvh-12px)] w-[calc(100%-240px)] overflow-hidden border-[5px] border-[#80582c] text-[#ffebbd] shadow-[inset_0_0_0_2px_#efd397,0_0_0_1px_#e1c993] compact:w-[calc(100%-12px)]">
       <div className="relative isolate h-full px-[10px] py-1 compact:overflow-y-auto compact:overflow-x-hidden">
         <img src={background} alt="" className="pointer-events-none absolute -inset-[8%] -z-20 h-[116%] w-[116%] max-w-none object-cover object-center contrast-[1.08] saturate-[1.08]" />
@@ -63,3 +63,4 @@ export function CustomPositionPage() {
 
   </div>
 }
+

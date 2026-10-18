@@ -1,5 +1,9 @@
 # Mô hình tài khoản Guest và đã liên kết
 
+Cập nhật Google Sign-In thật đã triển khai/migration004: xem [GOOGLE-SIGN-IN.md](GOOGLE-SIGN-IN.md). Những ghi chú Google chưa triển khai phía dưới là trạng thái lịch sử trước thay đổi này.
+
+Cập nhật triển khai: Guest/profile/persistence đã nối MySQL và cookie phiên thật; Google chưa triển khai. Quyền tài khoản vẫn theo bảng; xem [MYSQL-INTEGRATION.md](MYSQL-INTEGRATION.md). Các đoạn trạng thái chưa DB dưới đây là ghi nhận lịch sử.
+
 Ngày chốt: 2026-10-16. Đây là quy tắc thiết kế lâu dài do người dùng duyệt. Đã triển khai giao diện đăng nhập và ghi nhớ lựa chọn chơi khách trong trình duyệt; chưa triển khai tài khoản backend, Google OAuth hoặc database. Chưa duyệt schema database hay phương thức liên kết cụ thể.
 
 ## Quyền theo trạng thái tài khoản
@@ -57,3 +61,16 @@ Ngày chốt: 2026-10-16. Đây là quy tắc thiết kế lâu dài do người
 - 2026-10-16: Tên khách tự sinh dạng Kỳ thủ + đúng6 chữ số ngẫu nhiên, không thêm khoảng trắng trước số (ví dụ Kỳ thủ000042). Dùng crypto.getRandomValues, pad số0 đầu; tạo một lần, giữ trong co-tuong-entry-v1 và khôi phục vào sessionStore khi tải lại. Entry guest cũ thiếu tên được bổ sung một lần. Validator client/server chung cho phép đúng mẫu này là ngoại lệ giới hạn10 ký tự; tên tự nhập khác giữ giới hạn cũ. Không bảo đảm tên random duy nhất toàn server khi chưa có DB. Chưa triển khai auth/database hoặc quyền đổi tên.
 
 - 2026-10-16: Hồ sơ của mình đổi nút Thoát thành Đăng xuất theo yêu cầu, giữ hình học/style nút; hồ sơ người khác vẫn Thoát. Bấm mở dialog xác nhận Bạn có chắc muốn đăng xuất? với Hủy/Đồng ý; Hủy/Escape không đăng xuất. Đồng ý đánh dấu signedOut trong co-tuong-entry-v1, ngắt socket (server xử lý rời theo luật cũ), rời/reset ván local và trở lại LoginPage. Không xóa tên khách/localStorage ván-thế; chơi khách lại giữ tên. Chưa có OAuth để thu hồi phiên Google. Lỗi lưu marker giữ phiên và báo lỗi. Quyền sửa chỉ nút/footer và xác nhận của mình, vùng UI khác giữ khóa.
+
+## Quốc gia và địa chỉ (2026-10-16)
+Chọn quốc gia trước; Việt Nam chọn thêm tỉnh/thành và xã/phường. Chỉ lưu một lần, sau đó khóa cả quốc gia/địa chỉ và thay bút bằng cờ nước đã chọn. Hiện lưu localStorage theo Guest; khi tích hợp tài khoản thật cần chuyển sang user_id và kiểm tra bất biến tại backend. Chưa ghi MySQL trong task này.
+
+## Cập nhật Guest — 2026-10-16
+
+- Tên hiển thị Guest mới là Kỳ thủ kèm 5 chữ số ngẫu nhiên. Mã guest_code nội bộ tiếp tục 6 chữ số để giữ ràng buộc DB. Tên Guest cũ 6 số còn hợp lệ để khôi phục phiên; các tài khoản Guest cũ được đổi display_name/search_name, không xóa dữ liệu.
+- Trên thiết bị/trình duyệt mới, cách vào mặc định (tự tạo Guest vào game hoặc hiện LoginPage để chọn Guest/Google) đang chờ người dùng xác nhận.
+
+- Đính chính 2026-10-16: Tên Guest hiển thị là Guest + 5 chữ số, ví dụ Guest04217; không dùng tiền tố Kỳ thủ.
+
+- 2026-10-18: Chốt mỗi trình duyệt/site giữ1 Guest bằng cookie thiết bị server; thoát/F5/mở lại khôi phục Guest cũ, không yêu cầu chọn khách lại. /me401 thì POST /api/account/guest/restore, chỉ resume cookie Guest chưa liên kết, tuyệt đối không create; cookie path /api/account/guest gửi được xuống route con. Logout vẫn revoke session, giữ device; restore xóa marker signedOut, dedupe startup tránh xoay2 session. Thiết bị mới/xóa dữ liệu gặp Login và chỉ tạo Guest khi chủ động chọn. Không dùng localStorage/user_id để chứng thực; không fingerprint máy, khác browser/origin là vùng lưu riêng.17/17 test entry/device-service/logout/Google-button PASS; typecheck/build PASS, dist có route mới. Chưa browser/MySQL integration thật, cần restart backend. Không migration/UI/gameplay.
+

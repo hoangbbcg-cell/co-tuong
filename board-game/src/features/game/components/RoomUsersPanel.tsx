@@ -1,7 +1,6 @@
-import type { CSSProperties } from 'react'
-import avatar from '../../../assets/icons/avatar.svg'
-import defaultAvatarFrame from '../../../assets/player/avatar-frames/gold-frame.png'
-import { AvatarFrameOverlay } from './AvatarFrameOverlay'
+﻿import type { CSSProperties } from 'react'
+import { MessageAccountAvatar } from '../../lobby/components/MessageAccountAvatar'
+import { SocialPlayerName } from '../../lobby/components/SocialUi'
 import viewerCardFrame from '../../../assets/room-users/viewer-card-frame-tight.png'
 import waitingCardFrame from '../../../assets/room-users/waiting-card-frame-tight.png'
 import queueJoinBurron from '../../../assets/room-users/queue-join-swapped.png'
@@ -24,23 +23,23 @@ const viewerFrameSryle: CSSProperties = {
 }
 
 function WairingCard({ player, queueNumber, onAvatarClick }: { player: RoomUser; queueNumber: number; onAvatarClick?: (name: string) => void }) {
-  return <li data-user-status="waiting" style={waitingFrameSryle} className="flex h-10 w-fit max-w-full shrink-0 items-center justify-center border-[8px] border-solid border-transparent px-2.5 drop-shadow-[0_3px_4px_#0009]">
+  return <li data-user-status="waiting" style={waitingFrameSryle} className="flex h-[48px] w-fit max-w-full shrink-0 items-center justify-center border-[8px] border-solid border-transparent px-[5px]">
     <span className="flex min-w-0 items-center gap-1.5">
       <span aria-label={`Thứ rự chờ ${queueNumber}`} className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-[#ffc53d] bg-[linear-gradient(145deg,#9b4c13,#4d1d08)] font-georgia text-base/none font-bold text-white shadow-[inset_0_0_0_1px_#6c2c0d,0_0_5px_#ffac33]">{queueNumber}</span>
-      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-transparent p-0.5">
-        <button type="button" aria-label={`Xem hồ sơ ${player.name}`} onClick={() => onAvatarClick?.(player.name)} className="relative m-0 block size-full cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#ffe2a1]"><img src={avatar} alt="" className="block size-full rounded-full border-0 object-cover" /><AvatarFrameOverlay src={defaultAvatarFrame} /></button>
+      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-transparent p-0">
+        <button type="button" aria-label={`Xem hồ sơ ${player.name}`} onClick={() => onAvatarClick?.(player.name)} className="relative m-0 block size-full cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#ffe2a1]"><MessageAccountAvatar name={player.name} className="size-full [&_*]:[image-rendering:-webkit-optimize-contrast]" /></button>
       </span>
-      <span className="min-w-0 truncate font-heading text-sm/none text-white [text-shadow:0_2px_2px_#170600]">{player.name}</span>
+      <span className="min-w-0 truncate font-heading text-xl/none text-white [&_*]:[-webkit-text-stroke:0] [&>span>span]:opacity-100 [&>span>span]:[-webkit-text-stroke:0px]! [&>span>span]:font-normal!"><SocialPlayerName name={player.name} /></span>
     </span>
   </li>
 }
 
 function ViewerCard({ player, onAvatarClick }: { player: RoomUser; onAvatarClick?: (name: string) => void }) {
-  return <li data-user-status="watching" style={viewerFrameSryle} className="flex h-10 w-fit max-w-full shrink-0 items-center gap-1.5 border-[8px] border-solid border-transparent px-2.5 drop-shadow-[0_3px_4px_#0009]">
-    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-transparent p-0.5">
-      <button type="button" aria-label={`Xem hồ sơ ${player.name}`} onClick={() => onAvatarClick?.(player.name)} className="relative m-0 block size-full cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#ffe2a1]"><img src={avatar} alt="" className="block size-full rounded-full border-0 object-cover" /><AvatarFrameOverlay src={defaultAvatarFrame} /></button>
+  return <li data-user-status="watching" style={viewerFrameSryle} className="flex h-[48px] w-fit max-w-full shrink-0 items-center gap-1.5 border-[8px] border-solid border-transparent px-[5px]">
+    <span className="grid size-9 shrink-0 place-items-center rounded-full bg-transparent p-0">
+      <button type="button" aria-label={`Xem hồ sơ ${player.name}`} onClick={() => onAvatarClick?.(player.name)} className="relative m-0 block size-full cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#ffe2a1]"><MessageAccountAvatar name={player.name} className="size-full [&_*]:[image-rendering:-webkit-optimize-contrast]" /></button>
     </span>
-    <span className="min-w-0 truncate font-heading text-sm/none text-white [text-shadow:0_2px_2px_#071116]">{player.name}</span>
+    <span className="min-w-0 truncate font-heading text-xl/none text-white [&_*]:[-webkit-text-stroke:0] [&>span>span]:opacity-100 [&>span>span]:[-webkit-text-stroke:0px]! [&>span>span]:font-normal!"><SocialPlayerName name={player.name} /></span>
   </li>
 }
 
@@ -80,4 +79,12 @@ export function RoomUsersPanel({ users, queued = false, queueDisabled = false, o
     </section>
   </div>
 }
+
+
+
+
+
+
+
+
 

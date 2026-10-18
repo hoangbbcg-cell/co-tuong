@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+﻿import type { ReactNode } from 'react'
 import { CrispUiImage } from '../../../lib/CrispUiImage'
 import { NumberText } from '../../../lib/NumberText'
 import redGeneral from '../../../assets/pieces/red-general.png'
@@ -52,3 +52,4 @@ export function PlayerInfoCard({ data, className, editControl, idCopied, onCopyI
     </div>
   </div>
 }
+

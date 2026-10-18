@@ -1,5 +1,29 @@
 # Tiến độ
 
+- 2026-10-16: Google Sign-In thật bằng GIS popup + google-auth-library verifyIdToken/audience GOOGLE_CLIENT_ID/nonce một lần. Migration004 thêm google_sub unique ascii_bin và session_expires_at, đã apply1 bước trên cotuong;001–003 không sửa. Guest link transaction giữ users.id/public ID/dữ liệu; Google cũ login lại; conflict409 không merge, revoke device hash user link. Session mới30 ngày hash DB/cookie HttpOnly, Socket.IO dùng auth hiện có. Client dùng VITE_GOOGLE_CLIENT_ID cùng ID backend, không Client Secret/token log/localStorage. Tests30/30 + MySQL tạm9/9 PASS; typecheck/build PASS, dist cập nhật; chưa Google popup QA thật vì Client ID chưa điền. Hướng dẫn/file/phạm vi: docs/GOOGLE-SIGN-IN.md.
+
+- 2026-10-16: Hồ sơ chính mình mở ngoài nút hồ sơ Home chỉ có Thoát bên phải, không Kết bạn/Đăng xuất. ProfileDialog tách accountActions khỏi own identity; nhận diện mình theo session name nếu caller không chỉ định; Chọn Bàn tắt accountActions. Home giữ Liên kết/Đăng xuất. Regression footer2/2 PASS, typecheck/build PASS; dist xác nhận, chưa browser QA.
+
+- 2026-10-16: Ghế online trống không render PlayerCard (không avatar/khung/tên/Elo giả). Người ngồi dùng hồ sơ thật cho portrait/frame/displayName/Elo qua PlayerCard chung; giữ geometry/avatar sizes. RoomPlayer.userId tùy chọn do server gắn từ identity khi publish, không dùng socket id làm DB user_id; hook fallback tìm tên cho snapshot legacy. Regression identity/wait3/3 PASS, typecheck/build PASS; dist cập nhật, chưa browser QA.
+
+- 2026-10-16: Chơi nhanh/Đấu ở Home hết đối thủ thì tạo bàn online10 phút/60s mỗi nước theo tỉnh hồ sơ và join chờ một mình, không fallback máy. Chơi với máy/Cờ Úp riêng giữ nguyên; Chọn Bàn hết phòng vẫn mở Tạo bàn. Regression3/3 PASS, typecheck/build PASS; dist xác nhận, chưa browser QA.
+
+- 2026-10-16: Hàng hội thoại luôn giữ dòng preview cao tối thiểu20px responsive khi rỗng, nên icon nhóm/tên không tụt giữa. Tải list/social/messages đã biết ID song song, read/member không chặn hiển thị; polling1s thay4s, không chồng poll. Tự chọn hội thoại đầu khi selection cũ không còn. Spinner giữa dialog khi tải đầu/chuyển hội thoại/gửi/tạo nhóm; chặn gửi/tạo lặp trong lúc chờ. Giữ avatar/geometry. Typecheck/build PASS, dist xác nhận; chưa browser QA hoặc đo latency thực tế.
+
+- 2026-10-16: Theo yêu cầu giữ hàng hội thoại căn trái như ảnh: button full width/justify-start, thông tin text-left và overflow-hidden, preview min-w-0/justify-start để nội dung dài không đẩy cụm avatar/tên. Giữ kích thước/vị trí avatar và khung. Typecheck/build PASS; dist xác nhận class mới, chưa browser QA.
+
+- 2026-10-16: Sửa tạo nhóm chỉ có chủ nhóm: PersistenceService cho phép members rỗng khi có title; chat trực tiếp vẫn cần đúng1 người khác. Repository tự thêm chủ nhóm role owner. UI giữ nguyên, lỗi tạo nhóm hiện lý do API. Regression validation1/1 và MySQL tạm integration7/7 PASS; typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-16: Người dùng hoàn tác lần thu nhỏ tên18; PlayerNameplate trở về font24 theo tỷ lệ chiều rộng như trước. Chưa sửa quy tắc tên hoặc tìm phương án khác. Typecheck/build PASS, dist đã khôi phục; chưa browser QA.
+
+- 2026-10-16: Sửa VN thành SVG cờ thật và căn giữa hàng địa chỉ; bộ cờ local đủ mọi quốc gia chọn được, giữ LICENSE/source. Sửa proxy5173 giữ Host để tránh403 và lỗi đăng nhập hiện chi tiết backend.11/11 test country/entry/logout PASS; typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-16: Đã nối MySQL thật user/profile/Guest cookie, Elo riêng variant, resources/ledger, PvP history/replay, saved, social, chat và honors;002/003 apply trên cotuong,001 giữ nguyên. DB check/migrate rerun0/verify/smoke PASS; test chọn34/34 PASS; full suite --maxWorkers=4:236 PASS/52 FAIL baseline, integration riêng MySQL8.0.45 tạm (xem báo cáo cuối). Không xóa dữ liệu cũ, không import fixture hoặc fake Google; runtime vẫn RAM. Chi tiết file/API/giới hạn tại docs/MYSQL-INTEGRATION.md.
+
+- 2026-10-16: Thêm chọn quốc gia trong địa chỉ hồ sơ; Việt Nam chọn tỉnh/phường như cũ, nước khác lưu quốc gia. Lưu thành công khóa cả quốc gia/địa chỉ, bút thành cờ. localStorage theo Guest hiện hành, chưa MySQL. Test khóa/persistence1/1 PASS; typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-16: Hoàn tất foundation MySQL 19 bảng + journal, CLI migrate/verify/smoke, UserRepository/UserService Guest và rename có điều kiện. MySQL tạm 8.0.45: migrate21/rerun0, FK/index/CHECK và smoke rollback PASS. Test chọn16/16 PASS; full suite233 PASS/52 FAIL trong8 file ngoài DB. Typecheck/build PASS, dist frontend giữ nguyên. Chưa chạy cotuong:3306 vì chưa .env; xem docs/MYSQL-FOUNDATION.md. TODO auth/entry, transaction stats/resources/Elo/matches, chuyển persistence và seed honors.
+
 - 2026-10-14: Hover Lùi/Tiến đổi vàng nhạt8%, bỏ transition để hiện ngay. Typecheck/build PASS, dist cập nhật.
 
 - 2026-10-14: Bỏ viền focus Máy đi; Lùi/Tiến khả dụng hover trắng nhẹ10%, disabled vẫn mờ/không hover. Typecheck/build PASS, dist cập nhật; chưa browser QA.
@@ -2338,3 +2362,234 @@ pm.cmd run build (typecheck + Vite) PASS; dist/assets/index-Cgh9GUJJ.js đã c�
 - 2026-10-16: Kỳ Thánh tiếp tục tăng sao ở2900/3000, trần Kỳ Thánh3 sao; ELO thật không clamp. getRankProgress chung và tài liệu đồng bộ.7/7 regression mốc2799/2800/2899/2900/2999/3000/5000 PASS; typecheck/build PASS, dist đã cập nhật; không đổi UI hình học/tính điểm sau trận/DB.
 
 - 2026-10-16: Số tên Bạn bè/Xếp hạng đậm100% và stroke0.3px theo yêu cầu, SocialPlayerName chung giữ nguyên phần chữ/cỡ/căn chỉnh. Typecheck/build PASS; dist xác nhận CSS0.3px, chưa browser QA.
+
+- 2026-10-16: Thêm backlog/system/ENERGY-PACKAGES.md, liên kết mục Ưu tiên cao/Cần làm sớm: video+1,19k/50,40k/vô hạn1 tháng. Chỉ tài liệu, chưa UI/code/DB/thanh toán. Đã đối chiếu đủ3 gói; typecheck/build PASS, dist vẫn index-J1egBHZ1.js.
+
+- 2026-10-16: Thêm mysql2^3.24.6, pool backend lazy/env validation (chặn root), db:check SELECT1, .env.example và ignore env, test/docs kết nối.4/4 mysql-pool/server test PASS; typecheck/build PASS, dist index-J1egBHZ1.js và không có mysql2/DB_PASSWORD frontend. Production dependency audit0 lỗi. db:check ngoài sandbox chạy đúng và exit1 do chưa có .env; chưa xác nhận MySQL thật, không yêu cầu/đọc mật khẩu. Sandbox tsx os.userInfo bị chặn, không sửa dependency. Chưa users/tables/migration/game logic. Chờ người dùng điền .env và xác nhận kết nối.
+
+- Kiểm chứng tích hợp cuối:6/6 API/socket/MySQL8.0.45 tạm PASS, gồm disconnect/no-start history, draw/replay và energy trên5; DB thật check/verify/smoke PASS, migrate rerun0. Build PASS, dist index-CdiyPx17.js; chưa browser QA.
+
+- Full suite cuối --maxWorkers=4:236 PASS/52 FAIL/6 SKIP,8 file lỗi baseline không tăng;6 integration skip trong suite đã chạy riêng PASS. Build cuối PASS.
+- 2026-10-16: Login giữ nút vàng của artwork; nút Google SDK chuyển vào dialog dùng chung (link=false), không chồng nút trắng trên artwork. Giữ GIS popup/nonce/backend verification. Typecheck/build PASS; chưa browser QA/popup thật.
+- 2026-10-16: Theo yêu cầu hoàn tác nút login tùy chỉnh/dialog vừa thử; giữ nút Google GIS trực tiếp như trước. Thay ghi chú thử dialog trước đó. Không đổi auth/backend hoặc artwork.
+- 2026-10-16: Theo yêu cầu bỏ lớp nút vàng dưới Google, LoginPage dùng login-panel-google.png: imagegen xóa khung kem/vàng, chỉ ghép vùng (190,610,830,185) vào ảnh gốc để giữ nguyên pixel ngoài vùng. Nút GIS trắng giữ nguyên trực tiếp; không đổi auth/geometry. Đã xem asset; chưa browser QA.
+- Kiểm chứng bỏ lớp nút dưới: typecheck/build PASS, dist có login-panel-google-DEQEDoua.png; giữ alpha/bbox ngoài vùng sửa nguyên ảnh gốc. Chưa browser QA.
+- 2026-10-16: Khi Google đã gắn với tài khoản khác, thông báo trong hộp Liên kết chỉ còn “Google này đã thuộc tài khoản khác.” Không đổi xử lý409/không merge hoặc auth.
+- 2026-10-16: Trong hồ sơ chính mình, chữ “Chưa có danh hiệu” tăng18→24px; giữ nguyên căn giữa, màu và khung.
+- 2026-10-16: Tên Guest hiển thị mới dùng “Kỳ thủ” + 5 số random; guest_code nội bộ DB vẫn 6 số để giữ unique/schema. Guest cũ 6 số vẫn được validate để tương thích, tên tự sinh cũ trong DB chỉ đổi display_name/search_name, không xóa hồ sơ/dữ liệu. Cách vào trên thiết bị mới (tự vào Guest hay hiện màn chọn) đang chờ người dùng làm rõ.
+- Kiểm chứng tên Guest: build/typecheck PASS; đổi tên đúng1 Guest chưa liên kết trong MySQL, không xóa hàng/dữ liệu; hậu kiểm tên 5 số và mẫu cũ 6 số. Chưa quyết định tự vào Guest hay tiếp tục hiện màn chọn trên thiết bị mới.
+- 2026-10-16 (đính chính): Tên hiển thị Guest mới phải là “Guest” + 5 chữ số random (ví dụ Guest04217), không phải “Kỳ thủ”. guest_code nội bộ vẫn 6 số; tên cũ vẫn được validate tương thích. Đã đổi lại tên Guest cũ trong DB từ Kỳ thủxxxxx sang Guestxxxxx, giữ toàn bộ dữ liệu.
+- Kiểm chứng đính chính tên Guest: MySQL xác nhận bản ghi đã đổi sang Guest + 5 số; build/typecheck PASS, dist cập nhật.
+- 2026-10-16: Người dùng mở khóa riêng avatar/khung avatar trong danh sách Xếp hạng cho task này. Ranking API trả avatarCode/avatarFrameCode từ users; hàng dùng AvatarPortrait/AvatarFrameOverlay/getAvatarFrame chung với hồ sơ. Danh hiệu/sao tiếp tục derive Elo thật riêng variant. Giữ slot84px và bố cục, khóa lại avatar/khung Xếp hạng sau task.
+- Kiểm chứng Xếp hạng identity: regression ranking-view hiện có1/1 PASS; typecheck/build PASS, dist index-D2AEbtVh.js cập nhật. Chưa browser QA với hồ sơ chọn avatar/khung khác mặc định. Không sửa được test mới do quyền ghi file test, nên không tuyên bố đã có regression riêng cho avatar.
+- 2026-10-16: Theo yêu cầu sửa riêng ô tìm kiếm Bạn bè: cả Danh sách/Thêm bạn dùng lining-nums/tabular-nums để số thẳng hàng; dữ liệu Friend giữ publicId và bộ lọc chung khớp tên hoặc ID công khai chính xác. API search đã hỗ trợ ID; sửa client không loại kết quả ID vì tên khác query. Giữ layout/avatar; khóa lại phạm vi ô tìm kiếm sau task.
+- Kiểm chứng tìm kiếm Bạn bè: typecheck/build PASS; dist index-CKNWmitG.js có bộ lọc publicId và kiểu số lining/tabular ở cả2 ô. Chưa browser QA, chưa test tự động riêng cho tìm ID.
+- 2026-10-16: Người dùng mở riêng vị trí cụm avatar/khung/danh hiệu/sao Xếp hạng để hạ2px CSS; không dịch tên/hạng/hàng. Bạn bè mở riêng nguồn avatar/khung thật trên mọi tab: API social/search trả avatarCode/avatarFrameCode; AccountAvatar dùng chung Xếp hạng/Bạn bè tái sử dụng portrait/frame hồ sơ. Giữ slot76px/84px, danh hiệu/sao Bạn bè và layout khác. Khóa lại các phạm vi avatar sau task.
+- Kiểm chứng avatar Bạn bè/hạ cụm Xếp hạng: regression ranking-view1/1 PASS; typecheck/build PASS, dist cập nhật. Chưa browser QA với từng avatar/khung và mọi tab Bạn bè.
+- 2026-10-16: Theo yêu cầu căn giữa cụm Xếp hạng theo chiều dọc hàng: slot cụm124px theo scale, anchor top6px theo scale, thay slot132px/top5px+2px cũ. Giữ avatar84px và tỷ lệ danh hiệu/sao, tên/hạng/bố cục khác. Phạm vi vị trí cụm mở riêng cho task, sau đó khóa lại.
+- Kiểm chứng căn cụm Xếp hạng: typecheck/build PASS, dist index-CaRXnOXH.js cập nhật; chưa browser QA.
+- 2026-10-16: Sửa sót Home.openHistoryPlayerProfile: mở chính mình từ Xếp hạng/Bạn bè/Lịch sử/Tin nhắn luôn dùng dialog hồ sơ chung, không chuyển sang dialog tài khoản Home. ProfileDialog mặc định accountActions=false; chỉ dialog mở trực tiếp từ avatar/header Home truyền accountActions=true. Các nơi khác chỉ Thoát. Giữ nhận diện own và UI khác.
+- Kiểm chứng sửa nguồn mở hồ sơ:2/2 profile-logout PASS với maxWorkers1; typecheck/build PASS, dist index-CsIG_k7w.js xác nhận. Chưa browser QA đường Xếp hạng/Home.
+- 2026-10-16: Theo yêu cầu tăng nhẹ khung thông tin hồ sơ: PlayerInfoCard cao thêm16px theo scale, giữ mép trên và mở rộng xuống; gap dòng6→10px. Đồng bộ hồ sơ mình/người khác/preview tùy chỉnh bằng component chung. Không đổi avatar hoặc khung avatar.
+- Kiểm chứng khung thông tin: typecheck/build PASS; dist index-C2QVB6xB.js cập nhật. Chưa browser QA khoảng cách trên desktop/compact.
+- 2026-10-16: Người dùng yêu cầu hoàn tác lần tăng chiều cao khung thông tin và giãn dòng; PlayerInfoCard trở về gap-y-1.5 và chiều cao hồ sơ/preview ban đầu. Không giữ lại biến thể đó.
+- Kiểm chứng hoàn tác khung thông tin: typecheck/build PASS, dist khôi phục index-CsIG_k7w.js.
+- 2026-10-16: Catalog Danh hiệu: Tất cả chỉ hiển thị danh hiệu thực sự sở hữu từ DB, người mới rỗng; các tab nhóm vẫn xem được catalog, danh hiệu chưa sở hữu hiện khóa thay dấu cộng và không chọn được. Ba nhóm Chuỗi/Tổng ván/Online theo ownership thật, chỉ mở khi server cấp. Không dùng danh hiệu mẫu để tự mở khóa.
+- 2026-10-16: Khôi phục nút cộng trong catalog Danh Hiệu Phong Tặng; chưa sở hữu vẫn không được chọn vào hồ sơ (nút disabled theo ownership), không thay bằng icon khóa trong nhóm này. Ba nhóm cuối giữ khóa; Tất cả vẫn chỉ gồm danh hiệu sở hữu.
+- 2026-10-16 (đính chính catalog): Tất cả/Vinh Quang Kỳ Đài/Danh Hiệu Phong Tặng chỉ hiện ownership DB thật, chưa sở hữu thì ẩn. Ba nhóm cuối vẫn hiện danh hiệu chưa đạt với artwork brightness35% và ổ khóa GIỮA thẻ, không khóa ở góc dấu cộng; danh hiệu sở hữu có nút cộng. Giữ xem chi tiết điều kiện khi bấm thẻ khóa.
+- 2026-10-16: Sửa ô nhập chat phòng nhảy lên đầu khi chưa có tin nhắn do log hidden mất flex spacer. Chat form mt-auto luôn neo đáy khung ở expanded/collapsed desktop/compact; giữ picker phía trên và toggle. Không đổi gửi/nhận tin.
+- 2026-10-16: Theo yêu cầu mở nguồn avatar/khung thật cho chat bàn và Tin nhắn: MessageAccountAvatar dùng AccountAvatar chung, session cho chính mình và Query search cho người khác; cache theo tên30s. Áp dụng chat bàn, danh sách hội thoại trực tiếp, header, avatar tin nhận và popup tùy chọn. Giữ kích thước/vị trí, ảnh nhóm và máy riêng; không thêm danh hiệu vào chat.
+- Kiểm chứng avatar chat/Tin nhắn: typecheck/build PASS; dist có MessageAccountAvatar dùng Query và AccountAvatar thật, bao gồm thành viên popup nhóm. Chưa browser QA với các tài khoản chọn ảnh/khung khác nhau. Giữ kích thước/vị trí avatar, khóa lại phạm vi sau task.
+- 2026-10-16: Tên trong Tin nhắn dùng SocialPlayerName của Bạn bè làm chuẩn: font-heading/extrabold, stroke chữ0.2px, số font-number90%/normal/opacity100%/stroke0.3px/cùng baseline. Đồng bộ danh sách/header/tùy chọn/thành viên/chọn người tạo nhóm; giữ cỡ theo ngữ cảnh/màu/layout/avatar.
+- Kiểm chứng typography Tin nhắn: typecheck/build PASS, dist cập nhật. Chưa browser QA.
+- 2026-10-16: View bàn chơi: bộ đếm tiếp tục từ room.viewers server; danh sách khán giả/xếp hàng bỏ avatar/khung mẫu, dùng MessageAccountAvatar truy xuất tài khoản thật và SocialPlayerName chung Bạn bè. Giữ slot/kích thước/nút queue và dữ liệu hàng từ snapshot.
+- Kiểm chứng view bàn: typecheck/build PASS, dist cập nhật; chưa browser QA với nhiều khán giả/xếp hàng.
+- 2026-10-16: Theo yêu cầu áp dụng avatar/khung thật trong Lịch sử: Player chung Đã chơi/Đã lưu và avatar hai người ở Thế cờ dùng MessageAccountAvatar/AccountAvatar. Giữ slot51px/34px, tên/kết quả/bố cục và ảnh máy riêng. Phạm vi nguồn avatar mở riêng task, khóa lại sau task.
+- Kiểm chứng avatar Lịch sử: typecheck/build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-16 (đính chính view): bộ đếm mắt ở bàn online tính tổng người đang có trong phòng = players + viewers theo ID socket duy nhất; người tạo/ngồi một mình phải hiện1. Không phải chỉ đếm khán giả. Panel khán giả/queue vẫn chỉ liệt kê viewers, không thay luật ghế/hàng chờ.
+- Kiểm chứng bộ đếm tổng người: typecheck/build PASS, dist cập nhật. Chưa browser QA đa client.
+- 2026-10-16: Bàn online chưa đủ2 ghế có người thì ẩn nút Sẵn sàng. Lưu thế cờ chỉ khả dụng sau ít nhất1 nửa-nước (match.moveCount>0), disabled nút và guard callback khi0; áp dụng GamePage chung online/local/replay/trial. Không đổi đồng hồ/ready server.
+- Kiểm chứng Sẵn sàng/Lưu thế: typecheck/build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-16: Theo yêu cầu mới, panel người trong phòng hiển thị cả người đang ngồi chơi và khán giả/xếp hàng, khớp tổng bộ đếm mắt. Ghép players chỉ id/name, không dùng ready làm queued để tránh người ngồi bị hiện thẻ chờ. Avatar/khung thật tiếp tục qua component chung; queue controls chỉ dành cho viewers.
+- Kiểm chứng thẻ người ngồi trong panel: typecheck/build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-16: Theo yêu cầu tăng riêng avatar/tên thẻ người trong phòng: ô avatar28→36px, tên14→16px, thẻ40→52px đồng bộ watching/waiting. Bỏ filter drop-shadow trên cả thẻ và bóng chữ để tránh raster hóa/làm nhòe chữ/ảnh; giữ avatar/khung nguồn thật và vị trí panel. Phạm vi này mở riêng task, khóa lại sau task.
+- Kiểm chứng thẻ người trong phòng: typecheck/build PASS, dist cập nhật. Chưa browser QA độ nét thực tế.
+- 2026-10-16: Tiếp tục giảm nhòe panel người trong phòng: bỏ stroke chữ/số riêng tên kích thước16px; bỏ transform translateY10px của parent, thay tọa độ top/bottom tương đương để giữ vị trí và tránh composite lớp chữ/ảnh. Không đổi typography Bạn bè hoặc các panel khác.
+- Kiểm chứng giảm nhòe panel: typecheck/build PASS, dist cập nhật; chưa browser QA nên chưa khẳng định mức nét thực tế.
+- 2026-10-16: Kết thúc xem thử bàn mẫu Chọn Bàn theo yêu cầu dữ liệu thật. RoomTableGrid chỉ dùng rooms API đã lọc khu vực/trạng thái, bỏ22 previewRooms và đường vào demo. Không có phòng hiện rỗng, không giả người/bàn; Tạo/vào/khóa/ghép nhanh giữ server thật.
+- Kiểm chứng Chọn Bàn dữ liệu thật: typecheck/build PASS, dist index-0yXNg2f1.js cập nhật; chưa browser QA tạo/vào phòng đa client.
+- 2026-10-16: Theo yêu cầu tăng tiếp avatar/tên panel người trong phòng: slot avatar36→44px, tên16→18px, thẻ52→64px. Đồng bộ người ngồi/người xem/xếp hàng; giữ xử lý giảm nhòe và panel. Phạm vi kích thước mở riêng task rồi khóa lại.
+- Kiểm chứng tăng thẻ: typecheck/build PASS, dist index-BcQuocrX.js cập nhật; chưa browser QA.
+- 2026-10-16: Theo yêu cầu căn giữa thông báo rỗng trong Lịch sử: Đã chơi/Đã lưu ván dùng1 hàng chiếm vùng còn lại và place-items-center khi không có record; Thế cờ rỗng flex1/grid center. Giữ layout có dữ liệu và typography.
+- Kiểm chứng căn giữa thông báo rỗng Lịch sử: typecheck/build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-16: Đính chính thẻ người trong phòng theo yêu cầu: giữ chiều cao gốc h10, cố định rộng166px (thẻ chờ200px có số thứ tự) tránh tên/avatar làm nở khung. Avatar32px/tên18px lớn hơn gốc28px/14px, giảm padding trong để vừa khung; bỏ tăng chiều cao52/64px trước đó.
+- 2026-10-16: Tăng chữ thông báo danh sách rỗng Lịch sử và đồng bộ Đã chơi/Đã lưu ván/Thế cờ bằng historyEmptyTextClass chung28px theo scale; giữ căn giữa2 chiều. Không đổi ghi chú hay nội dung hàng có dữ liệu.
+- 2026-10-16: Theo yêu cầu mới thẻ người trong phòng cao48px, avatar36px/tên20px, chiều ngang w-fit ôm nội dung thay rộng cố định166/200px; padding trái/phải5px. Đồng bộ người ngồi/người xem/xếp hàng, giữ cách giảm nhòe. Thay yêu cầu kích thước thẻ trước đó.
+- 2026-10-16: Giữ kích thước thẻ/avatar/tên vừa chốt; riêng panel người trong phòng dùng image-rendering -webkit-optimize-contrast cho portrait/frame để cải thiện lấy mẫu ảnh nhỏ trên Chromium, số trong tên opacity80% cân nét với chữ (không đổi tên ở Bạn bè/Tin nhắn). Chưa kiểm chứng độ nét trên browser.
+- 2026-10-16: Đính chính số trong tên thẻ phòng: opacity100%/cùng màu chữ, không giảm độ sáng. Ép stroke số0px và font-normal để thắng stroke0.3px của SocialPlayerName, giảm độ dày nét thật; giữ font-number/kích thước và chữ.
+- 2026-10-16: Căn giữa2 chiều thông báo Chưa có bàn phù hợp và Đang tải danh sách bàn trong toàn khung RoomTableGrid bằng absolute inset0/grid place-items-center; không phụ thuộc chiều cao hàng lưới. Đồng bộ các tab và desktop/compact, giữ font/cỡ/màu.
+- 2026-10-16: Theo yêu cầu bỏ Space trong Vị trí tùy chỉnh (Chơi với máy): chặn Space kích hoạt nút đang focus tại CustomPositionPage và GamePage positionTrial. Không chặn nhập dấu cách trong input/textarea/select/contenteditable; phím khác và Space chuyển chế độ replay giữ nguyên.
+- 2026-10-16: Sửa giật popup nhóm Tin nhắn do polling1s thay conversationList mất members/creatorName rồi request members bổ sung lại: giữ metadata nhóm cũ trong lúc refresh. Giữ reference threads khi nội dung không đổi để không kích hoạt scroll xuống đáy mỗi poll. Không đổi interval/UI nhóm.
+- 2026-10-16: Đổi ảnh nhóm đã nối server thật thay thông báo chưa tích hợp. Frontend chọn ảnh≤10MB, crop vuông/resize256 và encode JPEG; PATCH conversations/:id/avatar kiểm tra JPEG≤120k base64 và owner còn membership. Repository ghi uploads/group-avatars bằng UUID, lưu URL vào avatar_object_key hiện có, rollback lỗi ghi DB dọn file mới. Static/media proxy dev; list trả avatarUrl và mọi vị trí ảnh nhóm đọc cùng URL. Không migration, uploads ignored và cần backup cùng DB.
+- Kiểm chứng ảnh nhóm:4/4 regression validation/owner/storage/cleanup PASS; typecheck/build PASS, dist cập nhật. Chưa QA chọn ảnh thật trong browser hoặc chạy integration MySQL upload. Backend cần restart để có endpoint/media mới.
+- 2026-10-16: Tin nhắn: nút mặt cười mở24 emoji/chèn tại caret, giới hạn300 ký tự. Nút ảnh chọn≤10MB, JPEG resize cạnh dài≤720px/nén≤120k base64, xem trước/bỏ ảnh và bấm Gửi. POST conversations/:id/images xác thực membership và send giữ block/idempotency/300char; file UUID uploads/message-images, body lưu đường dẫn /media/message-images/UUID.jpg, render img chỉ khi khớp mẫu path nội bộ nghiêm ngặt; preview hội thoại chỉ 📷 Ảnh. Không migration; static/dev proxy mới, backup uploads cùng DB.
+- Kiểm chứng emoji/ảnh Tin nhắn:6/6 regression validation/quyền owner/member/cleanup ảnh PASS; typecheck/build PASS, dist cập nhật. Chưa browser QA gửi/nhận ảnh hai tài khoản. Cần restart backend để có route images/media mới.
+
+- 2026-10-17: Tin nhắn mặc định chưa chọn hội thoại, hiện HOANGBBCG giữa vùng chat theo Georgia đậm nghiêng/màu bàn cờ; bỏ fallback hội thoại đầu và tải thread khi chưa chọn. Mở từ hồ sơ/tạo nhóm giữ chọn đích. Typecheck/build PASS, xác nhận view mới trong dist; chưa browser QA. Không sửa avatar/bố cục danh sách.
+
+- 2026-10-17: Đổi riêng HOANGBBCG mặc định Tin nhắn sang trắng kem #fff1d6. Typecheck/build PASS, màu xác nhận trong dist; chưa browser QA.
+
+- 2026-10-17: Bỏ bong bóng nền/viền/padding/đuôi/họa tiết cho ảnh Tin nhắn cả gửi và nhận; ảnh hiển thị trực tiếp, giữ tin chữ và bấm xem giờ. Typecheck/build PASS, wrapper mới xác nhận trong dist; chưa browser QA.
+
+- 2026-10-17: HOANGBBCG Tin nhắn màu #E6BA86, selection ban đầu null và reset khi đóng để mở lại chưa chọn mục. Typecheck/build PASS, màu mới xác nhận trong dist; chưa browser QA đóng/mở lại.
+
+- 2026-10-17: Sửa ảnh Tin nhắn: bỏ canvas/nền trắng/resize/JPEG conversion, FileReader gửi nguyên bytes PNG/JPEG/WebP/GIF tối đa10MB. Backend validate signature, lưu đúng extension và bytes, parser riêng images14MB. Giữ URL jpg cũ; ảnh gửi căn phải với wrapper min-w-0, bỏ giới hạn min(360px,100%) gây khung rộng lệch. 6/6 regression hiện có PASS; kiểm tra PNG bytes/extension trực tiếp PASS; typecheck/build PASS, dist xác nhận FileReader. Không thêm được regression do EPERM file test; chưa browser QA. Backend cần restart. Ảnh cũ đã flatten trắng không khôi phục alpha, cần gửi lại nguồn.
+
+- 2026-10-17: Thêm EnergyDialog mở từ vùng/nút cộng Năng lượng Home; ghép artwork21090d85 theo mẫu bằng imagegen và nút X mới tách riêng. Asset panel1629x897/close1016x947 trim alpha<=16. Đã xem preview ghép và so vị trí3 nút/X; typecheck/build PASS, dist có dialog và2 asset. Nội dung mẫu chỉ xem UI, chưa video/thanh toán hoặc đổi nghiệp vụ năng lượng. Chưa browser QA.
+
+- 2026-10-17: Thu nhỏ popup Năng lượng tối đa1160px/80vw và bỏ hàng mô tả đầu/thanh ghi chú cuối bằng panel-compact.png1690x897; giữ3 gói/X. Đã xem artwork mới, typecheck/build PASS, dist xác nhận artwork compact/kích thước mới. Sửa nhãn UTF-8 popup và thông báo. Chưa browser QA.
+
+- 2026-10-17: HOANGBBCG Tin nhắn sang trắng vàng nhẹ #FFF6DF; giữ font/cỡ/căn giữa. Typecheck/build PASS, màu mới xác nhận trong dist; chưa browser QA.
+
+- 2026-10-17: Thu ngang popup Năng lượng1160→980px,80→68vw; giữ artwork/tỷ lệ/nút. Typecheck/build PASS, dist xác nhận kích thước mới; chưa browser QA.
+
+- 2026-10-17: Căn vùng hover3 nút Năng lượng theo tọa độ mặt artwork, clip góc vát; hover vàng nhạt30%, pressed40%, không dịch kích thước. Typecheck/build PASS, dist xác nhận hover mới; chưa browser QA.
+
+- 2026-10-17: Bỏ dòng Còn3 lần hôm nay bằng imagegen, chỉ ghép vùng(190,632,280,43) vào panel gốc để giữ nguyên pixel ngoài vùng/vị trí/hover. Đã xem asset; typecheck/build PASS, dist có panel-no-count; chưa browser QA.
+
+- 2026-10-17: Hover nút Năng lượng vàng #ffd34e20%, pressed30%, giảm lớp phủ cho bớt đục; giữ geometry. Typecheck/build PASS, dist xác nhận; chưa browser QA.
+
+- 2026-10-17: Nút cộng năng lượng mở popup Năng lượng, khôi phục tooltip đếm ngược khi hover vùng/nút cộng qua title. Typecheck/build PASS, dist cập nhật và xác nhận dialog/title; chưa browser QA.
+
+- 2026-10-17: Nút X Năng lượng lớn hơn4.5→5.2% và con trỏ bàn tay. Typecheck/build PASS, dist xác nhận; chưa browser QA.
+
+- 2026-10-17: Tooltip năng lượng mới nâu/vàng/chữ kem, hover/focus cả vùng và dấu cộng; >=5 hiện Năng lượng đầy, thiếu mới hồi đếm ngược. Typecheck/build PASS, dist xác nhận tooltip; chưa browser QA.
+
+- 2026-10-18: Home Cờ Úp chuyển sang phòng online cùng variant jieqi: ghép bàn mở có đúng1 người, hết bàn tạo10 phút/60s theo tỉnh hồ sơ và ngồi chờ, không fallback máy. Quick Cờ Tướng bỏ bàn jieqi. Server xác thực variant, xáo bằng crypto và giữ variant khi reset/đổi ghế; publicRoom che concealed trong broadcast/ack/challenge và archive, không sửa state authoritative. Bỏ nhãn Cờ Úp phủ trên bàn; giữ nút Home Chơi với máy. Thay quy tắc Cờ Úp chỉ local trước đây.
+
+- Kiểm chứng Cờ Úp online:9/9 test home-quick-wait/hidden/hidden-online PASS, typecheck/build PASS; dist xác nhận variant và bỏ overlay label. Chưa browser QA2 tài khoản/socket QA riêng cho jieqi. Cần restart backend. Không đổi nút Chơi với máy Home.
+
+- 2026-10-18: Bấm vùng/dấu cộng năng lượng ẩn tooltip ngay và không tự hiện lại do focus sau đóng popup; hover lại mới hiện. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-18: Home thêm icon Shop và bánh răng Cài đặt cùng HomeIcon/homeUtilityButton; chuyển bật/tắt nhạc Home vào dialog Cài đặt dùng useHomeMusic hiện có, đồng bộ lối vào compact. Shop hiện báo đang chuẩn bị, chưa có mua hàng. Không thay tiện ích các màn khác. Typecheck/build PASS, dist index-CewNzn9k.js xác nhận settings/music/shop; chưa browser QA.
+
+
+- 2026-10-18: Theo yêu cầu icon tô đặc, HomeIcon Cài đặt/Shop/Tin nhắn dùng fill currentColor cùng màu vàng nút tiện ích, khoét âm tâm bánh răng/cửa shop/dòng tin nhắn bằng evenodd; giữ kích thước/nút/hành vi. Typecheck/build PASS; dist xác nhận cả3 path đặc. Chưa browser QA.
+
+
+- 2026-10-18: Người dùng mở riêng vị trí cụm nhận diện Home trong task: dịch toàn cụm avatar/tên/Elo trái10px CSS và cụm tiện ích phải10px CSS, cùng độ dịch; giữ kích thước/khoảng cách trong cụm và thanh tài nguyên giữa. Phạm vi vị trí mới khóa lại sau task. Typecheck/build PASS, dist xác nhận2 offset; chưa browser QA.
+
+
+- 2026-10-18: Tăng riêng icon bánh răng HomeIcon28→34px theo yêu cầu; giữ khung nút48px và các icon khác. Typecheck/build PASS, dist xác nhận34px; chưa browser QA.
+
+
+- 2026-10-18: Cài đặt Home thay modal bằng dropdown neo dưới bánh răng, đóng ngoài/Escape/blur; compact dùng chung HomeSettings. Hai công tắc độc lập Tắt nhạc nền và Tắt tiếng (icon nốt nhạc vàng). audioSettingsStore giữ mute trong phiên xuyên màn; GameSounds master gain tắt toàn bộ effects/intro/checkmate/clock kể cả đang phát, không tác động useHomeMusic. Typecheck/build PASS, dist xác nhận dropdown/2 nhãn. Test3 file12 PASS/1 FAIL kỳ vọng intro cũ start(4,2) nhưng code trước task start(2,2), không đổi timing. Regression mới dropdown/mute PASS; chưa browser/audio QA thật.
+
+
+- 2026-10-18: Thay khung năng lượng/vàng Home bằng nguồn e7544f25-2cc2-4bfb-8fcd-c3f3ff3dd520; imagegen tách nền caro sang alpha thật, crop4 asset v2 trim alpha<=16. Hai khung giữ tỷ lệ tự nhiên, cùng vùng cụm cũ; dùng icon nguồn mới. Dấu cộng thiết kế HTML/SVG tròn vàng nổi20px; giữ số dư/tooltip/callback. Typecheck/build PASS, dist có4 asset mới; đã xem crop/kiểm tra alpha góc, chưa browser QA.
+
+
+- 2026-10-18: Theo yêu cầu tăng chiều cao khung tài nguyên Home: hai ảnh khung49% rộng giữ nguyên, cao44px thiết kế (compact36px) thay h-auto~29px; cho phép nới dọc artwork trong task. Icon năng lượng/vàng23→32px (compact28), nút cộng20→26px (compact23). Giữ anchor/số dư/callback. Typecheck/build PASS, dist xác nhận44/26; chưa browser QA.
+
+
+- 2026-10-18: Home tài nguyên dịch icon trái thêm3% bề rộng cụm (8→5%,57→54%), dấu cộng phải thêm3% (41→44%,89→92%); đồng bộ guard tooltip năng lượng theo vị trí mới. Giữ kích thước/khung/số. Typecheck/build PASS, dist xác nhận offset; chưa browser QA.
+
+
+- 2026-10-18: Theo yêu cầu lấy ô vàng bên phải làm chuẩn, Home hai ô dùng cùng goldFrame; căn số chính giữa từng khung49% tại24.5%/75.5% cụm. Icon trái3%/phải54%, cộng trái41%/phải92%: mọi cặp cách đúng51% bằng khoảng cách gốc2 khung, giữ vị trí tương đối ô phải; giữ size và callback/tooltip. Typecheck/build PASS, dist xác nhận tọa độ mới; chưa browser QA.
+
+
+- 2026-10-18: Thu nhỏ nhẹ icon năng lượng/vàng Home32→29px, compact28→25px; giữ đồng bộ2 icon, anchor/khung/số/dấu cộng. Typecheck/build PASS, dist xác nhận29px; chưa browser QA.
+
+
+- 2026-10-18: Dịch cả2 icon năng lượng/vàng Home sang phải đúng3px CSS bằng left calc(3%+3px)/calc(54%+3px); giữ kích thước và mọi thành phần khác. Typecheck/build PASS, dist xác nhận2 offset; chưa browser QA.
+
+
+- 2026-10-18: Chốt lưu riêng bật/tắt nhạc nền và mute tiếng game qua F5 bằng localStorage co-tuong-audio-music-v1/muted-v1. Đọc boolean có validate ngay khi khởi tạo, ghi mỗi toggle, storage lỗi vẫn dùng trong phiên. Không lưu vị trí bài/đổi playlist.3/3 regression dropdown và module-reload/preferences PASS, typecheck/build PASS, dist có khóa lưu; chưa browser QA reload thật.
+
+
+- 2026-10-18: Home điện thoại theo bố cục reference tượng trưng, tái dùng asset project: MobileHome riêng compact<=800, hồ sơ trên trái/tài nguyên2 hàng trên phải/banner giữa/carousel2 ô trang1 Cờ Tướng-Chọn Bàn,trang2 Cờ Úp-Chơi Với Máy/thanh6 tiện ích dưới. Quyền đổi geometry avatar chỉ Home compact trong task này, không sửa token/component avatar chung; khóa lại sau task. Desktop giữ nguyên. HomeSettings thêm placement above tùy chọn cho dock, default dưới không đổi. 6/6 regression mobile carousel/callback/settings/audio/quick-wait PASS; typecheck/build PASS, dist xác nhận. Chưa browser QA: phiên không có trình duyệt kết nối (CUA listBrowsers rỗng). Xem docs/MOBILE-HOME.md.
+
+
+- 2026-10-18: Thêm screen shop/ShopPage phủ viewport theo reference; background49740109 giữ nguyên pixel tại assets/shop/background.png, nguồn references/uploads. Home desktop/mobile cùng useHome.openShop. Sidebar3 mục (2 khóa), filter Tất cả/Avatar/Khung Viền, đúng1 avatar demo500 vàng, preview read-only/không mua/trừ vàng. Tài nguyên thật, cộng năng lượng dùng EnergyDialog; countdown chưa nghiệp vụ hiển thị --:--:--.4/4 regression shop/mobile/home-quick PASS, typecheck/build PASS, dist xác nhận shop/demo/background. Chưa browser QA vì không có browser kết nối. Không sửa UI khóa khác.
+
+
+- 2026-10-18: Đính chính Shop theo người dùng: trang lớn nhưng nằm trong cùng khung Home, không kéo nội dung tới mép viewport. Shop dùng useHomeLayout/getCrispUiLayout chung: desktop lề ngang120px, dọc6px, compact6px; cùng viền vàng/nâu và nền ngoài xanh Home. Không sửa Home. Regression kích thước frame và chức năng shop1/1 PASS; typecheck/build PASS, dist có data-shop-frame. Chưa browser QA.
+
+
+- 2026-10-18: Cải thiện rendering khung/icon năng lượng-vàng: ảnh nguồn frame1604x217/icon169x218,222x219 đủ cho kích thước nhỏ. Home dùng width/height/top/left nguyên pixel (sai số làm tròn<=0.5px), bỏ translate trên từng ảnh; giữ geometry danh nghĩa/asset/số/cộng. ResourceArtwork chung dùng -webkit-optimize-contrast riêng resource trên Home/compact/Shop, không áp dụng ảnh khác. Typecheck/build PASS, dist xác nhận sampling; mobile/shop2/2 regression PASS. Chưa browser QA độ nét thực tế, không khẳng định đã xác minh nguyên nhân bằng browser.
+
+
+- 2026-10-18: Theo ảnh người dùng, dấu cộng tài nguyên chuyển vuông bo4px, nền vàng kem/đổ nổi nhẹ, plus nâu đậm nét bo; ResourceAddButton chung Home desktop/compact/Shop. Giữ slot/vị trí/callback/tooltip. Typecheck/build PASS, dist có surface mới; mobile/shop2/2 regression PASS; chưa browser QA.
+
+
+- 2026-10-18: Thay khung năng lượng/vàng bằng ảnh2a1666ac-81f6-4519-ad6f-d39df43e1280 theo yêu cầu. Imagegen tách caro sang alpha thật, trim alpha<=16 bbox98,212,1978x278; runtime resource-frame-v3.png. Đồng bộ3 import Home/compact/Shop, giữ slot/icon/số/nút cộng/hành vi. Đã xem crop/góc alpha0; typecheck/build PASS và dist có asset mới. Chưa browser QA.
+
+
+- 2026-10-18 XEM THỬ UI theo yêu cầu: khung tài nguyên dùng chính player/name-frame.png2137x469 (tỷ lệ4.56 gần ô205.8x44) để màu gỗ nâu/vàng đồng và viền dày khớp khung tên. Đồng bộ Home desktop/compact/Shop, chỉ đổi import nền; giữ slot/icon/số/cộng, không chỉnh asset hoặc PlayerNameplate. Đây là phương án thử, chưa chốt quy tắc lâu dài. Đã xem asset nguồn; typecheck/build PASS, dist cập nhật. Chưa browser QA.
+
+
+- 2026-10-18: LAN: dev:web vite --host0.0.0.0, vite.config server.host0.0.0.0, server/index default HOST0.0.0.0 (vẫn cho override env). Client Axios relative /api, Socket.IO io() cùng origin; Vite proxy nội bộ127.0.0.1:3001 giữ nguyên/changeOriginfalse để cookie/origin guard đúng, không hardcode loopback client. Smoke tạm không DB: API+WebSocket qua Vite PASS127.0.0.1/localhost/192.168.1.17; backend direct LAN health PASS. Typecheck/build PASS, dist cập nhật; chưa kiểm tra điện thoại thật/firewall từ thiết bị khác. Không đổi UI/gameplay. Cần restart server đang chạy.
+
+
+- 2026-10-18: Chốt mỗi trình duyệt/site giữ1 Guest bằng cookie thiết bị server; thoát/F5/mở lại khôi phục Guest cũ, không yêu cầu chọn khách lại. /me401 thì POST /api/account/guest/restore, chỉ resume cookie Guest chưa liên kết, tuyệt đối không create; cookie path /api/account/guest gửi được xuống route con. Logout vẫn revoke session, giữ device; restore xóa marker signedOut, dedupe startup tránh xoay2 session. Thiết bị mới/xóa dữ liệu gặp Login và chỉ tạo Guest khi chủ động chọn. Không dùng localStorage/user_id để chứng thực; không fingerprint máy, khác browser/origin là vùng lưu riêng.17/17 test entry/device-service/logout/Google-button PASS; typecheck/build PASS, dist có route mới. Chưa browser/MySQL integration thật, cần restart backend. Không migration/UI/gameplay.
+
+
+- 2026-10-18: Sửa răng cưa icon năng lượng/vàng: ResourceArtwork thêm smooth=true dùng imageRendering:auto riêng icon (Home desktop/compact/Shop và giá vàng sản phẩm); giữ optimize-contrast cho khung. Không sửa asset/size/anchor. Nguyên nhân code có chế độ tăng nét cùng khung, có thể gây cạnh gắt khi thu nhỏ; chưa xác minh browser. Typecheck/build PASS, dist có smooth flag; chưa browser QA.
+
+
+- 2026-10-18: Shop dùng gameUtilityButton/GameBackIcon chung thay back tròn; thu biển Cửa Hàng280x72/text36→220x48/text24 theo token, header86→64. HomeResourceLayout chung Home/Shop tính cùng width420scale/frame49% cao44scale/icon29scale/text20scale/plus26scale; không đổi hình học Home. Ba thẻ sidebar từ min-height112 sang fixed102px (thẻ2 trừ10px), cùng cột40px/2 dòng tên/width và căn giữa; compact64px giữ dock ngang.2/2 test shop/mobile PASS, typecheck/build PASS, dist xác nhận mới; chưa browser QA.
+
+
+- 2026-10-18: Sidebar Shop đổi sang artwork theo reference crop người dùng: imagegen tách/tái dựng2 nền trống active đỏ/viền vàng sáng và idle nâu/đồng, pagoda vàng/đồng,gift,lock thay SVG outline/emoji. Crop alpha<=16, tight6 PNG tại assets/shop; sprite nguồn giữ references/uploads/shop-sidebar-extraction.png. Giữ3 thẻ102px và2 dòng; active hover sáng/pressed scale0.98 dịch1px tối nhẹ, motion-reduce tắt transition.2 mục khóa vẫn disabled, không tự mở nội dung. Đã xem3 crop và kiểm tra góc alpha0; shop1/1 test PASS; typecheck/build PASS, dist xác nhận asset/pressed. Chưa browser QA.
+
+
+- 2026-10-18: Shop thêm MarketHeading theo crop reference: biển nền nâu gradient, mép cong/viền vàng nâu, title Georgia bold vàng gradient/shadow và baseline cong nhẹ bằng SVG textPath. Hai dải mô tả/clock đồng bộ nâu tối cong, thêm icon đồng hồ; giữ --:--:-- chưa lịch backend. SVG native text/shapes không tạo raster hay font mới, không đổi phần khác. Shop1/1 test PASS, typecheck/build PASS, dist xác nhận path/gradient. Chưa browser QA đối chiếu pixel.
+
+
+- 2026-10-18: Thu biển nâu tiêu đề Shop100%/max1000→88%/max880, font SVG64→56 theo yêu cầu; title gradient dọc đúng #F7ED96→#FBC12E. Giữ baseline cong/mô tả/countdown và khu khác. Typecheck/build PASS, dist xác nhận2 màu/size; chưa browser QA.
+
+
+- 2026-10-18: Thu3 dải nền MarketHeading ôm chữ theo yêu cầu: path biển chính rộng716 thay964 đơn vị, giảm phần trống dọc viewBox136→104; dải mô tả w-fit/padding ngang20/dọc2, timer ngang16/dọc2. Giữ font56/gradient#F7ED96→#FBC12E và baseline. Typecheck/build PASS, dist xác nhận path/w-fit; chưa browser QA.
+
+
+- 2026-10-18: Bỏ lớp nền gradient/viền ngang header Shop, giữ back/biển tên/tài nguyên và geometry. Thu mô tả Hàng thay mới mỗi ngày max25→18px, dòng Làm mới sau max22→16px, countdown1.25→1.15em; compact tương ứng nhỏ hơn. Giữ biển nâu/title chính. Typecheck/build PASS, dist xác nhận; chưa browser QA.
+
+
+- 2026-10-18: Dải tiêu đề chợ chuyển thanh ngang nới hai đầu (SVGx110..890), giảm chiều cao/path cong ít; nền opacity0.78/viền0.65. Mô tả/timer nới padding ngang28/24px, padding dọc4px; cả cụm gap4px, nền gradient alpha~72–78%, timer bo cong nhẹ. Giữ font/màu chữ/nội dung. Typecheck/build PASS, dist xác nhận padding/opacity; chưa browser QA.
+
+
+- 2026-10-18: Biển tiêu đề chợ cong nhẹ trên/dưới, radial gradient giữa nâu sáng#78380f→viền gần đen#080301, opacity0.88. Hai dải dưới tăng alpha~87–94% để bớt trong suốt, giữ padding4/font/màu chữ. Typecheck/build PASS, dist xác nhận màu/alpha; chưa browser QA.
+
+
+- 2026-10-18: Làm lại cụm tiêu đề Shop theo ảnh mới: imagegen trích/tái dựng3 biển nâu sẫm trang trí mảnh, cropalpha<=16 main2072x250/sub1382x168/clock1078x160. MarketHeading dùng background asset ôm chữ/paddingdọc4px/gap4, title Georgia bold baseline thẳng gradient#F7ED96→#FBC12E; mô tả nhỏ và countdown có clock căn giữa. Không đổi nội dung backend, vẫn --:--:--. Đã xem crop/alpha0; shop1/1 test PASS, typecheck/build PASS, dist có3 asset. Chưa browser QA đối chiếu ảnh.
+
+
+- 2026-10-18: Dịch cụm MarketHeading lên10px CSS; thu thanh3 filter Tất cả/Avatar/Khung Viền ngang100→92% căn giữa, cao64→44px thiết kế, compact40px. Chữ filter Georgia thường18px thay heading24px, compact14px theo mẫu; giữ state filter/hành vi/sản phẩm. Shop1/1 test PASS; typecheck/build PASS, dist xác nhận offset/size; chưa browser QA.
+
+
+- 2026-10-18: Shop tabpanel mt0 sát dưới filter; thu mỗi tab40px (group calc92%-120px), Georgia bold theo mẫu dòng mô tả. Lưới desktop4 cột2 hàng bằng grid-rows2/flex1/min-h0, card flex để ảnh co theo chiều cao hàng, footer40px; vẫn chỉ1 demo không nhân bản. Compact2 cột giữ responsive. Shop1/1 test PASS, typecheck/build PASS, dist xác nhận grid/width; chưa browser QA.
+
+
+- 2026-10-18: Shop filter Georgia thường giống dòng Hàng thay mới mỗi ngày; gap3 tab20px cố định. Tabpanel padding10px/lưới gap10px. Bỏ badgeThường và khungvuông/border/glow quanh avatar demo, giữ ảnh tròn căn giữa; preview đồng bộ tròn/không rarity. Không chạm avatar người chơi ngoàiShop. Shop1/1 test PASS trước đổi font/preview; typecheck/build cuối PASS, dist xác nhận3 gap/avatar. Chưa browser QA.
+
+
+- 2026-10-18: Kiểm tra lỗi font tabShop: chuỗi Khung Viền là NFC đúng U+1EC1, không có khoảng trắng nội bộ. Đồng bộ span nhãn tab với dòng mô tả: Georgia normal/cùng clamp12,1.2vw,18/leadingtight; whitespace-nowrap/kerning normal/wordspacingnormal/NFC/langvi, button flexcenter thay leadingnone. Giữ gap20/khung/state. Shop1/1 test PASS, typecheck/build PASS. Chưa browser QA nên chưa khẳng định nguyên nhân hoặc đã hết lỗi glyph thực tế.
+
+
+- 2026-10-18: Đổi nhãn sidebarShop mục2 thành Cửa Hàng Cao Cấp (2 dòng Cửa Hàng/Cao Cấp), mục3 thành Sự Kiện (1 dòng căn giữa). Giữ artwork/kích thước/khóa; cập nhật selector test. Typecheck/build PASS, dist xác nhận tên mới; chưa browser QA.
+
+
+- 2026-10-18: User xác nhận nhãn filter vẫn tách dấu sau lần giữGeorgia; thay riêng3 nhãn bằng Cormorant Garamond600 font-heading/font-semibold đã nhúng local đủ Vietnamese, tránh phụ thuộc glyph/fallback Georgia hệ thống. Giữ NFC/spacing/layout; chưa kết luận nguyên nhân browser vì chưa QA thật. Typecheck/build PASS, dist xác nhận font local600. Cần kiểm tra trực quan lại, không tuyên bố đã xác nhận hết lỗi.
+
+
+- 2026-10-18: Căn lại3 thẻ sidebarShop: cùng grid3 cột36px/icon, textminmax,12px/lock; gap8/padding12, chữ căn giữa mỗi cột/cùng tâm dọc, ảnh icon nằm ô vuông36/objectcontain thay widthfull heightauto nên gift không tự cao lệch. Active chừa slot khóa rỗng giống2 thẻkhóa. Compact icon24/textflex, lock ghim góc để không ép tên. Giữ khung102px/artwork/trạng thái. Shop1/1 test PASS trước tinh chỉnh kích thước cột; typecheck/build cuối PASS, dist xác nhận. Chưa browser QA.
+
+
+- 2026-10-18: Filter3 tab Shop dùng ShopFilterTab: chữ local Cormorant tăng clamp12..18→14..20px/bold700, compact14px; thẻSVG góc vát/2viền nâu vàng, selected sáng gradient kem-vàng, hoverbright110/pressdịch1px+dark90. Giữ gap20/kích thước/state lọc. Shop1/1 test PASS, typecheck/build PASS, dist xác nhận text/path; chưa browser QA.
+
+
+- 2026-10-18: User cảm giác2 thẻsidebar tối nghiêng phải. Code không rotate/skew, artwork cũ bevel/góc/ánh sáng lệch nhẹ; imagegen chỉnh riêng tab-idle-v2 cân trái/phải, rail ngang/dọc, giữ phong cách/màu. Trim alpha<=16 output2150x708/corner0; đổi1 import dùng chung2 thẻ, không đổi text/icon/layout. Đã xem output; typecheck/build PASS, dist cóassetv2. Chưa browser QA cảm nhận sau thay.
+
+
+- 2026-10-18: User mở2 mục Shop Cửa Hàng Cao Cấp/Sự Kiện để bấm chuyển: sidebar state market, bỏ disabled/lock, selected dùng artworkđỏ/iconvàng, title theo mục;2 mục mới danh sách trống, demo chỉDaily. Avatar demo to hơn nhờ giảm vùng padding16→4px (compact12→4), giữ ảnh tròn. Thay mắt/preview bằng nútMua báo sảnphẩm xemthử/chưa mở bán, không trừ vàng/DB/avatar. Shop1/1 regression switch/filter/buy-no-deduct PASS, typecheck/build PASS, dist xác nhận nhãn; chưa browser QA.
+

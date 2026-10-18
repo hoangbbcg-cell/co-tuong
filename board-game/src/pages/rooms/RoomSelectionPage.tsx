@@ -45,7 +45,7 @@ export function RoomSelectionPage({ onEntranceComplete }: { onEntranceComplete: 
     <dialog ref={home.messageRef} aria-label="Thông báo" className="m-auto w-[min(384px,90vw)] rounded-xl border border-[#c7a264] bg-[#30271e] p-6 text-center text-[#f7e6c1] shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm" onCancel={() => home.setMessage('')}>
       <p className="leading-relaxed">{home.message}</p><button autoFocus className={`${utility} mx-auto mt-5 w-auto px-6 text-base`} onClick={() => home.setMessage('')}>Đã hiểu</button>
     </dialog>
-    <ProfileDialog layout={profileLayout} dialogRef={home.profileRef} name={home.name} editable onClose={home.closeProfile} primaryActionLabel="Liên kết tài khoản" onPrimaryAction={() => home.setMessage('Liên kết tài khoản sắp ra mắt. Hiện bạn đang chơi với tư cách khách.')} />
+    <ProfileDialog layout={profileLayout} dialogRef={home.profileRef} name={home.name} editable accountActions={false} onClose={home.closeProfile} primaryActionLabel="Liên kết tài khoản" onPrimaryAction={() => home.setMessage('Liên kết tài khoản sắp ra mắt. Hiện bạn đang chơi với tư cách khách.')} />
     <MessagesDialog layout={rankingLayout} dialogRef={messagesRef} openRequest={messageRequest} onViewInfo={openPlayerProfile} onClose={() => messagesRef.current?.close()} />
     <ProfileDialog layout={profileLayout} dialogRef={historyPlayerProfileRef} name={historyPlayerName} onOpenMessages={(name, playerId) => openMessages(name, undefined, undefined, playerId)} onClose={() => historyPlayerProfileRef.current?.close()} primaryActionLabel="Kết bạn" onPrimaryAction={() => {
       historyPlayerProfileRef.current?.close()

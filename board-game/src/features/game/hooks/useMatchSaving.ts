@@ -5,6 +5,9 @@ import { useGameStore } from '../../../store/gameStore'
 import { useSavedMatches } from '../../../store/savedMatchesStore'
 import { createClientId } from '../../../lib/clientId'
 import { usePlayedMatches } from '../../../store/playedMatchesStore'
+import { useSessionStore } from '../../../store/sessionStore'
+import { loadAccountData } from '../../../services/accountSession'
+import { accountApi } from '../../../services/accountApi'
 
 export function useMatchSaving(game: GameState, onlineMatch: RecordedMatch | undefined, online: boolean, owner: string, redName: string, blackName: string, enabled = true) {
   const [lastMatch, setLastMatch] = useState<RecordedMatch | null>(null)
@@ -28,15 +31,16 @@ export function useMatchSaving(game: GameState, onlineMatch: RecordedMatch | und
     }
   }, [enabled, online, onlineMatch, game.phase, game.result])
   const recording = lastMatch
+  useEffect(()=>{const account=useSessionStore.getState().account;if(online&&recording&&account)void accountApi.me().then(loadAccountData).catch(()=>setError('Không tải được lịch sử ván đấu.'))},[online,recording?.id])
   useEffect(() => {
-    if (!enabled || !online || !recording) return
+    if (!enabled || !online || !recording || useSessionStore.getState().account) return
     try { usePlayedMatches.getState().record(owner, recording) }
     catch { setError('Không thể lưu lịch sử ván đấu. Bộ nhớ có thể đã đầy.') }
   }, [enabled, online, owner, recording])
   const saved = !!recording && entries.some(item => item.owner === owner && item.id === recording.id)
-  const save = () => {
+  const save = async () => {
     if (!recording) return
-    try { useSavedMatches.getState().save(owner, recording); setError('') }
+    try { await useSavedMatches.getState().save(owner, recording); setError('') }
     catch (error) { setError(error instanceof Error ? error.message : 'Không thể lưu ván đấu.') }
   }
   return { recording, saved, error, save }

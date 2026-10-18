@@ -1,5 +1,4 @@
-import { RoomPasswordDialog } from './RoomPasswordDialog'
-import { useRoomDemo } from '../hooks/useRoomDemo'
+﻿import { RoomPasswordDialog } from './RoomPasswordDialog'
 import { CreateRoomForm } from './CreateRoomForm'
 import { PlayerNameValidationDialog } from './PlayerNameValidationDialog'
 import background from '../../../assets/backgrounds/computer.png'
@@ -31,7 +30,6 @@ const framedButton = `${buttonInteraction} border-0 bg-transparent bg-[length:10
 
 export function RoomSelection({ lobby, music, onClose, onEntranceComplete, onOpenFriends, onOpenRanking, onOpenProfile, onFullscreen }: Props) {
   const selection = useRoomSelection(lobby)
-  const openDemo = useRoomDemo()
   const provinceOptions = useVietnamAdministrativeUnits(selection.provincePickerOpen, null)
   const provinceLabel = roomProvinceLabel(selection.province)
   const entrance = useRoomEntrance(onEntranceComplete)
@@ -79,7 +77,7 @@ export function RoomSelection({ lobby, music, onClose, onEntranceComplete, onOpe
         <span aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 rounded-md border border-[#bd914e] bg-[#1c0e07]/40" />
         <span aria-hidden="true" className="pointer-events-none absolute inset-[4px] z-20 rounded-sm border border-[#bd914e]" />
         <span aria-hidden="true" className="pointer-events-none absolute inset-0 z-20">{['absolute left-1 top-1', 'absolute right-1 top-1 rotate-90', 'absolute right-1 bottom-1 rotate-180', 'absolute left-1 bottom-1 -rotate-90'].map(position => <svg key={position} viewBox="0 0 40 40" fill="none" stroke="#f4d995" strokeWidth="1.5" className={`${position} size-8`}><path d="M2 38V14h12V2h24M2 24h22V2M8 30V8h22M2 14h12V2M8 20h12V8M2 38l6-6v-8M38 2l-6 6h-8" /></svg>)}</span>
-        <RoomTableGrid rooms={selection.rooms} vacantOnly={selection.vacantOnly} previewEnabled={lobby.rooms.length === 0 && selection.roomFilter !== 'locked'} disabled={lobby.pending || !lobby.name.trim()} loading={lobby.loading} onJoin={lobby.join} onPreview={openDemo} />
+        <RoomTableGrid rooms={selection.rooms} vacantOnly={selection.vacantOnly} disabled={lobby.pending || !lobby.name.trim()} loading={lobby.loading} onJoin={lobby.join} />
       </section>
     </div>
     <footer className="shrink-0 pt-2">
@@ -117,3 +115,4 @@ export function RoomSelection({ lobby, music, onClose, onEntranceComplete, onOpe
     </div>
   </div>{entrance.entering && <OpeningCover onComplete={entrance.finishEntrance} />}<RoomPasswordDialog lobby={lobby}/><PlayerNameValidationDialog message={lobby.nameError} onClose={lobby.dismissNameError} /></>
 }
+

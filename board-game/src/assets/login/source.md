@@ -9,3 +9,4 @@
 - Tỷ lệ hiển thị1202/1307; các tọa độ phần trăm trong LoginPage khớp artwork runtime. Chưa tích hợp Google OAuth.
 
 - 2026-10-16: Cảnh báo khách dùng top82.8% thay84.3% để tránh họa tiết đáy che chữ; giữ các tọa độ khác.
+- 2026-10-16: Theo yêu cầu bỏ lớp nút vàng dưới Google, LoginPage dùng login-panel-google.png: imagegen xóa khung kem/vàng, chỉ ghép vùng (190,610,830,185) vào ảnh gốc để giữ nguyên pixel ngoài vùng. Nút GIS trắng giữ nguyên trực tiếp; không đổi auth/geometry. Đã xem asset; chưa browser QA.

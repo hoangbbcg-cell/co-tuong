@@ -4,8 +4,8 @@ import { useGameStore } from '../../../store/gameStore'
 import { socket } from '../../../services/socket'
 
 export function useAccountLogout() {
-  return () => {
-    useEntryStore.getState().signOut()
+  return async () => {
+    await useEntryStore.getState().signOut()
     // Server handles leaving/disconnecting online players under existing rules.
     socket.disconnect()
     useSessionStore.getState().leave()

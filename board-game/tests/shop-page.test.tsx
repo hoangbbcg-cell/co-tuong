@@ -1,0 +1,45 @@
+// @vitest-environment jsdom
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { afterEach, expect, it, vi } from 'vitest'
+import { ShopPage } from '../src/pages/shop/ShopPage'
+import { useSessionStore } from '../src/store/sessionStore'
+
+const originalShowModal = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+  if (originalShowModal) Object.defineProperty(HTMLDialogElement.prototype, 'showModal', originalShowModal)
+  else Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal')
+})
+
+it('shows one demo product, filters it, switches markets, keeps demo purchase read-only, and returns Home', () => {
+  useSessionStore.setState({ screen: 'shop', gold: 1000, energy: 5 })
+  Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: function (this: HTMLDialogElement) { this.open = true } })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const view = render(<QueryClientProvider client={client}><ShopPage /></QueryClientProvider>)
+  expect(screen.getAllByRole('article')).toHaveLength(1)
+  expect(screen.getByRole('main').className).toContain('fixed inset-0')
+  const frame = view.container.querySelector<HTMLElement>('[data-shop-frame]')!
+  expect(frame.style.width).toBe(`${window.innerWidth - 240}px`)
+  expect(frame.style.height).toBe(`${window.innerHeight - 12}px`)
+  fireEvent.click(screen.getByRole('button', { name: 'Mua avatar' }))
+  expect(screen.getByRole('alert').textContent).toContain('chưa mở bán')
+  expect(useSessionStore.getState().gold).toBe(1000)
+  const premium = screen.getByRole('button', { name: 'Cửa Hàng Cao Cấp' })
+  expect(premium.hasAttribute('disabled')).toBe(false)
+  fireEvent.click(premium)
+  expect(premium.getAttribute('aria-pressed')).toBe('true')
+  expect(screen.queryByRole('article')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Sự Kiện' }))
+  expect(screen.getByRole('button', { name: 'Sự Kiện' }).getAttribute('aria-pressed')).toBe('true')
+  fireEvent.click(screen.getByRole('button', { name: 'Phiên Chợ Hàng Ngày' }))
+  fireEvent.click(screen.getByRole('tab', { name: 'Khung Viền' }))
+  expect(screen.queryByRole('article')).toBeNull()
+  fireEvent.click(screen.getByRole('tab', { name: 'Avatar' }))
+  expect(screen.getAllByRole('article')).toHaveLength(1)
+  fireEvent.click(screen.getByRole('button', { name: 'Trở về Home' }))
+  expect(useSessionStore.getState().screen).toBe('home')
+  view.unmount()
+  client.clear()
+})

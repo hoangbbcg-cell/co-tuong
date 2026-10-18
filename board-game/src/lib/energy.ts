@@ -1,7 +1,7 @@
 export const MAX_ENERGY = 5
 export const ENERGY_RECOVERY_MS = 7 * 60 * 1000
 export function recoverEnergy(energy: number, recoveryAt: number | null, now: number) {
-  if (energy >= MAX_ENERGY) return { energy: MAX_ENERGY, energyRecoveryAt: null }
+  if (energy >= MAX_ENERGY) return { energy, energyRecoveryAt: null }
   if (recoveryAt === null) return { energy, energyRecoveryAt: now + ENERGY_RECOVERY_MS }
   if (now < recoveryAt) return { energy, energyRecoveryAt: recoveryAt }
   const recovered = Math.floor((now - recoveryAt) / ENERGY_RECOVERY_MS) + 1
