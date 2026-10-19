@@ -54,3 +54,5 @@ board-game/src/assets/references/uploads/*
 .checkpoints/
 # Local npm download cache
 .npm-cache/
+
+.admin-access
