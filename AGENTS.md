@@ -1,5 +1,7 @@
 # Hướng dẫn làm việc
 
+- 2026-10-19: Popup thắng/thua phải chờ cả hình chiếu bí và hai lớp âm thanh GameSounds.playCheckmate kết thúc (AudioBufferSourceNode.onended), không đoán bằng timeout. Máy giả2nước cũng trình diễn chiếu bí trước popup, kết quảserver vẫn resign; chỉ đổi presentation, không sửa luậtPvP/thưởng. Lỗi tải audio giải phóng an toàn, reset/rời bỏ completion cũ.
+
 - 2026-10-19: Ngoại lệ thử nghiệm theo user: Home có Máy giả Cờ Tướng/Cờ Úp, người chơi Đỏ đi2nước hợp lệ thì máy nhường thắng. TestBotService giữ vánRAM/kiểmtra nước và TestBotRepository cộng vàng thật125–150 trongtransaction+ledger test_bot_win/idempotency theo ván. Cookieauth, không nhận winner/giátrị thưởng từclient; retry khôngcộngtrùng. Dùng GamePage/popupchung, ô thưởng hiệnsốvàngAPI. Riêng luồng thử này miễn nănglượng, không tăngElo/statPvP, không côngbố phòng/presence hoặc thayChơiNhanh/Pikafish. Xem docs/TEST-BOT.md.
 
 - 2026-10-19: Khung kết quả cuối ván dùng2ảnh user cung cấp trong src/assets/game-result: người thắng thấy victory, người thua thấy defeat; chỉ người đã tham gia ván thấy, không hiện cho khán giả/Xem lại/Đánh thử/demo hoặc ván hòa. Chiếu bí phải đợi callback hoàn tất cả hiệu ứng nâng quân và hit; không dùng timeout đoán thời lượng. Giữ phe người tham gia trước khi đổi ghế hàng chờ; Xác nhận đóng popup, ván mới/rời phòng dọn trạng thái. Ô vật phẩm chưa nối dữ liệu thưởng.

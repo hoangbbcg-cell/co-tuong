@@ -29,7 +29,7 @@ describe('React regression', () => {
   it.each(['xiangqi', 'jieqi'] as const)('hides saving and room UI for computer matches (%s)', variant => {
     vi.useFakeTimers()
     Object.defineProperty(document, 'fonts', { configurable: true, value: { load: vi.fn().mockResolvedValue([]) } })
-    vi.spyOn(moveSound, 'useMoveSound').mockReturnValue({ playMatchIntro: vi.fn(), stopMatchIntro: vi.fn() })
+    vi.spyOn(moveSound, 'useMoveSound').mockReturnValue({ playMatchIntro: vi.fn(), stopMatchIntro: vi.fn(), checkmateAudioComplete: true })
     vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue()
     vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
     useSessionStore.setState({ mode: 'computer', humanSide: 'black' })

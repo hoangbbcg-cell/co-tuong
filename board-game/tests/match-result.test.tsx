@@ -35,6 +35,15 @@ it('waits for the complete checkmate effect, dismisses once, and clears on a new
   hook.rerender(props(ended('black', 'timeout')))
   expect(hook.result.current.outcome).toBe('loss')
 })
+
+it('keeps the result hidden after the visual ends until mate audio also finishes', () => {
+  const hook = renderHook(useMatchResult, { initialProps: { ...props(playing), audioComplete: false } })
+  hook.rerender({ ...props(ended('red')), audioComplete: false })
+  act(() => hook.result.current.complete())
+  expect(hook.result.current.outcome).toBeNull()
+  hook.rerender({ ...props(ended('red')), audioComplete: true })
+  expect(hook.result.current.outcome).toBe('win')
+})
 it('keeps a losing participant result after queue rotation, excluding the promoted spectator', () => {
   const loser = renderHook(useMatchResult, { initialProps: props(playing, 'black') })
   loser.rerender(props(ended('red', 'timeout'), null))

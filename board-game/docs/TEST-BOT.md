@@ -1,5 +1,7 @@
 # Máy giả thử thưởng — 2026-10-19
 
+Cập nhật: máy giả trình diễn cả hình và âm thanh chiếu bí trước khi mở popup thưởng. Bảng đợi tín hiệu hoàn tất hình và cả hai lớp audio onended; kết quả nghiệp vụ vẫn là máy nhường thắng (`resign`), không ép luật cờ hoặc kết quả PvP thành chiếu bí.
+
 Theo yêu cầu người dùng: Home có hai nút Máy giả Cờ Tướng / Máy giả Cờ Úp ở góc dưới trái. Người chơi cầm Đỏ, đi hai nước hợp lệ; máy đáp lại sau nước đầu và nhường thắng sau nước thứ hai. Đây là luồng thử riêng, không đổi Chơi nhanh/Chọn bàn hoặc Pikafish.
 
 Luồng: Home/useTestBot → accountApi → accountController (cookie auth + kiểm tra Origin hiện có) → TestBotService → TestBotRepository → MySQL. Dùng lại GamePage/Board và popup kết quả. Không thêm dependency hoặc migration.

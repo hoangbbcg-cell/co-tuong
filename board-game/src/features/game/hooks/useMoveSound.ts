@@ -78,8 +78,9 @@ export function useMoveSound(move: Move | null, board: Board, moveCount: number,
       if (checkmatePlayedFor.current !== mateKey) {
         stopMatchIntro()
         checkmatePlayedFor.current = mateKey
-        void Promise.resolve(soundsRef.current?.playCheckmate()).then(() => {
-          if (activeMate.current === mateKey) setCompletedMate(mateKey)
+        const sounds = soundsRef.current
+        void Promise.resolve(sounds?.playCheckmate()).then(() => {
+          if (soundsRef.current === sounds && activeMate.current === mateKey) setCompletedMate(mateKey)
         })
       }
       return

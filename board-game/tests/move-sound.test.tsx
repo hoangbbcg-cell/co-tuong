@@ -82,3 +82,14 @@ it('cancels sounds on reset and cleans up audio when leaving', () => {
   unmount()
   expect(audio.dispose).toHaveBeenCalledTimes(1)
 })
+
+it('keeps mate completion pending until playback ends, including a result-only snapshot', async () => {
+  let end!: () => void
+  audio.playCheckmate.mockReturnValueOnce(new Promise<void>(resolve => { end = resolve }))
+  const { result, rerender, firstBoard } = setup()
+  act(() => rerender({ move: firstMove, board: firstBoard, moveCount: 1, phase: 'playing' }))
+  act(() => rerender({ move: firstMove, board: firstBoard, moveCount: 1, phase: 'finished', result: { winner: 'red', reason: 'checkmate' } }))
+  expect(result.current.checkmateAudioComplete).toBe(false)
+  await act(async () => end())
+  expect(result.current.checkmateAudioComplete).toBe(true)
+})

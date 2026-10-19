@@ -104,11 +104,23 @@ it('cancels intro even when it is still waiting for audio permission', async () 
   expect(context.sources).toHaveLength(0)
 })
 
+it('waits for both mate audio layers to end before completing', async () => {
+  let completed = false
+  const playback = sounds.playCheckmate().then(() => { completed = true })
+  await vi.waitFor(() => expect(context.sources).toHaveLength(2))
+  context.sources[0].onended?.()
+  await Promise.resolve()
+  expect(completed).toBe(false)
+  context.sources[1].onended?.()
+  await playback
+  expect(completed).toBe(true)
+})
+
 it('starts the two intro layers on the same audio clock with the original one-fifth overlap', async () => {
   sounds.playIntro()
   await vi.waitFor(() => expect(context.sources).toHaveLength(2))
   expect(context.sources[0].start).toHaveBeenCalledWith(2, 0)
-  expect(context.sources[1].start).toHaveBeenCalledWith(4, 2)
+  expect(context.sources[1].start).toHaveBeenCalledWith(2, 2)
 })
 
 it('stops previous move effects and starts both checkmate layers together', async () => {
