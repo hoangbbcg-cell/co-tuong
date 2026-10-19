@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import moveSound from '../../../assets/audio/đi quân (2).wav'
 import captureSound from '../../../assets/audio/capture-piece.wav'
 import checkSound from '../../../assets/audio/1790439324411_2137874395677077050_7229889354659670468.mp4'
@@ -20,6 +20,10 @@ export function useMoveSound(move: Move | null, board: Board, moveCount: number,
   const introRequested = useRef(false)
   const introHandledForGame = useRef(false)
   const checkmatePlayedFor = useRef<string | null>(null)
+  const [completedMate, setCompletedMate] = useState<string | null>(null)
+  const mateKey = !moveOnlyCue && result?.reason === 'checkmate' && move ? `${moveCount}:${moveSignature(move)}` : null
+  const activeMate = useRef(mateKey)
+  activeMate.current = mateKey
 
   const stopMatchIntro = useCallback(() => {
     if (introHandledForGame.current) return
@@ -56,13 +60,28 @@ export function useMoveSound(move: Move | null, board: Board, moveCount: number,
       introRequested.current = false
       introHandledForGame.current = false
       checkmatePlayedFor.current = null
+      setCompletedMate(null)
       return
+    }
+    if (phase === 'playing' && before.phase !== 'playing') {
+      checkmatePlayedFor.current = null
+      setCompletedMate(null)
     }
     if (before.phase === 'ready' && phase === 'playing') playMatchIntro()
     const isTakeback = phase === 'playing' && before.phase === 'playing' && moveCount < before.moveCount
     if (isTakeback) {
       stopMatchIntro()
       soundsRef.current?.play('move')
+      return
+    }
+    if (mateKey) {
+      if (checkmatePlayedFor.current !== mateKey) {
+        stopMatchIntro()
+        checkmatePlayedFor.current = mateKey
+        void Promise.resolve(soundsRef.current?.playCheckmate()).then(() => {
+          if (activeMate.current === mateKey) setCompletedMate(mateKey)
+        })
+      }
       return
     }
     // Clock/socket updates must not replay a cue; a new ply is not identified by coordinates alone.
@@ -72,21 +91,13 @@ export function useMoveSound(move: Move | null, board: Board, moveCount: number,
       soundsRef.current?.play('move')
       return
     }
-    if (result?.reason === 'checkmate') {
-      const checkmateKey = `${moveCount}:${current}`
-      if (checkmatePlayedFor.current !== checkmateKey) {
-        checkmatePlayedFor.current = checkmateKey
-        soundsRef.current?.playCheckmate()
-      }
-      return
-    }
     const capturedPiece = move ? before.board[move.to.row]?.[move.to.col] : null
     const movedPiece = move ? board[move.to.row]?.[move.to.col] : null
     const captured = !!capturedPiece
     const gaveCheck = !!movedPiece && capturedPiece?.type !== 'general' && isInCheck(opposite(movedPiece.side), board)
     soundsRef.current?.play(captured && gaveCheck ? 'check' : captured ? 'capture' : 'move')
     if (gaveCheck && !captured) soundsRef.current?.play('check')
-  }, [board, move, moveCount, phase, playMatchIntro, moveOnlyCue, result?.reason, stopMatchIntro])
+  }, [board, move, moveCount, phase, playMatchIntro, moveOnlyCue, result?.reason, mateKey, stopMatchIntro])
 
   useEffect(() => {
     const sounds = soundsRef.current
@@ -95,5 +106,5 @@ export function useMoveSound(move: Move | null, board: Board, moveCount: number,
     return () => sounds?.stopClockWarning()
   }, [clockWarningKey])
 
-  return { playMatchIntro, stopMatchIntro }
+  return { playMatchIntro, stopMatchIntro, checkmateAudioComplete: !mateKey || completedMate === mateKey }
 }

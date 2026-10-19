@@ -86,12 +86,16 @@ export class GameSounds {
     gain.gain.setValueAtTime(clip.volume, time)
     source.connect(gain).connect(this.output)
     this.active[channel].add(source)
+    let finish!: () => void
+    const finished = new Promise<void>(resolve => { finish = resolve })
     source.onended = () => {
       this.active[channel].delete(source)
       source.disconnect()
       gain.disconnect()
+      finish()
     }
     source.start(time + (clip.delay ?? 0), clip.offset ?? 0)
+    return finished
   }
 
   private async playClips(clips: Clip[], channel: Channel) {
@@ -100,7 +104,7 @@ export class GameSounds {
       const buffers = await this.ready(clips.map(clip => clip.sound), channel, version)
       if (!buffers) return
       const time = this.context.currentTime
-      clips.forEach((clip, index) => this.start(buffers[index], clip, channel, time))
+      await Promise.all(clips.map((clip, index) => this.start(buffers[index], clip, channel, time)))
     } catch (error) { this.warn(channel, error) }
   }
 
@@ -112,8 +116,10 @@ export class GameSounds {
     this.stop('effects')
     this.stop('checkmate')
     // Keep the main mate cue audible if the decorative overlay clip fails to load.
-    void this.playClips([{ sound: 'checkmate', volume: 0.95 }], 'checkmate')
-    void this.playClips([{ sound: 'introTwo', volume: 0.65 }], 'checkmate')
+    return Promise.all([
+      this.playClips([{ sound: 'checkmate', volume: 0.95 }], 'checkmate'),
+      this.playClips([{ sound: 'introTwo', volume: 0.65 }], 'checkmate'),
+    ]).then(() => undefined)
   }
 
   playIntro() {

@@ -1,5 +1,17 @@
 # Cửa hàng
 
+## Trạng thái hiện hành — 2026-10-19
+
+Shop đã mua thật bằng vàng tài khoản. Mỗi món500 vàng; bấm Mua→Xác nhận mới ghi giao dịch. Bỏ nhãn demo/xem thử và đổi tên avatar gốc thành Quan Vũ. Sản phẩm đã sở hữu (kể cả mặc định hoặc admin cấp) báo Bạn đã có avatar/viền này và không trừ vàng.
+
+Danh mục chuẩn frontend/backend: src/lib/shopCatalog.ts. API POST /api/account/shop/purchase chỉ nhận productId/requestId; server tự lấy giá và code. ShopService→ShopRepository dùng transaction khóa user/resources, kiểm tra sở hữu và số dư, trừ vàng + INSERT user_cosmetics + resource_events cùng commit. Mua trùng409, thiếu vàng400, cùng requestID chỉ ghi một lần; cùng ID cho món khác409. Chưa có thanh toán tiền thật hoặc lịch thay hàng tự động.
+
+API trả profile mới để cập nhật ngay số vàng và mảng cosmetics theo kind avatar/frame. Chọn avatar và Chọn viền đọc mảng sở hữu tương ứng; mua không tự trang bị.3 viền mới dùng frame-4/5/6; chọn/lưu khung mới phải có quyền sở hữu backend. Admin catalog đồng bộ7 khung. Giữ4 khung mặc định và5 avatar cũ khả dụng. Không đổi kích thước/vị trí avatar/khung cũ;3 viền Shop mới không bị clip tròn mất họa tiết cạnh.
+
+Không cần migration mới: tái dùng bảng user_cosmetics từ005 và resource_events. Không buff hoặc tạo giao dịch thử trong DB người chơi thật.
+
+Kiểm chứng:9/9 test React/hook/profile/admin PASS; MySQL8.0.45 tạm15/15 tài khoản/admin/shop PASS, gồm chống mua đồng thời/trùng, tamper giá, replay request, thiếu vàng, rollback khi ledger lỗi và equip viền theo sở hữu. Typecheck/build PASS; chưa browserQA. Các mục demo phía dưới là lịch sử đã được thay thế bởi trạng thái này.
+
 2026-10-18: Trang UI theo ảnh tham chiếu, chiếm toàn vùng bên trong khung ứng dụng cùng Home (desktop lề ngang120px/dọc6px, compact6px). Session thêm `screen: shop`; App ghép ShopPage. Cả hai Home gọi useHome.openShop, nút quay lại đặt screen home. Không tạo phòng hoặc đổi trạng thái ván.
 
 Background gốc người dùng: `src/assets/references/uploads/49740109-5a33-4729-890d-c965b532934c.png`; runtime `src/assets/shop/background.png` là bản sao nguyên pixel, không crop/redraw. Tái dùng name-frame, gold-frame-v2, energy/gold-icon-v2, wood và AvatarPortrait hiện có.
@@ -66,3 +78,18 @@ Kiểm chứng:4/4 test shop-page/mobile-home/home-quick-wait PASS; typecheck/bu
 
 - 2026-10-18: User mở2 mục Shop Cửa Hàng Cao Cấp/Sự Kiện để bấm chuyển: sidebar state market, bỏ disabled/lock, selected dùng artworkđỏ/iconvàng, title theo mục;2 mục mới danh sách trống, demo chỉDaily. Avatar demo to hơn nhờ giảm vùng padding16→4px (compact12→4), giữ ảnh tròn. Thay mắt/preview bằng nútMua báo sảnphẩm xemthử/chưa mở bán, không trừ vàng/DB/avatar. Shop1/1 regression switch/filter/buy-no-deduct PASS, typecheck/build PASS, dist xác nhận nhãn; chưa browser QA.
 
+
+- 2026-10-18: User báo title Cửa Hàng Cao Cấp tách dấu. Chuỗi NFC đúng U+1EA5 (ấ), không phải dữ liệu có khoảng trắng. MarketHeading cònGeorgia trong khi3tabđãfontlocal: đổi toàn cụm heading/mô tả/timer sang Cormorant Garamond600 local Vietnamese, titlefont-semibold khớp face600, langvi/NFC/kerningnormal. Giữ cỡ/màu/nền/geometry. Shop1/1 test PASS, typecheck/build PASS, dist xác nhận font/NFC; chưa browser QA nên chưa xác nhận hết lỗi glyph thực tế.
+
+
+- 2026-10-18: Theo yêu cầu tăng chữ lớn Shop, MarketHeading tăng tiêu đề desktop clamp28px/3.6vw/52px, compact20px/5.8vw/30px; dùng chung cả3 mục. Giữ font local600, màu và hai dòng phụ. Đây là tinh chỉnh UI xem thử. Typecheck/build PASS, dist xác nhận cỡ mới; chưa browser QA.
+
+- 2026-10-18: Xem thử UI Shop theo yêu cầu tăng hai dòng phụ MarketHeading: mô tả clamp14px/1.5vw/22px, làm mới clamp14px/1.35vw/20px, compact cả hai14px; timer/icon co theo em. Dùng chung3 mục, giữ font/màu/tiêu đề chính. Typecheck/build PASS, dist xác nhận cả2 cỡ; chưa browser QA.
+
+- 2026-10-18: Thêm3 avatar imagegen nữ kiếm khách/lão quân sư/nam tướng quân vào Phiên Chợ Hàng Ngày, cùng demo cũ thành4 sản phẩm; tab Tất cả/Avatar dùng chung map, ảnh tròn/card và giá xem thử500 như cũ. Chưa giao dịch/DB/cấp quyền avatar. Nguồn PNG1254x1254 full-bleed tại outputs/avatar-concepts, runtime src/assets/shop/avatars, prompt tại outputs/avatar-concepts/README.md. Shop regression1/1 PASS; chưa browser QA.
+
+- 2026-10-18: Theo yêu cầu bỏ viền ảnh avatar trong Shop:3 ảnh mới vốn không viền; demo dùng sprite có vòng vàng baked-in, crop hiển thị riêng Shop bằng scale1.12 trong ô tròn overflowhidden để bỏ vòng. Không sửa sprite/AvatarPortrait dùng chung hoặc geometry avatar người chơi. Giữ khung card/giá/nút Mua. Đã xem sprite nguồn, typecheck/build PASS, dist xác nhận crop; chưa browser QA.
+
+- 2026-10-19: Thêm bộ bo_3_vien_avatar_03_08_09 từ Downloads vào Shop: viền đỏ03/xanh ngọc08/tím09, tight alpha crop và nguồn tại src/assets/shop/frames/source.md. Product list chung theo kind, Tất cả7/Avatar4/Khung Viền3; objectcontain giữ nguyên tỷ lệ và lỗ alpha. Giá/nútMua xemthử500 theo sảnphẩm cũ, không trừvàng/cấp quyền hoặc sửa frame ngườichơi. Shop1/1 regression lọc/click3viền/no-deduct PASS, typecheck/build PASS; chưa browserQA.
+
+- 2026-10-19: Mua mọi sảnphẩm Shop nay mở ShopPurchaseDialog native modal với tên/giá500 vàng/Hủy/Xác nhận, Escape/bấm ngoài đóng. Hủy không làm gì; Xác nhận vẫn báo xemthử/chưa mởbán, không trừvàng/cấpvậtphẩm/ghiDB. Dùng chung7sảnphẩm và giá chung card/dialog, giữUIcard. Shop1/1 regression bao gồm cancel/confirm/escape/tên-giá/no-deduct PASS, typecheck/build PASS; chưa browserQA.

@@ -87,7 +87,7 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
       expect((await login('','another-google-sub','wrong-audience')).status).toBe(401)
       const fresh=await login('','new-google-sub')
       expect(fresh.status).toBe(200);expect(fresh.data.id).not.toBe(a.data.id);expect(fresh.data.linked).toBe(true)
-      expect(fresh.data.publicId).toMatch(/^\d{8}$/);expect(fresh.data.displayName).toMatch(/^Kỳ Thủ \d{6}$/)
+      expect(fresh.data.publicId).toMatch(/^\d{8}$/);expect(fresh.data.displayName).toMatch(/^Guest\d{5}$/)
       expect((await login('','new-google-sub')).data.id).toBe(fresh.data.id)
       const replay=await request('/account/google/nonce','POST')
       const replayToken=randomUUID();googleTokens.set(replayToken,{sub:'new-google-sub',nonce:replay.data.nonce})
@@ -108,7 +108,7 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
   })
   it('creates real Guests, resumes the same user, protects ownership and locks profile location',async()=>{
     const a=await guest()
-    expect(a.status).toBe(200);expect(a.data.displayName).toMatch(/^Kỳ Thủ \d{6}$/)
+    expect(a.status).toBe(200);expect(a.data.displayName).toMatch(/^Guest\d{5}$/)
     expect(a.data.publicId).toMatch(/^\d{8}$/);expect(typeof a.data.id).toBe('string')
     expect(a.data.linked).toBe(false);expect(a.data.renamed).toBe(false)
     expect(a.data.stats).toHaveLength(2);expect(a.data.stats.every((s:{elo:number})=>s.elo===1000)).toBe(true)

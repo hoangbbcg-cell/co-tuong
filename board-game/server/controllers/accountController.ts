@@ -4,6 +4,10 @@ import { AccountError } from '../errors'
 import { PersistenceService, text, uuid, userId, groupAvatarBytes, messageImageData } from '../services/persistenceService'
 import { randomBytes } from 'node:crypto'
 import { hashCredential } from '../services/accountService'
+import { ADMIN_AVATARS, ADMIN_FRAMES, DEFAULT_AVATARS } from '../../src/types/admin'
+import { ShopService } from '../services/shopService'
+import { SHOP_PRODUCTS } from '../../src/lib/shopCatalog'
+import { TestBotService } from '../services/testBotService'
 
 export function cookieValue(header:string|undefined,name:string):string|undefined {
   return header?.split(';').map(s=>s.trim()).find(s=>s.startsWith(`${name}=`))?.slice(name.length+1)
@@ -62,14 +66,28 @@ export function accountRouter(account:AccountService,persistence=new Persistence
     next()
   })
   router.get('/me',async(_req,res)=>res.json(await account.repository.profile(String(res.locals.userId))))
+  const shop = new ShopService()
+  const testBot = new TestBotService()
+  router.post('/test-bot', (req,res)=>res.json(testBot.start(String(res.locals.userId),req.body?.variant)))
+  router.post('/test-bot/:id/move', async(req,res)=>res.json(await testBot.move(String(res.locals.userId),uuid(req.params.id),req.body?.move,uuid(req.body?.requestId))))
+  router.get('/shop', (_req,res)=>res.json(SHOP_PRODUCTS))
+  router.post('/shop/purchase', async(req,res)=>res.json(await shop.purchase(String(res.locals.userId),req.body)))
   router.post('/logout',async(req,res)=>{await account.repository.session(String(res.locals.userId),null);res.clearCookie('ct_guest_session',{path:'/'});res.json({ok:true})})
   router.patch('/name',async(req,res)=>{await account.rename(String(res.locals.userId),req.body?.name);res.json({ok:true})})
   router.post('/demo-energy',async(req,res)=>{await account.repository.consumeDemoEnergy(String(res.locals.userId),uuid(req.body?.id));res.json({ok:true})})
   router.patch('/location',async(req,res)=>{await account.location(String(res.locals.userId),req.body??{});res.json({ok:true})})
   router.patch('/avatar',async(req,res)=>{
     const avatar=text(req.body?.avatarCode,40),frame=text(req.body?.avatarFrameCode,40)
-    // Existing default artwork is available; paid ownership is not implemented.
-    if(!/^avatar-(0|1|3|4|7)$/.test(avatar)||!/^frame-[0-3]$/.test(frame))throw new AccountError('Avatar/khung không hợp lệ.')
+    // Existing default artwork remains available; new items require DB ownership.
+    if(!ADMIN_AVATARS.some(item=>item.code===avatar)||!ADMIN_FRAMES.some(item=>item.code===frame))throw new AccountError('Avatar/khung không hợp lệ.')
+    if(!DEFAULT_AVATARS.some(index=>`avatar-${index}`===avatar)) {
+      const profile=await account.repository.profile(String(res.locals.userId))
+      if(!profile?.cosmetics?.some(item=>item.kind==='avatar'&&item.code===avatar))throw new AccountError('Bạn chưa sở hữu avatar này.',403)
+    }
+    if(!/^frame-[0-3]$/.test(frame)) {
+      const profile=await account.repository.profile(String(res.locals.userId))
+      if(!profile?.cosmetics?.some(item=>item.kind==='frame'&&item.code===frame))throw new AccountError('Bạn chưa sở hữu viền này.',403)
+    }
     await account.repository.avatar(String(res.locals.userId),avatar,frame);res.json({ok:true})
   })
   router.get('/search',async(req,res)=>res.json(await account.repository.search(text(req.query.q,50))))

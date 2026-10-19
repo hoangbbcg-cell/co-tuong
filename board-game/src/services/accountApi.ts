@@ -1,9 +1,13 @@
 ﻿import axios from 'axios'
 import type { AccountProfile } from '../types/account'
+import type { TestBotSnapshot } from '../types/testBot'
+import type { GameVariant, Move } from '../types/game'
 import type { RecordedMatch } from '../types/recordedMatch'
 import type { SavedPosition } from '../store/savedPositionsStore'
 const api=axios.create({baseURL:'/api/account',timeout:15000})
 export const accountApi={
+  testBotStart:async(variant:GameVariant)=>(await api.post<TestBotSnapshot>('/test-bot',{variant})).data,
+  testBotMove:async(id:string,move:Move,requestId:string)=>(await api.post<TestBotSnapshot>(`/test-bot/${id}/move`,{move,requestId})).data,
   me:async()=>(await api.get<AccountProfile>('/me')).data,
   guest:async()=>(await api.post<AccountProfile>('/guest')).data,
   restoreGuest:async()=>(await api.post<AccountProfile>('/guest/restore')).data,
@@ -12,6 +16,7 @@ export const accountApi={
   logout:async()=>{await api.post('/logout')},
   location:async(input:unknown)=>{await api.patch('/location',input)},
   avatar:async(avatarCode:string,avatarFrameCode:string)=>{await api.patch('/avatar',{avatarCode,avatarFrameCode})},
+  purchase:async(productId:string,requestId:string)=>(await api.post<AccountProfile>('/shop/purchase',{productId,requestId})).data,
   history:async(saved=false)=>(await api.get<RecordedMatch[]>(saved?'/saved-matches':'/history')).data,
   bookmark:async(id:string,enabled:boolean)=>{await api.put(`/saved-matches/${id}`,{enabled})},
   positions:async()=>(await api.get<(Omit<SavedPosition,'savedAt'>&{savedAt:string})[]>('/positions')).data,

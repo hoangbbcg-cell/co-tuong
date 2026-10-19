@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, expect, it, vi } from 'vitest'
 import { ShopPage } from '../src/pages/shop/ShopPage'
 import { useSessionStore } from '../src/store/sessionStore'
+import { accountApi } from '../src/services/accountApi'
+import type { AccountProfile } from '../src/types/account'
 
 const originalShowModal = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')
 afterEach(() => {
@@ -13,19 +15,32 @@ afterEach(() => {
   else Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal')
 })
 
-it('shows one demo product, filters it, switches markets, keeps demo purchase read-only, and returns Home', () => {
-  useSessionStore.setState({ screen: 'shop', gold: 1000, energy: 5 })
+it('confirms real purchases, updates owned items/balance and blocks duplicate purchases', async () => {
+  const account = { id: '1', publicId: '12345678', displayName: 'Buyer', gold: '1000', energy: 5, energyRecoveryAt: null, countryCode: null, provinceName: null, wardName: null, avatarCode: 'avatar-0', avatarFrameCode: 'frame-0', stats: [{ variant: 'xiangqi', elo: 1000 }], cosmetics: [] } as unknown as AccountProfile
+  useSessionStore.setState({ screen: 'shop', gold: 1000, energy: 5, account })
+  const purchase = vi.spyOn(accountApi, 'purchase').mockResolvedValue({ ...account, gold: '500', cosmetics: [{ kind: 'avatar', code: 'avatar-16' }] })
   Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: function (this: HTMLDialogElement) { this.open = true } })
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const view = render(<QueryClientProvider client={client}><ShopPage /></QueryClientProvider>)
-  expect(screen.getAllByRole('article')).toHaveLength(1)
+  expect(screen.getAllByRole('article')).toHaveLength(5)
   expect(screen.getByRole('main').className).toContain('fixed inset-0')
   const frame = view.container.querySelector<HTMLElement>('[data-shop-frame]')!
   expect(frame.style.width).toBe(`${window.innerWidth - 240}px`)
   expect(frame.style.height).toBe(`${window.innerHeight - 12}px`)
-  fireEvent.click(screen.getByRole('button', { name: 'Mua avatar' }))
-  expect(screen.getByRole('alert').textContent).toContain('chưa mở bán')
-  expect(useSessionStore.getState().gold).toBe(1000)
+  expect(screen.queryByText('Sản phẩm xem thử')).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Mua avatar Quan Vũ' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Mua avatar Nữ kiếm khách' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Mua avatar Lão quân sư' }))
+  const confirmation = screen.getByRole('dialog', { name: 'Xác nhận mua' })
+  fireEvent.click(within(confirmation).getByRole('button', { name: 'Xác nhận' }))
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Xác nhận mua' })).toBeNull())
+  expect(screen.getByRole('alert').textContent).toContain('Đã mua avatar Lão quân sư')
+  expect(purchase).toHaveBeenCalledWith('avatar-16', expect.any(String))
+  expect(useSessionStore.getState().gold).toBe(500)
+  expect(useSessionStore.getState().account?.cosmetics).toContainEqual({ kind: 'avatar', code: 'avatar-16' })
+  fireEvent.click(screen.getByRole('button', { name: 'Mua avatar Lão quân sư' }))
+  expect(screen.getByRole('alert').textContent).toContain('Bạn đã có avatar này')
+  expect(purchase).toHaveBeenCalledTimes(1)
   const premium = screen.getByRole('button', { name: 'Cửa Hàng Cao Cấp' })
   expect(premium.hasAttribute('disabled')).toBe(false)
   fireEvent.click(premium)
@@ -35,9 +50,18 @@ it('shows one demo product, filters it, switches markets, keeps demo purchase re
   expect(screen.getByRole('button', { name: 'Sự Kiện' }).getAttribute('aria-pressed')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: 'Phiên Chợ Hàng Ngày' }))
   fireEvent.click(screen.getByRole('tab', { name: 'Khung Viền' }))
-  expect(screen.queryByRole('article')).toBeNull()
+  expect(screen.getAllByRole('article')).toHaveLength(3)
+  for (const name of ['Viền đỏ 03', 'Viền xanh ngọc 08', 'Viền tím 09']) {
+    expect(screen.getByRole('img', { name })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: `Mua ${name}` }))
+    const dialog = screen.getByRole('dialog', { name: 'Xác nhận mua' })
+    expect(dialog.textContent).toContain(name)
+    fireEvent(dialog, new Event('cancel', { bubbles: false, cancelable: true }))
+    expect(screen.queryByRole('dialog', { name: 'Xác nhận mua' })).toBeNull()
+    expect(useSessionStore.getState().gold).toBe(500)
+  }
   fireEvent.click(screen.getByRole('tab', { name: 'Avatar' }))
-  expect(screen.getAllByRole('article')).toHaveLength(1)
+  expect(screen.getAllByRole('article')).toHaveLength(2)
   fireEvent.click(screen.getByRole('button', { name: 'Trở về Home' }))
   expect(useSessionStore.getState().screen).toBe('home')
   view.unmount()

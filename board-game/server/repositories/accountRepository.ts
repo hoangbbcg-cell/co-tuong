@@ -85,7 +85,8 @@ export class AccountRepository {
       const counts=await rows(`SELECT (SELECT COUNT(*) FROM friendships WHERE status='accepted' AND (user_low_id=? OR user_high_id=?)) friends,
         (SELECT COUNT(*) FROM user_follows WHERE followed_id=?) followers,
         (SELECT COUNT(*) FROM match_likes l JOIN match_players p ON p.match_id=l.match_id AND p.side=l.target_side WHERE p.user_id=?) likes`,[id,id,id,id],c)
-      return { ...r[0], id:String(r[0].id), publicId:String(r[0].publicId), linked:Number(r[0].linked)===1,renamed:Number(r[0].renamed)===1,locationSet:Number(r[0].locationSet)===1,...resource, stats,friends:Number(counts[0].friends),followers:Number(counts[0].followers),likes:Number(counts[0].likes) } as AccountProfile
+      const cosmetics = await rows('SELECT kind,code FROM user_cosmetics WHERE user_id=?', [id], c)
+      return { ...r[0], cosmetics, id:String(r[0].id), publicId:String(r[0].publicId), linked:Number(r[0].linked)===1,renamed:Number(r[0].renamed)===1,locationSet:Number(r[0].locationSet)===1,...resource, stats,friends:Number(counts[0].friends),followers:Number(counts[0].followers),likes:Number(counts[0].likes) } as AccountProfile
     })
   }
   async resources(id: string, c: PoolConnection) {

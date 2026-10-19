@@ -1,5 +1,7 @@
 ﻿import { useDemoReadyCountdown } from '../../features/game/hooks/useDemoReadyCountdown'
 import { getComputerAvatar } from '../../lib/computerAvatar'
+import { MatchResultDialog } from '../../features/game/components/MatchResultDialog'
+import { useMatchResult } from '../../features/game/hooks/useMatchResult'
 import { usePikafishHint } from '../../features/game/hooks/usePikafishHint'
 import { useReplayTrial } from '../../features/game/hooks/useReplayTrial'
 ﻿import { savedMatchSide } from '../../lib/savedMatchPerspective'
@@ -108,6 +110,8 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
     && (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     && new URLSearchParams(window.location.search).get('viewer') === '1'
   const { game } = match
+  const testBotId = useSessionStore(state => state.testBotId)
+  const testBotGold = useSessionStore(state => state.testBotGold)
   const checkedSide = useMemo(() => game.phase === 'playing' && isInCheck(game.currentTurn, game.board) ? game.currentTurn : null, [game.board, game.currentTurn, game.phase])
   const computerDemo = useSessionStore(state => state.computerDemo)
   const demoReadyCountdown = useDemoReadyCountdown(!replayMode && !positionTrial && !match.online && computerDemo && game.phase === 'ready')
@@ -203,11 +207,20 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
   }, [game.result])
   const isRoomViewer = replayMode || !positionTrial && ((match.online && !match.player) || viewerPreview)
   const actions = <MatchActions showDrawResign={!match.computer} visible={game.phase === 'playing' && !isRoomViewer && !match.computer} disabled={!!match.animation || match.pending} drawDisabled={!!match.room?.drawOffer} takebackDisabled={!match.canTakeback || !match.online && !match.computer || !!match.room?.takebackOffer || !!match.room?.drawOffer} takebacksLeft={match.takebacksLeft} onDraw={match.draw} onResign={match.resign} onTakeback={match.requestTakeback} />
-  const playerName = (side: 'red' | 'black') => replayData ? side === 'red' ? replayData.redName : replayData.blackName : computerDemo ? side === 'red' ? 'Máy · Đỏ' : 'Máy · Đen' : viewerPreview ? side === 'red' ? 'Picolozz' : 'Nguyễn Hoàng Minh Khôi' : positionTrial ? side === match.humanSide ? name : 'Ông Hoàng' : match.online ? match.room?.players.find(player => player.side === side)?.name ?? 'Đang chờ đối thủ' : match.computer ? side === match.humanSide ? name : match.computerEngine === 'pikafish' ? 'Ông Hoàng' : 'Máy · Cơ bản' : side === 'red' ? name : 'A31977844'
+  const playerName = (side: 'red' | 'black') => replayData ? side === 'red' ? replayData.redName : replayData.blackName : computerDemo ? side === 'red' ? 'Máy · Đỏ' : 'Máy · Đen' : viewerPreview ? side === 'red' ? 'Picolozz' : 'Nguyễn Hoàng Minh Khôi' : positionTrial ? side === match.humanSide ? name : 'Ông Hoàng' : match.online ? match.room?.players.find(player => player.side === side)?.name ?? 'Đang chờ đối thủ' : match.computer ? side === match.humanSide ? name : testBotId ? 'Máy giả · 2 nước' : match.computerEngine === 'pikafish' ? 'Ông Hoàng' : 'Máy · Cơ bản' : side === 'red' ? name : 'A31977844'
   const leftSide = replayData ? savedMatchSide(replayData, name) : positionTrial || match.computer ? match.humanSide : match.online ? match.player?.side ?? 'red' : 'red'
   const rightSide = leftSide === 'red' ? 'black' : 'red'
   const playerSide = match.player?.side ?? (match.computer ? match.humanSide : leftSide)
-  const playCheckmateEffect = !replayMode && !!game.lastMove && game.result?.reason === 'checkmate'
+  const playCheckmateEffect = !replayMode && !!game.lastMove && (game.result?.reason === 'checkmate' || !!testBotId && !!game.result?.winner)
+  const resultDialog = useMatchResult({
+    game,
+    roomKey: match.online ? match.room!.id : 'local',
+    side: match.online ? match.player?.side ?? null : match.computer ? match.humanSide : 'red',
+    enabled: !replayMode && !positionTrial && !viewerPreview,
+    waitForCheckmate: playCheckmateEffect,
+    audioComplete: match.checkmateAudioComplete,
+    completed: match.online ? match.room?.lastCompletedMatch : undefined,
+  })
   const showLikeOnSide = (side: Side) => match.online && Boolean(match.room?.players.some(player => player.side === side)) && (isRoomViewer || side !== playerSide)
   const canGrantOnSide = (side: Side) => !replayMode && (isRoomViewer || side !== playerSide) && (!match.online || Boolean(match.room?.players.some(player => player.side === side)))
   const outcome = (side: 'red' | 'black') => game.result?.winner ? game.result.winner === side ? 'win' as const : 'loss' as const : undefined
@@ -290,7 +303,7 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
 
           <div className="pointer-events-auto absolute inset-x-0 top-[459px] -bottom-[10px] z-8 short-desktop:top-[379px] compact:fixed compact:right-auto compact:bottom-[34px] compact:left-3 compact:top-auto compact:h-[min(220px,calc(100dvh-116px))] compact:w-[330px] compact:max-w-[calc(100vw-24px)]" hidden={!showRoomFeatures || !showUsers}><RoomUsersPanel users={roomUsers} queued={viewerQueueAction?.queued ?? false} queueDisabled={viewerQueueAction?.disabled ?? false} onToggleQueue={viewerQueueAction?.onToggle} onAvatarClick={openPlayerProfile} /></div>
         </div>
-        <Board hintMove={hints.hint} hiddenChess={game.variant === 'jieqi'} checkmateEffect={playCheckmateEffect} checkSide={checkedSide} flipped={leftSide === 'black'} board={game.board} selected={trial.active ? trial.selected : match.selected} legalMoves={trial.active ? trial.moves : match.legalMoves} forbiddenMoves={match.forbiddenMoves} animation={trial.active ? trial.animation : match.animation} lastMove={game.lastMove} frameWidth={layout.frameWidth} scale={layout.scale}
+        <Board onCheckmateEffectComplete={resultDialog.complete} hintMove={hints.hint} hiddenChess={game.variant === 'jieqi'} checkmateEffect={playCheckmateEffect} checkSide={checkedSide} flipped={leftSide === 'black'} board={game.board} selected={trial.active ? trial.selected : match.selected} legalMoves={trial.active ? trial.moves : match.legalMoves} forbiddenMoves={match.forbiddenMoves} animation={trial.active ? trial.animation : match.animation} lastMove={game.lastMove} frameWidth={layout.frameWidth} scale={layout.scale}
           disabled={trial.active ? entrance.entering || !!trial.animation || game.phase !== 'playing' : isRoomViewer || match.computer && game.currentTurn !== match.humanSide || entrance.entering || intro.visible || game.phase !== 'playing' || !!match.animation || match.pending || match.online && match.player?.side !== game.currentTurn}
           showStart={(!match.online || (match.room?.players.length ?? 0) === 2) && (demoReadyCountdown !== null || !isRoomViewer && !(match.online && match.player?.ready) && (game.phase === 'ready' && !(match.computer && match.computerEngine === 'pikafish') || game.phase === 'finished' && resultReady))} startDisabled={match.pending || match.online && !!match.player?.ready} startLabel={startLabel} readyCountdown={match.online ? match.room?.readyCountdown : demoReadyCountdown} onSelect={trial.active ? trial.select : match.select} onStart={match.start} />
         <div data-room-content className="relative flex h-full min-h-0 min-w-0 flex-col gap-[15px] self-center pt-[72px] desktop:max-h-(--board-height) compact:pt-0 compact:col-start-2 compact:row-start-1">
@@ -360,6 +373,7 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
       <p className="leading-relaxed">{profileNotice}</p>
       <button autoFocus className={`${lobbyButton} mx-auto mt-5 px-6`} onClick={() => setProfileNotice('')}>Đã hiểu</button>
     </dialog>
+    {resultDialog.outcome && <MatchResultDialog outcome={resultDialog.outcome} rewardGold={testBotId ? testBotGold : undefined} onClose={resultDialog.dismiss} />}
     {match.computerState.error && game.phase === 'playing' && <button className={`${lobbyButton} fixed bottom-5 left-1/2 z-40 -translate-x-1/2`} onClick={match.computerState.retry}>Thử lại lượt máy</button>}
     {entrance.entering && OPENING_MODE === 'cover-transform' && <OpeningCover onComplete={entrance.finishEntrance} />}
   </div>

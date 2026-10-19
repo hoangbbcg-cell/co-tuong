@@ -1,4 +1,5 @@
 import { CrispUiImage } from '../../../lib/CrispUiImage'
+import { isShopAvatarFrame } from '../../../lib/avatarFrames'
 type AvatarFrameOverlayProps = {
   src: string
   alt?: string
@@ -16,7 +17,7 @@ export function AvatarFrameOverlay({ src, alt = '', dimmed = false }: AvatarFram
 
   return <span
     className="pointer-events-none absolute z-10 max-w-none -translate-x-1/2 -translate-y-1/2 overflow-hidden"
-    style={{ left: '50.5%', top: '50.6%', width: frameSize, height: frameSize, clipPath: 'circle(44.8% at 50% 50%)', filter: dimmed ? 'brightness(0.72)' : undefined }}
+    style={{ left: '50.5%', top: '50.6%', width: frameSize, height: frameSize, clipPath: isShopAvatarFrame(src) ? undefined : 'circle(44.8% at 50% 50%)', filter: dimmed ? 'brightness(0.72)' : undefined }}
   >
     <CrispUiImage src={src} alt={alt} className="block size-full object-contain" />
   </span>

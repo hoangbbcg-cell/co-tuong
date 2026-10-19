@@ -1,4 +1,12 @@
 import { ShopFilterTab } from './ShopFilterTab'
+import { ShopPurchaseDialog } from './ShopPurchaseDialog'
+import { SHOP_PRODUCTS } from '../../lib/shopCatalog'
+import { useShopPurchase } from '../../features/lobby/hooks/useShopPurchase'
+import strategistAvatar from '../../assets/shop/avatars/small/lao-quan-su-128.png'
+import generalAvatar from '../../assets/shop/avatars/small/nam-tuong-quan-128.png'
+import redShopFrame from '../../assets/shop/frames/vien_03_do.png'
+import jadeShopFrame from '../../assets/shop/frames/vien_08_xanh_ngoc.png'
+import purpleShopFrame from '../../assets/shop/frames/vien_09_tim.png'
 import { MarketHeading } from './MarketHeading'
 import activeMarketTab from '../../assets/shop/tab-active.png'
 import idleMarketTab from '../../assets/shop/tab-idle-v2.png'
@@ -28,14 +36,25 @@ import { getCrispUiLayout } from '../../lib/crispUiRendering'
 
 const ornatePanel = 'border-2 border-[#a56c2c] bg-[linear-gradient(135deg,#45240d,#160c06_60%,#3a1b08)] shadow-[inset_0_0_0_2px_#241007,inset_0_0_0_3px_#bc8545,0_3px_5px_#000a]'
 
+const shopArtwork: Record<string, string | null> = {
+  'avatar-16': strategistAvatar,
+  'avatar-17': generalAvatar,
+  'frame-4': redShopFrame,
+  'frame-5': jadeShopFrame,
+  'frame-6': purpleShopFrame,
+}
+const shopProducts = SHOP_PRODUCTS.map(product => ({ ...product, image: shopArtwork[product.id] }))
+
 export function ShopPage() {
   const home = useHome()
   const layout = useHomeLayout()
   const resources = homeResourceLayout(layout.scale, layout.compact)
   const [tab, setTab] = useState('Tất cả')
+  const products = shopProducts.filter(item => tab === 'Tất cả' || item.kind === (tab === 'Avatar' ? 'avatar' : 'frame'))
   const [market, setMarket] = useState(0)
   const marketNames = ['Phiên Chợ Hàng Ngày', 'Cửa Hàng Cao Cấp', 'Sự Kiện']
   const [message, setMessage] = useState('')
+  const shop = useShopPurchase(setMessage)
   const energyRef = useRef<HTMLDialogElement>(null)
   const back = () => useSessionStore.setState({ screen: 'home' })
   return <main aria-label="Cửa Hàng" className="fixed inset-0 overflow-hidden bg-[#263a35] font-heading text-[#ffe6b0]">
@@ -71,21 +90,21 @@ export function ShopPage() {
           {['Tất cả', 'Avatar', 'Khung Viền'].map(label => <ShopFilterTab key={label} label={label} selected={tab === label} onClick={() => setTab(label)} />)}
         </div>
         <div role="tabpanel" aria-label={tab} className="mt-0 flex min-h-0 flex-1 flex-col overflow-y-auto rounded-lg border border-[#825224] bg-[#1a0c06dc] p-[10px]">
-          {market === 0 && tab !== 'Khung Viền' ? <div className="grid min-h-0 flex-1 grid-cols-4 grid-rows-2 gap-[10px] compact:grid-cols-2">
-            <article aria-label="Avatar demo" className={`${ornatePanel} relative flex min-h-0 flex-col overflow-hidden rounded-lg`}>
+          {market === 0 ? <div className="grid min-h-0 flex-1 grid-cols-4 grid-rows-2 gap-[10px] compact:grid-cols-2">
+            {products.map(avatar => <article key={avatar.name} aria-label={avatar.name} className={`${ornatePanel} relative flex min-h-0 flex-col overflow-hidden rounded-lg`}>
               <div className="relative flex min-h-0 flex-1 items-center justify-center bg-[radial-gradient(ellipse_at_center,#753518,#241006_75%)] p-1 compact:p-1">
-                <div className="aspect-square h-full max-w-full overflow-hidden rounded-full"><AvatarPortrait avatarIndex={0} className="size-full rounded-full" /></div>
+                <div role={avatar.kind === 'avatar' ? 'img' : undefined} aria-label={avatar.kind === 'avatar' ? avatar.name : undefined} className={avatar.kind === 'frame' ? 'aspect-square h-full max-w-full' : 'aspect-square h-full max-w-full overflow-hidden rounded-full'}>{avatar.kind === 'frame' ? <CrispUiImage src={avatar.image ?? ''} alt={avatar.name} className="block size-full object-contain" /> : <AvatarPortrait avatarIndex={Number(avatar.code.replace('avatar-', ''))} className={`size-full rounded-full ${avatar.image ? '' : 'scale-[1.12]'}`} />}</div>
               </div>
               <div className="flex h-10 shrink-0 items-center gap-2 border-t border-[#805021] bg-[#130a04] px-3 py-1 text-xl compact:h-9 compact:px-2 compact:text-base">
-                <ResourceArtwork smooth src={goldIcon} alt="Vàng" className="h-7 w-auto compact:h-5" /><span className="font-number tabular-nums">500</span>
-                <button type="button" aria-label="Mua avatar" onClick={() => setMessage('Sản phẩm đang được xem thử, chưa mở bán.')} className={`${buttonInteraction} ml-auto rounded border border-[#f4cc74] bg-[linear-gradient(#ffe6a0,#d99a31)] px-3 py-1 font-heading text-base font-bold leading-none text-[#3d1d06] hover:brightness-110 compact:px-2 compact:text-sm`}>Mua</button>
+                <ResourceArtwork smooth src={goldIcon} alt="Vàng" className="h-7 w-auto compact:h-5" /><span className="font-number tabular-nums">{avatar.price}</span>
+                <button type="button" aria-label={avatar.kind === 'frame' ? `Mua ${avatar.name}` : `Mua avatar ${avatar.name}`} onClick={() => shop.open(avatar)} className={`${buttonInteraction} ml-auto rounded border border-[#f4cc74] bg-[linear-gradient(#ffe6a0,#d99a31)] px-3 py-1 font-heading text-base font-bold leading-none text-[#3d1d06] hover:brightness-110 compact:px-2 compact:text-sm`}>Mua</button>
               </div>
-            </article>
-          </div> : <p className="grid h-full min-h-28 place-items-center text-xl text-[#eac78d]">{market === 0 ? 'Chưa có khung viền.' : 'Chưa có sản phẩm.'}</p>}
-          {market === 0 && tab !== 'Khung Viền' && <p className="mt-2 shrink-0 text-xs text-[#d6b48a]">Sản phẩm xem thử</p>}
+            </article>)}
+          </div> : <p className="grid h-full min-h-28 place-items-center text-xl text-[#eac78d]">Chưa có sản phẩm.</p>}
         </div>
       </section>
     </div>
+    {shop.selected && <ShopPurchaseDialog name={shop.selected.name} price={shop.selected.price} buying={shop.buying} onCancel={shop.cancel} onConfirm={() => void shop.confirm()} />}
     <EnergyDialog dialogRef={energyRef} onUnavailable={() => setMessage('Video và thanh toán chưa được tích hợp.')} />
     {message && <div role="alert" className="absolute inset-x-4 bottom-5 z-50 mx-auto flex max-w-lg items-center gap-4 rounded-lg border border-[#bc8545] bg-[#231107] p-4 text-lg"><span>{message}</span><button type="button" aria-label="Đóng thông báo" className="ml-auto px-2 text-2xl" onClick={() => setMessage('')}>×</button></div>}
     </div>

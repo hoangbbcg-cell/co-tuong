@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
+import { useRoomSelection } from '../src/features/lobby/hooks/useRoomSelection'
+import type { useLobby } from '../src/features/lobby/hooks/useLobby'
 import { useLobbyPresence } from '../src/features/lobby/hooks/useLobbyPresence'
 import { useSessionStore } from '../src/store/sessionStore'
 
@@ -23,4 +25,17 @@ it('moves presence with the selected area without changing the profile address o
   expect(transport.emit).toHaveBeenLastCalledWith('lobby:presence', 'Selected province')
   hook.unmount()
   expect(transport.emit).toHaveBeenLastCalledWith('lobby:presence', null)
+})
+
+it('requires profile location only when opening the province picker', () => {
+  useSessionStore.setState({ screen: 'rooms', countryCode: null })
+  const lobby = { province: '', rooms: [] } as unknown as ReturnType<typeof useLobby>
+  const hook = renderHook(() => useRoomSelection(lobby))
+  act(() => hook.result.current.openProvincePicker())
+  expect(hook.result.current.provincePickerOpen).toBe(false)
+  expect(hook.result.current.message).toContain('chọn địa chỉ')
+  expect(useSessionStore.getState().screen).toBe('rooms')
+  act(() => { useSessionStore.setState({ countryCode: 'VN' }); hook.result.current.openProvincePicker() })
+  expect(hook.result.current.provincePickerOpen).toBe(true)
+  hook.unmount()
 })

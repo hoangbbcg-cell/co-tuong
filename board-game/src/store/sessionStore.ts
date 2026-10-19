@@ -46,6 +46,8 @@ interface SessionStore {
   screen: 'home' | 'rooms' | 'computer' | 'position' | 'game' | 'replay' | 'shop'
   mode: 'local' | 'online' | 'computer'
   computerDemo: boolean
+  testBotId?: string
+  testBotGold?: number
   computerDemoQueued: boolean
   customPositionTrial: boolean
   computerEngine: ComputerEngine
@@ -117,10 +119,10 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
   avatarIndex: 0,
   setAvatarIndex: avatarIndex => set({ avatarIndex }),
   joinLocal: () => {
-    set({ screen: 'game', mode: 'local', computerDemo: false, computerDemoQueued: false, customPositionTrial: false, computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, room: null, notice: '' })
+    set({ screen: 'game', mode: 'local', testBotId: undefined, testBotGold: undefined, computerDemo: false, computerDemoQueued: false, customPositionTrial: false, computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, room: null, notice: '' })
     get().append(`${get().name} đã vào phòng.`, true)
   },
-  enterOnline: room => set({ screen: 'game', room, mode: 'online', computerDemo: false, computerDemoQueued: false, customPositionTrial: false, lobbyOpen: false, notice: '' }),
+  enterOnline: room => set({ screen: 'game', room, mode: 'online', testBotId: undefined, testBotGold: undefined, computerDemo: false, computerDemoQueued: false, customPositionTrial: false, lobbyOpen: false, notice: '' }),
   receiveRoom: (room, playerId) => {
     const state = get()
     if (state.mode !== 'online' || state.room?.id !== room.id) return
@@ -128,7 +130,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     set({ room })
     if (started && !get().account) get().consumeEnergy()
   },
-  leave: (notice = '') => set({ screen: 'home', room: null, mode: 'local', computerDemo: false, computerDemoQueued: false, customPositionTrial: false, computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, notice }),
+  leave: (notice = '') => set({ screen: 'home', room: null, mode: 'local', testBotId: undefined, testBotGold: undefined, computerDemo: false, computerDemoQueued: false, customPositionTrial: false, computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, notice }),
   append: (text, system = false) => set(state => ({ messages: [...state.messages, {
     id: createClientId(), name: system ? '' : state.name, text: text.trim().slice(0, 300), system,
   }].slice(-100) })),

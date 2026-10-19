@@ -4,12 +4,14 @@ import type { PoolConnection, RowDataPacket } from 'mysql2/promise'
 import { getMysqlConnection } from './mysqlPool'
 
 export const FOUNDATION_TABLES = ['users', 'user_game_stats', 'user_resources', 'matches', 'match_players', 'match_moves', 'resource_events', 'saved_matches', 'saved_positions', 'friendships', 'user_follows', 'user_blocks', 'conversations', 'conversation_members', 'messages', 'honors', 'user_honors', 'honor_endorsements', 'match_likes'] as const
-export const migrationFiles = ['001_foundation.sql', '002_accounts_and_resources.sql', '003_honor_catalog.sql', '004_google_identity.sql'] as const
+export const migrationFiles = ['001_foundation.sql', '002_accounts_and_resources.sql', '003_honor_catalog.sql', '004_google_identity.sql', '005_admin_tools.sql'] as const
 export interface MigrationStep { version: string; checksum: string; sql: string }
 
 /** Deliberately small format: no procedures, quoted semicolons or custom delimiters. */
 export function migrationSteps(file: string, contents: string): MigrationStep[] {
-  const statements = contents.replace(/^\s*--.*$/gm, '').split(';').map(sql => sql.trim()).filter(Boolean)
+  // Git on Windows can check out CRLF while the applied journal was built from LF.
+  // Canonicalize line endings only; changes to SQL still invalidate its checksum.
+  const statements = contents.replace(/\r\n/g, '\n').replace(/^\s*--.*$/gm, '').split(';').map(sql => sql.trim()).filter(Boolean)
   return statements.map((sql, index) => {
     const safe = sql.replace(/\bDROP CHECK\s+\w+/gi, '')
     if (!/^(CREATE TABLE|ALTER TABLE|INSERT INTO honors\b)/i.test(sql) || /\b(DROP|TRUNCATE|DELETE)\b/i.test(safe)) throw new Error('Migration contains unsupported SQL.')

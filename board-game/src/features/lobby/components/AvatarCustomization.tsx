@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { AvatarComparison } from './AvatarComparison'
+import { SmallAvatarPortrait } from '../../../lib/SmallAvatarPortrait'
+import { useSessionStore } from '../../../store/sessionStore'
 import type { ReactNode } from 'react'
 import avatarSelectionSprite from '../../../assets/profile/avatar-selection-sprite.png'
 import { AVATAR_FRAMES, getAvatarFrame } from '../../../lib/avatarFrames'
@@ -42,14 +45,19 @@ function CustomizationTabIcon({ name }: { name: CustomizationTabIconName }) {
 }
 
 export function AvatarPortrait({ avatarIndex, className }: { avatarIndex: number; className: string }) {
+  if (avatarIndex >= 15 && avatarIndex <= 17) return <SmallAvatarPortrait avatarIndex={avatarIndex} className={className} />
   const column = avatarIndex % 5
   const row = Math.floor(avatarIndex / 5)
 
   return <span aria-hidden="true" className={`block cursor-pointer bg-no-repeat ${className}`} style={{ backgroundImage: `url(${avatarSelectionSprite})`, backgroundSize: '550% 330%', backgroundPosition: `${AVATAR_SPRITE_COLUMN_POSITIONS[column]}% ${AVATAR_SPRITE_ROW_POSITIONS[row]}%` }} />
 }
 
-export function AvatarCustomization({ onCancel, onUse, previewPanel, selectedAvatarIndex, selectedFrameIndex }: { onCancel: () => void; onUse: (avatarIndex: number, frameIndex: number) => void; previewPanel: ReactNode; selectedAvatarIndex: number; selectedFrameIndex: number }) {
+export function AvatarCustomization({ elo = 1000, onCancel, onUse, previewPanel, selectedAvatarIndex, selectedFrameIndex }: { elo?: number; onCancel: () => void; onUse: (avatarIndex: number, frameIndex: number) => void; previewPanel: ReactNode; selectedAvatarIndex: number; selectedFrameIndex: number }) {
+  const cosmetics = useSessionStore(state => state.account?.cosmetics)
+  const availableAvatars = [...new Set([...AVATAR_DISPLAY_ORDER, ...(cosmetics ?? []).filter(item => item.kind === 'avatar').map(item => Number(item.code.replace('avatar-', '')))])].filter(index => Number.isInteger(index) && index >= 0 && index < 18 && index !== 15)
   const [activeTab, setActiveTab] = useState<CustomizationTabIconName>('avatar')
+  const previewRef = useRef<HTMLSpanElement>(null)
+  const [comparisonSize, setComparisonSize] = useState<number | null>(null)
   const [draftAvatarIndex, setDraftAvatarIndex] = useState(selectedAvatarIndex)
   const [draftFrameIndex, setDraftFrameIndex] = useState(selectedFrameIndex)
   const [appliedSelection, setAppliedSelection] = useState<{ avatarIndex: number; frameIndex: number } | null>(null)
@@ -60,7 +68,7 @@ export function AvatarCustomization({ onCancel, onUse, previewPanel, selectedAva
       <div className="relative flex h-[var(--ui-p-188,188px)] min-h-0 shrink-0 self-center -translate-y-[var(--ui-p-18,18px)] flex-col items-center justify-center">
         <div className="relative h-[var(--ui-p-183,183px)] w-[var(--ui-p-136,136px)] shrink-0">
           <span className="absolute top-0 left-0 grid size-[var(--ui-p-136,136px)] place-items-center">
-            <span className="absolute size-full overflow-hidden rounded-full bg-[#123334]"><AvatarPortrait avatarIndex={draftAvatarIndex} className="size-full rounded-full" /></span><AvatarFrameOverlay src={getAvatarFrame(draftFrameIndex).image} /><AvatarRankBadge />
+            <span ref={previewRef} className="absolute size-full overflow-hidden rounded-full bg-[#123334]"><AvatarPortrait avatarIndex={draftAvatarIndex} className="size-full rounded-full" /></span><AvatarFrameOverlay src={getAvatarFrame(draftFrameIndex).image} /><AvatarRankBadge elo={elo} />
           </span>
         </div>
       </div>
@@ -84,14 +92,16 @@ export function AvatarCustomization({ onCancel, onUse, previewPanel, selectedAva
       </button>)}
     </nav>
 
-    {activeTab === 'avatar' ? <div aria-label="Chọn một trong 5 avatar" className="grid min-h-0 flex-1 grid-cols-5 grid-rows-3 gap-2 rounded-[var(--ui-p-10,10px)] border border-[#9f6025] bg-[#1c0d07aa] p-2 shadow-[inset_0_0_12px_#0d0503]">
-      {AVATAR_DISPLAY_ORDER.map(avatarIndex => <button key={`avatar-${avatarIndex}`} type="button" aria-label={`Chọn avatar nhân vật ${avatarIndex + 1}`} aria-pressed={draftAvatarIndex === avatarIndex} onClick={() => setDraftAvatarIndex(avatarIndex)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] border-2 ${draftAvatarIndex === avatarIndex ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
-        <AvatarPortrait avatarIndex={avatarIndex} className="h-[calc(100%-var(--ui-p-8,8px))] aspect-square rounded-full" />
+    {activeTab === 'avatar' ? <div aria-label="Chọn avatar đã sở hữu" className="grid min-h-0 flex-1 grid-cols-5 grid-rows-[repeat(3,calc((100%-16px)/3))] auto-rows-[calc((100%-16px)/3)] gap-2 overflow-y-auto rounded-[var(--ui-p-10,10px)] border border-[#9f6025] bg-[#1c0d07aa] p-2 shadow-[inset_0_0_12px_#0d0503]">
+      {availableAvatars.map(avatarIndex => <button key={`avatar-${avatarIndex}`} type="button" aria-label={`Chọn avatar nhân vật ${avatarIndex + 1}`} aria-pressed={draftAvatarIndex === avatarIndex} onClick={() => setDraftAvatarIndex(avatarIndex)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] border-2 ${draftAvatarIndex === avatarIndex ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
+        <span className="block h-[calc(100%-var(--ui-p-8,8px))] max-w-full aspect-square overflow-hidden rounded-full">
+          <AvatarPortrait avatarIndex={avatarIndex} className={`size-full rounded-full ${avatarIndex < 15 ? 'scale-[1.12]' : ''}`} />
+        </span>
         {draftAvatarIndex === avatarIndex && <SelectionCornerGlints />}
         {selectedAvatarIndex === avatarIndex && <span aria-hidden="true" className="absolute right-1 bottom-1 grid size-6 place-items-center rounded-full border-2 border-[#d4f387] bg-[#285a24] text-base font-bold leading-none text-[#eaffb5] shadow-[0_1px_3px_#170c04]">✓</span>}
       </button>)}
     </div> : activeTab === 'frame' ? <div aria-label="Khung avatar, 6 cột và 3 hàng" className="grid min-h-0 flex-1 grid-cols-6 grid-rows-3 gap-2 rounded-[var(--ui-p-10,10px)] border border-[#9f6025] bg-[#1c0d07aa] p-2 shadow-[inset_0_0_12px_#0d0503]">
-      {Array.from({ length: 18 }, (_, index) => index < AVATAR_FRAMES.length
+      {Array.from({ length: 18 }, (_, index) => index < AVATAR_FRAMES.length && (index < 4 || (cosmetics ?? []).some(item => item.kind === 'frame' && item.code === `frame-${index}`))
         ? <button key={`frame-${index}`} type="button" aria-label={AVATAR_FRAMES[index].label} aria-pressed={draftFrameIndex === index} onClick={() => setDraftFrameIndex(index)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] border-2 ${draftFrameIndex === index ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
           <span className="relative grid h-full max-h-full aspect-square place-items-center"><span className="relative grid size-[77.1%] place-items-center"><AvatarFrameOverlay src={AVATAR_FRAMES[index].image} /></span></span>
           {draftFrameIndex === index && <SelectionCornerGlints />}
@@ -101,6 +111,7 @@ export function AvatarCustomization({ onCancel, onUse, previewPanel, selectedAva
     </div> : <div aria-hidden="true" className="min-h-0 flex-1" />}
 
     <footer className="flex h-[var(--ui-p-50,50px)] shrink-0 items-center justify-center gap-4">
+      <button type="button" className="text-sm underline" onClick={() => setComparisonSize(Math.round(previewRef.current?.getBoundingClientRect().width || 136))}>So sánh độ nét A/B/C</button>
       <button type="button" onClick={onCancel} className={actionButton}>Hủy</button>
       <button type="button" aria-disabled={selectionApplied} onClick={() => {
         if (selectionApplied) return
@@ -108,5 +119,6 @@ export function AvatarCustomization({ onCancel, onUse, previewPanel, selectedAva
         setAppliedSelection({ avatarIndex: draftAvatarIndex, frameIndex: draftFrameIndex })
       }} className={selectedButton} style={{ filter: selectionApplied ? 'brightness(0.65)' : undefined }}>Sử dụng</button>
     </footer>
+    {comparisonSize !== null && <AvatarComparison size={comparisonSize} onClose={() => setComparisonSize(null)} />}
   </div>
 }

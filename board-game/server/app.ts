@@ -1,6 +1,7 @@
 import express from 'express'
 import type { ErrorRequestHandler } from 'express'
 import { createServer } from 'node:http'
+import { adminRouter } from './controllers/adminController'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Server } from 'socket.io'
@@ -38,6 +39,7 @@ export function createApplication() {
   const persistence=databaseEnabled?new RoomPersistence():undefined
   const service = new RoomService(new RoomRepository(persistence?room=>persistence.observe(room):undefined,persistence?room=>persistence.canStart(room):undefined))
   if(databaseEnabled) {
+    app.use('/api/admin', adminRouter())
     app.use('/api/account',accountRouter(account,undefined,()=>new Set([...persistence!.identities.values()].map(p=>p.id))))
     io.use(async(socket,next)=>{
       try {
@@ -71,6 +73,7 @@ export function createApplication() {
   }
   app.use(onError)
   app.use(express.static(resolve(fileURLToPath(new URL('..', import.meta.url)), 'dist')))
+  app.get(['/admin', '/admin/'], (_req, res) => res.sendFile(resolve(fileURLToPath(new URL('..', import.meta.url)), 'dist/index.html')))
   const interval = registerRoomSockets(io, service,persistence)
   registerLobbyPresence(io, new LobbyPresenceService(new LobbyPresenceRepository()))
   const challengeInterval = registerChallengeSockets(io, new ChallengeService(new ChallengeRepository(), service),persistence)

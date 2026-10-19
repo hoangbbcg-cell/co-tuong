@@ -60,3 +60,5 @@ So sánh đối thủ với người đang được tính điểm, dùng cấp b
 
 ## Triển khai persistence 2026-10-16
 Người dùng chốt bổ sung: thắng đối thủ chênh ngoài3 sao cộng20 Elo (cả hai hướng); mỗi trận PvP thắng nhận ngẫu nhiên125–150 vàng, không trừ vàng người thua. Thua giữ hướng đối thủ: cao hơn trừ10, thấp hơn trừ13. Hòa không cộng/trừ Elo và không thưởng thắng. Đã triển khai backend rating/transaction; chưa đổi thuật toán ghép nhanh.
+
+- 2026-10-18: Sửa Chơi nhanh không địa chỉ bị Tỉnh/thành phố không hợp lệ khi hết đối thủ: applyAccount đặt province rỗng, Home trước gửi chuỗi rỗng tạo bàn. Nay quick xiangqi/jieqi bỏ province nếu trống, roomApi.create cũng chuẩn hóa trường tùy chọn để đồng bộ mọi nơi tạo. Không gán tỉnh giả/không bắt khai địa chỉ khi chơi ngẫu nhiên; chỉ chọn tỉnh trong Chọn Bàn yêu cầu địa chỉ.7/7 quick/presence tests PASS gồm Guest province rỗng ở2variant, typecheck/build PASS, dist xác nhận. Chưa browser QA. Lỗi lưu địa chỉ trước vẫn chưa xác định, không coi là đã sửa.

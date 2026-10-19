@@ -1,4 +1,4 @@
-﻿import { RoomPasswordDialog } from './RoomPasswordDialog'
+import { RoomPasswordDialog } from './RoomPasswordDialog'
 import { CreateRoomForm } from './CreateRoomForm'
 import { PlayerNameValidationDialog } from './PlayerNameValidationDialog'
 import background from '../../../assets/backgrounds/computer.png'
@@ -52,7 +52,7 @@ export function RoomSelection({ lobby, music, onClose, onEntranceComplete, onOpe
     </header>
     <div className="mx-auto flex min-h-0 w-[calc(88%-180px)] flex-1 flex-col pt-3 compact:w-full compact:px-2 compact:pt-2">
       <div className="grid shrink-0 grid-cols-[3fr_2.5fr_4fr] gap-3 px-[10px] compact:grid-cols-2 compact:gap-2">
-        <button type="button" aria-label={`Chọn tỉnh/thành phố, hiện tại ${provinceLabel}`} onClick={() => selection.setProvincePickerOpen(true)} className={`${framedButton} relative isolate flex h-[72px] items-center gap-3 px-6 py-[5px] compact:h-[64px] compact:gap-1 compact:px-3`}>
+        <button type="button" aria-label={`Chọn tỉnh/thành phố, hiện tại ${provinceLabel}`} onClick={selection.openProvincePicker} className={`${framedButton} relative isolate flex h-[72px] items-center gap-3 px-6 py-[5px] compact:h-[64px] compact:gap-1 compact:px-3`}>
           <img src={buttonImage} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 size-full object-fill" />
           <img src={roomProvinceIcon(selection.province)} alt="" className="relative z-10 block max-h-[56px] w-14 shrink-0 object-contain compact:max-h-12 compact:w-12"/>
           <h2 id="roomSelectionTitle" className="sr-only">Chọn Bàn</h2>

@@ -1,4 +1,6 @@
-﻿import { SocialPlayerName } from './SocialUi'
+import { useDatabaseProfile } from '../hooks/useDatabaseProfile'
+import { useSessionStore } from '../../../store/sessionStore'
+import { SocialPlayerName } from './SocialUi'
 import { MessageAccountAvatar } from './MessageAccountAvatar'
 import { NumberText } from '../../../lib/NumberText'
 import { useRef, useState, type CSSProperties, type FormEvent } from 'react'
@@ -59,6 +61,12 @@ export function MessagesOptionsPanel({ width, height, image, name, accountName, 
   width: number; height: number; image: string; name: string; accountName?: string; nicknameValue: string; isBlocked: boolean; isGroup?: boolean; members?: string[]; memberImages?: Record<string, string>; creatorName?: string; memberRowHeight?: number; memberListWidth?: number; selfName?: string; selfAvatarIndex?: number; onBack: () => void; onViewInfo: () => void; onSaveNickname: (nickname: string) => void; onChangeGroupImage: (image: string) => void; onToggleBlock: (blocked: boolean) => void; onDeleteConversation: () => void
   notificationMuteDuration?: NotificationMuteDuration; onSaveNotificationMute: (duration: NotificationMuteDuration) => void
 }) {
+  const ownName = useSessionStore(state => state.name)
+  const ownElo = useSessionStore(state => state.elo)
+  const profileName = accountName ?? name
+  const ownProfile = profileName === ownName
+  const profile = useDatabaseProfile(isGroup ? '' : profileName, ownProfile)
+  const elo = profile?.stats.find(stat => stat.variant === 'xiangqi')?.elo ?? (ownProfile ? ownElo : 1000)
   const [editingNickname, setEditingNickname] = useState(false)
   const [nicknameDraft, setNicknameDraft] = useState(nicknameValue)
   const [confirmBlock, setConfirmBlock] = useState(false)
@@ -104,7 +112,7 @@ export function MessagesOptionsPanel({ width, height, image, name, accountName, 
           ? <span role="img" aria-label={`Avatar ${name}`} className="block h-full w-full overflow-hidden rounded-full"><AvatarPortrait avatarIndex={0} className="h-full w-full rounded-full" /></span>
           : <CrispUiImage src={image} alt={`Avatar ${name}`} className="block h-full w-full cursor-pointer rounded-full object-cover" />}
         {!isGroup && !accountName && <AvatarFrameOverlay src={getAvatarFrame(0).image} alt={getAvatarFrame(0).label} />}
-        {!isGroup && <AvatarRankBadge />}
+        {!isGroup && <AvatarRankBadge elo={elo} />}
       </span>
       {canManageGroup && <>
         <input ref={groupAvatarInputRef} hidden type="file" accept="image/*" onChange={event => {

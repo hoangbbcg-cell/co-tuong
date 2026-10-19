@@ -1,7 +1,13 @@
 import { beforeEach, expect, it, vi } from 'vitest'
 const db = vi.hoisted(() => ({query:vi.fn(), execute:vi.fn(),release:vi.fn()}))
 vi.mock('../server/repositories/mysqlPool', () => ({getMysqlConnection:async () => db}))
-import { loadMigrations, migrateDatabase } from '../server/repositories/migrationRepository'
+import { loadMigrations, migrateDatabase, migrationSteps } from '../server/repositories/migrationRepository'
+
+it('normalizes checkout line endings but still detects SQL edits', () => {
+  const sql = 'CREATE TABLE example (\n id BIGINT UNSIGNED NOT NULL PRIMARY KEY\n);'
+  expect(migrationSteps('test.sql', sql)).toEqual(migrationSteps('test.sql', sql.replace(/\n/g, '\r\n')))
+  expect(migrationSteps('test.sql', sql)[0].checksum).not.toBe(migrationSteps('test.sql', sql.replace('BIGINT', 'INT'))[0].checksum)
+})
 beforeEach(() => {
   vi.clearAllMocks()
   db.query.mockImplementation(async (sql: string) => {

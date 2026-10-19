@@ -9,6 +9,7 @@ import { errorMessage } from '../../../services/api'
 import type { Position, Move, GameState } from '../../../types/game'
 import type { RoomCommand } from '../../../types/room'
 import { useComputer } from './useComputer'
+import { useTestBot } from './useTestBot'
 import { useMoveSound } from './useMoveSound'
 import { PIECE_MOVE_DURATION_MS } from '../moveAnimation'
 
@@ -16,6 +17,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
   const computerState = useComputer(!replay)
   const local = useGameStore()
   const session = useSessionStore()
+  const testBot = useTestBot()
   const [onlineSelected, setOnlineSelected] = useState<Position | null>(null)
   const [pending, setPending] = useState(false)
   const [repetitionNotice, setRepetitionNotice] = useState<{ message: string } | null>(null)
@@ -30,7 +32,8 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
   const moveCount = replay?.moveCount ?? (online ? session.room?.moveCount ?? 0 : local.history.length)
   const timeToTimeout = Math.min(game.remainingTime[game.currentTurn], (game.turnTimeLimitMs ?? TURN_TIME_LIMIT_MS) - game.turnElapsed)
   const clockWarningKey = !replay && !repetitionNotice && game.phase === 'playing' && timeToTimeout > 0 && timeToTimeout <= 10_000 ? `${game.currentTurn}:${moveCount}` : null
-  const { playMatchIntro } = useMoveSound(game.lastMove, game.board, moveCount, replay ? 'finished' : game.phase, game.result, clockWarningKey, replay?.moveOnlySound ?? false)
+  const soundResult = session.testBotId && game.result?.winner ? { ...game.result, reason: 'checkmate' as const } : game.result
+  const { playMatchIntro, checkmateAudioComplete } = useMoveSound(game.lastMove, game.board, moveCount, replay ? 'finished' : game.phase, soundResult, clockWarningKey, replay?.moveOnlySound ?? false)
   const player = session.room?.players.find(player => player.id === socket.id)
   const viewer = session.room?.viewers?.find(viewer => viewer.id === socket.id)
   const selected = replay ? null : online ? onlineSelected : local.selected
@@ -132,6 +135,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
       return
     }
     if (!online) {
+      if (session.testBotId) { void testBot.select(point); return }
       local.select(point, performance.now(), !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
       return
     }
@@ -141,7 +145,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
       void command({ type: 'move', move: { from: onlineSelected, to: point } })
     }
     setOnlineSelected(null)
-  }, [!!replay, session.computerDemo, session.lobbyOpen, computer, game.currentTurn, session.humanSide, online, local.select, pending, player, game.phase, game.board, onlineSelected, command, legalMoves, forbiddenMoves])
+  }, [!!replay, session.testBotId, testBot.select, session.computerDemo, session.lobbyOpen, computer, game.currentTurn, session.humanSide, online, local.select, pending, player, game.phase, game.board, onlineSelected, command, legalMoves, forbiddenMoves])
   const dismissRepetitionNotice = () => {
     if (replay) return
     if (online && !player) return
@@ -180,6 +184,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
   const variant = game.variant
   const start = useCallback(() => {
     if (replay) return
+    if (session.testBotId) { void testBot.start(game.variant ?? 'xiangqi'); return }
     if (online) {
       useSessionStore.getState().recoverEnergy()
       if (useSessionStore.getState().energy < 1) {
@@ -207,7 +212,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
     if (computer && session.computerEngine === 'basic') useSessionStore.setState({ humanSide: 'black' })
     local.start(performance.now())
     if (testComputerEnergy && (phase === 'ready' || phase === 'finished')) useSessionStore.getState().consumeEnergy()
-  }, [!!replay, online, session.room, player, game.phase, playMatchIntro, command, phase, variant, computer, session.computerEngine, local.reset, local.start, local.initialFen, local.loadPosition])
+  }, [!!replay, session.testBotId, testBot.start, online, session.room, player, game.phase, playMatchIntro, command, phase, variant, computer, session.computerEngine, local.reset, local.start, local.initialFen, local.loadPosition])
   useEffect(() => {
     if (computer && session.computerEngine === 'pikafish' && phase === 'ready') start()
   }, [computer, session.computerEngine, phase, start])
@@ -218,11 +223,11 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
   const takebacksLeft = online ? player ? session.room?.takebackRemaining?.[player.side] ?? 2 : 0 : computer ? local.takebacksRemaining : 0
   return {
     game, moveCount, online, computer, humanSide: session.humanSide, computerEngine: session.computerEngine, computerState, room: replay ? null : session.room, player: replay ? undefined : player, viewer: replay ? undefined : viewer, toggleQueue, selected, legalMoves, forbiddenMoves, repetitionNotice: replay ? '' : repetitionNotice?.message ?? '', repetitionAttemptNotice, dismissRepetitionNotice,
-    animation, select,
+    animation, select, checkmateAudioComplete,
     animationVersion: local.animationVersion, canTakeback, takebacksLeft, takebackDeclineVersion: local.takebackDeclineVersion,
-    status: computerState.error || session.notice || (computerState.thinking ? `${session.computerEngine === 'pikafish' ? 'Ông Hoàng' : 'Máy'} đang suy nghĩ…` : game.phase === 'playing' ? '' : gameStatus(game)), pending,
+    status: testBot.error || computerState.error || session.notice || (testBot.pending ? 'Máy giả đang xử lý…' : session.testBotId && game.phase === 'playing' ? 'Máy giả: đi 2 nước hợp lệ để thắng.' : computerState.thinking ? `${session.computerEngine === 'pikafish' ? 'Ông Hoàng' : 'Máy'} đang suy nghĩ…` : game.phase === 'playing' ? '' : gameStatus(game)), pending: pending || testBot.pending,
     start,
-    reset: () => replay ? undefined : online ? void command({ type: 'reset' }) : local.reset(performance.now(), game.variant),
+    reset: () => replay ? undefined : session.testBotId ? void testBot.start(game.variant ?? 'xiangqi') : online ? void command({ type: 'reset' }) : local.reset(performance.now(), game.variant),
     requestTakeback: () => {
       if (online) void command({ type: 'request-takeback' })
       else if (computer && canTakeback && local.takebacksRemaining > 0) local.declineTakeback()

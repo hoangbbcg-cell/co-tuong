@@ -27,7 +27,7 @@ try {
   await admin.query("CREATE USER 'cotuong_app'@'localhost' IDENTIFIED BY ?",[password])
   await admin.query("GRANT ALL ON cotuong.* TO 'cotuong_app'@'localhost'")
   for(const command of ['migrate','migrate','verify','smoke'])await run(process.execPath,['--import','tsx','server/database.ts',command],env)
-  await run(process.execPath,['node_modules/vitest/vitest.mjs','run','tests/account-persistence.integration.test.ts'],env)
+  await run(process.execPath,['node_modules/vitest/vitest.mjs','run','tests/account-persistence.integration.test.ts','tests/admin.integration.test.ts','tests/shop.integration.test.ts','tests/test-bot.integration.test.ts','--maxWorkers=1'],env)
 } finally {
   if(admin){try{await admin.query('SHUTDOWN')}catch{}await admin.end()}
   if(server&&server.exitCode===null){await new Promise(resolve=>{server.once('exit',resolve);setTimeout(()=>server.kill(),5000)})}

@@ -38,7 +38,8 @@ export function useHome() {
       const rooms = await client.fetchQuery({ queryKey: ['rooms'], queryFn: ({ signal }) => roomApi.list(signal), staleTime: 0 })
       const room = randomAvailableRoom(rooms, Math.random, variant)
       if (!requireEnergy()) return { blocked: true as const }
-      const destination = room ?? await (variant === 'jieqi' ? roomApi.create('Bàn Cờ Úp', 10, 60, useSessionStore.getState().province, undefined, 'jieqi') : roomApi.create('Bàn cờ', 10, 60, useSessionStore.getState().province))
+      const province = useSessionStore.getState().province.trim() || undefined
+      const destination = room ?? await (variant === 'jieqi' ? roomApi.create('Bàn Cờ Úp', 10, 60, province, undefined, 'jieqi') : roomApi.create('Bàn cờ', 10, 60, province))
       return roomSocket.join(destination.id, name)
     },
     onSuccess: room => {

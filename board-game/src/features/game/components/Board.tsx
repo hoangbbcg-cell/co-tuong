@@ -41,7 +41,7 @@ const frameEdgeExtension = 0
 const moveMarkerImageClass = 'absolute block size-[155px] -translate-x-1/2 -translate-y-1/2 object-contain'
 const lastMovePieceRing = 'absolute size-[122px] -translate-x-1/2 -translate-y-1/2 rounded-full border-[5px] border-white bg-transparent shadow-[0_0_5px_1px_#ffffffb3]'
 const markerCorners = ['top-0 left-0 border-t-[7px] border-l-[7px]', 'top-0 right-0 border-t-[7px] border-r-[7px]', 'bottom-0 left-0 border-b-[7px] border-l-[7px]', 'bottom-0 right-0 border-b-[7px] border-r-[7px]']
-function playCheckmateHit(strikeX: number) {
+function playCheckmateHit(strikeX: number, onComplete?: () => void) {
   const overlay = document.createElement('div')
   overlay.setAttribute('aria-hidden', 'true')
   Object.assign(overlay.style, {
@@ -78,25 +78,27 @@ function playCheckmateHit(strikeX: number) {
   }
   const finishOnePass = () => {
     if (stopped || timer !== null) return
-    timer = window.setTimeout(stop, CHECKMATE_HIT_DURATION_MS)
+    timer = window.setTimeout(() => { stop(); onComplete?.() }, CHECKMATE_HIT_DURATION_MS)
   }
   image.addEventListener('load', finishOnePass, { once: true })
-  image.addEventListener('error', stop, { once: true })
+  image.addEventListener('error', () => { stop(); onComplete?.() }, { once: true })
   overlay.append(image)
   document.body.append(overlay)
   image.src = checkmateHitAnimation
   if (image.complete && image.naturalWidth > 0) finishOnePass()
   return stop
 }
-function animatePieceLift(layer: HTMLDivElement | null, variant: PieceLiftVariant, scale: number, excludePieceId: string | null, onStart?: () => void) {
+function animatePieceLift(layer: HTMLDivElement | null, variant: PieceLiftVariant, scale: number, excludePieceId: string | null, onStart?: () => void, onComplete?: () => void) {
   if (!layer || typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     onStart?.()
+    onComplete?.()
     return () => {}
   }
   const pieces = Array.from(layer.querySelectorAll<HTMLElement>('[data-checkmate-flight="true"]'))
     .filter(piece => piece.dataset.pieceId !== excludePieceId)
   if (!pieces.length || typeof pieces[0].animate !== 'function') {
     onStart?.()
+    onComplete?.()
     return () => {}
   }
 
@@ -141,6 +143,9 @@ function animatePieceLift(layer: HTMLDivElement | null, variant: PieceLiftVarian
     }
   })
   onStart?.()
+  // A browser may cancel an individual animation during a snapshot/layout update.
+  // Wait for every remaining animation; cancellation must not lose completion.
+  void Promise.allSettled(animations.map(animation => animation.finished)).then(() => onComplete?.())
   return () => animations.forEach(animation => animation.cancel())
 }
 function PieceMotion({ pieceId, selected, moving, duration, scale, path, children }: { pieceId: string; selected: boolean; moving: boolean; duration: number; scale: number; path: Array<{ left: number; top: number }>; children: ReactNode }) {
@@ -215,6 +220,7 @@ interface Props {
   frameWidth: number; scale: number; disabled: boolean; showStart: boolean; startDisabled: boolean
   startLabel: string; onSelect: (point: Position) => void; onStart: () => void
   onCheckmateEffectStart?: () => void
+  onCheckmateEffectComplete?: () => void
   onRemove?: (point: Position) => void
   readyCountdown?: number | null
 }
@@ -233,6 +239,8 @@ export const Board = memo(function Board(props: Props) {
   scaleRef.current = scale
   const checkmateStartRef = useRef(props.onCheckmateEffectStart)
   checkmateStartRef.current = props.onCheckmateEffectStart
+  const checkmateCompleteRef = useRef(props.onCheckmateEffectComplete)
+  checkmateCompleteRef.current = props.onCheckmateEffectComplete
   const checkmateLiftRef = useRef<{ key: string; status: 'scheduled' | 'started'; cancel?: () => void } | null>(null)
   useEffect(() => () => checkmateHitCancelRef.current?.(), [])
   const layerStyle = { width: props.frameWidth, height: props.frameWidth * 1296 / 1134 }
@@ -273,13 +281,18 @@ export const Board = memo(function Board(props: Props) {
     const startEffects = () => {
       if (checkmateLiftRef.current !== lift) return
       lift.status = 'started'
+      let liftDone = false
+      let hitDone = false
+      const finish = () => {
+        if (liftDone && hitDone && checkmateLiftRef.current === lift) checkmateCompleteRef.current?.()
+      }
       lift.cancel = animatePieceLift(piecesLayerRef.current, 'medium', scaleRef.current, effectPieceId, () => {
         checkmateHitCancelRef.current?.()
         const boardBounds = boardRef.current?.getBoundingClientRect()
         const strikeLeft = effectTarget ? location(effectTarget, props.flipped).left * scaleRef.current : props.frameWidth / 2
         const strikeX = boardBounds ? boardBounds.left + strikeLeft : window.innerWidth / 2
-        checkmateHitCancelRef.current = playCheckmateHit(strikeX)
-      })
+        checkmateHitCancelRef.current = playCheckmateHit(strikeX, () => { hitDone = true; finish() })
+      }, () => { liftDone = true; finish() })
     }
     if (animationRef.current) {
       const effectDelay = Math.max(0, PIECE_MOVE_DURATION_MS - 200)

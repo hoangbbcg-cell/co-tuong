@@ -10,6 +10,7 @@ import { errorMessage } from '../../../services/api'
 export function useComputer(allowed = true) {
   const enabled = useSessionStore(state => allowed && state.screen === 'game' && state.mode === 'computer')
   const demo = useSessionStore(state => state.computerDemo)
+  const testBotId = useSessionStore(state => state.testBotId)
   const demoQueued = useSessionStore(state => state.computerDemoQueued)
   const engine = useSessionStore(state => state.computerEngine)
   const level = useSessionStore(state => state.computerLevel)
@@ -45,7 +46,7 @@ export function useComputer(allowed = true) {
     setError('')
     setThinking(false)
     const machineSide = demo ? turn : opposite(humanSide)
-    if (!enabled || turn !== machineSide || phase !== 'playing' || animation || repetitionWarning) return
+    if (!enabled || testBotId || turn !== machineSide || phase !== 'playing' || animation || repetitionWarning) return
     const controller = new AbortController()
     const current = () => {
       const state = useGameStore.getState()
@@ -77,6 +78,6 @@ export function useComputer(allowed = true) {
       } finally { if (!controller.signal.aborted) setThinking(false) }
     }, delay)
     return () => { window.clearTimeout(timer); controller.abort() }
-  }, [enabled, demo, engine, level, humanSide, board, turn, phase, repetitionWarning, animation, version, attempt])
+  }, [enabled, testBotId, demo, engine, level, humanSide, board, turn, phase, repetitionWarning, animation, version, attempt])
   return { thinking, error, retry: () => setAttempt(value => value + 1) }
 }
