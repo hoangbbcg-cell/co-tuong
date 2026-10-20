@@ -123,3 +123,9 @@ Rendering2026-10-05: kích thước thiết kế được chuyển qua getCrispU
 - 2026-10-16: Theo yêu cầu tăng độ đậm và dày số tên Bạn bè/Xếp hạng: SocialPlayerName giữ weight normal, số bỏ soften (opacity100% thay88%), stroke0.2→0.3px. Giữ phần chữ/font/cỡ/line-box1.4/baseline/hình học; áp dụng cả2 màn qua component chung, phạm vi khác giữ khóa.
 - 2026-10-16: Theo yêu cầu sửa riêng ô tìm kiếm Bạn bè: cả Danh sách/Thêm bạn dùng lining-nums/tabular-nums để số thẳng hàng; dữ liệu Friend giữ publicId và bộ lọc chung khớp tên hoặc ID công khai chính xác. API search đã hỗ trợ ID; sửa client không loại kết quả ID vì tên khác query. Giữ layout/avatar; khóa lại phạm vi ô tìm kiếm sau task.
 - 2026-10-16: Người dùng mở riêng vị trí cụm avatar/khung/danh hiệu/sao Xếp hạng để hạ2px CSS; không dịch tên/hạng/hàng. Bạn bè mở riêng nguồn avatar/khung thật trên mọi tab: API social/search trả avatarCode/avatarFrameCode; AccountAvatar dùng chung Xếp hạng/Bạn bè tái sử dụng portrait/frame hồ sơ. Giữ slot76px/84px, danh hiệu/sao Bạn bè và layout khác. Khóa lại các phạm vi avatar sau task.
+
+- 2026-10-20: User mở đúng chiều cao khung ngoài Bạn bè trên mobile portrait để cao82%viewport (chừa48px) qua mobileDialogHeight; scale/chiều rộng/avatar/hàng và desktop giữ như cũ. Thay đổi này đồng bộ Hồ sơ/Xếp hạng/Lịch sử; sau task khóa lại geometry mới.
+
+
+- 2026-10-20: User cho nới chiều ngang các khung mobile portrait: lề tổng20px thay32 qua mobileDialogMargin; các bảng dùng helper chung. Chỉ phần Thông tin được tăng avatar/header/Elo/footer lần này, không sửa hàng Bạn bè/Xếp hạng hoặc desktop. Khóa lại phạm vi sau task.
+

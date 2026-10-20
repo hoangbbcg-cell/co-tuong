@@ -14,3 +14,12 @@ Luồng: Home/useTestBot → accountApi → accountController (cookie auth + ki�
 - Bản cập nhật cần tải lại trang; nếu backend chạy `npm start` không có watch thì restart backend để có route mới.
 
 Kiểm chứng: unit service (hai variant, quyền sở hữu ván, chống trùng, retry khi DB lỗi); React useGame→useTestBot→account update; MySQL tạm qua scripts/mysql-integration-qa.mjs (HTTP auth, cả hai variant, profile reload, duplicate, rollback). Không buff thử tài khoản thật. Browser QA được ghi trong PROGRESS.md theo kết quả thực tế.
+
+- 2026-10-20: Xem thử theo user: cả hai Máy giả cho người chơi Đỏ thua sau 2 nước hợp lệ (winner black/resign), không cộng hoặc trừ vàng. Giữ popup/chiếu bí/audio và khóa đóng 1s. Thay tạm luồng thắng thử trước đó; không đổi PvP/Pikafish. 13/13 test service/result PASS; typecheck/build PASS, chưa browser QA/DB integration lượt này.
+
+
+- 2026-10-20: Sửa mất animation Máy giả: useTestBot trước gán snapshot animation:null. Nay sau API xác nhận, trình diễn nước Đỏ qua applyMoveWithResult/animation dùng chung, chờ PIECE_MOVE_DURATION_MS rồi snapshot+nước đáp máy; nước cuối giữ animation nước Đỏ. Khóa chọn khi animation, guard id/account/animationVersion bỏ phản hồi sau reset/rời. Không đổi kết quả thua thử hoặc DB/luật thưởng. 15/15 tests test-bot-ui/service/match-result PASS gồm animation cả2variant; typecheck/build PASS, dist cập nhật. Chưa browser QA.
+
+
+Trạng thái 2026-10-20: Hai nút khởi chạy Máy giả đã được gỡ khỏi Home theo yêu cầu. Endpoint/service test-bot còn trong backend nhưng UI không còn entry point.
+

@@ -94,3 +94,8 @@ Quy tắc làm việc: xem `../AGENTS.md`. Tiến độ: `../PROGRESS.md`.
 Xem [hướng dẫn MySQL](docs/MYSQL-FOUNDATION.md) để cấu hình .env và chạy db:check/db:migrate/db:verify/db:smoke. Migration chạy chủ động; game hiện tại vẫn dùng RAM/localStorage.
 
 Tích hợp hiện hành và báo cáo API/persistence: [MYSQL-INTEGRATION.md](docs/MYSQL-INTEGRATION.md). Guest mới được backend/MySQL cấp, không lấy tài nguyên mẫu hoặc xác thực bằng localStorage.
+
+## Xem giao diện điện thoại trên laptop
+
+Mở http://localhost:5173/mobile-preview khi chạy dev, hoặc http://localhost:3001/mobile-preview khi chạy npm.cmd start. Chọn cỡ điện thoại, xoay ngang/dọc và bấm dùng ứng dụng trực tiếp trong khung. Chi tiết tại docs/MOBILE-HOME.md.
+

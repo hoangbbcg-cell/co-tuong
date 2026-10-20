@@ -73,7 +73,7 @@ export function createApplication() {
   }
   app.use(onError)
   app.use(express.static(resolve(fileURLToPath(new URL('..', import.meta.url)), 'dist')))
-  app.get(['/admin', '/admin/'], (_req, res) => res.sendFile(resolve(fileURLToPath(new URL('..', import.meta.url)), 'dist/index.html')))
+  app.get(['/admin', '/admin/', '/mobile-preview', '/mobile-preview/'], (_req, res) => res.sendFile(resolve(fileURLToPath(new URL('..', import.meta.url)), 'dist/index.html')))
   const interval = registerRoomSockets(io, service,persistence)
   registerLobbyPresence(io, new LobbyPresenceService(new LobbyPresenceRepository()))
   const challengeInterval = registerChallengeSockets(io, new ChallengeService(new ChallengeRepository(), service),persistence)

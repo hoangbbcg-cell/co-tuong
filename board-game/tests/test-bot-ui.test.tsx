@@ -32,12 +32,17 @@ it.each(['xiangqi','jieqi'] as const)('plays two human %s moves through useGame 
       const to=getLegalMoves(row,col,game.board)[0];if(to)move={from:{row,col},to}
     }
     if(!move)throw new Error('No move')
+    const animations: Move[] = []
+    const unsubscribe = useGameStore.subscribe(state => { if (state.animation) animations.push(state.animation) })
     act(()=>match.result.current.select(move.from))
     act(()=>match.result.current.select(move.to))
     await waitFor(()=>expect(useGameStore.getState().history).toHaveLength(turn+1))
+    expect(animations).toContainEqual(move)
+    await waitFor(()=>expect(useGameStore.getState().animation).toBeNull())
+    unsubscribe()
   }
   expect(api).toHaveBeenCalledTimes(2)
-  expect(useGameStore.getState().game.result?.winner).toBe('red')
-  expect(useSessionStore.getState().gold).toBeGreaterThanOrEqual(125)
+  expect(useGameStore.getState().game.result?.winner).toBe('black')
+  expect(useSessionStore.getState().gold).toBe(0)
   expect(useSessionStore.getState().account?.gold).toBe(String(useSessionStore.getState().testBotGold))
 })

@@ -23,6 +23,7 @@ it('confirms real purchases, updates owned items/balance and blocks duplicate pu
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const view = render(<QueryClientProvider client={client}><ShopPage /></QueryClientProvider>)
   expect(screen.getAllByRole('article')).toHaveLength(5)
+  expect(screen.queryByAltText('Đã mua')).toBeNull()
   expect(screen.getByRole('main').className).toContain('fixed inset-0')
   const frame = view.container.querySelector<HTMLElement>('[data-shop-frame]')!
   expect(frame.style.width).toBe(`${window.innerWidth - 240}px`)
@@ -38,6 +39,8 @@ it('confirms real purchases, updates owned items/balance and blocks duplicate pu
   expect(purchase).toHaveBeenCalledWith('avatar-16', expect.any(String))
   expect(useSessionStore.getState().gold).toBe(500)
   expect(useSessionStore.getState().account?.cosmetics).toContainEqual({ kind: 'avatar', code: 'avatar-16' })
+  expect(within(screen.getByRole('article', { name: 'Lão quân sư' })).getByAltText('Đã mua')).toBeTruthy()
+  expect(within(screen.getByRole('article', { name: 'Nam tướng quân' })).queryByAltText('Đã mua')).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: 'Mua avatar Lão quân sư' }))
   expect(screen.getByRole('alert').textContent).toContain('Bạn đã có avatar này')
   expect(purchase).toHaveBeenCalledTimes(1)

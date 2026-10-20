@@ -1,6 +1,7 @@
 import { ShopFilterTab } from './ShopFilterTab'
 import { ShopPurchaseDialog } from './ShopPurchaseDialog'
-import { SHOP_PRODUCTS } from '../../lib/shopCatalog'
+import { SHOP_PRODUCTS, ownsCosmetic } from '../../lib/shopCatalog'
+import purchasedStamp from '../../assets/shop/purchased.png'
 import { useShopPurchase } from '../../features/lobby/hooks/useShopPurchase'
 import strategistAvatar from '../../assets/shop/avatars/small/lao-quan-su-128.png'
 import generalAvatar from '../../assets/shop/avatars/small/nam-tuong-quan-128.png'
@@ -8,6 +9,7 @@ import redShopFrame from '../../assets/shop/frames/vien_03_do.png'
 import jadeShopFrame from '../../assets/shop/frames/vien_08_xanh_ngoc.png'
 import purpleShopFrame from '../../assets/shop/frames/vien_09_tim.png'
 import { MarketHeading } from './MarketHeading'
+import { useShopDailyCountdown } from '../../features/lobby/hooks/useShopDailyCountdown'
 import activeMarketTab from '../../assets/shop/tab-active.png'
 import idleMarketTab from '../../assets/shop/tab-idle-v2.png'
 import marketGold from '../../assets/shop/market-gold.png'
@@ -46,12 +48,14 @@ const shopArtwork: Record<string, string | null> = {
 const shopProducts = SHOP_PRODUCTS.map(product => ({ ...product, image: shopArtwork[product.id] }))
 
 export function ShopPage() {
+  const account = useSessionStore(state => state.account)
   const home = useHome()
   const layout = useHomeLayout()
   const resources = homeResourceLayout(layout.scale, layout.compact)
   const [tab, setTab] = useState('Tất cả')
   const products = shopProducts.filter(item => tab === 'Tất cả' || item.kind === (tab === 'Avatar' ? 'avatar' : 'frame'))
   const [market, setMarket] = useState(0)
+  const dailyCountdown = useShopDailyCountdown(market === 0)
   const marketNames = ['Phiên Chợ Hàng Ngày', 'Cửa Hàng Cao Cấp', 'Sự Kiện']
   const [message, setMessage] = useState('')
   const shop = useShopPurchase(setMessage)
@@ -84,7 +88,7 @@ export function ShopPage() {
       </aside>
       <section aria-label={marketNames[market]} className="relative flex min-h-0 flex-1 flex-col px-[4%] pb-[4dvh] compact:px-3 compact:pb-3">
         <div className="flex h-[31dvh] shrink-0 flex-col items-center justify-center pt-6 text-center compact:h-[24dvh] compact:pt-2">
-          <MarketHeading title={marketNames[market]} />
+          <MarketHeading title={marketNames[market]} subtitle={market === 2 ? 'Chưa có sự kiện' : market === 1 ? 'Hàng thay thế mỗi tuần' : undefined} countdown={dailyCountdown} />
         </div>
         <div role="tablist" aria-label="Loại sản phẩm" className={`${ornatePanel} relative z-10 mx-auto grid h-[var(--ui-p-44,44px)] w-[calc(92%-120px)] shrink-0 grid-cols-3 gap-[20px] rounded-lg p-1 compact:h-10 compact:w-full compact:gap-[20px] compact:rounded-md`}>
           {['Tất cả', 'Avatar', 'Khung Viền'].map(label => <ShopFilterTab key={label} label={label} selected={tab === label} onClick={() => setTab(label)} />)}
@@ -92,6 +96,9 @@ export function ShopPage() {
         <div role="tabpanel" aria-label={tab} className="mt-0 flex min-h-0 flex-1 flex-col overflow-y-auto rounded-lg border border-[#825224] bg-[#1a0c06dc] p-[10px]">
           {market === 0 ? <div className="grid min-h-0 flex-1 grid-cols-4 grid-rows-2 gap-[10px] compact:grid-cols-2">
             {products.map(avatar => <article key={avatar.name} aria-label={avatar.name} className={`${ornatePanel} relative flex min-h-0 flex-col overflow-hidden rounded-lg`}>
+              {ownsCosmetic(account, avatar) && <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/60">
+                <CrispUiImage src={purchasedStamp} alt="Đã mua" className="absolute top-1/2 left-1/2 m-0 block h-auto w-[60%] -translate-x-1/2 -translate-y-1/2 border-0 p-0 object-contain" />
+              </div>}
               <div className="relative flex min-h-0 flex-1 items-center justify-center bg-[radial-gradient(ellipse_at_center,#753518,#241006_75%)] p-1 compact:p-1">
                 <div role={avatar.kind === 'avatar' ? 'img' : undefined} aria-label={avatar.kind === 'avatar' ? avatar.name : undefined} className={avatar.kind === 'frame' ? 'aspect-square h-full max-w-full' : 'aspect-square h-full max-w-full overflow-hidden rounded-full'}>{avatar.kind === 'frame' ? <CrispUiImage src={avatar.image ?? ''} alt={avatar.name} className="block size-full object-contain" /> : <AvatarPortrait avatarIndex={Number(avatar.code.replace('avatar-', ''))} className={`size-full rounded-full ${avatar.image ? '' : 'scale-[1.12]'}`} />}</div>
               </div>

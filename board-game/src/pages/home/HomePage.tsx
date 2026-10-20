@@ -8,11 +8,8 @@ import { EnergyDialog } from '../../features/lobby/components/EnergyDialog'
 import { CrispUiImage } from '../../lib/CrispUiImage'
 import { getCrispUiLayout } from '../../lib/crispUiRendering'
 import { useRef, useState } from 'react'
-import computerArt from '../../assets/home-actions/computer-full.png'
+import { homeModeArtwork } from '../../features/lobby/components/homeModeArtwork'
 import tournamentArt from '../../assets/home-actions/tournament-title-large.png'
-import quickArt from '../../assets/home-actions/quick-full.png'
-import roomsArt from '../../assets/home-actions/rooms-full.png'
-import hiddenArt from '../../assets/home-actions/hidden-full.png'
 import { useHome } from '../../features/lobby/hooks/useHome'
 import { buttonInteraction, homeUtilityButton as utility } from '../../lib/uiClasses'
 import background from '../../assets/backgrounds/home.png'
@@ -40,20 +37,18 @@ import { useRankingLayout } from '../../features/lobby/hooks/useRankingLayout'
 import { FriendsDialog } from '../../features/lobby/components/FriendsDialog'
 import { useFriendsLayout } from '../../features/lobby/hooks/useFriendsLayout'
 import { HistoryDialog } from '../../features/lobby/components/HistoryDialog'
-import { useTestBot } from '../../features/game/hooks/useTestBot'
 import { useHistoryLayout } from '../../features/lobby/hooks/useHistoryLayout'
 
 
 const modes = [
-  { name: 'Chơi Nhanh', image: quickArt, action: 'quick', artworkOffset: 0, alphaInsets: [38, 0, 0, 0] },
-  { name: 'Chọn Bàn', image: roomsArt, action: 'rooms', artworkOffset: 50, alphaInsets: [1, 10, 0, 0] },
-  { name: 'Chơi Với Máy', image: computerArt, action: 'computer', artworkOffset: 55, alphaInsets: [0, 0, 42, 15] },
-  { name: 'Cờ Úp', image: hiddenArt, action: 'hidden', artworkOffset: 0, alphaInsets: [41, 24, 0, 0] },
+  { ...homeModeArtwork.quick, name: 'Chơi Nhanh', action: 'quick' },
+  { ...homeModeArtwork.rooms, name: 'Chọn Bàn', action: 'rooms' },
+  { ...homeModeArtwork.computer, name: 'Chơi Với Máy', action: 'computer' },
+  { ...homeModeArtwork.hidden, name: 'Cờ Úp', action: 'hidden' },
 ] as const
 
 export function HomePage() {
   const home = useHome()
-  const testBot = useTestBot()
   const elo = useSessionStore(state => state.elo)
   const account=useSessionStore(state=>state.account)
   const selectedAvatarIndex = useSessionStore(state => state.avatarIndex)
@@ -155,11 +150,6 @@ export function HomePage() {
         </div>)}
       </section>
       <footer className="flex flex-wrap items-center justify-start gap-3 pb-1 text-xs text-[#453c29] compact:text-[length:var(--ui-p-8,8px)]">
-        <div className="fixed bottom-3 left-3 z-40 flex max-w-[calc(50vw-24px)] flex-wrap gap-2">
-          <button data-testid="test-bot-xiangqi" disabled={testBot.pending} onClick={() => void testBot.start('xiangqi')} className="rounded border border-[#c7a264] bg-[#30271e] px-3 py-2 text-sm text-[#f7e6c1] disabled:opacity-50 compact:text-xs">Máy giả Cờ Tướng</button>
-          <button data-testid="test-bot-jieqi" disabled={testBot.pending} onClick={() => void testBot.start('jieqi')} className="rounded border border-[#c7a264] bg-[#30271e] px-3 py-2 text-sm text-[#f7e6c1] disabled:opacity-50 compact:text-xs">Máy giả Cờ Úp</button>
-          {testBot.error && <p role="alert" className="rounded bg-[#30271e] p-2 text-[#f7e6c1]">{testBot.error}</p>}
-        </div>
         <button className="sr-only" disabled={home.joining} onClick={home.playLocal}>Chơi hai người cùng máy</button>
         <button className={`${buttonInteraction} absolute bottom-2 left-1/2 h-10 w-[var(--ui-p-150,150px)] -translate-x-1/2 rounded-[50%/95%] border-2 border-[#b97838] bg-[linear-gradient(180deg,#f5c58d_0%,#eab071_24%,#d99451_68%,#bc783b_100%)] font-[Arial,sans-serif] text-[length:var(--ui-p-22,22px)] leading-none font-medium text-[#33200e] shadow-[inset_0_2px_2px_#ffe0aa,inset_0_0_0_3px_#edb475,inset_0_-4px_3px_#97532288,0_3px_3px_#30221488] hover:brightness-110 active:brightness-95 compact:w-[var(--ui-p-120,120px)] compact:text-xl`} onClick={() => void home.exit()}>THOÁT</button>
       </footer>

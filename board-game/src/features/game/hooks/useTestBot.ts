@@ -1,5 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { getLegalMoves } from '../../../game/rules'
+import { applyMoveWithResult } from '../../../game/moves/actions'
+import { PIECE_MOVE_DURATION_MS } from '../moveAnimation'
 import type { GameVariant, Move, Position } from '../../../types/game'
 import { accountApi } from '../../../services/accountApi'
 import { applyAccount } from '../../../services/accountSession'
@@ -30,7 +32,7 @@ export function useTestBot() {
   const select = useCallback(async (point: Position) => {
     const session = useSessionStore.getState(), local = useGameStore.getState()
     const id = session.testBotId, owner = session.account?.id
-    if (!id || busy.current || local.game.phase !== 'playing') return
+    if (!id || busy.current || local.animation || local.game.phase !== 'playing') return
     if (local.game.board[point.row]?.[point.col]?.side === 'red') {
       useGameStore.setState({ selected: point }); return
     }
@@ -42,9 +44,18 @@ export function useTestBot() {
     try {
       const snapshot = await accountApi.testBotMove(id, move, retry.current.requestId)
       if (useSessionStore.getState().testBotId !== id || useSessionStore.getState().account?.id !== owner) return
+      const hasReply = snapshot.game.lastMove?.from.row !== move.from.row || snapshot.game.lastMove?.from.col !== move.from.col
+        || snapshot.game.lastMove?.to.row !== move.to.row || snapshot.game.lastMove?.to.col !== move.to.col
+      if (hasReply) {
+        const preview = applyMoveWithResult(local.game, move, local.game.lastClockUpdate, 'red').game
+        const version = useGameStore.getState().animationVersion + 1
+        useGameStore.setState({ game: { ...preview, lastClockUpdate: performance.now() }, selected: null, animation: move, animationVersion: version })
+        await new Promise(resolve => window.setTimeout(resolve, PIECE_MOVE_DURATION_MS))
+        if (useSessionStore.getState().testBotId !== id || useSessionStore.getState().account?.id !== owner || useGameStore.getState().animationVersion !== version) return
+      }
       if (snapshot.profile) applyAccount(snapshot.profile)
       useSessionStore.setState({ testBotGold: snapshot.goldAwarded })
-      useGameStore.setState({ game: { ...snapshot.game, lastClockUpdate: performance.now() }, selected: null, animation: null, history: [...local.history, local.game] })
+      useGameStore.setState(state => ({ game: { ...snapshot.game, lastClockUpdate: performance.now() }, selected: null, animation: hasReply ? snapshot.game.lastMove : move, animationVersion: state.animationVersion + 1, history: [...local.history, local.game] }))
       retry.current = null
     } catch (failure) { setError(errorMessage(failure)) }
     finally { busy.current = false; setPending(false) }

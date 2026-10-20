@@ -6,8 +6,15 @@ import { CrispUiImage } from '../../../lib/CrispUiImage'
 
 export function MatchResultDialog({ outcome, onClose, rewardGold }: { outcome: 'win' | 'loss'; onClose: () => void; rewardGold?: number }) {
   const ref = useRef<HTMLDialogElement>(null)
-  useEffect(() => { ref.current?.showModal() }, [])
-  return <dialog ref={ref} aria-label={outcome === 'win' ? 'Chiến thắng' : 'Thất bại'} onCancel={onClose}
+  const dismissAfter = useRef(Infinity)
+  useEffect(() => {
+    ref.current?.showModal()
+    dismissAfter.current = performance.now() + 1000
+  }, [])
+  const dismiss = () => {
+    if (performance.now() >= dismissAfter.current) onClose()
+  }
+  return <dialog ref={ref} aria-label={outcome === 'win' ? 'Chiến thắng' : 'Thất bại'} onClick={dismiss} onCancel={event => { event.preventDefault(); dismiss() }}
     className="m-auto overflow-visible border-0 bg-transparent p-0 leading-none shadow-none backdrop:bg-black/60"
     style={{ width: 'min(92vw, 68dvh)', maxWidth: 'none', maxHeight: 'none' }}>
     <div className="relative m-0 h-fit w-fit border-0 bg-transparent p-0 leading-none">
@@ -16,8 +23,8 @@ export function MatchResultDialog({ outcome, onClose, rewardGold }: { outcome: '
         <CrispUiImage src={goldIcon} alt="" aria-hidden="true" className="m-0 block h-[1.25em] w-auto shrink-0 border-0 p-0 object-contain" />
         <span>+{rewardGold}</span>
       </p>}
-      <button autoFocus type="button" aria-label="Xác nhận" onClick={onClose}
-        className="absolute rounded-xl border-0 bg-transparent p-0 shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe19a]"
+      <button autoFocus type="button" aria-label="Xác nhận"
+        className="absolute cursor-pointer rounded-xl border-0 bg-transparent p-0 shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe19a]"
         style={{ left: '25%', top: '77.5%', width: '50%', height: '10%' }} />
     </div>
   </dialog>

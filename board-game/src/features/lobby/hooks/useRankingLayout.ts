@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { mobileDialogHeight, mobileDialogMargin } from '../../../lib/mobileDialogHeight'
 
 const width = 1120
 const height = 750
@@ -8,13 +9,14 @@ function measure() {
   const availableWidth = viewport?.width ?? window.innerWidth
   const availableHeight = viewport?.height ?? window.innerHeight
   // Keep the existing scale so shortening the frame does not enlarge its width.
-  return Math.max(0.1, Math.min(0.85, (availableWidth - 32) / width, (availableHeight - 32) / 780))
+  const scale = Math.max(0.1, Math.min(0.85, (availableWidth - mobileDialogMargin(availableWidth, availableHeight)) / width, (availableHeight - 32) / 780))
+  return { scale, height: mobileDialogHeight(height, scale, availableWidth, availableHeight) }
 }
 
 export function useRankingLayout() {
-  const [scale, setScale] = useState(measure)
+  const [layout, setLayout] = useState(measure)
   useEffect(() => {
-    const resize = () => setScale(measure())
+    const resize = () => setLayout(measure())
     window.addEventListener('resize', resize)
     window.visualViewport?.addEventListener('resize', resize)
     return () => {
@@ -22,5 +24,5 @@ export function useRankingLayout() {
       window.visualViewport?.removeEventListener('resize', resize)
     }
   }, [])
-  return { width, height, scale }
+  return { width, ...layout }
 }

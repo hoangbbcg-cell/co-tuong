@@ -3,11 +3,31 @@ import { act, cleanup, fireEvent, render, renderHook } from '@testing-library/re
 import { afterEach, expect, it, vi } from 'vitest'
 import { useMatchResult } from '../src/features/game/hooks/useMatchResult'
 import { Board } from '../src/features/game/components/Board'
+import { MatchResultDialog } from '../src/features/game/components/MatchResultDialog'
 import { createGame } from '../src/game/state/initial'
 import type { GameState, Side } from '../src/types/game'
 
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const playing: GameState = { board: [], currentTurn: 'red', phase: 'playing', remainingTime: { red: 600000, black: 600000 }, lastClockUpdate: 0, turnElapsed: 0, result: null, lastMove: null }
+
+it.each(['button', 'img', 'dialog'])('locks dismissal for one second, then closes from %s', target => {
+  let now = 100
+  vi.spyOn(performance, 'now').mockImplementation(() => now)
+  Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: vi.fn() })
+  const close = vi.fn()
+  const view = render(<MatchResultDialog outcome="win" onClose={close} />)
+  const dialog = view.container.querySelector('dialog')!
+  const element = view.container.querySelector(target)!
+  expect(view.getByRole('button', { hidden: true }).className).toContain('cursor-pointer')
+  fireEvent.click(element)
+  now = 1099
+  fireEvent.click(element)
+  fireEvent(dialog, new Event('cancel', { cancelable: true }))
+  expect(close).not.toHaveBeenCalled()
+  now = 1100
+  fireEvent.click(element)
+  expect(close).toHaveBeenCalledTimes(1)
+})
 const ended = (winner: Side | null, reason: 'checkmate' | 'timeout' | 'draw' = 'checkmate'): GameState => ({ ...playing, phase: 'finished', result: { winner, reason } })
 const props = (game: GameState, side: Side | null = 'red', enabled = true) => ({ game, side, enabled, roomKey: 'one', waitForCheckmate: game.result?.reason === 'checkmate' })
 
@@ -53,6 +73,21 @@ it('keeps a losing participant result after queue rotation, excluding the promot
   const viewer = renderHook(useMatchResult, { initialProps: props(playing, null) })
   viewer.rerender(props(ended('red', 'timeout'), 'black'))
   expect(viewer.result.current.outcome).toBeNull()
+})
+it.each(['xiangqi', 'jieqi'] as const)('shows both online participant results in %s while excluding viewers', variant => {
+  const live = { ...playing, variant }
+  const red = renderHook(useMatchResult, { initialProps: { ...props(live, 'red'), roomKey: 'online-room' } })
+  const black = renderHook(useMatchResult, { initialProps: { ...props(live, 'black'), roomKey: 'online-room' } })
+  const viewer = renderHook(useMatchResult, { initialProps: { ...props(live, null), roomKey: 'online-room' } })
+  const finished = { ...ended('red', 'timeout'), variant }
+  red.rerender({ ...props(finished, 'red'), roomKey: 'online-room' })
+  black.rerender({ ...props(finished, 'black'), roomKey: 'online-room' })
+  viewer.rerender({ ...props(finished, null), roomKey: 'online-room' })
+  expect(red.result.current.outcome).toBe('win')
+  expect(black.result.current.outcome).toBe('loss')
+  expect(viewer.result.current.outcome).toBeNull()
+  red.rerender({ ...props(live, 'red'), roomKey: 'next-room' })
+  expect(red.result.current.outcome).toBeNull()
 })
 it('does not show results to late viewers, replay/trial, or drawn matches', () => {
   const late = renderHook(useMatchResult, { initialProps: props(ended('red', 'timeout')) })

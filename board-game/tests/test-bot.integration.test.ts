@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { createApplication } from '../server/app'
-import { rows, AccountRepository } from '../server/repositories/accountRepository'
+import { rows } from '../server/repositories/accountRepository'
 import { getLegalMoves } from '../src/game/rules'
 import type { GameState } from '../src/types/game'
 
@@ -22,7 +22,7 @@ describe.skipIf(process.env.DB_INTEGRATION !== '1')('test bot rewards on disposa
     base=`http://127.0.0.1:${address.port}/api/account`
   })
   afterAll(async()=>{vi.restoreAllMocks();await app?.close()})
-  it.each(['xiangqi','jieqi'])('persists %s gold after two moves with duplicate and identity protection',async variant=>{
+  it.each(['xiangqi','jieqi'])('keeps %s gold unchanged after two moves with duplicate and identity protection',async variant=>{
     expect((await request('/test-bot',{variant})).status).toBe(401)
     const player=await request('/guest',{}),other=await request('/guest',{})
     const start=await request('/test-bot',{variant},player.cookie)
@@ -32,25 +32,14 @@ describe.skipIf(process.env.DB_INTEGRATION !== '1')('test bot rewards on disposa
     const first=await request(path,{move:move(start.data.game),requestId:crypto.randomUUID()},player.cookie)
     expect(first.data.humanMoves).toBe(1)
     expect((await request('/me',undefined,player.cookie)).data.gold).toBe('0')
-    const body={move:move(first.data.game),requestId:crypto.randomUUID(),gold:999999,winner:'black'}
+    const body={move:move(first.data.game),requestId:crypto.randomUUID(),gold:999999,winner:'red'}
     const [win,retry]=await Promise.all([request(path,body,player.cookie),request(path,body,player.cookie)])
     expect(win.status).toBe(200);expect(retry.status).toBe(200)
-    expect(win.data.game.result.winner).toBe('red')
+    expect(win.data.game.result.winner).toBe('black')
     const profile=(await request('/me',undefined,player.cookie)).data
     expect(Number(profile.gold)).toBe(win.data.goldAwarded)
-    expect(Number(profile.gold)).toBeGreaterThanOrEqual(125);expect(Number(profile.gold)).toBeLessThanOrEqual(150)
-    expect(await rows("SELECT id FROM resource_events WHERE user_id=? AND reason='test_bot_win'",[String(player.data.id)])).toHaveLength(1)
+    expect(Number(profile.gold)).toBe(0)
+    expect(await rows("SELECT id FROM resource_events WHERE user_id=? AND reason='test_bot_win'",[String(player.data.id)])).toHaveLength(0)
     expect((await request(path,{...body,requestId:crypto.randomUUID()},player.cookie)).status).toBe(409)
-  })
-  it('rolls back gold if the ledger fails and lets the same final request retry safely',async()=>{
-    const player=await request('/guest',{}),start=await request('/test-bot',{variant:'xiangqi'},player.cookie)
-    const path=`/test-bot/${start.data.id}/move`
-    const first=await request(path,{move:move(start.data.game),requestId:crypto.randomUUID()},player.cookie)
-    const body={move:move(first.data.game),requestId:crypto.randomUUID()}
-    const ledger=vi.spyOn(AccountRepository.prototype,'ledger').mockRejectedValueOnce(new Error('QA ledger unavailable'))
-    try{expect((await request(path,body,player.cookie)).status).toBe(500)}finally{ledger.mockRestore()}
-    expect((await request('/me',undefined,player.cookie)).data.gold).toBe('0')
-    expect((await request(path,body,player.cookie)).status).toBe(200)
-    expect(await rows("SELECT id FROM resource_events WHERE user_id=? AND reason='test_bot_win'",[String(player.data.id)])).toHaveLength(1)
   })
 })

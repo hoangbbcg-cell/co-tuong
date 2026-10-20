@@ -2,6 +2,7 @@
 import { getComputerAvatar } from '../../lib/computerAvatar'
 import { MatchResultDialog } from '../../features/game/components/MatchResultDialog'
 import { useMatchResult } from '../../features/game/hooks/useMatchResult'
+import { useResultFaces } from '../../features/game/hooks/useResultFaces'
 import { usePikafishHint } from '../../features/game/hooks/usePikafishHint'
 import { useReplayTrial } from '../../features/game/hooks/useReplayTrial'
 ﻿import { savedMatchSide } from '../../lib/savedMatchPerspective'
@@ -223,7 +224,9 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
   })
   const showLikeOnSide = (side: Side) => match.online && Boolean(match.room?.players.some(player => player.side === side)) && (isRoomViewer || side !== playerSide)
   const canGrantOnSide = (side: Side) => !replayMode && (isRoomViewer || side !== playerSide) && (!match.online || Boolean(match.room?.players.some(player => player.side === side)))
-  const outcome = (side: 'red' | 'black') => game.result?.winner ? game.result.winner === side ? 'win' as const : 'loss' as const : undefined
+  const outcome = useResultFaces(game, match.online ? match.room!.id : 'local', match.online
+    ? JSON.stringify(['red', 'black'].map(side => match.room?.players.find(player => player.side === side)?.id ?? null))
+    : JSON.stringify([playerName('red'), playerName('black')]))
   const timerExpired = (side: Side) => game.result?.reason === 'timeout' && game.currentTurn === side
   const isReady = (side: 'red' | 'black') => match.online && game.phase === 'ready' && !!match.room?.players.find(player => player.side === side)?.ready
   const queuedViewers = match.room?.viewers?.filter(viewer => viewer.queued) ?? []

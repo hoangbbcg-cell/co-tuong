@@ -4,5 +4,9 @@ import { EntryGate } from './app/EntryGate'
 import { Providers } from './app/providers'
 import './app/styles/index.css'
 import { AdminPage } from './pages/admin/AdminPage'
+import { MobilePreviewPage } from './pages/preview/MobilePreviewPage'
 
-createRoot(document.getElementById('root')!).render(<StrictMode><Providers>{window.location.pathname === '/admin' || window.location.pathname === '/admin/' ? <AdminPage /> : <EntryGate />}</Providers></StrictMode>)
+const path = window.location.pathname.replace(/\/$/, '')
+createRoot(document.getElementById('root')!).render(<StrictMode>{path === '/mobile-preview'
+  ? <MobilePreviewPage />
+  : <Providers>{path === '/admin' ? <AdminPage /> : <EntryGate />}</Providers>}</StrictMode>)

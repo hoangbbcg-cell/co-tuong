@@ -363,3 +363,27 @@ design system hiện tại đã có giá trị tương ứng.
 - 2026-10-19: Trang quản trị riêng /admin đăng nhập bằng1 mật khẩu (theo chốt user, KHÔNG theo ID tài khoản). Scrypt ADMIN_PASSWORD_HASH chỉ backend/.env; mật khẩu sinh24 ký tự trong board-game/.admin-access.txt ignored, không log/bundle/localStorage. API /api/admin session RAM2h/hash/cookie HttpOnly SameSiteStrict/rate5sai10phút, kiểm tra Origin. AdminService→AdminRepository transaction chỉnh số dư/Elo2variant, grant/equip18avatar/4khung/39danhhiệu, ledger+audit UUID idempotent/lý do. Migration005 thêm2bảng user_cosmetics/admin_audit,001–004 giữ nguyên; runner chuẩn hóa CRLF→LF khớp journal đã xác minh. AvatarPortrait chung hỗ trợ3ảnhShop, picker chỉ thêm avatar đã sở hữu; không đổi geometry. Setup/migration0052bước/verify DB thật PASS, không buff user thật.16/16 unit/React/migration +11/11 MySQLtạm PASS; API live login/catalog/search/logout PASS; typecheck/build PASS, dist xác nhận admin và không chứa mật khẩu/hash. Chưa browserQA. Xem board-game/docs/ADMIN.md.
 
 - 2026-10-19: User chốt Shop mua thật bằng vàng, bỏ demo và chặn trùng: danh mục chuẩn src/lib/shopCatalog.ts giá500; Quan Vũ thay tên Avatar demo. Auth API ShopService→ShopRepository transaction lockuser/resource, checkownership/balance, debit+cosmetics+ledger atomic, requestUUID idempotent. Món đã có mặcđịnh/admin/mua báo Bạn đã có avatar/viền này, khôngtrừvàng; thiếuvàng khôngcấp. UI cậpnhật ngay account/gold/cosmetics, Chọn avatar/Chọn viền đọc kindtươngứng, không tựequip.3viền frame4–6 backendcheckownership, render qua getAvatarFrame chung; chỉ3assetmới bỏcircleclip tránhcắtornament, giữgeometrykhungcũ. Admin7khung đồngbộ. Khôngmigrationmới/khôngmuathử trênDBuserthật.9/9 unit/React +15/15 MySQLtạm PASS gồm concurrency/idempotence/tamper/rollback/equip, typecheck/build PASS, dist index-DmRNrHp6.js xác nhận muaAPI/no-demo. Chưa browserQA. Quy tắc này thay trạng thái xemthử; docs/SHOP.md là chuẩn.
+
+- 2026-10-20: Xem thử theo user: cả hai Máy giả cho người chơi Đỏ thua sau 2 nước hợp lệ (winner black/resign), không cộng hoặc trừ vàng. Giữ popup/chiếu bí/audio và khóa đóng 1s. Thay tạm luồng thắng thử trước đó; không đổi PvP/Pikafish. 13/13 test service/result PASS; typecheck/build PASS, chưa browser QA/DB integration lượt này.
+
+
+- 2026-10-20: Mặt cười/mặt khóc kết quả trên avatar chỉ hiện tối đa 5 giây; tắt cả hai ngay khi một người rời/đổi ghế. Snapshot lặp không gia hạn, không mang kết quả cũ sang người mới. Popup thắng/thua giữ hành vi riêng.
+
+
+- 2026-10-20: /mobile-preview là trang xem web mobile thật trên laptop qua iframe same-origin với viewport360/390/430px và auto-fit; giữ app/backend/account chung, outer không tạo session/socket. Không sửa UI khóa hoặc tách game/mobile engine khi thêm preview. Xem board-game/docs/MOBILE-HOME.md.
+
+
+- 2026-10-20: User cho phép thu avatar/tên Home mobile trong task này: avatar17cqw/nameplate25cqw/left19cqw, Elo2ôcùnghàng. Sau task khóa lại đúng geometry mới; desktop và token chung không đổi. Xem MOBILE-HOME.md.
+
+
+- 2026-10-20: Đính chính geometry khung tên Home mobile theo user: width37cqw (bằng2Elo), height5.3cqw/font3.3cqw, left19cqw. Thay width25cqw ởtask trước, khóa lại sau chỉnh; avatar17cqw giữ.
+
+
+- 2026-10-20: User tăng riêng chiều cao khung tên Home mobile lên6cqw (width37cqw/font3.3cqw/left19 giữ), khóa lại sau task. Home mobile bỏ khung viền/margin ngoài và full viewport theo yêu cầu.
+
+
+- 2026-10-20: Dialog Hồ sơ/Bạn bè/Xếp hạng/Lịch sử mobile portrait dùng chiều cao82%viewport, chừa48px, giữscale theo chiều rộng; user đãcho phép chỉsửa chiều cao tasknày và khóa lại sau. Avatar vàdesktop khôngđổi. helper mobileDialogHeight dùngchung; Chat kếthừaRankingLayout.
+
+
+- 2026-10-20: Theo quyền user cho task Thông tin mobile: profile compact header270/cột avatar180/avatar128*1.25, card nâu hẹp/cao hơn, stats170, footer lớn hơn. Dialog portrait nới lề tổng20px chung. Avatar/khung/nameplate desktop và Tùy chỉnh không thay; sau task khóa lại geometry mới. Xem MOBILE-HOME.md.
+

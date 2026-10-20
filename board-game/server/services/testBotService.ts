@@ -1,4 +1,4 @@
-import { randomInt, randomUUID } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 import { applyMoveWithResult, finishGame, startGame } from '../../src/game/moves/actions'
 import { chooseComputerMove } from '../../src/game/moves/computer'
 import { createGame } from '../../src/game/state/initial'
@@ -55,8 +55,8 @@ export class TestBotService {
       if (next.board === match.game.board) throw new AccountError('Nước đi không hợp lệ.')
       match.humanMoves++
       if (match.humanMoves === 2) {
-        match.game = finishGame(next, 'red', 'resign')
-        match.gold = randomInt(125, 151)
+        match.game = finishGame(next, 'black', 'resign')
+        match.gold = 0
         match.finishRequest = requestId
       } else {
         const reply = chooseComputerMove(next.board, 'black', 0, next)
