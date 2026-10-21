@@ -59,24 +59,28 @@ describe('Board rendering stability', () => {
 describe('ChessPiece', () => {
   it('dùng asset mới đồng bộ cho quân đen và quân đỏ', () => {
     const black = render(<ChessPiece side="black" type="soldier" character="卒" />)
-    const blackRoot = black.container.firstElementChild as HTMLImageElement
+    const blackRoot = black.container.querySelector('img')!
+    const blackFilter = black.container.querySelector('filter')!
+    expect(blackRoot.dataset.faceFilter).toBe(`url(#${blackFilter.id})`)
 
     black.unmount()
 
     const red = render(<ChessPiece side="red" type="soldier" character="兵" />)
-    const redRoot = red.container.firstElementChild as HTMLImageElement
+    const redRoot = red.container.querySelector('img')!
 
     expect(redRoot.tagName).toBe('IMG')
     expect(redRoot.getAttribute('src')).toContain('red-soldier-codo-coden-v2')
     expect(blackRoot.tagName).toBe('IMG')
     expect(blackRoot.getAttribute('src')).toContain('black-soldier-codo-coden-v2')
-    expect(blackRoot.style.filter).toBe('')
-    expect(redRoot.style.filter).toBe('')
+    expect(blackRoot.style.filter).toContain(blackRoot.dataset.faceFilter)
+    expect(redRoot.style.filter).toContain(redRoot.dataset.faceFilter)
     expect(blackRoot.className).not.toContain('contrast(')
     expect(redRoot.className).not.toContain('contrast(')
-    expect(blackRoot.className).toContain('drop-shadow')
-    expect(redRoot.className).toContain('drop-shadow')
-    expect(red.container.querySelector('svg')).toBeNull()
+    expect(blackRoot.style.filter).toContain('drop-shadow')
+    expect(redRoot.style.filter).toContain('drop-shadow')
+    const redFilter = red.container.querySelector('filter')!
+    expect(redRoot.dataset.faceFilter).toBe(`url(#${redFilter.id})`)
+    expect(redFilter.querySelector('feDisplacementMap')).not.toBeNull()
   })
 
   it.each([
@@ -88,7 +92,7 @@ describe('ChessPiece', () => {
     ['cannon', '炮', 'red-cannon-codo-coden-v2'],
   ] as const)('dùng asset cùng phong cách Pháo cho quân đỏ %s', (type, character, assetName) => {
     const { container } = render(<ChessPiece side="red" type={type} character={character} />)
-    const redRoot = container.firstElementChild as HTMLImageElement
+    const redRoot = container.querySelector('img')!
 
     expect(redRoot.tagName).toBe('IMG')
     expect(redRoot.getAttribute('src')).toContain(assetName)
@@ -104,7 +108,7 @@ describe('ChessPiece', () => {
     ['soldier', '卒', 'black-soldier-codo-coden-v2'],
   ] as const)('dùng asset cùng phong cách quân đỏ cho quân đen %s', (type, character, assetName) => {
     const { container } = render(<ChessPiece side="black" type={type} character={character} />)
-    const blackRoot = container.firstElementChild as HTMLImageElement
+    const blackRoot = container.querySelector('img')!
 
     expect(blackRoot.tagName).toBe('IMG')
     expect(blackRoot.getAttribute('src')).toContain(assetName)
@@ -135,7 +139,7 @@ describe('ChessPiece', () => {
     const destination = view.getByTestId('last-move-destination')
     expect(origin).toHaveStyle({ left: '567px', top: '833px' })
     expect(origin.tagName).toBe('IMG')
-    expect(origin.getAttribute('src')).toContain('otron.png')
+    expect(origin.getAttribute('src')).toContain('move-indicator-dot.png')
     expect(origin).toHaveClass('size-[155px]', 'object-contain', '-translate-x-1/2', '-translate-y-1/2')
     expect(destination).toHaveStyle({ left: '567px', top: '707px' })
     expect(destination).toHaveClass('rounded-full', 'border-[5px]', 'border-white', 'bg-transparent')
@@ -148,7 +152,7 @@ describe('ChessPiece', () => {
     const selectedMarker = view.getByTestId('selected-marker')
     const captureMarker = view.getByTestId('capture-move-marker')
     expect(moveMarker.tagName).toBe('IMG')
-    expect(moveMarker.getAttribute('src')).toContain('otron.png')
+    expect(moveMarker.getAttribute('src')).toContain('move-indicator-dot.png')
     expect(moveMarker).toHaveStyle({ left: '567px', top: '576px' })
     expect(moveMarker).toHaveClass('size-[155px]', 'object-contain', '-translate-x-1/2', '-translate-y-1/2')
     expect(selectedMarker.querySelector('span')).toHaveClass('border-white')
@@ -189,10 +193,10 @@ describe('ChessPiece', () => {
 
       expect(calls).toHaveLength(1)
       expect(calls[0].options).toMatchObject({ duration: 400, fill: 'both' })
-      expect(calls[0].frames[0].transform).toBe('translate(0px, -8px)')
+      expect(calls[0].frames[0].transform).toBe('translate3d(0px, 0px, 0px)')
       const destinationY = animation.to.row === 0 ? -1161 : -131
-      expect(calls[0].frames[1].transform).toBe(`translate(0px, ${destinationY - 8}px)`)
-      expect(calls[0].frames.at(-1)).toMatchObject({ offset: 1, transform: `translate(0px, ${destinationY}px)` })
+      expect(calls[0].frames[1]).toMatchObject({ offset: 0.9, transform: `translate3d(0px, ${destinationY - 8}px, 0px)` })
+      expect(calls[0].frames.at(-1)).toMatchObject({ offset: 1, transform: `translate3d(0px, ${destinationY}px, 0px)` })
       cleanup()
       expect(cancel).toHaveBeenCalledOnce()
     } finally {

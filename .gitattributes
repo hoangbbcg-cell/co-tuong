@@ -1,0 +1,4 @@
+.github/workflows/*.yml text eol=lf
+board-game/scripts/deploy-vps.sh text eol=lf
+board-game/scripts/cotuong-backup-check.py text eol=lf
+board-game/scripts/cotuong-deploy.sudoers.example text eol=lf

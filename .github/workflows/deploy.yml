@@ -1,0 +1,73 @@
+name: Deploy production (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: Full 40-character master commit SHA with successful push CI
+        required: true
+        type: string
+      rollback_compatible:
+        description: Reviewed this release's data writes as compatible with the previous backend (enable automatic code rollback)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: cotuong-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require successful push CI for exact master commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ inputs.commit }}
+        run: |
+          set -euo pipefail
+          [[ "$TARGET" =~ ^[a-f0-9]{40}$ ]]
+          git merge-base --is-ancestor "$TARGET" origin/master
+          gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs" \
+            -f head_sha="$TARGET" -f branch=master -f event=push -f status=completed \
+            --jq '.workflow_runs | any(.conclusion == "success")' | grep -qx true
+          if git ls-tree -r --name-only "$TARGET" board-game | grep -E '(^|/)(\.env($|\.)|\.admin-access)' | grep -vE '/\.env\.example$'; then
+            echo 'Refusing release with tracked environment/admin credential files.' >&2
+            exit 1
+          fi
+          git archive --format=tar.gz --output=release.tar.gz "$TARGET" board-game
+          cp board-game/scripts/deploy-vps.sh deploy-vps.sh
+      - name: Transfer and deploy over verified SSH
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          TARGET: ${{ inputs.commit }}
+          ROLLBACK_COMPATIBLE: ${{ inputs.rollback_compatible }}
+        run: |
+          set -euo pipefail
+          [[ "$VPS_HOST" =~ ^[a-zA-Z0-9.-]+$ && "$VPS_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          VPS_PORT="${VPS_PORT:-22}"
+          [[ "$VPS_PORT" =~ ^[0-9]+$ ]]
+          [[ ${#VPS_PORT} -le 5 ]] && (( 10#$VPS_PORT >= 1 && 10#$VPS_PORT <= 65535 ))
+          umask 077
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          trap 'rm -f ~/.ssh/deploy_key' EXIT
+          ssh_opts=(-i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15)
+          remote="/home/nhat_hoang/.cotuong-incoming/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "umask 077; mkdir -p '$remote'"
+          scp "${ssh_opts[@]}" -P "$VPS_PORT" release.tar.gz deploy-vps.sh "$VPS_USER@$VPS_HOST:$remote/"
+          # Server lock is retained even if this runner disconnects. No automatic cancellation.
+          [[ "$ROLLBACK_COMPATIBLE" == true || "$ROLLBACK_COMPATIBLE" == false ]]
+          ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "bash '$remote/deploy-vps.sh' '$remote/release.tar.gz' '$TARGET' '$ROLLBACK_COMPATIBLE'"

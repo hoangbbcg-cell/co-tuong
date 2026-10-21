@@ -1,0 +1,59 @@
+name: CI
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: board-game
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci-disposable-root
+          MYSQL_DATABASE: cotuong_ci
+          MYSQL_USER: cotuong_ci
+          MYSQL_PASSWORD: ci-disposable-password
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: board-game/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      # Unit tests intentionally run without production DB configuration.
+      - run: npm test
+      - name: Disposable MySQL integration
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_NAME: cotuong_ci
+          DB_USER: cotuong_ci
+          DB_PASSWORD: ci-disposable-password
+          DB_INTEGRATION: '1'
+        run: |
+          npm run db:migrate
+          npm run db:migrate
+          npm run db:verify
+          npm run db:smoke
+          npm test -- tests/account-persistence.integration.test.ts tests/admin.integration.test.ts tests/shop.integration.test.ts tests/test-bot.integration.test.ts --maxWorkers=1
+      - run: npm run build
+      - name: Check deployment scripts
+        run: bash -n scripts/deploy-vps.sh
+      - name: Backup adapter regression (no database or systemd)
+        run: python3 -m unittest discover -s tests/backup_adapter -v

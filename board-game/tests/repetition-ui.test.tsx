@@ -44,7 +44,7 @@ function thirdRoundClosingGame() {
 }
 function Harness() {
   const match = useGame()
-  return <><Board board={match.game.board} selected={match.selected} legalMoves={match.legalMoves} forbiddenMoves={match.forbiddenMoves} animation={match.animation} lastMove={match.game.lastMove} frameWidth={400} scale={.35} disabled={false} showStart={false} startDisabled={false} startLabel="Start" onSelect={match.select} onStart={match.start} /><p role="status">{match.repetitionNotice}</p></>
+  return <><Board board={match.game.board} selected={match.selected} legalMoves={match.legalMoves} forbiddenMoves={match.forbiddenMoves} animation={match.animation} lastMove={match.game.lastMove} frameWidth={400} scale={.35} disabled={false} showStart={false} startDisabled={false} startLabel="Start" onSelect={match.select} onStart={match.start} /><p role="status">{match.repetitionNotice}</p><button onClick={match.dismissRepetitionNotice}>Đóng cảnh báo</button></>
 }
 beforeEach(() => {
   vi.useFakeTimers()
@@ -54,28 +54,30 @@ beforeEach(() => {
 })
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); vi.clearAllMocks(); socket.id = undefined })
 
-it.each(['local', 'online'] as const)('red-dot click in %s preserves selection/clock without sound, AI or socket move', mode => {
+it.each(['local', 'online'] as const)('red-dot click in %s preserves selection/clock without sound, AI or socket move', async mode => {
   const game = fixture(4)
-  const command = vi.spyOn(roomSocket, 'command')
+  const room = { id: 'test', name: 'Test', game, moveCount: 0, players: [{ id: 'r', name: 'Red', side: 'red' as const, ready: true }], messages: [], drawOffer: null }
+  const command = vi.spyOn(roomSocket, 'command').mockResolvedValue(room)
   const ai = vi.spyOn(pikafishApi, 'move')
   useGameStore.setState({ game, selected: null })
   if (mode === 'online') {
     socket.id = 'r'
-    useSessionStore.setState({ mode, room: { id: 'test', name: 'Test', game, moveCount: 0, players: [{ id: 'r', name: 'Red', side: 'red', ready: true }], messages: [], drawOffer: null } })
+    useSessionStore.setState({ mode, room })
   }
   render(<Harness />)
   fireEvent.click(screen.getAllByTestId('board-hit')[82])
   expect(screen.getByTestId('repetition-forbidden-marker')).toBeInTheDocument()
   const before = useGameStore.getState()
-  fireEvent.click(screen.getAllByTestId('board-hit')[65])
-  expect(screen.getByRole('status')).toHaveTextContent(REPETITION_FORBIDDEN_MESSAGE.replace('\n', ' '))
+  await act(async () => { fireEvent.click(screen.getAllByTestId('board-hit')[65]) })
+  expect(screen.getByRole('status')).toBeEmptyDOMElement()
   expect(screen.getByTestId('selected-marker')).toBeInTheDocument()
   expect(screen.getByTestId('repetition-forbidden-marker')).toBeInTheDocument()
   expect(useGameStore.getState().game).toBe(game)
   expect(useGameStore.getState().animationVersion).toBe(before.animationVersion)
   expect(useGameStore.getState().animation).toBeNull()
   expect(audio.play).not.toHaveBeenCalled()
-  expect(command).not.toHaveBeenCalled()
+  if (mode === 'online') expect(command).toHaveBeenCalledExactlyOnceWith({ type: 'repetition-attempt', move })
+  else expect(command).not.toHaveBeenCalled()
   expect(ai).not.toHaveBeenCalled()
   // The selected piece stays available; choosing another own piece clears its red hints.
   fireEvent.click(screen.getAllByTestId('board-hit')[81])
@@ -110,11 +112,13 @@ it('online clock snapshots do not repeat the third-occurrence notification', () 
   const room = { id: 'test', name: 'Test', game, moveCount: 11, players: [{ id: 'b', name: 'Black', side: 'black' as const, ready: true }], messages: [], drawOffer: null }
   useSessionStore.setState({ mode: 'online', room })
   render(<Harness />)
-  const next = { ...room, game: applyMove(game, closing.blackBack, performance.now()), moveCount: 12 }
+  const next = { ...room, game: applyMove(game, closing.blackBack, performance.now()), moveCount: 12, repetitionNoticePaused: true, repetitionNoticeKind: 'warning' as const }
   act(() => useSessionStore.setState({ room: next }))
   expect(screen.getByRole('status')).toHaveTextContent(REPETITION_WARNING_MESSAGE.replace('\n', ' '))
   act(() => vi.advanceTimersByTime(5000))
+  expect(screen.getByRole('status')).toHaveTextContent(REPETITION_WARNING_MESSAGE.replace('\n', ' '))
+  act(() => useSessionStore.setState({ room: { ...next, game: { ...next.game, repetition: { ...next.game.repetition!, warning: false, warningSide: null } }, repetitionNoticePaused: false, repetitionNoticeKind: null } }))
   expect(screen.getByRole('status')).toBeEmptyDOMElement()
-  act(() => useSessionStore.setState({ room: structuredClone(next) }))
+  act(() => useSessionStore.setState(state => ({ room: structuredClone(state.room) })))
   expect(screen.getByRole('status')).toBeEmptyDOMElement()
 })

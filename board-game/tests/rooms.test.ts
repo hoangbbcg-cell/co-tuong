@@ -119,10 +119,13 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(reply.game.phase).toBe('playing')
     expect(reply.game.currentTurn).toBe('red')
   })
-  it('cần cả hai sẵn sàng và chặn người thứ ba', () => {
+  it('cần cả hai sẵn sàng và đưa người thứ ba vào khán giả', () => {
     expect(service.command('a', { type: 'ready' }).game.phase).toBe('ready')
     expect(() => service.command('a', move)).toThrow()
-    expect(() => service.join(id, 'c', 'Khách')).toThrow()
+    const joined = service.join(id, 'c', 'Khách')
+    expect(joined.players.map(player => player.id)).toEqual(['a', 'b'])
+    expect(joined.viewers).toContainEqual(expect.objectContaining({ id: 'c', name: 'Khách' }))
+    expect(() => service.command('c', { type: 'ready' })).toThrow()
     expect(service.command('b', { type: 'ready' }).game.phase).toBe('playing')
   })
   it('không tin phe do client gửi, chặn tọa độ giả, chỉ cập nhật nước hợp lệ', () => {

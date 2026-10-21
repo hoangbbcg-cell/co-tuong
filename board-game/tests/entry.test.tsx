@@ -6,14 +6,26 @@ import { useEntryStore } from '../src/store/entryStore'
 import { EntryGate } from '../src/app/EntryGate'
 import { useSessionStore } from '../src/store/sessionStore'
 import { playerNameError } from '../src/lib/playerName'
-const mocks=vi.hoisted(()=>({me:vi.fn(),guest:vi.fn(),restoreGuest:vi.fn(),logout:vi.fn()}))
+const mocks=vi.hoisted(()=>({me:vi.fn(),guest:vi.fn(),restoreGuest:vi.fn(),logout:vi.fn(),load:vi.fn()}))
 vi.mock('../src/services/accountApi',()=>({accountApi:mocks}))
-vi.mock('../src/services/accountSession',()=>({loadAccountData:async(profile:{displayName:string})=>{useSessionStore.setState({name:profile.displayName})}}))
+vi.mock('../src/services/accountSession',()=>({loadAccountData:async(profile:{displayName:string})=>{await mocks.load();useSessionStore.setState({name:profile.displayName})}}))
 vi.mock('../src/app/App',()=>({App:()=> <div>Game entry</div>}))
 const profile={id:'9007199254740993',publicId:'12345678',displayName:'Kỳ Thủ 000042'}
-beforeEach(()=>{vi.stubEnv('VITE_GOOGLE_CLIENT_ID','');localStorage.clear();useEntryStore.setState({entry:null,loading:true});mocks.me.mockReset().mockRejectedValue({isAxiosError:true,response:{status:401}});mocks.restoreGuest.mockReset().mockRejectedValue({isAxiosError:true,response:{status:401}});mocks.guest.mockReset().mockResolvedValue(profile);mocks.logout.mockReset().mockResolvedValue(undefined)})
+beforeEach(()=>{vi.stubEnv('VITE_GOOGLE_CLIENT_ID','');localStorage.clear();useEntryStore.setState({entry:null,loading:true,restoreError:''});mocks.load.mockReset().mockResolvedValue(undefined);mocks.me.mockReset().mockRejectedValue({isAxiosError:true,response:{status:401}});mocks.restoreGuest.mockReset().mockRejectedValue({isAxiosError:true,response:{status:401}});mocks.guest.mockReset().mockResolvedValue(profile);mocks.logout.mockReset().mockResolvedValue(undefined)})
 afterEach(()=>{cleanup();vi.restoreAllMocks();vi.unstubAllEnvs()})
 describe('server-backed Guest entry',()=>{
+  it('offers retry instead of a new Guest when a valid session has a temporary data-loading failure',async()=>{
+    mocks.me.mockResolvedValue(profile)
+    mocks.load.mockRejectedValueOnce(new Error('Mạng tạm thời bị gián đoạn'))
+    render(<EntryGate/>)
+    expect(await screen.findByRole('alert')).toHaveTextContent('Chưa tải được tài khoản')
+    expect(screen.queryByRole('button',{name:'Chơi như khách'})).toBeNull()
+    fireEvent.click(screen.getByRole('button',{name:'Thử lại'}))
+    expect(await screen.findByText('Game entry')).toBeInTheDocument()
+    expect(useEntryStore.getState().entry?.name).toBe(profile.displayName)
+    expect(mocks.guest).not.toHaveBeenCalled()
+    expect(mocks.restoreGuest).not.toHaveBeenCalled()
+  })
   it('automatically restores the same device Guest after logout and reload without creating another',async()=>{
     await useEntryStore.getState().enterGuest()
     await useEntryStore.getState().signOut()

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { createRef } from 'react'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, screen, within } from '@testing-library/react'
+import { renderWithQuery as render } from './helpers/renderWithQuery'
 import { afterEach, expect, it } from 'vitest'
 import { HistoryDialog } from '../src/features/lobby/components/HistoryDialog'
 import { useSavedMatches } from '../src/store/savedMatchesStore'

@@ -20,31 +20,33 @@ it('computer games do not charge energy', () => {
   expect(useSessionStore.getState().energyRecoveryAt).toBeNull()
 })
 
-it('recovers every five minutes without restarting countdown on another charge', () => {
+it('recovers every seven minutes without restarting countdown on another charge', () => {
   useSessionStore.getState().consumeEnergy()
   vi.setSystemTime(60000)
   useSessionStore.getState().consumeEnergy()
-  expect(useSessionStore.getState().energyRecoveryAt).toBe(300000)
-  useSessionStore.getState().recoverEnergy(299999)
+  expect(useSessionStore.getState().energyRecoveryAt).toBe(420000)
+  useSessionStore.getState().recoverEnergy(419999)
   expect(useSessionStore.getState().energy).toBe(3)
-  useSessionStore.getState().recoverEnergy(300000)
+  useSessionStore.getState().recoverEnergy(420000)
   expect(useSessionStore.getState().energy).toBe(4)
-  expect(useSessionStore.getState().energyRecoveryAt).toBe(600000)
-  useSessionStore.getState().recoverEnergy(1200000)
+  expect(useSessionStore.getState().energyRecoveryAt).toBe(840000)
+  useSessionStore.getState().recoverEnergy(1680000)
   expect(useSessionStore.getState().energy).toBe(5)
   expect(useSessionStore.getState().energyRecoveryAt).toBeNull()
 })
 
-it('charges once per local start, not reset, and never below zero', () => {
+it('local starts and resets are free; explicit energy charges never go below zero', () => {
   expect(useSessionStore.getState().energy).toBe(5)
   useGameStore.getState().start(0)
   useGameStore.getState().start(1)
-  expect(useSessionStore.getState().energy).toBe(4)
+  expect(useSessionStore.getState().energy).toBe(5)
   useGameStore.getState().reset(2)
-  expect(useSessionStore.getState().energy).toBe(4)
+  expect(useSessionStore.getState().energy).toBe(5)
   for (let i = 0; i < 6; i++) {
     useGameStore.getState().reset(i)
     useGameStore.getState().start(i)
+    expect(useSessionStore.getState().energy).toBe(Math.max(0, 5 - i))
+    useSessionStore.getState().consumeEnergy()
   }
   expect(useSessionStore.getState().energy).toBe(0)
 })

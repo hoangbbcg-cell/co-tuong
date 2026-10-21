@@ -13,7 +13,7 @@ import { RoomRepository } from '../repositories/roomRepository'
 
 export class RoomError extends Error {}
 function textInput(value: unknown, limit: number): string {
-  if (typeof value !== 'string' || !value.trim() || value.trim().length > limit) throw new RoomError(`Ná»™i dung pháº£i cÃ³ 1â€“${limit} kÃ½ tá»±.`)
+  if (typeof value !== 'string' || !value.trim() || value.trim().length > limit) throw new RoomError(`Nội dung phải có 1–${limit} ký tự.`)
   return value.trim()
 }
 function position(value: unknown): value is Position {
@@ -40,10 +40,10 @@ export class RoomService {
     if(variant!=='xiangqi'&&variant!=='jieqi')throw new RoomError('Invalid game variant.')
     if (password !== undefined && (typeof password !== 'string' || password.length < 1 || password.length > 64)) throw new RoomError('Mật khẩu phải có từ 1 đến 64 ký tự.')
     if (typeof turnSeconds !== 'number' || !ROOM_TURN_SECONDS.some(value => value === turnSeconds)) throw new RoomError('Thời gian mỗi nước không hợp lệ.');
-    if (typeof minutes !== 'number' || !ROOM_MINUTES.some(value => value === minutes)) throw new RoomError('Thá»i gian khÃ´ng há»£p lá»‡.')
+    if (typeof minutes !== 'number' || !ROOM_MINUTES.some(value => value === minutes)) throw new RoomError('Thời gian không hợp lệ.')
     if (province !== undefined && (typeof province !== 'string' || province.trim().length === 0 || province.trim().length > 100)) throw new RoomError('Tỉnh/thành phố không hợp lệ.')
     this.repository.pruneEmpty()
-    if (this.repository.all().length >= 100) throw new RoomError('MÃ¡y chá»§ Ä‘Ã£ Ä‘á»§ phÃ²ng. Vui lÃ²ng dÃ¹ng phÃ²ng cÃ³ sáºµn.')
+    if (this.repository.all().length >= 100) throw new RoomError('Máy chủ đã đủ phòng. Vui lòng dùng phòng có sẵn.')
     const normalizedProvince = typeof province === 'string' ? province.trim().normalize('NFC') : undefined
     const room: RoomSnapshot = { id: randomUUID(), name: textInput(name, 40), province: normalizedProvince, players: [], viewers: [], minutes, turnSeconds, game: createRoomGame(this.now(), minutes, turnSeconds, variant), messages: [], drawOffer: null, takebackOffer: null, takebackDecline: null, takebackRemaining: { red: 2, black: 2 }, moveCount: 0, repetitionNoticePaused: false, repetitionNoticeKind: null, repetitionAttemptNotice: null }
     this.histories.set(room.id, [])
@@ -57,13 +57,13 @@ export class RoomService {
   }
   private get(id: string) {
     const room = this.repository.get(id)
-    if (!room) throw new RoomError('PhÃ²ng khÃ´ng cÃ²n tá»“n táº¡i.')
+    if (!room) throw new RoomError('Phòng không còn tồn tại.')
     return room
   }
   roomFor(playerId: string) { return this.repository.all().find(room => room.players.some(player => player.id === playerId) || room.viewers?.some(viewer => viewer.id === playerId)) }
   private memberRoom(playerId: string) {
     const room = this.roomFor(playerId)
-    if (!room) throw new RoomError('Báº¡n chÆ°a vÃ o phÃ²ng.')
+    if (!room) throw new RoomError('Bạn chưa vào phòng.')
     return room
   }
   private append(room: RoomSnapshot, name: string, text: string, system = false) {
@@ -165,7 +165,7 @@ export class RoomService {
   }
   join(id: unknown, playerId: string, name: unknown, password?: unknown, asViewer: unknown = false): RoomSnapshot {
     const room = this.get(textInput(id, 64))
-    if (typeof name !== 'string') throw new RoomError('TÃªn ngÆ°á»i chÆ¡i khÃ´ng há»£p lá»‡.')
+    if (typeof name !== 'string') throw new RoomError('Tên người chơi không hợp lệ.')
     const nameError = playerNameError(name)
     if (nameError) throw new RoomError(nameError)
     const playerName = name.trim().normalize('NFC')
@@ -175,7 +175,7 @@ export class RoomService {
       const secret = this.repository.getPassword(room.id)
       if (!secret || typeof password !== 'string' || password.length > 64 || !timingSafeEqual(scryptSync(password, secret.salt, 32), secret.hash)) throw new RoomError('Mật khẩu bàn không đúng.')
     }
-    if (current) throw new RoomError('HÃ£y rá»i phÃ²ng hiá»‡n táº¡i trÆ°á»›c.')
+    if (current) throw new RoomError('Hãy rời phòng hiện tại trước.')
     if (typeof asViewer !== 'boolean') throw new RoomError('Vai trò vào phòng không hợp lệ.')
     if (asViewer && room.game.phase !== 'playing') throw new RoomError('Người chơi không còn đang đấu trong phòng này.')
     const joinsAsViewer = asViewer || room.players.length >= 2 || room.game.phase === 'playing'
@@ -185,7 +185,7 @@ export class RoomService {
       const side = room.players.some(player => player.side === 'red') ? 'black' : 'red'
       room.players = [...room.players, { id: playerId, name: playerName, side, ready: false }]
     }
-    this.append(room, '', `${playerName} Ä‘Ã£ vÃ o phÃ²ng.`, true)
+    this.append(room, '', `${playerName} đã vào phòng.`, true)
     this.updateReadyWait(room)
     this.repository.save(room)
     return room
@@ -196,7 +196,7 @@ export class RoomService {
     const viewer = room.viewers?.find(member => member.id === playerId)
     if (viewer) {
       room.viewers = room.viewers!.filter(member => member.id !== playerId)
-      this.append(room, '', `${viewer.name} Ä‘Ã£ rá»i phÃ²ng.`, true)
+      this.append(room, '', `${viewer.name} đã rời phòng.`, true)
       this.rotateQueueAfterFinishedGame(room)
       this.updateReadyWait(room)
       if (!room.players.length && !room.viewers.length) { this.repository.delete(room.id); this.queueRotations.delete(room.id); this.histories.delete(room.id); this.repetitionNoticeDeadlines.delete(room.id) }
@@ -214,12 +214,12 @@ export class RoomService {
     if (room.game.phase === 'playing') room.game = finishGame(room.game, opposite(player.side), 'leave')
     this.captureCompletedMatch(room)
     room.players = room.players.filter(player => player.id !== playerId).map(player => ({ ...player, ready: false }))
-    this.append(room, '', `${player.name} Ä‘Ã£ rá»i phÃ²ng.`, true)
+    this.append(room, '', `${player.name} đã rời phòng.`, true)
     const nextViewer = room.viewers?.find(member => member.queued)
     if (nextViewer) {
       room.viewers = room.viewers!.filter(member => member.id !== nextViewer.id)
       room.players = [...room.players, { id: nextViewer.id, name: nextViewer.name, side: player.side, ready: false }]
-      this.append(room, '', `${nextViewer.name} Ä‘Ã£ Ä‘Æ°á»£c chuyá»ƒn tá»« hÃ ng chá» lÃªn bÃ n.`, true)
+      this.append(room, '', `${nextViewer.name} đã được chuyển từ hàng chờ lên bàn.`, true)
     }
     room.drawOffer = null
     room.takebackOffer = null
@@ -231,11 +231,11 @@ export class RoomService {
   }
   command(playerId: string, input: unknown): RoomSnapshot {
     const room = this.memberRoom(playerId)
-    if (!input || typeof input !== 'object' || !('type' in input)) throw new RoomError('Thao tÃ¡c khÃ´ng há»£p lá»‡.')
+    if (!input || typeof input !== 'object' || !('type' in input)) throw new RoomError('Thao tác không hợp lệ.')
     const command = input as RoomCommand
     const viewer = room.viewers?.find(member => member.id === playerId)
     if (command.type === 'repetition-notice') {
-      if (!room.players.some(member => member.id === playerId)) throw new RoomError(viewer ? 'NgÆ°á»i xem khÃ´ng thá»ƒ táº¡m dá»«ng Ä‘á»“ng há»“.' : 'Báº¡n chÆ°a vÃ o phÃ²ng.')
+      if (!room.players.some(member => member.id === playerId)) throw new RoomError(viewer ? 'Người xem không thể tạm dừng đồng hồ.' : 'Bạn chưa vào phòng.')
       const now = this.now()
       if (room.repetitionNoticePaused) {
         room.game = {
@@ -264,12 +264,12 @@ export class RoomService {
       return room
     }
     if (command.type === 'join-queue' || command.type === 'leave-queue') {
-      if (!viewer) throw new RoomError('Chá»‰ ngÆ°á»i xem má»›i cÃ³ thá»ƒ xáº¿p hÃ ng.')
+      if (!viewer) throw new RoomError('Chỉ người xem mới có thể xếp hàng.')
       if (command.type === 'join-queue' && room.players.length < 2 && room.game.phase !== 'playing') {
         const side = room.players.some(member => member.side === 'red') ? 'black' : 'red'
         room.viewers = room.viewers!.filter(member => member.id !== playerId)
         room.players = [...room.players, { id: viewer.id, name: viewer.name, side, ready: false }]
-        this.append(room, '', `${viewer.name} Ä‘Ã£ vÃ o gháº¿ trá»‘ng.`, true)
+        this.append(room, '', `${viewer.name} đã vào ghế trống.`, true)
       } else if (command.type === 'join-queue') {
         room.viewers = [...room.viewers!.filter(member => member.id !== playerId), { ...viewer, queued: true }]
       } else {
@@ -281,8 +281,8 @@ export class RoomService {
       return room
     }
     const player = room.players.find(member => member.id === playerId)
-    if (!player) throw new RoomError('NgÆ°á»i xem khÃ´ng thá»ƒ thao tÃ¡c vÃ¡n cá».')
-    if (room.repetitionNoticePaused) throw new RoomError('ÄÃ³ng báº£ng nháº¯c nhá»Ÿ Ä‘á»ƒ tiáº¿p tá»¥c vÃ¡n cá».')
+    if (!player) throw new RoomError('Người xem không thể thao tác ván cờ.')
+    if (room.repetitionNoticePaused) throw new RoomError('Đóng bảng nhắc nhở để tiếp tục ván cờ.')
     const now = this.now()
     room.game = room.takebackOffer ? { ...room.game, lastClockUpdate: now } : command.type === 'move' ? room.game : advanceClock(room.game, now)
     if (room.game.phase === 'finished') {
@@ -307,20 +307,20 @@ export class RoomService {
           room.moveCount = 0
           this.histories.set(room.id, [])
         }
-        if (room.game.phase !== 'ready') throw new RoomError('VÃ¡n Ä‘Ã£ báº¯t Ä‘áº§u.')
+        if (room.game.phase !== 'ready') throw new RoomError('Ván đã bắt đầu.')
         room.players.find(member => member.id === playerId)!.ready = true
         if (room.players.length === 2 && room.players.every(player => player.ready)) { if(!this.repository.canStart(room))throw new RoomError('Không đủ năng lượng hoặc tài khoản không hợp lệ.');room.game = startGame(room.game, now, MATCH_INTRO_MS); delete room.lastCompletedMatch }
         break
       case 'move': {
-        if (room.takebackOffer) throw new RoomError('HÃ£y tráº£ lá»i yÃªu cáº§u Ä‘i láº¡i trÆ°á»›c.')
-        if (!command.move || !position(command.move.from) || !position(command.move.to)) throw new RoomError('Tá»a Ä‘á»™ khÃ´ng há»£p lá»‡.')
+        if (room.takebackOffer) throw new RoomError('Hãy trả lời yêu cầu đi lại trước.')
+        if (!command.move || !position(command.move.from) || !position(command.move.to)) throw new RoomError('Tọa độ không hợp lệ.')
         const before = takebackSnapshot(room.game)
         const result = applyMoveWithResult(room.game, command.move, now, player.side)
         const next = result.game
         if (next.board === room.game.board) {
           if (result.rejection === 'repetition') throw new RoomError(REPETITION_FORBIDDEN_MESSAGE)
           room.game = next
-          throw new RoomError('NÆ°á»›c Ä‘i khÃ´ng há»£p lá»‡ hoáº·c chÆ°a Ä‘áº¿n lÆ°á»£t báº¡n.')
+          throw new RoomError('Nước đi không hợp lệ hoặc chưa đến lượt bạn.')
         }
         this.histories.set(room.id, [...(this.histories.get(room.id) ?? []), before])
         room.game = next
@@ -335,27 +335,27 @@ export class RoomService {
         break
       }
       case 'resign':
-        if (room.game.phase !== 'playing') throw new RoomError('VÃ¡n chÆ°a diá»…n ra.')
+        if (room.game.phase !== 'playing') throw new RoomError('Ván chưa diễn ra.')
         room.game = finishGame(room.game, opposite(player.side), 'resign')
         room.drawOffer = null
         break
       case 'offer-draw':
-        if (room.game.phase !== 'playing' || room.drawOffer) throw new RoomError('KhÃ´ng thá»ƒ cáº§u hÃ²a lÃºc nÃ y.')
+        if (room.game.phase !== 'playing' || room.drawOffer) throw new RoomError('Không thể cầu hòa lúc này.')
         room.drawOffer = player.side
         break
       case 'reply-draw':
-        if (room.game.phase !== 'playing' || !room.drawOffer || room.drawOffer === player.side || typeof command.accepted !== 'boolean') throw new RoomError('KhÃ´ng cÃ³ lá»i cáº§u hÃ²a tá»« Ä‘á»‘i thá»§.')
+        if (room.game.phase !== 'playing' || !room.drawOffer || room.drawOffer === player.side || typeof command.accepted !== 'boolean') throw new RoomError('Không có lời cầu hòa từ đối thủ.')
         if (command.accepted) room.game = finishGame(room.game, null, 'draw')
-        else this.append(room, '', `${player.name} tá»« chá»‘i cáº§u hÃ²a.`, true)
+        else this.append(room, '', `${player.name} từ chối cầu hòa.`, true)
         room.drawOffer = null
         break
       case 'request-takeback': {
         const history = this.histories.get(room.id) ?? []
         const remaining = room.takebackRemaining ?? { red: 2, black: 2 }
-        if (room.game.phase !== 'playing' || room.takebackOffer || room.drawOffer) throw new RoomError('KhÃ´ng thá»ƒ yÃªu cáº§u Ä‘i láº¡i lÃºc nÃ y.')
-        if (remaining[player.side] <= 0) throw new RoomError('Báº¡n Ä‘Ã£ dÃ¹ng háº¿t 2 láº§n yÃªu cáº§u Ä‘i láº¡i.')
+        if (room.game.phase !== 'playing' || room.takebackOffer || room.drawOffer) throw new RoomError('Không thể yêu cầu đi lại lúc này.')
+        if (remaining[player.side] <= 0) throw new RoomError('Bạn đã dùng hết 2 lần yêu cầu đi lại.')
         const requestedPlies: 1 | 2 = room.game.currentTurn === player.side ? 2 : 1
-        if (!history.length) throw new RoomError('ChÆ°a cÃ³ Ä‘á»§ nÆ°á»›c Ä‘i Ä‘á»ƒ hoÃ n tÃ¡c.')
+        if (!history.length) throw new RoomError('Chưa có đủ nước đi để hoàn tác.')
         const plies: 1 | 2 = requestedPlies === 2 && history.length === 1 ? 1 : requestedPlies
         room.takebackRemaining = { ...remaining, [player.side]: remaining[player.side] - 1 }
         room.takebackOffer = { requester: player.side, plies }
@@ -364,20 +364,20 @@ export class RoomService {
       }
       case 'reply-takeback': {
         const offer = room.takebackOffer
-        if (room.game.phase !== 'playing' || !offer || offer.requester === player.side || typeof command.accepted !== 'boolean') throw new RoomError('KhÃ´ng cÃ³ yÃªu cáº§u Ä‘i láº¡i tá»« Ä‘á»‘i thá»§.')
+        if (room.game.phase !== 'playing' || !offer || offer.requester === player.side || typeof command.accepted !== 'boolean') throw new RoomError('Không có yêu cầu đi lại từ đối thủ.')
         if (command.accepted) {
           const history = this.histories.get(room.id) ?? []
           const restored = history.at(-offer.plies)
-          if (!restored) throw new RoomError('KhÃ´ng thá»ƒ khÃ´i phá»¥c nÆ°á»›c Ä‘i.')
+          if (!restored) throw new RoomError('Không thể khôi phục nước đi.')
           room.game = { ...restored, repetition: restored.repetition ? { ...restored.repetition, warning: false, warningSide: null } : undefined, lastClockUpdate: now }
           this.histories.set(room.id, history.slice(0, -offer.plies))
           room.moveCount = Math.max(0, (room.moveCount ?? history.length) - offer.plies)
           const remaining = room.takebackRemaining ?? { red: 2, black: 2 }
           room.takebackRemaining = { ...remaining, [offer.requester]: 2 }
-          this.append(room, '', `${player.name} Ä‘á»“ng Ã½ cho Ä‘á»‘i thá»§ Ä‘i láº¡i.`, true)
+          this.append(room, '', `${player.name} đồng ý cho đối thủ đi lại.`, true)
           room.takebackDecline = null
         } else {
-          this.append(room, '', `${player.name} tá»« chá»‘i yÃªu cáº§u Ä‘i láº¡i.`, true)
+          this.append(room, '', `${player.name} từ chối yêu cầu đi lại.`, true)
           room.takebackDecline = { id: randomUUID(), requester: offer.requester, declinedBy: player.side }
         }
         room.takebackOffer = null
@@ -385,7 +385,7 @@ export class RoomService {
       }
       case 'reset':
         if (room.game.phase === 'ready' && room.viewers?.some(viewer => viewer.queued)) throw new RoomError('Không thể cài lại khi đang có người chờ đấu.')
-        if (room.game.phase === 'playing') throw new RoomError('HÃ£y káº¿t thÃºc vÃ¡n trÆ°á»›c khi chÆ¡i láº¡i.')
+        if (room.game.phase === 'playing') throw new RoomError('Hãy kết thúc ván trước khi chơi lại.')
         room.game = createRoomGame(now, room.minutes ?? 10, room.turnSeconds ?? 60, room.game.variant)
         room.repetitionNoticePaused = false
         room.repetitionNoticeKind = null
@@ -399,7 +399,7 @@ export class RoomService {
         room.moveCount = 0
         this.histories.set(room.id, [])
         break
-      default: throw new RoomError('Thao tÃ¡c khÃ´ng Ä‘Æ°á»£c há»— trá»£.')
+      default: throw new RoomError('Thao tác không được hỗ trợ.')
     }
     this.rotateQueueAfterFinishedGame(room)
     this.updateReadyWait(room, now)
@@ -409,7 +409,7 @@ export class RoomService {
   chat(playerId: string, input: unknown): RoomSnapshot {
     const room = this.memberRoom(playerId)
     const member = room.players.find(player => player.id === playerId) ?? room.viewers?.find(viewer => viewer.id === playerId)
-    if (!member) throw new RoomError('Báº¡n chÆ°a vÃ o phÃ²ng.')
+    if (!member) throw new RoomError('Bạn chưa vào phòng.')
     this.append(room, member.name, textInput(input, 300))
     this.repository.save(room)
     return room

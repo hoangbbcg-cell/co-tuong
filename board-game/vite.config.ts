@@ -25,5 +25,6 @@ export default defineConfig({
       '/socket.io': { target: 'http://127.0.0.1:3001', ws: true },
     },
   },
-  test: { environment: 'node', include: ['tests/**/*.test.{ts,tsx}'] },
+  // Large full-app jsdom suites must not compete for CPU; keep normal deadlines.
+  test: { environment: 'node', include: ['tests/**/*.test.{ts,tsx}'], maxWorkers: 1 },
 })
