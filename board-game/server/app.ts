@@ -24,7 +24,8 @@ import { RoomPersistence } from './services/roomPersistence'
 import { closeMysqlPool } from './repositories/mysqlPool'
 import { groupAvatarDirectory, messageImageDirectory } from './repositories/socialRepository'
 
-export function createApplication() {
+export function createApplication(options: { staticDirectory?: string } = {}) {
+  const staticDirectory = options.staticDirectory ?? resolve(fileURLToPath(new URL('..', import.meta.url)), 'dist')
   const app = express()
   app.disable('x-powered-by')
   app.use('/media/group-avatars',express.static(groupAvatarDirectory,{index:false,dotfiles:'deny',setHeaders:res=>{res.setHeader('X-Content-Type-Options','nosniff')}}))
@@ -72,8 +73,8 @@ export function createApplication() {
     res.status(error instanceof AccountError?error.status:tooLarge ? 413 : badInput ? 400 : 500).json({ error: error instanceof RoomError||error instanceof AccountError ? error.message : badInput ? 'JSON không hợp lệ.' : tooLarge ? 'Dữ liệu quá lớn.' : 'Máy chủ gặp lỗi.' })
   }
   app.use(onError)
-  app.use(express.static(resolve(fileURLToPath(new URL('..', import.meta.url)), 'dist')))
-  app.get(['/admin', '/admin/', '/mobile-preview', '/mobile-preview/'], (_req, res) => res.sendFile(resolve(fileURLToPath(new URL('..', import.meta.url)), 'dist/index.html')))
+  app.use(express.static(staticDirectory))
+  app.get(['/admin', '/admin/', '/mobile-preview', '/mobile-preview/'], (_req, res) => res.sendFile(resolve(staticDirectory, 'index.html')))
   const interval = registerRoomSockets(io, service,persistence)
   registerLobbyPresence(io, new LobbyPresenceService(new LobbyPresenceRepository()))
   const challengeInterval = registerChallengeSockets(io, new ChallengeService(new ChallengeRepository(), service),persistence)

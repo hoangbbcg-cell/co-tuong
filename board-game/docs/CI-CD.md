@@ -4,11 +4,11 @@ Trạng thái: chuẩn bị Local, **chưa kích hoạt GitHub/VPS, chưa deploy
 
 ## CI
 
-`.github/workflows/ci.yml`: push/PR vào master, Ubuntu 24.04 + Node 22, `npm ci`, `npm run typecheck`, `npm test`, `npm run build`. Không `continue-on-error`, không lọc bỏ test lỗi. Chỉ chạy các bước tiếp sau nếu bước trước thành công.
+`.github/workflows/ci.yml`: push/PR vào master, Ubuntu 24.04 + Node 22, `npm ci`, `npm run typecheck`, `npm test`, MySQL integration riêng, `npm run build`. Không `continue-on-error`, không lọc bỏ test lỗi. Chỉ chạy các bước tiếp sau nếu bước trước thành công. Actions dùng `checkout@v7`/`setup-node@v7` để chuyển runtime nội bộ action sang Node24; project vẫn chạy Node22. Deploy workflow chỉ cập nhật checkout action. Runner là GitHub-hosted Ubuntu24.04.
 
 MySQL integration dùng service container MySQL 8.0 trên runner, database `cotuong_ci`, tài khoản/quyền giới hạn trong DB này; mật khẩu trong YAML là dữ liệu thử công khai dùng một lần, không phải credential production. Chạy migrate hai lần, verify, smoke và bốn file integration thật, tuần tự một worker. Không dùng `.env` hay secrets VPS. Script `db:integration` hiện dành cho MySQL binary Windows nên CI gọi các script DB/test bên trong bằng service Linux, không giả vờ script Windows chạy được ở Ubuntu.
 
-Đã sửa các lỗi full suite Local theo [CI-TEST-AUDIT.md](CI-TEST-AUDIT.md):378 unit/UI đạt và17 integration MySQL tạm đạt riêng. Workflow vẫn báo Failure cho mọi lỗi test/build mới; không coi build thành công là đủ điều kiện deploy. CI không được chạy trên self-hosted runner gắn production. Chưa push nên chưa xác nhận run GitHub Node22/Ubuntu thực tế.
+Local full suite sau sửa lỗi GitHub:381 PASS/17 SKIP, trong đó17 MySQL integration test chạy riêng17/17 PASS bằng MySQL tạm; 6 test Pikafish thật chỉ chạy trên Windows có binary, nên CI Ubuntu skip nhóm này có điều kiện. Workflow vẫn báo Failure cho mọi lỗi test/build mới; không coi build thành công là đủ điều kiện deploy. CI không được chạy trên self-hosted runner gắn production. Chưa push nên chưa xác nhận run GitHub sau sửa.
 
 ## Cổng triển khai
 

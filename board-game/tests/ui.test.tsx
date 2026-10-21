@@ -419,7 +419,9 @@ describe('React regression', () => {
   })
   it('vào/rời phòng local và cập nhật tên phiên chơi không có tài khoản', () => {
     mount()
-    fireEvent.click(screen.getByLabelText('Rời phòng', { selector: 'button' }))
+    const leaveButton = within(screen.getByRole('banner')).getAllByRole('button', { name: 'Rời phòng', hidden: true }).find(button => button.id === 'backButton')
+    expect(leaveButton).toBeDefined()
+    fireEvent.click(leaveButton!)
     expect(screen.getByRole('main', { name: 'Màn hình chính' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Chọn Bàn' }))
     expect(screen.getByRole('main', { name: 'Chọn Bàn' })).toBeInTheDocument()

@@ -55,3 +55,13 @@ Khi đối chiếu danh sách test trước/sau phát hiện workspace có thay 
 - Tài liệu: file này, CI-CD.md, PROJECT-MEMORY.md, PROGRESS.md và ghi nhớ quyết định user trong AGENTS.md.
 
 Chưa commit, push, deploy hoặc SSH/VPS; chưa browser QA. Các thay đổi avatar/profile mobile ngoài phạm vi CI trong workspace được giữ nguyên, không nhận là phần sửa luật/CI của task này.
+
+## GitHub Ubuntu regression — 2026-10-21
+
+GitHub CI do user chạy báo `373 PASS / 2 FAIL / 23 SKIP` (398 test). Cả hai lỗi thuộc test/harness: `ui.test.tsx` tìm theo tên duy nhất trong khi header có hai nút Rời phòng cho desktop và menu mobile; `mobile-preview-route.test.ts` khởi tạo app trước bước build nên checkout Ubuntu sạch không có `dist/index.html`, làm `sendFile` trả404. Không đổi UI, route production, luật cờ hoặc nghiệp vụ; không bỏ test.
+
+Sửa UI test truy vấn theo role trong banner rồi chọn nút header `id=backButton`. Route test tạo fixture `index.html` trong thư mục tạm; `createApplication` nhận `staticDirectory` tùy chọn cho test, mặc định production vẫn dùng `dist`. Test xác nhận cả `/mobile-preview` và `/mobile-preview/` trả HTML200. Không cần đổi thứ tự bước workflow hoặc build giả trước test.
+
+Đối chiếu 398 test sau sửa trên Local Windows: `381 PASS / 17 SKIP`; chênh đúng6 skip do 6 test gọi Pikafish thật chỉ bật khi có binary Windows. Ubuntu không có binary này nên chúng skip có điều kiện. 17 MySQL integration test là nhóm DB gate riêng, không được coi là bỏ qua: `npm run db:integration` dùng MySQL8 tạm chạy `17/17 PASS`, migrate30/rerun0, verify/smoke PASS. Tổng số test giữ nguyên398; không thêm `skip`, `only`, retry hoặc tăng timeout. Kết quả GitHub sau khi cập nhật PR chưa xác nhận vì chưa push.
+
+Workflow Actions được cập nhật `checkout@v7` và `setup-node@v7` trong CI; deploy workflow chỉ nâng checkout. Runtime project vẫn Node22. Các release mới dùng Node24 cho runtime của action và yêu cầu runner hỗ trợ Node24; GitHub-hosted `ubuntu-24.04` đáp ứng. Không thể đọc log cảnh báo cụ thể của lần PR qua trình duyệt trong phiên này; cập nhật xử lý cảnh báo runtime Node20 của các major cũ theo release chính thức. Chưa merge/deploy.
