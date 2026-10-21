@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, expect, it, vi } from 'vitest'
 import { MobileHome } from '../src/pages/home/MobileHome'
@@ -19,7 +19,9 @@ it('pages through all four real modes and keeps resources, chat and settings ava
   expect(screen.getByLabelText(/^Elo Cờ Tướng:/)).toBeTruthy()
   expect(screen.getByLabelText(/^Elo Cờ Úp:/)).toBeTruthy()
   expect(screen.getByRole('button', { name: 'Giải đấu' }).textContent).toContain('🏆')
-  for (const label of ['Xếp hạng', 'Bạn bè', 'Lịch sử', 'Cửa hàng', 'Chat', 'Cài đặt']) {
+  const utilityOrder = ['Xếp hạng', 'Lịch sử', 'Bạn bè', 'Chat', 'Cửa hàng', 'Cài đặt']
+  expect(within(screen.getByRole('navigation', { name: 'Tiện ích điện thoại' })).getAllByRole('button').map(button => button.getAttribute('aria-label'))).toEqual(utilityOrder)
+  for (const label of utilityOrder) {
     expect(screen.getByRole('button', { name: label }).className).toContain(homeUtilityButton)
   }
   fireEvent.click(screen.getByRole('button', { name: 'Cờ Tướng' }))

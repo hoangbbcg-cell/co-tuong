@@ -28,16 +28,16 @@ Bộ ảnh danh hiệu cập nhật 2026-10-04 dùng chung `src/lib/rankArtwork.
 - Tên, ảnh danh hiệu và sao phải xuất phát từ cùng kết quả `getRankProgress`; không lưu riêng bậc/sao dễ lệch dữ liệu.
 - Mọi hàng Bạn bè dùng chung hàm tính, kể cả lời mời đã gửi/đã nhận. Dữ liệu người chơi hiện là minh họa trong phiên.
 - Đây là quy tắc phân bậc và hiển thị sao. Chưa có công thức cộng/trừ Elo sau trận hoặc lưu Elo máy chủ.
-- Hàng sao dưới danh hiệu dùng RankStars, ảnh gốc `src/assets/references/uploads/rank-star-source.png` trim alpha tại `src/assets/player/rank-star.png`. Vùng sao rộng bằng khung danh hiệu và giới hạn tràn. Kích thước sao tối đa 25% bề rộng vùng, gap 1.5%; tự giảm nếu nhiều sao. Chỉ render sao đã đạt; sao luôn xếp từ mép trái vùng cố định sang phải, kể cả khi chỉ có 1 sao. Không căn giữa theo số sao thực tế.
+- Hàng sao dưới danh hiệu dùng RankStars, ảnh gốc `src/assets/references/uploads/rank-star-source.png` trim alpha tại `src/assets/player/rank-star.png`. Vùng sao rộng bằng khung danh hiệu và giới hạn tràn. Kích thước sao tối đa 31% bề rộng vùng, gap 0.5%; tự giảm nếu nhiều sao. Chỉ render sao đã đạt; sao luôn xếp từ mép trái vùng cố định sang phải, kể cả khi chỉ có 1 sao. Không căn giữa theo số sao thực tế.
 - Lấy Tân Binh làm chuẩn cố định cho cả 7 danh hiệu: cùng tọa độ và khung ảnh 132.746801×53.085332px theo anchor avatar106px (tăng 8% theo yêu cầu). Hàng sao dùng cùng tỷ lệ kích thước/gap; không bù alpha hay dịch theo từng asset. Ảnh dùng object-contain trong khung cố định, đổi danh hiệu không làm thay vị trí hoặc kích thước vùng.
-- Hàng sao dịch xuống2px theo yêu cầu, với bottomInset14px, clusterOffsetY-6px theo anchor106px; danh hiệu dịch-3px từ top87.876613px. Sao25% khung, gap1.5%, offsetX3px; đồng bộ cả7 danh hiệu và mọi màn hình.
+- Hàng sao dịch xuống2px theo yêu cầu, với bottomInset14px, clusterOffsetY-6px theo anchor106px; danh hiệu dịch-3px từ top87.876613px. Sao31% khung, gap0.5%, offsetX3px; đồng bộ cả7 danh hiệu và mọi màn hình.
 - Đã gỡ chế độ chuyển danh hiệu mỗi2s. AvatarRankBadge dùng tại Home, Hồ sơ, Tùy chỉnh avatar và PlayerCard; mặc định Tân Binh Elo1000, 1 sao. Có thể truyền Elo của từng người chơi khi dữ liệu thật được tích hợp; giữ cùng tỷ lệ ảnh/vùng sao theo kích thước avatar.
 
-- Vùng đủ3 ô sao rộng78% khung (3×25% + 2×1.5%), căn giữa rồi dịch phải3px theo anchor106px. Điền sao trái→phải, không dịch theo số sao. Mọi nơi dùng RankTitleBadge với cùng RANK_TITLE_STARS_STYLE; Bạn bè dùng khung166×66.382px trong cụm84px để sao dưới danh hiệu vừa hàng85px. Khi sửa chuẩn, cập nhật mọi nơi sử dụng trong cùng nhiệm vụ.
+- Vùng đủ3 ô sao rộng94% khung (3×31% + 2×0.5%), căn giữa rồi dịch phải3px theo anchor106px. Điền sao trái→phải, không dịch theo số sao. Mọi nơi dùng RankTitleBadge với cùng RANK_TITLE_STARS_STYLE; Bạn bè dùng khung166×66.382px trong cụm84px để sao dưới danh hiệu vừa hàng85px. Khi sửa chuẩn, cập nhật mọi nơi sử dụng trong cùng nhiệm vụ.
 
 Nguồn danh hiệu2144×724 và sao1199×1219 vượt2× kích thước CSS nhỏ; avatar là SVG. Icon red-general.png ở cột Điểm chỉ60×62, chưa đạt2× khi hiển thị43px; giữ nguyên do yêu cầu không thay asset, không phóng file rồi coi đó là chi tiết nguồn mới.
 
-Không làm tròn riêng sao/gap/top ở từng màn: dùng RankStars + RANK_TITLE_STARS_STYLE chung. Kích thước sao25% và gap1.5% phải giống Home; ô danh hiệu có thể làm tròn pixel khi render trực tiếp nhưng cụm sao giữ tỷ lệ chuẩn theo ô thực tế.
+Không làm tròn riêng sao/gap/top ở từng màn: dùng RankStars + RANK_TITLE_STARS_STYLE chung. Kích thước sao31% và gap0.5% phải giống Home; ô danh hiệu có thể làm tròn pixel khi render trực tiếp nhưng cụm sao giữ tỷ lệ chuẩn theo ô thực tế.
 
 Quy tắc2026-10-05: Tân Binh giữ vị trí sao hiện hành. Sáu bậc2–7 (Kỳ Sĩ/Kỳ Thủ/Kỳ Tướng/Đại Sư/Kỳ Vương/Kỳ Thánh) hạ riêng hàng sao thêm1px CSS bằng getRankTitleStarsStyle(rank.level), top=calc(top chuẩn + 1px). Áp dụng mọi consumer; không dịch danh hiệu, avatar, thẻ hoặc thành phần UI khác; không đổi size/gap/hướng điền sao. Đây là ngoại lệ theo bậc người dùng yêu cầu, không phải offset riêng màn hình.
 

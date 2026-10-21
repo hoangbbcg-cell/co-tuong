@@ -22,7 +22,7 @@ Cập nhật 2026-10-05. Đọc cùng PROJECT-MEMORY.md và tài liệu của m�
 
 ## Chuẩn sao không thay đổi
 
-RankStars + RANK_TITLE_STARS_STYLE là nguồn duy nhất, lấy Home làm chuẩn: sao25cqw, gap1.5cqw, 3 ô cố định, điền từ trái; vùng dịch phải3px theo khung132.746801px. Danh hiệu top84.876613px/sao top120.961945px theo avatar106px. Giữ tỷ lệ theo ô, không làm tròn từng sao hoặc tự đổi tọa độ để chữa mờ. Các ô ảnh/title có thể làm tròn pixel cuối cùng nhưng cqw/percentage giữ đúng tỷ lệ.
+RankStars + RANK_TITLE_STARS_STYLE là nguồn duy nhất, lấy Home làm chuẩn: sao31cqw, gap0.5cqw, 3 ô cố định, điền từ trái; vùng dịch phải3px theo khung132.746801px. Danh hiệu top84.876613px/sao top120.961945px theo avatar106px. Giữ tỷ lệ theo ô, không làm tròn từng sao hoặc tự đổi tọa độ để chữa mờ. Các ô ảnh/title có thể làm tròn pixel cuối cùng nhưng cqw/percentage giữ đúng tỷ lệ.
 
 ## Giới hạn nguồn hiện tại
 

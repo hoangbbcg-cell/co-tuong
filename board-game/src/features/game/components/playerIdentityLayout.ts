@@ -22,12 +22,14 @@ export const AVATA_TITLE_BADGE_STYLE = {
 } as const
 
 /** Shared reference approved from Home on 2026-10-05; update every consumer together. */
+export const RANK_STAR_SIZE_SCALE = 1.24
+
 export const RANK_STAR_LAYOUT = {
   offsetXPx: 3,
   bottomInsetPx: 14,
   clusterOffsetYPx: -6,
-  starWidthCqw: 25,
-  gapCqw: 1.5,
+  starWidthCqw: 25 * RANK_STAR_SIZE_SCALE,
+  gapCqw: 0.5,
 } as const
 
 /** Star position relative to the title frame, independent of the avatar size. */

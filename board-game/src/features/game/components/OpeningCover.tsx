@@ -5,7 +5,7 @@ const destinations = [
   'translate3d(100%, 0, 0)',
 ]
 const positions = ['left-0', 'right-0']
-const duration = 1500
+const duration = 600
 
 export function OpeningCover({ onComplete }: { onComplete: () => void }) {
   const panels = useRef<Array<HTMLDivElement | null>>([])

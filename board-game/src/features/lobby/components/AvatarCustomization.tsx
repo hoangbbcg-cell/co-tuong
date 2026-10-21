@@ -1,5 +1,4 @@
-import { useRef, useState } from 'react'
-import { AvatarComparison } from './AvatarComparison'
+import { useState } from 'react'
 import { SmallAvatarPortrait } from '../../../lib/SmallAvatarPortrait'
 import { useSessionStore } from '../../../store/sessionStore'
 import type { ReactNode } from 'react'
@@ -56,26 +55,24 @@ export function AvatarCustomization({ elo = 1000, onCancel, onUse, previewPanel,
   const cosmetics = useSessionStore(state => state.account?.cosmetics)
   const availableAvatars = [...new Set([...AVATAR_DISPLAY_ORDER, ...(cosmetics ?? []).filter(item => item.kind === 'avatar').map(item => Number(item.code.replace('avatar-', '')))])].filter(index => Number.isInteger(index) && index >= 0 && index < 18 && index !== 15)
   const [activeTab, setActiveTab] = useState<CustomizationTabIconName>('avatar')
-  const previewRef = useRef<HTMLSpanElement>(null)
-  const [comparisonSize, setComparisonSize] = useState<number | null>(null)
   const [draftAvatarIndex, setDraftAvatarIndex] = useState(selectedAvatarIndex)
   const [draftFrameIndex, setDraftFrameIndex] = useState(selectedFrameIndex)
   const [appliedSelection, setAppliedSelection] = useState<{ avatarIndex: number; frameIndex: number } | null>(null)
   const selectionApplied = appliedSelection?.avatarIndex === draftAvatarIndex && appliedSelection.frameIndex === draftFrameIndex
 
   return <div className="flex min-h-0 flex-1 flex-col gap-2 text-[#f8dea6]">
-    <section aria-label="Xem trước avatar" className="relative isolate grid h-[var(--ui-p-190,190px)] shrink-0 grid-cols-[0.82fr_1fr] gap-3 rounded-[var(--ui-p-10,10px)]">
-      <div className="relative flex h-[var(--ui-p-188,188px)] min-h-0 shrink-0 self-center -translate-y-[var(--ui-p-18,18px)] flex-col items-center justify-center">
-        <div className="relative h-[var(--ui-p-183,183px)] w-[var(--ui-p-136,136px)] shrink-0">
-          <span className="absolute top-0 left-0 grid size-[var(--ui-p-136,136px)] place-items-center">
-            <span ref={previewRef} className="absolute size-full overflow-hidden rounded-full bg-[#123334]"><AvatarPortrait avatarIndex={draftAvatarIndex} className="size-full rounded-full" /></span><AvatarFrameOverlay src={getAvatarFrame(draftFrameIndex).image} /><AvatarRankBadge elo={elo} />
+    <section aria-label="Xem trước avatar" className="relative isolate grid h-[var(--ui-p-190,190px)] shrink-0 grid-cols-[0.82fr_1fr] gap-3 rounded-[var(--ui-p-10,10px)] compact:h-[var(--ui-p-270,270px)] compact:grid-cols-[var(--ui-p-180,180px)_minmax(0,1fr)]">
+      <div className="relative flex h-[var(--ui-p-188,188px)] min-h-0 shrink-0 self-center -translate-y-[var(--ui-p-18,18px)] flex-col items-center justify-center compact:h-full compact:self-stretch compact:translate-y-0 compact:justify-start compact:pt-1">
+        <div className="relative h-[var(--ui-p-183,183px)] w-[var(--ui-p-136,136px)] shrink-0 compact:h-[var(--ui-p-240,240px)] compact:w-[calc(var(--ui-p-128,128px)*1.25)]">
+          <span className="absolute top-0 left-0 grid size-[var(--ui-p-136,136px)] place-items-center compact:size-[calc(var(--ui-p-128,128px)*1.25)]">
+            <span className="absolute size-full overflow-hidden rounded-full bg-[#123334]"><AvatarPortrait avatarIndex={draftAvatarIndex} className="size-full rounded-full" /></span><AvatarFrameOverlay src={getAvatarFrame(draftFrameIndex).image} /><AvatarRankBadge elo={elo} />
           </span>
         </div>
       </div>
       {previewPanel}
     </section>
 
-    <nav aria-label="Danh mục tùy chỉnh avatar" className="grid h-[var(--ui-p-50,50px)] shrink-0 grid-cols-4 gap-2">
+    <nav aria-label="Danh mục tùy chỉnh avatar" className="grid h-[var(--ui-p-50,50px)] shrink-0 grid-cols-4 gap-2 compact:h-[var(--ui-p-76,76px)] compact:gap-3">
       {[
         { label: 'Chọn avatar', icon: 'avatar' as const },
         { label: 'Chọn viền', icon: 'frame' as const },
@@ -87,38 +84,38 @@ export function AvatarCustomization({ elo = 1000, onCancel, onUse, previewPanel,
           if (tab.icon === 'frame') setDraftFrameIndex(selectedFrameIndex)
         }
         setActiveTab(tab.icon)
-      }} aria-current={activeTab === tab.icon ? 'page' : undefined} className={`${buttonInteraction} relative flex h-full min-w-0 items-center justify-center gap-2 rounded-[var(--ui-p-10,10px)] [corner-shape:scoop] border-2 p-0 font-cormorant text-[length:var(--ui-p-22,22px)] font-semibold ${activeTab === tab.icon ? `${selectionPalette.selected.border} ${selectedTabSurface} ${selectionPalette.selected.text} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface} ${selectionPalette.unselected.text} opacity-80`}`}>
+      }} aria-current={activeTab === tab.icon ? 'page' : undefined} className={`${buttonInteraction} relative flex h-full min-w-0 items-center justify-center gap-2 rounded-[var(--ui-p-10,10px)] [corner-shape:scoop] border-2 p-0 font-cormorant text-[length:var(--ui-p-22,22px)] font-semibold compact:flex-col compact:gap-0 compact:text-[length:var(--ui-p-24,24px)] ${activeTab === tab.icon ? `${selectionPalette.selected.border} ${selectedTabSurface} ${selectionPalette.selected.text} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface} ${selectionPalette.unselected.text} opacity-80`}`}>
         {activeTab === tab.icon && <SelectionCornerGlints />}<CustomizationTabIcon name={tab.icon} /><span className="relative z-10 inline-flex h-7 min-w-0 items-center truncate leading-none">{tab.label}</span>
       </button>)}
     </nav>
 
-    {activeTab === 'avatar' ? <div aria-label="Chọn avatar đã sở hữu" className="grid min-h-0 flex-1 grid-cols-5 grid-rows-[repeat(3,calc((100%-16px)/3))] auto-rows-[calc((100%-16px)/3)] gap-2 overflow-y-auto rounded-[var(--ui-p-10,10px)] border border-[#9f6025] bg-[#1c0d07aa] p-2 shadow-[inset_0_0_12px_#0d0503]">
-      {availableAvatars.map(avatarIndex => <button key={`avatar-${avatarIndex}`} type="button" aria-label={`Chọn avatar nhân vật ${avatarIndex + 1}`} aria-pressed={draftAvatarIndex === avatarIndex} onClick={() => setDraftAvatarIndex(avatarIndex)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] border-2 ${draftAvatarIndex === avatarIndex ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
-        <span className="block h-[calc(100%-var(--ui-p-8,8px))] max-w-full aspect-square overflow-hidden rounded-full">
+    {activeTab === 'avatar' ? <div aria-label="Chọn avatar đã sở hữu" className="grid min-h-0 flex-1 grid-cols-5 grid-rows-[repeat(3,calc((100%-16px)/3))] auto-rows-[calc((100%-16px)/3)] gap-2 overflow-y-auto rounded-[var(--ui-p-10,10px)] border border-[#9f6025] bg-[#1c0d07aa] p-2 shadow-[inset_0_0_12px_#0d0503] compact:grid-cols-4 compact:grid-rows-[repeat(3,max-content)] compact:auto-rows-max compact:content-start compact:gap-3 compact:p-3">
+      {availableAvatars.map(avatarIndex => <button key={`avatar-${avatarIndex}`} type="button" aria-label={`Chọn avatar nhân vật ${avatarIndex + 1}`} aria-pressed={draftAvatarIndex === avatarIndex} onClick={() => setDraftAvatarIndex(avatarIndex)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] compact:aspect-square border-2 ${draftAvatarIndex === avatarIndex ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
+        <span className="block h-[calc(100%-var(--ui-p-8,8px))] max-w-full aspect-square overflow-hidden rounded-full compact:h-auto compact:w-[calc(100%-var(--ui-p-8,8px))]">
           <AvatarPortrait avatarIndex={avatarIndex} className={`size-full rounded-full ${avatarIndex < 15 ? 'scale-[1.12]' : ''}`} />
         </span>
         {draftAvatarIndex === avatarIndex && <SelectionCornerGlints />}
         {selectedAvatarIndex === avatarIndex && <span aria-hidden="true" className="absolute right-1 bottom-1 grid size-6 place-items-center rounded-full border-2 border-[#d4f387] bg-[#285a24] text-base font-bold leading-none text-[#eaffb5] shadow-[0_1px_3px_#170c04]">✓</span>}
       </button>)}
-    </div> : activeTab === 'frame' ? <div aria-label="Khung avatar, 6 cột và 3 hàng" className="grid min-h-0 flex-1 grid-cols-6 grid-rows-3 gap-2 rounded-[var(--ui-p-10,10px)] border border-[#9f6025] bg-[#1c0d07aa] p-2 shadow-[inset_0_0_12px_#0d0503]">
+    </div> : activeTab === 'frame' ? <div aria-label="Chọn khung avatar" className="grid min-h-0 flex-1 grid-cols-6 grid-rows-3 gap-2 rounded-[var(--ui-p-10,10px)] border border-[#9f6025] bg-[#1c0d07aa] p-2 shadow-[inset_0_0_12px_#0d0503] compact:grid-cols-4 compact:grid-rows-[repeat(3,calc((100%_-_var(--ui-p-24,24px))/3))] compact:auto-rows-[calc((100%_-_var(--ui-p-24,24px))/3)] compact:gap-3 compact:overflow-y-auto compact:p-3">
       {Array.from({ length: 18 }, (_, index) => index < AVATAR_FRAMES.length && (index < 4 || (cosmetics ?? []).some(item => item.kind === 'frame' && item.code === `frame-${index}`))
         ? <button key={`frame-${index}`} type="button" aria-label={AVATAR_FRAMES[index].label} aria-pressed={draftFrameIndex === index} onClick={() => setDraftFrameIndex(index)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] border-2 ${draftFrameIndex === index ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
-          <span className="relative grid h-full max-h-full aspect-square place-items-center"><span className="relative grid size-[77.1%] place-items-center"><AvatarFrameOverlay src={AVATAR_FRAMES[index].image} /></span></span>
+          <span className="relative grid h-full max-h-full aspect-square place-items-center compact:h-auto compact:w-full"><span className="relative grid size-[77.1%] place-items-center"><AvatarFrameOverlay src={AVATAR_FRAMES[index].image} /></span></span>
           {draftFrameIndex === index && <SelectionCornerGlints />}
           {selectedFrameIndex === index && <span aria-hidden="true" className="absolute right-1 bottom-1 grid size-6 place-items-center rounded-full border-2 border-[#d4f387] bg-[#285a24] text-base font-bold leading-none text-[#eaffb5] shadow-[0_1px_3px_#170c04]">✓</span>}
         </button>
         : <div key={`locked-frame-${index}`} role="img" aria-label={`Ô khung mẫu ${index + 1} đang khóa`} className={`relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] border ${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}><LockIcon /></div>)}
-    </div> : <div aria-hidden="true" className="min-h-0 flex-1" />}
+    </div> : <div className="grid min-h-0 flex-1 place-items-center compact:rounded-[var(--ui-p-10,10px)] compact:border compact:border-[#9f6025] compact:bg-[#1c0d07aa] compact:p-3">
+      <p className="hidden text-center font-cormorant text-[length:var(--ui-p-30,30px)] text-[#dcb777] compact:block">{activeTab === 'skin' ? 'Chưa có skin' : 'Chưa có hiệu ứng'}</p>
+    </div>}
 
-    <footer className="flex h-[var(--ui-p-50,50px)] shrink-0 items-center justify-center gap-4">
-      <button type="button" className="text-sm underline" onClick={() => setComparisonSize(Math.round(previewRef.current?.getBoundingClientRect().width || 136))}>So sánh độ nét A/B/C</button>
-      <button type="button" onClick={onCancel} className={actionButton}>Hủy</button>
+    <footer className="flex h-[var(--ui-p-50,50px)] shrink-0 items-center justify-center gap-4 compact:h-[var(--ui-p-76,76px)] compact:gap-3">
+      <button type="button" onClick={onCancel} className={`${actionButton} compact:h-[var(--ui-p-56,56px)] compact:min-w-[var(--ui-p-150,150px)] compact:px-4 compact:text-xl`}>Hủy</button>
       <button type="button" aria-disabled={selectionApplied} onClick={() => {
         if (selectionApplied) return
         onUse(draftAvatarIndex, draftFrameIndex)
         setAppliedSelection({ avatarIndex: draftAvatarIndex, frameIndex: draftFrameIndex })
-      }} className={selectedButton} style={{ filter: selectionApplied ? 'brightness(0.65)' : undefined }}>Sử dụng</button>
+      }} className={`${selectedButton} compact:h-[var(--ui-p-56,56px)] compact:min-w-[var(--ui-p-170,170px)] compact:px-4 compact:text-xl`} style={{ filter: selectionApplied ? 'brightness(0.65)' : undefined }}>Sử dụng</button>
     </footer>
-    {comparisonSize !== null && <AvatarComparison size={comparisonSize} onClose={() => setComparisonSize(null)} />}
   </div>
 }

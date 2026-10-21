@@ -56,3 +56,7 @@ board-game/src/assets/references/uploads/*
 .npm-cache/
 
 .admin-access
+.admin-access.txt
+*.sql.gz
+*.sql.zst
+/ci-tests-*.json

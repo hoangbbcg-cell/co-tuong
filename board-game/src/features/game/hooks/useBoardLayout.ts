@@ -9,7 +9,7 @@ export function useBoardLayout() {
     if (!arena) return
     const fit = () => {
       const compact = window.matchMedia('(max-width: 800px)').matches
-      const availableHeight = arena.clientHeight - (compact ? 130 : 0) - 4
+      const availableHeight = arena.clientHeight - (compact ? 260 : 0) - 4
       const availableWidth = compact ? arena.clientWidth : arena.clientWidth - 340
       setWidth(Math.max(0, Math.min(availableWidth, availableHeight * 1134 / 1296)))
     }
@@ -24,7 +24,12 @@ export function useBoardLayout() {
     const scene = arena?.parentElement
     const board = arena?.querySelector('#board')
     if (!arena || !scene || !board) return
+    const identity = arena.querySelector('[data-player-identity]')
     const measure = () => {
+      if (identity) {
+        const rect = identity.getBoundingClientRect()
+        scene.style.setProperty('--mobile-viewer-center', `${rect.top + rect.height / 2}px`)
+      }
       const outer = scene.getBoundingClientRect()
       const inner = board.getBoundingClientRect()
       const left = Math.max(0, inner.left - outer.left)
@@ -38,6 +43,7 @@ export function useBoardLayout() {
     observer.observe(scene)
     observer.observe(arena)
     observer.observe(board)
+    if (identity) observer.observe(identity)
     return () => observer.disconnect()
   }, [width])
   return { arenaRef, backgroundMask, frameWidth: width, scale: width / 1134, frameHeight: width * 1296 / 1134 }

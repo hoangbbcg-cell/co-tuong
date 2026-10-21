@@ -34,13 +34,15 @@ export function useChat(enabled = true) {
   const send = async (text = input) => {
     if (!enabled) return
     if (!text.trim() || text.length > 300 || sending) return
+    const compact = window.matchMedia('(max-width: 800px)').matches
+    if (compact) inputRef.current?.focus({ preventScroll: true })
     setSending(true)
     try {
       if (session.mode === 'online') session.receiveRoom(await roomSocket.chat(text.trim()))
       else session.append(text)
       setInput(''); setPicker(null)
     } catch (error) { session.setNotice(errorMessage(error)) }
-    finally { setSending(false); inputRef.current?.focus() }
+    finally { setSending(false); if (!compact) inputRef.current?.focus() }
   }
   const emoji = (value: string) => {
     const start = inputRef.current?.selectionStart ?? input.length
@@ -53,6 +55,7 @@ export function useChat(enabled = true) {
     setPicker(null)
   }
   return { input, setInput, picker, collapsed, sending, messages, name: session.name, mode: session.mode, containerRef, messagesRef, inputRef, send, emoji,
+    closePicker: () => setPicker(null),
     togglePicker: (value: 'emoji' | 'quick') => setPicker(current => current === value ? null : value),
     toggle: () => { setCollapsed(current => !current); setPicker(null) } }
 }

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, screen, within } from '@testing-library/react'
+import { renderWithQuery as render } from './helpers/renderWithQuery'
 import '@testing-library/jest-dom/vitest'
 import { afterEach, describe, expect, it } from 'vitest'
 import { RoomUsersPanel } from '../src/features/game/components/RoomUsersPanel'

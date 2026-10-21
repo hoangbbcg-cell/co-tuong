@@ -24,7 +24,7 @@ import { CrispUiImage } from '../../lib/CrispUiImage'
 import { buttonInteraction, homeUtilityButton } from '../../lib/uiClasses'
 
 type Props = { home: ReturnType<typeof useHome>; music: ReturnType<typeof useHomeMusic>; onEnergy: () => void; onMessages: () => void }
-const dockButton = `${homeUtilityButton} mx-auto`
+const dockButton = `${homeUtilityButton} mx-auto h-[11cqw]! w-[11cqw]! max-h-12 max-w-12`
 
 export function MobileHome({ home, music, onEnergy, onMessages }: Props) {
   const [page, setPage] = useState(0)
@@ -83,7 +83,7 @@ export function MobileHome({ home, music, onEnergy, onMessages }: Props) {
       </button>)}
     </div>
     <nav aria-label="Tiện ích điện thoại" className="absolute inset-x-[2%] bottom-[1%] z-40 grid grid-cols-6 gap-1 rounded-[3cqw] border-t border-[#b0833f] bg-[#1c120cdd] px-[1cqw] pt-[2cqw] pb-[max(2cqw,env(safe-area-inset-bottom))]">
-      {([{ label: 'Xếp hạng', icon: 'trophy', run: home.openRanking }, { label: 'Bạn bè', icon: 'friends', run: home.openFriends }, { label: 'Lịch sử', icon: 'history', run: home.openHistory }, { label: 'Cửa hàng', icon: 'shop', run: home.openShop }, { label: 'Chat', icon: 'messages', run: onMessages }] as const).map(item => <div key={item.label} className="min-w-0 text-center">
+      {([{ label: 'Xếp hạng', icon: 'trophy', run: home.openRanking }, { label: 'Lịch sử', icon: 'history', run: home.openHistory }, { label: 'Bạn bè', icon: 'friends', run: home.openFriends }, { label: 'Chat', icon: 'messages', run: onMessages }, { label: 'Cửa hàng', icon: 'shop', run: home.openShop }] as const).map(item => <div key={item.label} className="min-w-0 text-center">
         <button type="button" aria-label={item.label} onClick={item.run} className={dockButton}><HomeIcon name={item.icon} /></button>
         <span className="mt-[1cqw] block whitespace-nowrap font-heading text-[3.2cqw] leading-normal">{item.label}</span>
       </div>)}

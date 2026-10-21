@@ -1,5 +1,7 @@
 # Hướng dẫn làm việc
 
+- 2026-10-21: User yêu cầu sao lớn hơn trên điện thoại/laptop toàn project. RANK_STAR_SIZE_SCALE=1.24; sao người chơi31cqw (trước25), gap0.5cqw, 3ô94% giữ neo/hướng điền cũ. Sao máy artwork riêng cũng tăng24% từ cùng token, giữ tâm. Không thay avatar/khung danh hiệu hoặc luật Elo.
+
 - 2026-10-19: Popup thắng/thua phải chờ cả hình chiếu bí và hai lớp âm thanh GameSounds.playCheckmate kết thúc (AudioBufferSourceNode.onended), không đoán bằng timeout. Máy giả2nước cũng trình diễn chiếu bí trước popup, kết quảserver vẫn resign; chỉ đổi presentation, không sửa luậtPvP/thưởng. Lỗi tải audio giải phóng an toàn, reset/rời bỏ completion cũ.
 
 - 2026-10-19: Ngoại lệ thử nghiệm theo user: Home có Máy giả Cờ Tướng/Cờ Úp, người chơi Đỏ đi2nước hợp lệ thì máy nhường thắng. TestBotService giữ vánRAM/kiểmtra nước và TestBotRepository cộng vàng thật125–150 trongtransaction+ledger test_bot_win/idempotency theo ván. Cookieauth, không nhận winner/giátrị thưởng từclient; retry khôngcộngtrùng. Dùng GamePage/popupchung, ô thưởng hiệnsốvàngAPI. Riêng luồng thử này miễn nănglượng, không tăngElo/statPvP, không côngbố phòng/presence hoặc thayChơiNhanh/Pikafish. Xem docs/TEST-BOT.md.
@@ -386,4 +388,16 @@ design system hiện tại đã có giá trị tương ứng.
 
 
 - 2026-10-20: Theo quyền user cho task Thông tin mobile: profile compact header270/cột avatar180/avatar128*1.25, card nâu hẹp/cao hơn, stats170, footer lớn hơn. Dialog portrait nới lề tổng20px chung. Avatar/khung/nameplate desktop và Tùy chỉnh không thay; sau task khóa lại geometry mới. Xem MOBILE-HOME.md.
+
+
+- 2026-10-20: Entry restore phân biệt non401 (Thử lại, giữ entry nếu có) và401 (Login sau thửrestoreGuest). GoogleGIS không chạy trênrawIPLAN/HTTP ngoài loopback; cần HTTPSdomain đăngký Google, giữ xác thực/token/cookie thật. Xem GOOGLE-SIGN-IN.md.
+
+
+- 2026-10-20: CI/CD chỉ manual deploy từ master SHA có push CI thành công, Environment production phê duyệt; luôn backup đã kiểm chứng và build trước activation. Hiện CD không DDL/restore MySQL, pending/mismatch chặn; rollback code chỉ khi reviewer xác nhận tương thích dữ liệu và schema cả2bản PASS. Hook backup VPS phải cấu hình thật, không giả thành công. Xem board-game/docs/CI-CD.md.
+
+
+- 2026-10-20: User xác nhận trong task CI: khôi phục hiệu ứng OpeningCover dùng chung về600ms theo tài liệu, thay1500ms trong implementation. Áp dụng các màn dùng cùng cover (Game/Chọn Bàn/Chơi với máy), không đổi intro1300ms/clock/luật hoặc geometry UI.
+
+
+- 2026-10-21: User xác nhận có thể bỏ phần So sánh độ nét avatar A/B/C. Giữ UI đã bỏ tính năng; không đưa lại để vượt test. Regression avatar-comparison được giữ file và chuyển sang kiểm tra preview/chọn không tự equip, Hủy không đổi avatar, Sử dụng áp dụng đúng và một lần.
 

@@ -78,3 +78,13 @@ Kết quả: migration004 đã apply1 bước trên cotuong, db:verify/db:check 
 
 2026-10-18: Guest chưa liên kết có auto-restore bằng cookie thiết bị khi /me401 qua POST /guest/restore; endpoint chỉ resume và không tạo mới. Google logout/link vẫn revoke session/device hash như trước, credential Guest đã bị thu hồi không dùng để bypass Google. Xem ACCOUNT-MODEL.md.
 
+
+## Đăng nhập từ điện thoại qua LAN — 2026-10-20
+
+Google không cho Authorized JavaScript origin dùng IP LAN thô (kể cả có HTTPS); HTTP chỉ được ngoại lệ cho localhost/loopback. Vì vậy `http://192.168.1.12:5173` dùng được Chơi như khách, nhưng không đăng nhập Google. Muốn dùng Google từ điện thoại cần tên miền HTTPS hợp lệ đã thêm chính xác origin vào Google Cloud; frontend/backend giữ cùng Client ID. Không dùng frontend flag, token giả hoặc localStorage để vượt xác thực.
+
+Nguồn: https://developers.google.com/identity/protocols/oauth2/javascript-implicit-flow#origin-validation
+
+GoogleSignInButton hiển thị lý do trên origin không hỗ trợ, không tải SDK hoặc tạo nonce lặp ở đó. localhost/127.0.0.1/HTTPS tên miền tiếp tục flow GIS hiện có.
+
+Guest được giữ bằng cookie trên cùng trình duyệt/host. Restart npm dev không chủ động xóa credential trong MySQL. IP/host khác hoặc vùng dữ liệu trình duyệt khác không cùng Guest. EntryGate phân biệt lỗi tải/mạng với 401: non401 hiện Thử lại, không đẩy người chơi sang tạo Guest. Chưa tái hiện trực tiếp mất cookie trên điện thoại của user.

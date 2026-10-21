@@ -109,7 +109,14 @@ describe('Coordinated repetition', () => {
     const id = service.create('Coordinated repetition test').id
     service.join(id, 'r', 'Red'); service.join(id, 'b', 'Black')
     service.command('r', { type: 'ready' }); service.command('b', { type: 'ready' }); now = 1300
-    for (let i = 0; i < 4; i++) for (const [side, move] of [['r', redOut], ['b', blackOut], ['r', redBack], ['b', blackBack]] as const) service.command(side, { type: 'move', move })
+    for (let i = 0; i < 4; i++) {
+      for (const [side, move] of [['r', redOut], ['b', blackOut], ['r', redBack], ['b', blackBack]] as const) service.command(side, { type: 'move', move })
+      if (i === 2) {
+        expect(service.roomFor('r')!.repetitionNoticePaused).toBe(true)
+        expect(() => service.command('r', { type: 'move', move: redOut })).toThrow()
+        service.command('r', { type: 'repetition-notice', action: 'close' })
+      }
+    }
     const before = service.roomFor('r')!
     expect(before.game.repetition?.cycle?.starter).toBe('red')
     expect(before.game.repetition?.cycle?.rounds).toBe(4)
