@@ -10,6 +10,7 @@ import { MAX_ENERGY } from '../../../lib/energy'
 export function useHome() {
   const name = useSessionStore(state => state.name)
   const energy = useSessionStore(state => state.energy)
+  const energyUnlimited = useSessionStore(state => state.account?.energyUnlimited ?? false)
   const gold = useSessionStore(state => state.gold)
   const energyRecoveryAt = useSessionStore(state => state.energyRecoveryAt)
   const [energyNow, setEnergyNow] = useState(Date.now)
@@ -26,6 +27,7 @@ export function useHome() {
   const [message, setMessage] = useState('')
   const requireEnergy = () => {
     const store = useSessionStore.getState()
+    if (store.account?.energyUnlimited) return true
     store.recoverEnergy()
     if (useSessionStore.getState().energy > 0) return true
     useSessionStore.getState().showEnergyNotice()
@@ -93,5 +95,5 @@ export function useHome() {
       setMessage('Bạn có thể đóng tab trình duyệt để thoát trò chơi.')
     }
   }
-  return { openShop, energyCountdown, energy, gold, openComputer, playHidden, quickPlay, joining: quick.isPending, name, setName, notice, message, messageRef, profileRef, rankingRef, friendsRef, historyRef, openProfile, closeProfile, openRanking, closeRanking, openFriends, closeFriends, openHistory, closeHistory, setMessage, openRooms, closeRooms, playLocal, fullscreen, exit }
+  return { openShop, energyCountdown: energyUnlimited ? 'Năng lượng vô hạn' : energyCountdown, energy, energyUnlimited, gold, openComputer, playHidden, quickPlay, joining: quick.isPending, name, setName, notice, message, messageRef, profileRef, rankingRef, friendsRef, historyRef, openProfile, closeProfile, openRanking, closeRanking, openFriends, closeFriends, openHistory, closeHistory, setMessage, openRooms, closeRooms, playLocal, fullscreen, exit }
 }

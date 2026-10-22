@@ -8,7 +8,7 @@ const RESULT_ARTWORK_VIEWBOX = {
 
 export function MatchResultBadge({ result }: { result: 'Thắng' | 'Thua' }) {
   const win = result === 'Thắng'
-  return <span className={`relative m-0 grid h-[var(--ui-p-39,39px)] w-[var(--ui-p-82-77551,82.77551px)] shrink-0 place-items-center border-0 p-0 ${win ? '' : '-translate-x-[var(--ui-p-2,2px)] -translate-y-[var(--ui-p-2,2px)]'}`}>
+  return <span className={`relative m-0 grid h-[var(--ui-p-39,39px)] w-[var(--ui-p-82-77551,82.77551px)] shrink-0 place-items-center border-0 p-0 compact:h-[var(--ui-p-32,32px)] compact:w-[var(--ui-p-66,66px)] ${win ? '' : '-translate-x-[var(--ui-p-2,2px)] -translate-y-[var(--ui-p-2,2px)]'}`}>
     <svg role="img" aria-label={result} focusable="false" viewBox={RESULT_ARTWORK_VIEWBOX[result]} preserveAspectRatio="xMidYMid meet" className="pointer-events-none block size-full overflow-hidden">
       <image href={resultSprite} x="0" y="0" width="2172" height="724" />
     </svg>

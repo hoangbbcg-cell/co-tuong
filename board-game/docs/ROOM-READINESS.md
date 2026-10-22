@@ -2,6 +2,8 @@
 
 Quy tắc chốt2026-10-15, server là nguồn sự thật.
 
+- Khi cả hai sẵn sàng hoặc countdown tự bắt đầu ván, server bốc thăm người cầm Đỏ (đi tiên), người còn lại cầm Đen. Ghi phe mới cùng lượt Đỏ vào snapshot trước khai cuộc1300ms. Ván kế bốc lại; không để Đen đi trước.
+
 - Người thua ván thường vẫn xuống cuối hàng chờ, đầu hàng lên bàn theo quy tắc hiện hành (3 giây nếu đã chờ trước kết thúc ván; vào hàng sau kết thúc thì lên ngay khi đủ điều kiện).
 - Luật Sẵn sàng dưới đây áp dụng cho hai người đang ngồi trên bàn, chỉ khi còn ít nhất một khán giả đang xếp hàng. Khán giả không xếp hàng không kích hoạt luật.
 - Không có ai xếp hàng: cả hai chưa Sẵn sàng hoặc chỉ một người Sẵn sàng đều được chờ tự do, không tự bắt đầu/không xử thua.

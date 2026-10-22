@@ -10,6 +10,10 @@ function publicGame(game: GameState): GameState {
 
 /** Keep hidden identities on the server, including archived/takeback states. */
 export function publicRoom(room: RoomSnapshot): RoomSnapshot {
+  if (room.goldRewardExcludedPairs) {
+    const { goldRewardExcludedPairs: _pairs, ...visible } = room
+    room = visible
+  }
   if (room.game.variant !== 'jieqi') return room
   return { ...room, game: publicGame(room.game), lastCompletedMatch: room.lastCompletedMatch
     ? { ...room.lastCompletedMatch, states: room.lastCompletedMatch.states.map(publicGame) }

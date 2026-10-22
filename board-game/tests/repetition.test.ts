@@ -105,7 +105,7 @@ describe('Coordinated repetition', () => {
   })
   it('server rejects only the starter before its fifth round move', () => {
     let now = 0
-    const service = new RoomService(new RoomRepository(), () => now)
+    const service = new RoomService(new RoomRepository(), () => now, () => 'red')
     const id = service.create('Coordinated repetition test').id
     service.join(id, 'r', 'Red'); service.join(id, 'b', 'Black')
     service.command('r', { type: 'ready' }); service.command('b', { type: 'ready' }); now = 1300

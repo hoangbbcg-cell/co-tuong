@@ -2,6 +2,7 @@
 import type { PoolConnection, RowDataPacket, ResultSetHeader } from 'mysql2/promise'
 import type { AccountProfile } from '../../src/types/account'
 import { recoverEnergy } from '../../src/lib/energy'
+import { hasUnlimitedEnergyPublicId } from '../../src/lib/energyEntitlements'
 import { getMysqlConnection, getMysqlPool } from './mysqlPool'
 import { AccountError } from '../errors'
 
@@ -65,6 +66,7 @@ export class AccountRepository {
   }
   async consumeDemoEnergy(id:string,key:string) {
     await transaction(async c=>{
+      if(await this.hasUnlimitedEnergy(id,c))return
       const resource=await this.resources(id,c)
       if((await rows('SELECT id FROM resource_events WHERE idempotency_key=?',[`demo:${id}:${key}`],c)).length)return
       if(resource.energy<1)throw new Error('Not enough energy')
@@ -86,8 +88,13 @@ export class AccountRepository {
         (SELECT COUNT(*) FROM user_follows WHERE followed_id=?) followers,
         (SELECT COUNT(*) FROM match_likes l JOIN match_players p ON p.match_id=l.match_id AND p.side=l.target_side WHERE p.user_id=?) likes`,[id,id,id,id],c)
       const cosmetics = await rows('SELECT kind,code FROM user_cosmetics WHERE user_id=?', [id], c)
-      return { ...r[0], cosmetics, id:String(r[0].id), publicId:String(r[0].publicId), linked:Number(r[0].linked)===1,renamed:Number(r[0].renamed)===1,locationSet:Number(r[0].locationSet)===1,...resource, stats,friends:Number(counts[0].friends),followers:Number(counts[0].followers),likes:Number(counts[0].likes) } as AccountProfile
+      const publicId=String(r[0].publicId)
+      return { ...r[0], cosmetics, id:String(r[0].id), publicId, energyUnlimited:hasUnlimitedEnergyPublicId(publicId), linked:Number(r[0].linked)===1,renamed:Number(r[0].renamed)===1,locationSet:Number(r[0].locationSet)===1,...resource, stats,friends:Number(counts[0].friends),followers:Number(counts[0].followers),likes:Number(counts[0].likes) } as AccountProfile
     })
+  }
+  async hasUnlimitedEnergy(id:string,c?:PoolConnection):Promise<boolean> {
+    const result=await rows('SELECT CAST(public_id AS CHAR) publicId FROM users WHERE id=?',[id],c)
+    return !!result[0]&&hasUnlimitedEnergyPublicId(String(result[0].publicId))
   }
   async resources(id: string, c: PoolConnection) {
     const r=await rows('SELECT CAST(gold AS CHAR) gold,energy,energy_recovery_at recovery FROM user_resources WHERE user_id=? FOR UPDATE',[id],c)

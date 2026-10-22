@@ -1,6 +1,6 @@
 # CI/CD cho VPS hiện tại
 
-Trạng thái: chuẩn bị Local, **chưa kích hoạt GitHub/VPS, chưa deploy thật**. Không đổi UI, cơ chế đăng nhập, firewall, SSH, Nginx hay MySQL production.
+Trạng thái 2026-10-22: người dùng xác nhận CI master PASS, SSH key user `cotuong_deploy` và hai action Backup Adapter đã thử thành công. Bản chuyển tài khoản CD được chuẩn bị Local; chưa SSH/đổi quyền/restart/deploy production trong task này. Các thay đổi mới vẫn cần review/push/CI riêng. Xem hướng dẫn thủ công [DEPLOY-USER.md](DEPLOY-USER.md).
 
 ## CI
 
@@ -21,9 +21,9 @@ Concurrency GitHub không hủy deploy đang chạy; `flock` trên VPS ngăn c�
 ## Việc quản trị viên phải làm một lần trên VPS (chưa thực hiện)
 
 1. Xác minh service `cotuong.service` dùng working directory `/home/nhat_hoang/co-tuong/board-game`, Node 22 và code tại đường dẫn đó, backend cổng loopback3001. Kiểm tra `systemctl cat cotuong.service` **tại VPS**, không paste nội dung chứa secrets lên GitHub. Nếu unit khác, chỉnh script theo unit đã xác nhận trước khi bật CD; script không sửa unit. Node/npm phải có trong PATH của SSH không tương tác; dùng bản cài hiện có, không tự cài thêm bằng deploy.
-2. Tài khoản SSH phải đọc `.env` hiện tại và ghi được thư mục app, `/var/www/cotuong`, `/home/nhat_hoang/.cotuong-incoming` và `.cotuong-deploy`. Kiểm tra ownership/ACL hiện có; không cấp sudo tùy ý hoặc `chmod 777`. Nếu Nginx đang phục vụ đường dẫn khác/symlink, phải đối chiếu và sửa script, không chạy thử trên đường dẫn chưa xác minh. Xác minh không có DB/media nằm trong WEB trước `rsync --delete`.
+2. SSH chỉ dùng `cotuong_deploy`; app giữ đường dẫn cũ. Cấp ACL đi qua (`--x`) riêng cho deploy ở `/home/nhat_hoang` và `co-tuong`, không mở home750 thành755. Cấp ACL code/WEB và default ACL để runtime/Nginx đọc file mới; deploy đọc `.env`. Incoming/state chuyển sang `/home/cotuong_deploy/.cotuong-incoming` và `.cotuong-deploy`, deploy-owned0700. Thực hiện đúng [DEPLOY-USER.md](DEPLOY-USER.md), kiểm probe thực tế và `deploy-vps.sh --check` trước kích hoạt. Không chown toàn app, thêm deploy vào group quản trị hoặc cấp sudo rộng. Xác minh không có DB/media trong WEB trước rsync--delete.
 3. Cho phép sudo không hỏi mật khẩu **chỉ lệnh cụ thể**: `systemctl stop/start cotuong.service`, `systemctl is-active --quiet cotuong.service` và hai lệnh backup bên dưới. Dùng đường dẫn binary tuyệt đối do `command -v` trên VPS trả về trong sudoers; quản trị viên dùng `visudo` và kiểm tra `sudo -l`. Không cấp `sudo bash`, `sudo rsync`, `sudo npm`, wildcard service, ALL hoặc quyền MySQL admin cho CI. Quyền SSH này vẫn có khả năng sửa ứng dụng/đọc `.env`, phải coi là credential production, dùng key riêng có thể thu hồi.
-4. Cài adapter đã cung cấp theo [BACKUP-ADAPTER.md](BACKUP-ADAPTER.md), dùng đúng backup hiện có `/usr/local/sbin/cotuong-backup.sh`, `cotuong-backup.service` → OnSuccess `cotuong-cloud-backup.service`, file `/var/backups/cotuong/cotuong-YYYY-MM-DD_HH-MM-SS.sql.gz`. Hai action `verify-existing`/`create-and-verify` bắt buộc; script/unit hiện có không bị sửa. Adapter kiểm gzip/marker/checksum/file mới và chờ lần chạy cloud mới kết thúc; không kiểm restore hoặc tự chứng minh remote checksum. Reviewer phải kiểm bằng chứng offsite và restore định kỳ cô lập trước khi duyệt Environment. Cài thủ công root-owned adapter/state, audit quyền script/unit/phụ thuộc và sudoers chính xác theo hướng dẫn; không cấp quyền root rộng. Thiếu điều kiện/timeout/lỗi sẽ chặn CD trước khi thay app. Chưa cài trên VPS.
+4. Adapter theo [BACKUP-ADAPTER.md](BACKUP-ADAPTER.md) đã được người dùng báo thử cả hai action thành công; không thay adapter/unit backup trong lần chuyển user này. Giữ đúng backup hiện có `/usr/local/sbin/cotuong-backup.sh`, `cotuong-backup.service` → OnSuccess `cotuong-cloud-backup.service`, file `/var/backups/cotuong/cotuong-YYYY-MM-DD_HH-MM-SS.sql.gz`. `verify-existing`/`create-and-verify` vẫn bắt buộc, sudoers exact commands nay dành cho `cotuong_deploy`. Reviewer tiếp tục kiểm bằng chứng offsite/restore cô lập; adapter không tự chứng minh hai việc này.
 5. Xác nhận `.env` VPS đủ DB, GOOGLE_CLIENT_ID/VITE_GOOGLE_CLIENT_ID, ADMIN_PASSWORD_HASH, NODE_ENV và cấu hình hiện hành; không upload lên GitHub. Vite chỉ bundle biến VITE_: chỉ đưa dữ liệu công khai vào prefix này. Script copy `.env` vào release riêng quyền600 để build đúng OAuth, thư mục release umask077; không log nội dung. Không commit `.env`, `.admin-access.txt`, SSH key, database dump. Không cần Client Secret Google để CI build.
 6. Kiểm chứng kết nối DB runtime có SELECT để `db:verify`. Không chạy `db:smoke` trên production. Đảm bảo app đang chạy phiên bản có journal và verify hợp lệ; nếu bản cũ chưa có CLI verify tương thích, cần bootstrap thủ công được review, không bỏ qua gate.
 7. Xác nhận `rsync`, `curl`, `tar`, `flock`, `node`, `npm` đã có trên VPS, dung lượng đủ cho code+node_modules+frontend cả bản mới và snapshot cũ. Script giữ `engines/`, `uploads/`, `media/`, `storage/`, `.env*`, `.admin-access*` ở app cũ; engine binary/NNUE hiện có phải tương thích phiên bản mới, cần review thủ công. Bản snapshot không bao gồm secrets/uploads/engine, không phải bản backup toàn VPS.
@@ -35,7 +35,7 @@ Tạo trong Environment `production`, không repository-wide nếu không cần:
 | Secret | Nội dung |
 |---|---|
 | VPS_HOST | Host/IP VPS hiện có |
-| VPS_USER | User deploy đã được review quyền (đường dẫn hiện tại nhat_hoang) |
+| VPS_USER | Bắt buộc `cotuong_deploy`; workflow/script từ chối user quản trị |
 | VPS_PORT | Cổng SSH đang có, để trống dùng22; không mở cổng mới |
 | VPS_SSH_KEY | Private key deploy riêng; không chia sẻ qua chat/log |
 | VPS_KNOWN_HOSTS | Dòng known_hosts đã xác minh fingerprint qua kênh tin cậy; cổng khác22 dùng `[host]:port` |
@@ -52,7 +52,7 @@ Nếu DDL đã chạy một phần: giữ dừng deploy, đối chiếu journal/
 
 ## Luồng deploy và rollback
 
-Sau kiểm tra backup hiện có: giải nén vào `.cotuong-deploy/<timestamp>-<sha>/code`, `npm ci` đầy đủ (backend đang cần tsx thuộc devDependencies), build trước khi chạm app đang chạy, verify schema mới/cũ. Không dùng `npm ci --omit=dev`. Lưu code+node_modules và WEB cũ; tạo backup mới và chờ local/cloud kết thúc thành công; dừng service, rsync bản mới và dist, start service. Thư mục app và WEB phải có quyền ghi trước, script không tự sửa owner/ACL/Nginx.
+Sau preflight user/quyền và kiểm tra backup hiện có: giải nén vào `/home/cotuong_deploy/.cotuong-deploy/<timestamp>-<sha>/code`, `npm ci` đầy đủ (backend đang cần tsx thuộc devDependencies), build trước khi chạm app đang chạy, verify schema mới/cũ. Không dùng `npm ci --omit=dev`. Lưu code+node_modules và WEB cũ; tạo backup mới và chờ local/cloud kết thúc thành công; dừng service, rsync bản mới và dist, start service. Publish/rollback cùng dùng rsync không giữ owner/group/perms/directory-times; giữ ACL đích và default ACL cho file mới. Thư mục app/WEB phải được quản trị cấp quyền trước; script không sửa owner/ACL/Nginx.
 
 Kiểm tra systemd active, JSON `/api/health` loopback và HTTPS public, homepage200 và nội dung index public trùng dist mới, `db:verify` bằng code mới. Nếu Nginx/CDN cache index cũ sẽ báo lỗi và rollback: cấu hình cache phải được quản trị kiểm tra trước, không bỏ kiểm tra cho xanh. Health endpoint hiện chỉ liveness; DB verify bổ sung kiểm tra DB/schema nhưng chưa thay thế QA Socket.IO/game/OAuth/engine. Restart làm mất phòng/socket/queue/session admin RAM, người chơi có thể bị ngắt/xử thua theo luật hiện tại: chỉ deploy trong maintenance đã thông báo, chưa có drain/resume tự động.
 

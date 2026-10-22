@@ -1,5 +1,88 @@
 # Tiến độ
 
+- 2026-10-22: Theo ảnh user, dịch thêm cụm Elo trong các hàng Xếp hạng mobile từ12 lên24px theo scale dialog, tạo khoảng trống hiển thị tên. Laptop giữ nguyên. `npm.cmd run build` (typecheck + Vite) PASS; dist/assets/index-9hjkmlPq.js/index-CcYwxfLn.css cập nhật. Chưa browser QA.
+
+- 2026-10-22: User mở lại đúng phần Lịch sử mobile cho task này: tab Đã chơi/Đã lưu dùng cùng khung kích thước 264×70 phóng1.4× như Cờ Tướng/Cờ Úp ở Xếp hạng; thu avatar hàng64→48, bảng tên50→38 và chữ24→19 để vừa 10 dòng. Laptop và các phần Lịch sử khác giữ nguyên; khóa lại sau task. `npm.cmd run build` (typecheck + Vite) PASS; dist `index-BTegBM5p.js`/`index-CcYwxfLn.css` cập nhật. Browser QA xác nhận preview mobile/empty state; chưa có dữ liệu lịch sử để kiểm tra hàng có nội dung.
+
+- 2026-10-22: Theo user, căn lại nhãn cột Xếp hạng mobile cùng scale1.5× với hàng để thẳng trục; đẩy ô Elo thêm4px logic (tổng12px theo scale dialog) sang phải, chừa khoảng cho tên. Laptop giữ nguyên. `npm.cmd run build` (typecheck + Vite) PASS; dist/assets/index-BTegBM5p.js và index-CcYwxfLn.css cập nhật. Chưa browser QA.
+
+- 2026-10-22: Theo user, riêng Xếp hạng mobile thu nội dung ô Elo còn1.35× (hàng vẫn1.5×), dịch sang phải8px theo scale dialog; nhãn cột tăng1.6×, hai tab Cờ Tướng/Cờ Úp tăng40%. Laptop giữ nguyên. `npm.cmd run build` (typecheck + Vite) PASS; dist/assets/index-UXL0NhtS.js và index-BxU7l-e1.css cập nhật. Chưa browser QA.
+
+- 2026-10-22: Người dùng mở đúng phạm vi Lịch sử mobile cho task này: làm khung tiêu đề/panel cùng kích thước thiết kế với Bạn bè; danh sách Đã chơi/Đã lưu ván hiển thị10 hàng, phóng avatar/nội dung hàng và căn nút Xem lại vừa cột. Laptop giữ nguyên; khóa lại Lịch sử sau task. `npm.cmd run build` (typecheck + Vite) PASS; dist/assets/index-DtJaoLma.js và index-DV1hfDRX.css xác nhận. Chưa browser QA với dữ liệu có ván lịch sử.
+
+- 2026-10-22: Theo user, tăng riêng nội dung hàng Xếp hạng mobile1.35→1.5×; phóng đồng bộ avatar/huy hiệu top1–4/tên/điểm/thao tác trong 6 dòng. Laptop giữ nguyên. `npm.cmd run build` (typecheck + Vite) PASS; dist/assets/index-BQxR6PWu.js cập nhật. Chưa browser QA.
+
+- 2026-10-22: Theo user, phóng thêm hai tab Cờ Tướng/Cờ Úp trên mobile lên25% tổng, hàng tiêu đề Hạng/Người chơi/Điểm/Thao tác lên cùng tỷ lệ nội dung1.35×. Desktop và hàng user không đổi. `npm.cmd run build` (typecheck + Vite) PASS; dist/assets/index-SNW6tQUN.js/index-DIyOyN7D.css cập nhật. Chưa browser QA.
+
+- 2026-10-22: Xếp hạng mobile còn khoảng6 nick; tăng biển tiêu đề và hai tab Cờ Tướng/Cờ Úp12%. Dock Home mobile phóng6 nút tiện ích11→12.5cqw, nhãn3.2→3.6cqw. Laptop giữ nguyên. `npm.cmd run build` (typecheck + Vite) PASS; dist/assets/index-DemwOyFf.js và index-DMYd12Hr.css cập nhật. Chưa browser QA.
+
+- 2026-10-22: Hồ sơ người khác trên điện thoại đổi lưới nút thao tác thành2 cột ×3 hàng; mỗi nút tự rộng/cao hơn theo cột. Laptop giữ3×2. `npm.cmd run build` (typecheck + Vite) PASS; dist/assets/index-DhqcEtDc.js và index-B46XJKYK.css cập nhật. Chưa browser QA trực quan.
+
+- 2026-10-22: Đính chính Xếp hạng mobile: giữ nội dung mỗi hàng tăng1.35×, mỗi tab hiện khoảng7 người trước khi cuộn; desktop giữ nguyên, bố cục khóa lại sau task. `npm.cmd run build` (typecheck + Vite) PASS; dist/assets/index-D5ZBC3VS.js và index-B46XJKYK.css cập nhật. Chưa browser QA.
+
+- 2026-10-22: Theo ảnh user, tăng riêng EnergyNotice mobile cao thêm36px qua compact:pt-16 (28→64px), chừa ô năng lượng góc trái không đè tiêu đề Bạn đã hết năng lượng. Desktop/font/nút/countdown giữ nguyên. npm.cmd run build(typecheck+Vite) PASS; dist index-BaKval5f.js/index-B97yIm95.css xác nhận compact padding mới. Chưa browser QA.
+
+- 2026-10-22: Hoàn thiện CD Local cho cotuong_deploy: workflow chặn useradmin/IdentitiesOnly, upload/state/lock/log home deploy0700; sudoers đúng5command cố định. Script thêm --check/quyền/runtime nonroot, publish và rollback rsync giữ ACL đích, xử lý private source/readability và timestamp thư mục khácowner. docs/DEPLOY-USER.md có lệnh ACL/probe/visudo/preflight/secret/hoàn tác để user tự review/chạy.9deploy fixture +25adapter tests PASS, Bashscript và workflowrunblocks syntax PASS, npm.cmd run build(typecheck+Vite)PASS, dist cập nhật. Chưa SSH/cấpACL/sudoers/restart/push/deploy production; chưa chạy CI cho thay đổi mới. Trạng thái SSHkey/CI cũ/adapter thật PASS là user báo, không phải nghiệm thu từ agent.
+
+- 2026-10-22: Nối bút vàng cuối tên PlayerInfoCard với form đổi tên ở ProfileDialog. Chỉ own+linked+chưa renamed; Guest/người khác/đã đổi không có bút. Account API /name qua useProfilePersistence, giữ backend xác thực/đổi một lần; tải lại account/dữ liệu sau lưu. Profile/logout/rank-sync/user-repository6/6 PASS ngoài sandbox (sandbox ENOENT cache), npm.cmd run build PASS (typecheck + Vite), dist index-BV9Q8CC2.js/index-DSFkeNWZ.css xác nhận form/bút. Chưa Google/browser QA thật.
+
+- 2026-10-22: Sửa viền dưới hình trong popup Năng lượng bị cắt do crop chung245px: Video/gói100 mở tới598, vô hạn tới587 (trước dòng trắng y588). Dùng iconHeight riêng, giữ tỷ lệ hình/font giá/kích thước bảng. npm.cmd run build PASS (typecheck + Vite); dist index-D1cPjFk8.js xác nhận268/257. Đọc pixel nguồn xác nhận mốc chữ trắng; chưa browser QA.
+
+- 2026-10-22: Sửa font giá popup Năng lượng mobile về font-number/lining/tabular, căn giữa/không nghiêng. Thu crop hình300×260→300×245 để loại mảnh chữ trắng từ dòng mô tả nguồn phía dưới. npm.cmd run build PASS (typecheck + Vite); dist index-BxuKHyGO.js xác nhận crop/font mới. Chưa browser QA.
+
+- 2026-10-22: Popup mua Năng lượng mobile portrait dùng cùng width/height/scale với bảng Thông tin qua useProfileLayout. Tách3 gói thành3 hàng, dùng title/icon từ artwork hiện có bằng CSS crop giữ tỷ lệ và tăng chữ/nút theo cqw; không kéo méo ảnh ngang. Giữ desktop/landscape và hành vi dấu cộng/mua chưa tích hợp. npm.cmd run build PASS (typecheck + Vite); dist index-Dre2-l97.js/index-CZDIQFx_.css xác nhận kích thước/nội dung mới. Chưa browser QA vì CUA getState timeout.
+
+- 2026-10-22: Theo user, phóng popup Năng lượng trên compact: width68→80vw và giới hạn980→1160px; artwork toàn bảng, chữ, thẻ gói, nút/X cùng phóng theo tỷ lệ. Giữ laptop nguyên trạng và giữ vị trí vùng bấm theo phần trăm artwork. `npm.cmd run build` PASS (typecheck + Vite), dist/assets/index-YtUh_pyi.js và index-ILG9oWBn.css cập nhật, CSS xác nhận compact width mới; chưa browser QA.
+
+- 2026-10-22: Home desktop/mobile: vùng năng lượng chỉ hiện tooltip hồi khi hover/pointer rời thì ẩn; bỏ mở EnergyDialog khi bấm vùng tài nguyên, dấu cộng vẫn mở bảng mua. `npm.cmd run build` PASS (typecheck + Vite), dist/assets/index-2fzsgG7d.js và index-CIUvd5av.css cập nhật; chưa browser QA.
+
+- 2026-10-21: Theo user, thu gọn mép dưới panel chứa6 thẻ sát hơn hàng3 nút dưới: compact padding-bottom5→2px, giữ mốc trên/padding-top5px/gap5px; desktop trở về gap/padding gốc. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-c1oubDLS.js và index-BK9uHN6D.css cập nhật, CSS xác nhận padding/gap compact.
+
+- 2026-10-21: Căn khung tên/đồng hồ mobile: trên chung mép trái, dưới chung mép phải bằng margin h2 theo mobileEdge. npm.cmd run build PASS (typecheck + Vite); dist cập nhật, chưa browser QA.
+
+- 2026-10-21: Sửa user dưới mobile: đưa đồng hồ trở lại ngay dưới tên trong identity cạnh avatar, cùngrow1; Like tách bên trái/cách8px. Bỏ hàngclock cũ phía trên. 4/4 PlayerCard identity tests PASS; npm.cmd run build PASS (typecheck + Vite), dist cập nhật. Chưa browser QA.
+
+- 2026-10-21: Theo đính chính user, khôi phục name38px và Elo text-2xl; chỉ giữ Bạn bè/Theo dõi/Lượt thích cùng tim24px trên compact. npm.cmd run build PASS; dist index-BO2Bxeid.js/index-B92OzvWo.css cập nhật, xác nhận class24px. Chưa browser QA.
+
+- 2026-10-21: Theo ảnh user, tăng chiều cao hai thẻ Cờ Tướng/Cờ Úp trong popup Hồ sơ compact thêm5px (height extra16→21px), giữ neo mép trên và translate -16px. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-H1kgT4Xt.js và index-CyWNK39n.css cập nhật, CSS có height calc 100% +21px. Chưa browser QA.
+
+- 2026-10-21: Khôi phục đi quân online400ms qua useOnlineMoveAnimation; nguyên nhân useGame hardcode animation:null khi online. Chỉ snapshot tiến1 nước với quân nguồn/đích hợp lệ mới animate, giữ timer qua ack/clock duplicate và bỏ latejoin/undo/roomchange/gap. 4/4 hook/Board animation tests PASS ngoài sandbox (sandbox lỗi cache ENOENT); npm.cmd run build PASS (typecheck + Vite), dist cập nhật. Chưa browser QA.
+
+- 2026-10-21: Không thưởng vàng cho bạn bè accepted hoặc cặp qua Mời chơi/So tài. MatchRepository chốt gold_reward_eligible ở start, end kiểm thêm bạn bè; không bật lại vàng khi unfriend giữa ván và không loại người thay ghế. Giữ Elo/stat/energy. Migration006 đã apply1 bước local và db:verify PASS. Policy/challenge/migration16/16 PASS ngoài sandbox (sandbox lỗi cache ENOENT); typecheck/build PASS, dist cập nhật. Chưa QA đấu tài khoản thật; backend cần nạp code mới, môi trường khác cần migration006.
+
+- 2026-10-21: Đính chính theo user: bỏ dịch chuyển, chỉ tăng cỡ nội dung PlayerInfoCard compact — name42px, số Elo28px, phần Bạn bè/Theo dõi/Lượt thích24px, tim24px. Hồ sơ và Tùy chỉnh avatar dùng chung; khung/vị trí/ảnh giữ nguyên. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-DC794xzT.js và index-BNvbRgUR.css cập nhật, CSS xác nhận cỡ chữ mới. Chưa browser QA.
+
+- 2026-10-21: Thay mã phòng mẫu bằng code6 chữ số do server cấp, không trùng phòng đang sống; snapshot/list/create cùng code, giữ qua reset. GamePage desktop/mobile cùng đọc snapshot, ẩn khi không có phòng thật. 25/25 rooms tests PASS; npm.cmd run build PASS (typecheck + Vite), dist cập nhật. Cần backend bản mới/phòng mới để nhận code; chưa browser QA.
+
+- 2026-10-21: Đồng bộ ba nút trong menu ba gạch về44×44px như Chat/Lưu/Menu bên ngoài. npm.cmd run build PASS (typecheck + Vite); dist cập nhật, chưa browser QA.
+
+- 2026-10-21: GamePage mobile: hạ riêng hàng Lưu/Chat/Menu thêm6px, top70→76px; mã phòng giữ nguyên. npm.cmd run build PASS (typecheck + Vite); dist xác nhận top76px. Chưa browser QA.
+
+- 2026-10-21: GamePage mobile: mã phòng và ba nút hạ6px, chữ mã phòng18→16px; icon View24×18→28×21px; user dưới bottom20→14px. npm.cmd run build PASS (typecheck + Vite); dist xác nhận các token mới. Chưa browser QA.
+
+- 2026-10-21: Hủy khóa orientation/tự fullscreen theo user; GamePage mobile hiện khung mã phòng trên hàng Lưu/Chat/Menu ở top64px. Chat ép44px/icon32px bằng hai nút cạnh, giữ portal và gap chung. npm.cmd run build PASS (typecheck + Vite), dist xác nhận top64/Chat44/khung mã phòng và đã gỡ portrait lock. Chưa browser QA.
+
+- 2026-10-21: Đính chính đúng đối tượng theo user: hoàn tác nâng biển danh hiệu, thay bằng nâng cả khung thông tin nâu cạnh avatar trong popup compact thêm8px (`translateY -20→-28`); nội dung name/Elo/địa chỉ đi cùng card, không đổi avatar/nameplate trong trận. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-KC-PIwOy.js và index-OA4nP8d-.css cập nhật, CSS có offset mới.
+
+- 2026-10-21: Theo user chỉ định rõ, nâng riêng khung danh hiệu dưới avatar trong popup Thông tin compact8px; không dịch name/Elo/địa chỉ hoặc avatar, cũng không đổi nameplate trong trận. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-lKMQ4Zv9.js và index-CHETN6-h.css cập nhật, CSS xác nhận offset compact8px. Chưa browser QA.
+
+- 2026-10-21: Thay overlay hướng dẫn bằng yêu cầu Screen Orientation API khóa portrait khi chạm trên điện thoại; nếu API cần fullscreen thì app vào fullscreen rồi thử khóa lại. Không có fallback giả khóa. Build/typecheck sẽ chạy; chưa QA trên thiết bị thật.
+
+- 2026-10-21: Theo user đính chính, hoàn tác offset nâng khung tên PlayerCard trong trận và biển danh hiệu (“Kỳ Thánh”) trong popup Thông tin; khôi phục vị trí gốc, không tác động name/Elo/địa chỉ hay avatar. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-BnUV2qxW.js và index-asvbPeSu.css cập nhật. Chưa browser QA.
+- 2026-10-21: Chat mobile portal icon và panel ra document.body để cố định viewport; giữ desktop chat tại chỗ. Nameplate mobile nâng8px. Rời phòng trực tiếp không confirm; Like27px/icon17px ngang clock, cách8px; clock giữ viền CSS riêng. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-CStDedDG.js và index-CHETN6-h.css cập nhật. Chưa browser QA.
+- 2026-10-21: Thu huy hiệu con mắt/số của Danh Hiệu Phong Tặng trong catalog còn90% và dịch xuống5px; badge preview hồ sơ giữ nguyên. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-piqSKSEo.js và index-B5cj75ga.css xác nhận class điều chỉnh. Chưa browser QA.
+- 2026-10-21: Hoàn tác thay đổi hình cúp Home theo yêu cầu: dùng lại emoji 🏆 tại vị trí hiện hành, cỡ17cqw desktop/15cqw mobile; bỏ ảnh PNG render Windows và TournamentCup. Các thay đổi Home khác được giữ nguyên. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-MFrY0U3B.js không còn phụ thuộc ảnh cúp mới. Chưa browser QA.
+- 2026-10-21: Cố định 3 nút mobile top18px theo mép frame avatar, không đo theo người vào. View ở góc trái bottom130px; Hoàn tác/Cầu hòa/Xin thua căn giữa theo khung tên/Elo người dưới, sát bên trái bằng ResizeObserver, đặt absolute trong main để tránh lệch Android. Menu mở xuống dưới. Laptop giữ nguyên. `npm.cmd run build` PASS (typecheck + Vite); dist/assets/index-14k7NGUZ.js xác nhận CSS neo theo identity và bottom130px. Browser preview390×844 và360×800 từ lượt trước; chưa QA lại layout mới trên thiết bị/preview.
+- 2026-10-21: Căn mép trên hàng nút mobile với avatar bằng phép đo local đã hiệu chỉnh scaleY của scene; đo lại sau transition/animation, header align-items:start. Typecheck/build PASS; dist/assets/index-CUN-BrYH.js cập nhật. Chưa browser QA.
+- 2026-10-21: Sửa đúng thứ tự mobile: trái→phải Lưu, Chat, menu ba gạch ngoài cùng bên phải; hàng nút căn theo mép trên thực tế avatar qua ResizeObserver. Laptop giữ nguyên. Typecheck/build PASS; dist cập nhật. Chưa browser QA.
+- 2026-10-21: Vì offset cố định chưa căn trực quan, hàng menu/chat/lưu mobile giờ neo theo mép trên thực tế avatar trên cùng qua ResizeObserver/--mobile-avatar-top; Lưu vẫn nằm ngoài panel menu. Typecheck/build PASS; dist/assets/index-DNdsMcFJ.js cập nhật. Chưa browser QA.
+- 2026-10-21: Căn hàng menu/chat/lưu mobile ở right10px/top15px, ngang mép trên avatar; Lưu để ngoài panel menu. Typecheck/build PASS; dist/assets/index-B99l4pMR.js cập nhật. Chưa browser QA.
+- 2026-10-21: Theo ảnh user: chuyển 3 nút menu/chat/lưu lên góc trên phải; cụm Hoàn tác/Cầu hòa/Xin thua thay vị trí cũ của chúng ở góc dưới trái; View giữ phía dưới bên phải. Chỉ compact; laptop giữ nguyên. Typecheck/build PASS, dist/assets/index-DSbZn0Qr.js cập nhật; chưa browser QA.
+- 2026-10-21: Theo yêu cầu mới trên mobile, nâng cụm tiện ích trái lên bottom80px; chuyển View xuống bottom70px và cụm Hoàn tác/Cầu hòa/Xin thua xuống bottom10px cùng mép phải. Cụm thao tác được portal ra document.body; desktop vẫn render tại chỗ, giữ bố cục. Typecheck/build PASS; dist/assets/index-DI4vWSdW.js cập nhật. Chưa browser QA.
+- 2026-10-21: Chỉ chỉnh điện thoại: đồng hồ thay Elo trong hàng nhận diện; đối thủ ở trên, người chơi ở dưới. View top safe-area +5px; cụm Hoàn tác/Cầu hòa/Xin thua cùng mép phải portal ra document.body để không bị lớp transform kéo xuống; top safe-area +36px, right10px, z-index250. Desktop giữ tại chỗ. Build/typecheck PASS, dist/assets/index-DKwxUmAd.js cập nhật; chưa browser QA. Laptop giữ bố cục gốc. Biểu cảm online chỉ hiện lúc đang đấu và được dọn khi ván dừng; kết quả rời phòng không hiện mặt vui/khóc. PlayerCard3/3 + result-faces5/5 + computer-isolation4/4 PASS trước lượt đổi vị trí; npm run build PASS, dist/assets/index-CjsQ8GKO.js cập nhật; chưa browser QA trực quan.
+
+- 2026-10-21: Sửa 2 test fail GitHub Ubuntu: UI test chọn nút `#backButton` bằng role/scope vì có hai nút Rời phòng responsive; route test trước build thiếu `dist/index.html`, thêm `staticDirectory` injection cho app và temp HTML fixture, route production mặc định vẫn dùng dist. UI+route liên quan26/26 PASS; full Local381 PASS/17 SKIP/398 total; 17 DB integration chạy riêng MySQL tạm17/17 PASS; typecheck/build PASS. 6 test Pikafish skip trên Ubuntu do chỉ cài binary Windows. CI dùng checkout@v7/setup-node@v7 (action runtime24, project Node22). Chưa push, chờ GitHub xác nhận; chưa merge/deploy.
+
 - 2026-10-16: Google Sign-In thật bằng GIS popup + google-auth-library verifyIdToken/audience GOOGLE_CLIENT_ID/nonce một lần. Migration004 thêm google_sub unique ascii_bin và session_expires_at, đã apply1 bước trên cotuong;001–003 không sửa. Guest link transaction giữ users.id/public ID/dữ liệu; Google cũ login lại; conflict409 không merge, revoke device hash user link. Session mới30 ngày hash DB/cookie HttpOnly, Socket.IO dùng auth hiện có. Client dùng VITE_GOOGLE_CLIENT_ID cùng ID backend, không Client Secret/token log/localStorage. Tests30/30 + MySQL tạm9/9 PASS; typecheck/build PASS, dist cập nhật; chưa Google popup QA thật vì Client ID chưa điền. Hướng dẫn/file/phạm vi: docs/GOOGLE-SIGN-IN.md.
 
 - 2026-10-16: Hồ sơ chính mình mở ngoài nút hồ sơ Home chỉ có Thoát bên phải, không Kết bạn/Đăng xuất. ProfileDialog tách accountActions khỏi own identity; nhận diện mình theo session name nếu caller không chỉ định; Chọn Bàn tắt accountActions. Home giữ Liên kết/Đăng xuất. Regression footer2/2 PASS, typecheck/build PASS; dist xác nhận, chưa browser QA.
@@ -2774,6 +2857,9 @@ pm.cmd run build (typecheck + Vite) PASS; dist/assets/index-Cgh9GUJJ.js đã c�
 
 - 2026-10-21: Backup Adapter cho CI/CD theo VPS user xác nhận: cotuong-backup.sh/service -> OnSuccess cloud service, cotuong-YYYY-MM-DD_HH-MM-SS.sql.gz. Thêm Python stdlib root-only hook2action, gzip/SQL markers/SHA256/age/newfile gate, đợi local và lần cloud mới hoàn tất; không đổi backup cũ, không SQL/restore/productiondeploy. Sudoers exact commands, hướng dẫn cài/audit/VM staging/restore drill tại docs/BACKUP-ADAPTER.md. Gate tạo mới trước activate sau prepare/snapshot; workflow dùng script từ trusted checkout, kiểm port1..65535.25 adapter tests PASS bằng fixture/mock, Bash syntax PASS, npm.cmd run build(typecheck+Vite)PASS dist index-BqK419Up.js. Chưa nghiệmthu Ubuntu/systemd/sudo/Drive/restore, chưa SSH/cài/push/deploy; gzip và cloud exit0 không chứng minh restore hoặc remotechecksum. Reviewer phải kiểm bằng chứng offsite/restore riêng trước duyệt.
 
+- 2026-10-21: Bộ chọn địa chỉ mobile giữ offset -6px của khung Thông tin; nút quay lại icon-only lớn hơn, bỏ nhãn/lưu ý sát nhóm Hủy/Tiếp trên mobile, ưu tiên Việt Nam/Trung Quốc ở đầu danh sách. Luôn cần hai lần chạm cùng quốc gia/tỉnh, kể cả mục đã chọn sẵn; Việt Nam chuyển sang tỉnh, nước khác lưu địa chỉ, tỉnh chuyển sang xã/phường. Desktop giữ luồng nút cũ. Tìm kiếm cao56/chữ18, tên khu vực18. `npm.cmd run build` sau sửa kiểu dữ liệu PASS (typecheck + Vite); dist `index-KKA5uGGj.js` xác nhận. Chưa browser QA.
+- 2026-10-21: Home mobile: nameplate rộng37cqw bằng cụm hai ô Elo; giữ chiều cao27px, padding17px và chữ17px theo nameplate128px trong phòng. Cup banner dùng tỷ lệ17cqw/container như laptop. Chỉ MobileHome đổi; build sẽ chạy cho lượt này, chưa browser QA.
+
 
 - 2026-10-21: User chỉnh nhận diện GamePage mobile: nameplate120→144px/chữ tăng theo tỷ lệ, số trong tên override1em thay0.9em; Elo rộng144px bằng nameplate. Hai card rộng212px, grid đảo cột bên dưới; avatar60px căn giữa theo hàng tên+Elo, thông tin/clock/actions giữ riêng. ViewersButton luôn hiện ở góc trên phải10px/top15px thay nằm trong menu; Chat/hàng chờ vẫn theo menu. Thanh3nút mobile36px/gap6 để không đè card212px ở360px. Desktop giữ nguyên; quyền chỉnh geometry đúng mobile task này, khóa lại sau sửa. Typecheck/build PASS, dist cập nhật; chưa browser QA trực quan.
 
@@ -2822,3 +2908,56 @@ pm.cmd run build (typecheck + Vite) PASS; dist/assets/index-Cgh9GUJJ.js đã c�
 
 
 - 2026-10-21: User yêu cầu sao to thêm và gần nhau toànproject/mobile+laptop. Scale1.16→1.24, sao29→31cqw (+6.9% so trước), gap1.5→0.5cqw (giảm2/3), 3ô94% vùngcốđịnh giữneo/hướngđiền. Artworkmáy mộtngôisao trangtrí tăng124% theo tokenchung. Đồngbộ tài liệu chuẩn, khôngđổi avatar/danhhiệu/luật. npm.cmd run build(typecheck+Vite) PASS, dist xácnhận scale1.24/gap0.5; chưa browserQA trựcquan, không thêmtest cho chỉnhsize/gap.
+# 2026-10-21
+- Cố định bảng Thông tin danh hiệu mở từ hồ sơ theo viewport ở compact để không dịch chuyển khi bấm các danh hiệu khác; giữ khung Thông tin và scene background nguyên vị trí trước/sau khi mở. Desktop vẫn neo cạnh danh hiệu đã chọn.
+
+# 2026-10-21
+- Icon sao chép ID trong PlayerInfoCard giữ SVG14px/vùng bấm20px và nâng6px theo yêu cầu; áp dụng chung Thông tin và Tùy chỉnh avatar.
+
+# 2026-10-21
+- Home: hạ cụm Elo mobile từ top11cqw xuống13cqw để tách rõ khỏi thẻ tên. Gom cúp giải đấu laptop/mobile vào TournamentCup dùng chung, giữ nguyên emoji/vị trí/hiệu ứng của laptop. `npm.cmd run build` PASS (typecheck + Vite); dist `index-BdGGI5ki.js` xác nhận class top13cqw và cúp dùng chung. Còn cảnh báo chunk JS lớn vốn có; chưa browser QA.
+
+# 2026-10-21
+- Home mobile tinh chỉnh theo phản hồi: Elo từ top13cqw lên12cqw; tăng ô Elo cao5.5→6cqw, icon3.5→3.8cqw và số3→3.3cqw. `npm.cmd run build` PASS (typecheck + Vite); dist `index-DclsWNwh.js` xác nhận các class mới. Cảnh báo chunk JS lớn; chưa browser QA.
+
+- 2026-10-21: Sửa cúp Home khác hình trên điện thoại do glyph emoji theo hệ điều hành. TournamentCup dùng PNG RGBA render đúng glyph Segoe UI Emoji của laptop Windows, tight-crop209×253; giữ cao17cqw/vị trí/filter và dùng chung laptop/mobile. Đã xem ảnh, kiểm tra alpha bbox sát4cạnh, ghi nguồn asset. `npm.cmd run build` PASS (typecheck + Vite), dist index-D9D2uOM_.js trỏ tournament-cup-windows-CgfwwHW7.png. Chưa QA trên điện thoại thật.
+
+# 2026-10-21
+- GamePage mobile: khung tên người trên dịch trái3px, người dưới dịch phải3px; đồng hồ/avatar giữ nguyên. Build/typecheck và dist sẽ được kiểm tra trong lượt này.
+- Năng lượng vô hạn cho public ID29622295 và96161606: server entitlement theo public ID, bypass trừ/kiểm tra năng lượng online và máy thử; frontend bypass gate và hiển thị∞. Số dư DB giữ nguyên. Typecheck/build sẽ chạy; chưa QA đăng nhập hai tài khoản thật.
+- GamePage mobile: Like được tách ra khỏi khung đồng hồ, cách khung8px và tăng đường kính24→27px/icon14→17px. Đồng hồ/desktop giữ nguyên. Build/typecheck sẽ chạy; chưa browser QA.
+- GamePage mobile: cố định icon Chat tại top18px/right62px khi mở/đóng panel; giữ placeholder trong hàng công cụ để các icon cạnh nó không xê dịch. Build/typecheck sẽ chạy; chưa browser QA.
+- GamePage: bỏ hộp xác nhận khi rời phòng lúc đang chơi; mobile thu Like còn24px, đặt cạnh đồng hồ với khoảng cách8px ở cả hai thẻ, đồng hồ dùng khung viền riêng thay khung Elo. Build/typecheck sẽ chạy; chưa browser QA.
+- GamePage mobile: khi mở View, bảng người xem lên z500 phủ các lớp giao diện; chat mở cũng lên z500. Mở một panel sẽ đóng panel/menu kia. Typecheck/build sẽ chạy trong task này; chưa browser QA.
+- GamePage mobile: chuyển nút View xuống góc dưới trái, cách đáy20px như cụm tiện ích; bảng người xem neo ngay phía trên nút để mở từ vị trí đó. Desktop giữ nguyên. Typecheck/build sẽ chạy trong task này; chưa browser QA.
+- Home mobile: nameplate mở rộng thành 37cqw để rộng bằng cụm hai thẻ Elo bên dưới; giữ nguyên kích thước chữ, chiều cao và padding. Build `npm.cmd run build` PASS (typecheck + Vite), `dist/assets/index-CUN-BrYH.js` có class mới. Chưa kiểm tra trực quan trên thiết bị.
+# 2026-10-21
+- Sửa Google Sign-In trên IP LAN: ẩn nút fallback giả khi origin không được Google hỗ trợ, giữ thông báo lý do và nút thoát. Chưa thêm đăng nhập Google cho IP LAN; cần domain HTTPS đăng ký với Google.
+
+# 2026-10-21
+- Bộ chọn địa chỉ: giữ kích thước/scene như khung Thông tin, không autofocus; bỏ qua resize giảm chiều cao khi input focus và thêm nút back icon thống nhất cho bước quốc gia/tỉnh/xã.
+
+
+- 2026-10-21: GamePage mobile: cụm Hoàn tác/Cầu hòa/Xin thua được căn theo tâm khung tên/Elo người dưới bằng ResizeObserver, đặt sát bên trái khung user; View ở góc trái, nâng lên bottom130px. Không đổi card/avatar hay giao diện laptop. Build chạy sau cập nhật.
+
+- 2026-10-21: Animation đi quân mobile: cung bay liên tục17 mốc transform3d, hạ liền mạch thay dừng ở90% rồi rơi; giữ400ms. Test animation4/4 PASS (chạy lại ngoài sandbox sau lỗi cache ENOENT); typecheck/build PASS; dist index-D4ToDNK1.js xác nhận easing mới. Chưa QA trên điện thoại thật.
+
+- 2026-10-21: Tối ưu animation mobile lần2: bỏ cung17 mốc, dùng lại nhịp400ms của laptop; chuẩn bị lớp chuyển động bằng will-change và tách lớp artwork/filter bằng transform-gpu trên compact. Test animation4/4 PASS, typecheck/build PASS; dist xác nhận class mới. Chưa profile/QA điện thoại thật nên chưa xác nhận hết giật.
+
+- 2026-10-21: Sửa Like không lưu khi đang đấu: snapshot công bố activeMatchId từ RoomPersistence; GamePage dùng ID này thay mã ván cũ/online tạm; repository nhận ván server_online playing/finished. Local không gọi API UUID. Regression mock4/4 PASS, typecheck/build PASS; dist xác nhận activeMatchId. Chưa QA hai tài khoản/DB thật. Backend cần nạp lại code mới.
+
+- 2026-10-22: PlayerCard sửa flex ghi đè hidden: lúc chưa đấu hiện tên/Elo, ẩn clock; bắt đầu mới hiện clock/thay Elo. Áp dụng hai card, mobile/desktop. Test hiện có4/4 PASS, typecheck/build PASS, dist CSS xác nhận [hidden] display:none!important. Chưa browser QA.
+
+- 2026-10-22: Giảm tải chiếu bí mobile: giữ filter sprite/blur bóng tĩnh thay animate đồng loạt; nâng/hạ và bóng transform/opacity vẫn chạy, desktop giữ nguyên. Completion animation.finished/hit/audio giữ nguyên. Test kết quả+animation13/13 PASS; typecheck/build PASS; dist xác nhận nhánh mobile. Chưa đo FPS/QA điện thoại thật.
+
+- 2026-10-22: Theo yêu cầu mới, App key GamePage theo room và socket hai ghế; đổi/trống ghế unmount toàn phiên hiệu ứng (audio/Board/intro/faces/timer/popup). Không replay mate/faces khi mount finished; Like bubble track/cancel WAAPI; sửa cleanup Board nhánh timer đã bắt đầu để hủy lift/hit và callback cũ. Quy tắc này thay giữ popup qua queue rotation. Regression27/27 PASS, typecheck/build PASS, dist xác nhận callback hủy. Chưa browser QA luồng hai tài khoản.
+
+- 2026-10-22: Tối ưu hiệu ứng laptop: chuẩn bị lớp compositing của quân ở mọi breakpoint; chiếu bí bỏ animation filter/blur đồng loạt, giữ nâng/hạ+bóng transform/opacity và filter artwork tĩnh. Giữ cleanup khi đổi ghế/gate audio. Regression25/25 PASS (thêm kiểm tra keyframe không filter), typecheck/build PASS; dist xác nhận lớp desktop. Chưa browser QA/profile FPS nên chưa xác nhận độ mượt thực tế.
+
+- 2026-10-22: Bỏ mở lại bàn do người khác vào/đổi ghế: App giữ room entrance identity riêng với seat presentation key; GamePage skipEntrance, useRoomEntrance enabled=false cho remount cùng phòng. Lần vào phòng mới vẫn opening. Board đi/ăn quân hạ liên tục33 mốc thay tới90% rồi rơi40ms, giữ400ms/đích/cleanup. Test26/26 PASS gồm opening và landing; typecheck/build PASS; dist xác nhận skipEntrance+33mốc. Chưa browser QA/profile FPS thực tế.
+
+- 2026-10-22: Mỗi ván thường chọn ngẫu nhiên Đỏ/Đen đi trước khi start. Online chọn tại server crypto random khi hai người Ready hoặc countdown; reset chọn lại. Local gameStore chọn khi bắt đầu; custom FEN giữ lượt đã thiết lập. Computer dùng cùng starter; gửi firstTurn cho Pikafish và dựng FEN side-to-move khi Đen mở, giữ testBot Đỏ mở theo ngoại lệ. Typecheck/build PASS; dist xác nhận local random starter. Không chạy tests theo giới hạn lượt này; chưa QA hai thiết bị/browser.
+
+- 2026-10-22: Đính chính luồng đi tiên: RoomService mặc định crypto random0/1, không còn default Đỏ phụ thuộc app inject. Bốc một lần lúc Ready đủ2 hoặc countdown bắt đầu; chọn lại ván sau, snapshot/tick không bốc lại. 60/60 test PASS gồm2người/đen đi đầu/chặn người còn lại/ván kế/auto-start; typecheck/build PASS, dist starter integration xác nhận. Chưa QA browser; API local3001 không truy cập được trong môi trường, không restart backend đang dùng.
+
+- 2026-10-22: Đính chính đi tiên theo user: RoomService.startMatch bốc NGƯỜI cầm Đỏ, người còn lại Đen; currentTurn luôn Đỏ. Dùng chung Ready/autostart, bốc lại ván sau; persistence/history lấy phe đã chia. App key theo cặp ID sort tránh remount khi đổi màu cùng2người. Gỡ random turn local/Pikafish và API firstTurn sai yêu cầu, FEN giữ lượt cấu hình. 62/62 service regression PASS; typecheck/build PASS; dist xác nhận pair identity mới. Chưa QA hai browser/backend live.

@@ -6,6 +6,13 @@ import { createGame } from '../src/game/state/initial'
 import { finishGame, startGame } from '../src/game/moves/actions'
 
 afterEach(() => { cleanup(); vi.useRealTimers() })
+
+it('does not inherit finished faces when mounted for replacement seats', () => {
+  const ended = finishGame(startGame(createGame(0), 0), 'red', 'checkmate')
+  const hook = renderHook(() => useResultFaces(ended, 'room', 'new-red,new-black'))
+  expect(hook.result.current('red')).toBeUndefined()
+  expect(hook.result.current('black')).toBeUndefined()
+})
 const live = startGame(createGame(0), 0)
 const finished = finishGame(live, 'red', 'resign')
 const initial = { game: live, seats: 'red-one,black-one' }
@@ -38,4 +45,12 @@ it('does not show faces when the opponent leaves in the ending snapshot', () => 
   const hook = renderHook(({ game, seats }) => useResultFaces(game, 'room', seats), { initialProps: initial })
   hook.rerender({ game: finished, seats: 'red-one,' })
   expect(hook.result.current('red')).toBeUndefined()
+})
+
+it('does not show result faces when either player leaves the room', () => {
+  const left = finishGame(live, 'red', 'leave')
+  const hook = renderHook(({ game }) => useResultFaces(game, 'room', initial.seats), { initialProps: { game: live } })
+  hook.rerender({ game: left })
+  expect(hook.result.current('red')).toBeUndefined()
+  expect(hook.result.current('black')).toBeUndefined()
 })

@@ -97,6 +97,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
   gold: 10_000_000,
   consumeEnergy: () => set(state => {
     if(state.account){
+      if(state.account.energyUnlimited)return state
       void accountApi.request.post('/demo-energy',{id:createClientId()}).then(()=>accountApi.me()).then(profile=>set({account:profile,energy:profile.energy,energyRecoveryAt:profile.energyRecoveryAt})).catch(()=>set({notice:'Không trừ được năng lượng. Vui lòng thử lại.'}))
       return state
     }

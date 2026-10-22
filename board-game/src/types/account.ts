@@ -4,7 +4,7 @@ export interface AccountProfile {
   cosmetics?: { kind: string; code: string }[]
   countryCode: string | null; provinceCode: string | null; provinceName: string | null
   wardCode: string | null; wardName: string | null; locationSet: boolean
-  gold: string; energy: number; energyRecoveryAt: number | null
+  gold: string; energy: number; energyRecoveryAt: number | null; energyUnlimited?: boolean
   friends:number;followers:number;likes:number
   stats: { variant: 'xiangqi' | 'jieqi'; elo: number; played: number; wins: number; draws: number; losses: number }[]
 }

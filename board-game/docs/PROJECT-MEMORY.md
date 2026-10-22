@@ -1,5 +1,83 @@
 # Ghi nhớ quy tắc và lỗi cần tránh
 
+- 2026-10-22: Xếp hạng mobile theo user: giữ nội dung hàng1.5×/~6 dòng; hàng nhãn dùng cùng scale1.5× để canh đúng cột; Elo riêng1.35×, dịch phải24px theo scale dialog để chừa vùng tên; hai tab Cờ Tướng/Cờ Úp tăng40% tổng. Laptop giữ nguyên. `npm.cmd run build` PASS; dist/assets/index-9hjkmlPq.js/index-CcYwxfLn.css cập nhật; chưa browser QA.
+
+- 2026-10-22: Mở đúng phần tab và hàng của Lịch sử mobile cho task này: tab Đã chơi/Đã lưu khớp khung 264×70×1.4 của tab Xếp hạng; avatar compact48px, bảng tên38px, chữ tên19px để vừa 10 dòng. Laptop và các phần còn lại giữ nguyên. Đã khóa lại sau task.
+- 2026-10-22: Theo yêu cầu mở đúng phạm vi Lịch sử mobile cho task này: khung tiêu đề/social panel giữ chung kích thước thiết kế với Bạn bè; Đã chơi/Đã lưu ván chia đủ10 hàng trong khung. Tăng nội dung hàng (avatar51→64, chữ/thời gian, quân, kết quả, nút Xem lại) theo kích thước hàng mới; nút replay khớp cột. Laptop giữ nguyên. Đã khóa lại Lịch sử sau task.
+
+- 2026-10-22: Hồ sơ người khác trên compact/mobile xếp6 nút thao tác2 cột ×3 hàng để nút rộng/cao tự tăng theo bề rộng; laptop giữ3×2. Giữ thứ tự, asset, icon và hành vi hiện có.
+
+- 2026-10-22: EnergyNotice chỉ compact tăng padding-top28→64px, bảng cao thêm36px để ô năng lượng top12/h36 có hàng riêng phía trên tiêu đề. Giữ neo góc trái/dropdown hồi mở lên, desktop và thao tác cũ; không nhầm với bảng mua EnergyDialog.
+
+- 2026-10-22: Chuyển CD Local sang cotuong_deploy theo user; SSH103.9.78.75:22/key đã thử, CI master và2action adapter PASS do user xác nhận. Không SSH/đổi quyền/restart/push/deploy trong task này. Workflow/script từ chối admin/root, incoming/state/lock/log riêng home deploy0700, APP/WEB giữ nguyên. Publish/rollback rsync bỏ owner/group/perms/dir&link times, dùng mode nguồn+default ACL để runtime/Nginx đọc file tạo dưới umask077. Preflight --check kiểm quyền/sudo/runtime nonroot, chỉ verify-existing/status, không backup mới/build/activate. Sudoers exact user deploy; hướng dẫn ACL --x home750, exclude secrets/runtime, probe kế thừa, visudo và GitHubsecrets tại docs/DEPLOY-USER.md.9fixture deploy+25adapter PASS, Bashsyntax/runblocks PASS, typecheck/build PASS; chưa nghiệm thu ACL/sudo/SSH/GitHub trên Ubuntu.
+
+- 2026-10-22: Bút đổi tên hồ sơ đã triển khai theo ACCOUNT-MODEL: chỉ chính mình, account.linked=true và renamed=false; Guest/chưa tải account/người khác/đã đổi tên không có bút. Form 1–10 ký tự, gọi API /name có quyền backend một lần, tải lại account/history/saved sau lưu để đồng bộ owner tên. Hủy/lỗi không tiêu quyền; đổi thành công ẩn bút. Dùng PlayerInfoCard chung các breakpoint và phần Tùy chỉnh.
+
+- 2026-10-22: User đính chính: bốc thăm NGƯỜI cầm Đỏ, Đỏ luôn đi tiên. RoomService.startMatch chọn người theo phe hiện hành rồi gán lại hai phe trước start/persistence; không đặt currentTurn Đen. Mỗi người50%, bốc lại mỗi ván/Ready/autostart. App key theo cặp ID đã sort để đổi màu cùng hai người không remount; đổi/trống người vẫn dừng hiệu ứng như cũ.
+
+- 2026-10-22: Popup mua Năng lượng mobile: giá dùng font-number, lining/tabular nums, không nghiêng, căn giữa và không xuống dòng. Crop icon nguồn y330 dùng chiều cao riêng: Video/gói100 là268px, vô hạn257px; thay crop chung245 gây mất viền tròn dưới. Riêng vô hạn dừng trước y588 vì từ đó có chữ trắng trong nguồn; giữ nguyên tỷ lệ artwork.
+
+- 2026-10-22: Gỡ cách hiểu sai random currentTurn ở local/Pikafish và tham số firstTurn API. Ván thường giữ Đỏ mở đầu, máy giữ phe chọn sẵn, custom FEN/replay giữ lượt gốc; bốc thăm hai người online thực hiện bằng đổi phe ở server.
+
+- 2026-10-22: Bỏ OpeningCover khi người khác vào/đổi ghế trong cùng phòng: App nhớ phòng đã mở, truyền skipEntrance cho phiên GamePage remount; lần chính mình vào phòng mới vẫn mở như cũ. Giữ key hai ghế để dừng hiệu ứng cũ. Đi/ăn quân Board dùng cung33 mốc, hạ liên tục tới đích thay đoạn tới90% rồi rơi40ms, thời lượng400ms/đích/hủy giữ nguyên; áp dụng chung hai breakpoint.
+
+- 2026-10-22: Đính chính popup mua Năng lượng mobile portrait theo user: rộng/cao bằng bảng Thông tin, dùng chung useProfileLayout và offset -6px; thay cách chỉ tăng80vw. Ba gói xếp3 hàng, hình nguồn crop bằng CSS giữ tỷ lệ, chữ/nút HTML lớn theo container. Desktop và landscape giữ artwork ngang. Nút vẫn báo chưa tích hợp, không cộng tài nguyên.
+
+- 2026-10-22: Theo phản hồi laptop giật, Board/ChessPiece chuẩn bị lớp transform compositing ở cả desktop và compact, không chỉ mobile. Chiếu bí mọi breakpoint giữ filter/blur tĩnh, chỉ animate transform/opacity; thay ngoại lệ desktop filter động trước đó. Giữ nhịp400ms, cancel khi đổi ghế và gate kết quả/audio. Test kiểm tra WAAPI không animate filter và vẫn chờ completion; chưa profile FPS/browser QA.
+
+- 2026-10-22: User yêu cầu phóng bảng mua Năng lượng trên điện thoại; compact width80vw (trước68vw), giới hạn1160px (trước980px), toàn bộ artwork/nội dung/nút tăng đồng tỷ lệ. Giữ desktop nguyên kích thước và giữ hit area bám artwork theo phần trăm.
+
+- 2026-10-22: User chốt khi một trong hai người đấu rời phòng/xuống khán giả/đổi ghế phải hủy toàn bộ presentation ván cũ ngay, không truyền sang ván sau. App key GamePage theo room và socket Đỏ/Đen (không theo snapshot/clock); unmount hủy audio, Board lift/hit/timer, biểu cảm và trạng thái UI. Mount ở snapshot finished không phát lại mate/faces. Quy tắc mới này thay ngoại lệ giữ popup qua queue rotation; luật server/kết quả/thưởng giữ nguyên. Cùng hai ghế, ván kế tiếp vẫn reset theo phase ready.
+
+- 2026-10-22: Home desktop/mobile: hover/focus vùng năng lượng hiện thời gian hồi và ẩn khi rời vùng. Chỉ dấu cộng mở bảng EnergyDialog; bấm vùng số dư không mở bảng mua.
+
+- 2026-10-22: Chiếu bí mobile: không animate filter/drop-shadow từng sprite và blur từng bóng đồng loạt; giữ filter tĩnh, bóng chỉ animate transform/opacity và quân vẫn nâng/hạ như trước. Desktop giữ filter động. Giữ Promise.allSettled animation.finished, callback hit và gate âm thanh/kết quả; chưa đo FPS trên điện thoại thật.
+
+- 2026-10-22: Khi vào bàn chưa đấu hiển thị tên/Elo, bắt đầu đấu mới thay Elo bằng clock. PlayerCard dùng [&[hidden]]:hidden! để flex/compact:flex/desktop:flex không ghi đè thuộc tính hidden của Elo và hai đồng hồ.
+
+- 2026-10-21: Like trong trận phải dùng activeMatchId do RoomPersistence cấp và lưu DB, không dùng lastCompletedMatch hoặc mã online tạm. API nhận server_online đang playing hoặc finished; local chỉ lưu phiên. Chỉ ghi nhận client sau API thành công; activeMatchId bỏ khỏi snapshot khi không playing.
+
+- 2026-10-21: User báo cung bay17 mốc mobile vẫn chưa mượt. Đã trả đường bay/easing400ms giống laptop; compact giữ will-change-transform trên lớp chuyển động từ khi đứng yên và transform-gpu trên lớp artwork/filter để giảm chi phí tạo lớp lúc bắt đầu đi/ăn quân. Chưa đo frame hoặc QA điện thoại thật, không khẳng định đã giải quyết hoàn toàn.
+
+- 2026-10-21: GamePage mobile: khung tên và đồng hồ người trên cùng mép trái; người dưới cùng mép phải. Căn h2 theo mobileEdge cùng mép hàngclock, không dùng mxauto riêng gây lệch.
+- 2026-10-21: GamePage mobile: dịch riêng khung tên trên3px sang trái và khung tên dưới3px sang phải; không đổi vị trí đồng hồ hay avatar.
+
+- 2026-10-21: GamePage mobile user dưới: tên và đồng hồ nằm cùng data-player-identity cạnh avatar; đồng hồ ngay dưới tên, Like tách bên trái/cách8px. Gỡ hàng clock riêng phía trên card dưới; avatar/identity cùng grid row1, giữ mép dưới14px và avatar64px.
+
+- 2026-10-21: Khôi phục animation online: useGame trước trả null cho online; useOnlineMoveAnimation phát400ms từ snapshot server tiến đúng1 nửa-nước và xác nhận cùng ID quân nguồn→đích. Snapshot đồng hồ/ack trùng không restart; latejoin/đổi phòng/undo/nhảy nhiều nước không animate. Clock server tiếp tục, giữ reduced-motion và hiệu ứng cuối ván.
+
+- 2026-10-21: User chốt không cộng vàng cho cả hai trường hợp: tài khoản đã kết bạn accepted dù vào bàn cách nào, hoặc cặp đấu qua lời mời Mời chơi/So tài. MatchRepository chốt gold_reward_eligible ở start (DB migration006), end kiểm tra thêm bạn bè mới; không thể unfriend giữa ván để nhận vàng. Cặp mời ghi nội bộ theo hai socket, không tắt vàng cả phòng/người chơi thay ghế. Không ghi gold ledger khi bị loại; Elo/stat/năng lượng vẫn giữ.
+
+- 2026-10-21: Mã phòng GamePage lấy từ RoomSnapshot.code do server cấp6 chữ số, không trùng phòng đang tồn tại và giữ qua reset. UUID vẫn là ID nội bộ/socket; không có code thì ẩn bảng mã, không dùng123456 mẫu.
+
+- 2026-10-21: Ba nút trong menu ba gạch GamePage mobile (Rời phòng/Bạn bè/Âm thanh) đều 44×44px, bằng nút Chat/Lưu/Menu bên ngoài.
+
+- 2026-10-21: GamePage mobile: user dưới bottom14px (hạ6px từ20), icon View28×21px (tăng từ24×18); mã phòng hạ6px/chữ16px, ba nút top76px. Chỉ chỉnh các vị trí/kích thước được user yêu cầu, avatar giữ nguyên kích thước.
+
+- 2026-10-21: User hủy yêu cầu khóa xoay điện thoại; đã gỡ tự khóa portrait và tự bật fullscreen.
+
+- 2026-10-21: Theo user, hai tài khoản public ID29622295 và96161606 có năng lượng vô hạn. Entitlement server-side theo public ID; không trừ PvP/máy thử, không chặn queue/ready/create/join; UI Home hiển thị∞. Không chỉnh số dư DB và không áp dụng tài khoản khác.
+
+- 2026-10-21: GamePage online: Rời phòng khi đang chơi không hiện confirm, rời trực tiếp. Mobile Like nằm ngang cùng đồng hồ, cách8px; nút27px/icon17px cho cả hai người. Đồng hồ dùng khung viền CSS riêng, không dùng asset khung Elo. Desktop giữ nguyên.
+- 2026-10-21: PlayerInfoCard compact: user chỉ yêu cầu phóng to Bạn bè/Theo dõi/Lượt thích (nhãn/số24px, tim24px). Name giữ38px, Elo giữ text-2xl như trước; không tăng hai phần này. Áp dụng chung Hồ sơ và Tùy chỉnh avatar.
+- 2026-10-21: Hồ sơ người khác compact: panel nâu chứa6 thẻ thao tác dùng h-fit/flex-none; lưới3×2 gap5px, lề trái/phải/trên5px và dưới2px để sát hàng nút dưới. Desktop giữ gap/padding gốc.
+- 2026-10-21: Hai thẻ thống kê Cờ Tướng/Cờ Úp trong popup Hồ sơ compact cao thêm5px; neo mép trên như cũ bằng cách giữ translateY -16px và tăng phần bù chiều cao16→21px. Không đổi desktop hoặc vùng avatar.
+- 2026-10-21: Icon Chat và panel Chat GamePage compact portal ra document.body để neo theo viewport, không dịch theo ancestor/hàng flex khi bật/tắt; placeholder44px giữ vị trí các nút header. Mã phòng mobile top6px/chữ16px; hàng ba nút mobile ở top76px dưới mã phòng; Chat44px bằng Lưu/Menu, right theo gap chung. Theo user đính chính, khung thông tin nâu (name/Elo/địa chỉ) cạnh avatar trong popup compact nâng8px bằng dịch cả card; biển danh hiệu, avatar và nameplate trong trận giữ nguyên vị trí.
+
+- 2026-10-21: Catalog Danh Hiệu Phong Tặng: huy hiệu con mắt/số thu còn90% và dịch xuống5px; chỉ catalog, badge xem trước hồ sơ giữ nguyên.
+- 2026-10-21: GamePage mobile cố định hàng Lưu→Chat→ba gạch ở right10px/top76px, bằng mép khung avatar trên; vào phòng không làm dịch hàng nút. Lưu nằm ngoài menu; menu mở xuống dưới. View ở trái10px/bottom20px; bảng người xem mở lên ngay phía trên nút, lớp z500 phủ thành phần khác. Chat mobile mở cũng phủ thành phần khác ở z500; mở View/Chat thì đóng panel/menu đối diện. Cụm Hoàn tác/Cầu hòa/Xin thua absolute trong main h-dvh, căn giữa theo khung tên/Elo của người dưới và cách mép trái khung 4px qua ResizeObserver, không portal document.body để tránh sai viewport Android. Laptop giữ bố cục cũ. Biểu cảm online chỉ hiện trong ván đang đấu và dọn khi kết thúc/rời; mobile đang đấu thay Elo bằng clock; đối thủ trên, mình dưới. Không đổi kích thước avatar.
+- 2026-10-21: Home mobile giữ nameplate rộng37cqw bằng cụm hai ô Elo; cao27px, padding17px, chữ17px. Cụm Elo ở top12cqw; ô cao6cqw, icon3.8cqw, số Elo3.3cqw. Cúp giải đấu dùng lại emoji 🏆 runtime tại vị trí hiện hành; desktop17cqw, mobile15cqw, giữ hiệu ứng drop-shadow.
+
+- 2026-10-21: Bộ chọn địa chỉ mobile giữ nguyên khung/offset của Thông tin qua mọi bước, kể cả khi mở bàn phím; không autofocus và bỏ qua resize giảm chiều cao khi input focus. Mobile chỉ hiện nút quay lại dạng icon lớn, ẩn dòng lưu ý cạnh nhóm nút; desktop giữ nhãn/lưu ý. Ô tìm kiếm cao56 logical/chữ18px, tên khu vực18px; danh sách quốc gia ưu tiên Việt Nam rồi Trung Quốc trên mobile, desktop giữ thứ tự gốc. Luôn cần hai lần chạm liên tiếp vào cùng quốc gia hoặc tỉnh trên mobile, kể cả mục đã được chọn sẵn: Việt Nam đi thẳng đến tỉnh, quốc gia khác lưu địa chỉ; tỉnh đi thẳng sang xã/phường. Desktop giữ nguyên thao tác nút.
+
+- 2026-10-21: Trên IP LAN/HTTP không hỗ trợ Google Sign-In, GoogleSignInButton chỉ hiện lý do; không phủ nút fallback “Đăng nhập với Google” khiến người dùng tưởng bấm được. Guest vẫn dùng được qua LAN; Google cần origin HTTPS được đăng ký.
+
+- 2026-10-21: CI PR Ubuntu báo lỗi test: Rời phòng có desktop `#backButton` và nút mobile trong menu nên test phải truy vấn theo role trong banner rồi chọn ID header; không đổi giao diện. Route `/mobile-preview[/]` trả404 chỉ vì test tạo production app trước build, checkout sạch thiếu `dist/index.html`; inject `staticDirectory` tùy chọn và temp fixture vào test, production mặc định vẫn dist. 381 PASS/17 SKIP Local; 6 test Pikafish thật cần binary Windows, 17 DB integration chạy riêng MySQL tạm17/17 PASS. Không thay luật/nghiệp vụ. CI actions checkout@v7/setup-node@v7 runtime24, Node project22. Chưa push/merge/deploy; xem docs/CI-TEST-AUDIT.md.
+
+- 2026-10-21: Icon sao chép ID trong PlayerInfoCard dùng vùng bấm20px, SVG14px và nâng6px so với tâm hàng ID. Áp dụng chung Thông tin và Tùy chỉnh avatar vì cùng card.
+
+- 2026-10-21: Bảng Thông tin danh hiệu mở từ danh hiệu trong hồ sơ ở compact phải fixed theo viewport, tâm màn hình và không nhận tọa độ badge đã bấm. Không chuyển dialog hồ sơ sang toàn màn hình khi mở chi tiết: giữ nguyên khung Thông tin, scene background và offset compact -6px trước/sau khi mở. Giữ vị trí neo cạnh badge trên desktop.
+
 - 2026-10-21: User thu tabảnh Danh hiệu mobile150→120px (giữratio/artwork/cuộn) và đưaẨn cạnhX: top8px/right40px, Xgiữtop0/right0. Biển ảnh header rộng66%/tâm35% để chừa vùng điều khiển bênphải, khôngđènhau. Desktopgiữnguyên.
 
 - 2026-10-21: User không chấp nhận khung/tab Danh hiệu mobile bằng CSS đơn giản. Phải giữ artwork gốc: viền vàng/góc trang trí, bảng tên đỏ Danh hiệu, nútX/tua và tab có icon+chữ. Dùng crop từ honors-frame-tight.png qua scripts/crop-honors-mobile.py; frame nine-slice giữ góc, title/tab giữ tỷ lệ/alpha tight. Tab vẫn ngang/cuộn, catalog3cột; desktop nguồn gốc giữ nguyên. Quy tắc này thay skin profile/sidebarHTML/khung trơn ở ghi chú cũ.
@@ -1099,3 +1177,4 @@ Quy tắc2026-10-05: Tân Binh giữ vị trí sao hiện hành. Sáu bậc2–7
 
 
 - 2026-10-21: User yêu cầu sao to thêm và gần nhau toànproject/mobile+laptop. Scale1.16→1.24, sao29→31cqw (+6.9% so trước), gap1.5→0.5cqw (giảm2/3), 3ô94% vùngcốđịnh giữneo/hướngđiền. Artworkmáy mộtngôisao trangtrí tăng124% theo tokenchung. Đồngbộ tài liệu chuẩn, khôngđổi avatar/danhhiệu/luật. npm.cmd run build(typecheck+Vite) PASS, dist xácnhận scale1.24/gap0.5; chưa browserQA trựcquan, không thêmtest cho chỉnhsize/gap.
+- 2026-10-22: Theo user, Xếp hạng mobile tăng nội dung mỗi hàng1.35→1.5×, gồm avatar/huy hiệu top1–4/tên/điểm/nút; giữ khoảng6 dòng, chrome/tab và dock mobile đã chỉnh ở lượt trước, laptop giữ nguyên. `npm.cmd run build` (typecheck+Vite) PASS; dist/assets/index-BQxR6PWu.js xác nhận scale1.5. Chưa browser QA.

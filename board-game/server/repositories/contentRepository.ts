@@ -88,8 +88,8 @@ export class ContentRepository {
     })
   }
   async like(id:string,match:string,side:string,enabled:boolean) {
-    const m=await rows("SELECT id FROM matches WHERE id=? AND status='finished' AND source='server_online'",[match])
-    if(!m.length)throw new AccountError('Ván chưa kết thúc.')
+    const m=await rows("SELECT id FROM matches WHERE id=? AND status IN ('playing','finished') AND source='server_online'",[match])
+    if(!m.length)throw new AccountError('Ván đấu không hợp lệ.')
     await change(enabled?'INSERT INTO match_likes(match_id,actor_id,target_side) VALUES (?,?,?) ON DUPLICATE KEY UPDATE target_side=VALUES(target_side)':'DELETE FROM match_likes WHERE match_id=? AND actor_id=? AND target_side=?',[match,id,side])
   }
   async activity(id:string) {

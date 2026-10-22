@@ -19,6 +19,13 @@ vi.mock('../src/features/game/audio/GameSounds', () => ({ GameSounds: class {
 } }))
 afterEach(() => { cleanup(); vi.clearAllMocks() })
 
+it('does not replay the previous seats checkmate on a fresh finished session', () => {
+  const hook = renderHook(() => useMoveSound(firstMove, createGame().board, 12, 'finished', { winner: 'red', reason: 'checkmate' }))
+  expect(audio.playCheckmate).not.toHaveBeenCalled()
+  hook.unmount()
+  expect(audio.dispose).toHaveBeenCalledTimes(1)
+})
+
 type Props = { move: Move | null; board: Board; moveCount: number; phase: GameState['phase']; result?: GameState['result'] }
 const firstMove: Move = { from: { row: 6, col: 0 }, to: { row: 5, col: 0 } }
 const captureMove: Move = { from: { row: 5, col: 0 }, to: { row: 4, col: 0 } }

@@ -24,10 +24,11 @@ import { CrispUiImage } from '../../lib/CrispUiImage'
 import { buttonInteraction, homeUtilityButton } from '../../lib/uiClasses'
 
 type Props = { home: ReturnType<typeof useHome>; music: ReturnType<typeof useHomeMusic>; onEnergy: () => void; onMessages: () => void }
-const dockButton = `${homeUtilityButton} mx-auto h-[11cqw]! w-[11cqw]! max-h-12 max-w-12`
+const dockButton = `${homeUtilityButton} mx-auto h-[12.5cqw]! w-[12.5cqw]! max-h-14 max-w-14`
 
 export function MobileHome({ home, music, onEnergy, onMessages }: Props) {
   const [page, setPage] = useState(0)
+  const [energyHovered, setEnergyHovered] = useState(false)
   const avatarIndex = useSessionStore(state => state.avatarIndex)
   const frameIndex = useSessionStore(state => state.avatarFrameIndex)
   const elo = useSessionStore(state => state.elo)
@@ -47,21 +48,25 @@ export function MobileHome({ home, music, onEnergy, onMessages }: Props) {
         <AvatarRankBadge elo={elo} previewStars={account ? undefined : 3} />
       </div>
       <button type="button" onClick={home.openProfile} aria-label={`Hồ sơ ${home.name}`} className="absolute top-[4cqw] left-[19cqw] border-0 bg-transparent p-0">
-        <PlayerNameplate name={home.name} className="[--nameplate-width:37cqw] h-[6cqw]! bg-[length:100%_100%]! px-[3cqw]! text-[3.3cqw]!" />
+        <PlayerNameplate name={home.name} className="[--nameplate-width:37cqw] h-[27px]! bg-[length:100%_100%]! px-[17px]! text-[17px]!" />
       </button>
-      <div aria-label="Elo người chơi" className="absolute top-[11cqw] left-[19cqw] grid w-[37cqw] grid-cols-2 gap-[1cqw]">
-        {[{ label: 'Cờ Tướng', icon: redGeneral, value: elo }, { label: 'Cờ Úp', icon: concealedPiece, value: account?.stats.find(stat => stat.variant === 'jieqi')?.elo ?? 1000 }].map(item => <div key={item.label} aria-label={`Elo ${item.label}: ${item.value}`} className="relative flex h-[5.5cqw] min-w-0 items-center justify-center bg-[length:100%_100%] bg-center bg-no-repeat pl-[4.5cqw] pr-[1.2cqw] text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}>
-          <CrispUiImage src={item.icon} alt={item.label} className="absolute top-1/2 left-[1.3cqw] block size-[3.5cqw] -translate-y-1/2 object-contain" />
-          <span className="font-number text-[3cqw] leading-none lining-nums tabular-nums">{item.value}</span>
+      <div aria-label="Elo người chơi" className="absolute top-[12cqw] left-[19cqw] grid w-[37cqw] grid-cols-2 gap-[1cqw]">
+        {[{ label: 'Cờ Tướng', icon: redGeneral, value: elo }, { label: 'Cờ Úp', icon: concealedPiece, value: account?.stats.find(stat => stat.variant === 'jieqi')?.elo ?? 1000 }].map(item => <div key={item.label} aria-label={`Elo ${item.label}: ${item.value}`} className="relative flex h-[6cqw] min-w-0 items-center justify-center bg-[length:100%_100%] bg-center bg-no-repeat pl-[4.5cqw] pr-[1.2cqw] text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}>
+          <CrispUiImage src={item.icon} alt={item.label} className="absolute top-1/2 left-[1.3cqw] block size-[3.8cqw] -translate-y-1/2 object-contain" />
+          <span className="font-number text-[3.3cqw] leading-none lining-nums tabular-nums">{item.value}</span>
         </div>)}
       </div>
       <div className="absolute top-[3cqw] right-0 grid w-[30cqw] gap-[1.5cqw]">
-        {[{ name: 'Năng lượng', value: `${home.energy}/5`, icon: energyIcon, run: onEnergy }, { name: 'Vàng', value: String(home.gold), icon: goldIcon, run: () => home.setMessage('Tính năng bổ sung vàng chưa được hỗ trợ.') }].map(item => <div key={item.name} className="relative h-[7cqw]">
+        {[{ name: 'Năng lượng', value: home.energyUnlimited ? '∞' : `${home.energy}/5`, icon: energyIcon, energy: true, run: onEnergy }, { name: 'Vàng', value: String(home.gold), icon: goldIcon, energy: false, run: () => home.setMessage('Tính năng bổ sung vàng chưa được hỗ trợ.') }].map(item => <div key={item.name} className="relative h-[7cqw]">
           <ResourceArtwork src={resourceFrame} alt="" className="pointer-events-none absolute inset-0 block size-full" />
-          <button type="button" aria-label={item.name === 'Năng lượng' ? `Năng lượng ${item.value}. ${home.energyCountdown}` : `Vàng ${item.value}`} title={item.name === 'Năng lượng' ? home.energyCountdown : undefined} onClick={item.run} className="absolute inset-0 border-0 bg-transparent p-0">
+          {item.energy ? <div aria-label={`Năng lượng ${item.value}. ${home.energyCountdown}`} onPointerEnter={() => setEnergyHovered(true)} onPointerLeave={() => setEnergyHovered(false)} className="absolute inset-y-0 left-0 w-[80%]">
             <ResourceArtwork smooth src={item.icon} alt="" className="absolute top-1/2 left-[9%] block h-[4.6cqw] w-auto -translate-y-1/2" />
-            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-number text-[3.2cqw] leading-none tabular-nums">{item.value}</span>
-          </button>
+            <span className="absolute top-1/2 left-[56%] -translate-x-1/2 -translate-y-1/2 font-number text-[3.2cqw] leading-none tabular-nums">{item.value}</span>
+            {energyHovered && <div role="tooltip" className="pointer-events-none absolute top-[calc(100%+6px)] right-0 z-50 whitespace-nowrap rounded-lg border border-[#d7a34e] bg-[linear-gradient(135deg,#48270f,#241207)] px-2 py-1 font-cormorant text-[3cqw] font-semibold leading-normal text-[#fff0cc] shadow-[inset_0_0_0_1px_#ffe2a326,0_4px_12px_#0009]">{home.energyCountdown}</div>}
+          </div> : <button type="button" aria-label={`Vàng ${item.value}`} onClick={item.run} className="absolute inset-y-0 left-0 w-[80%] border-0 bg-transparent p-0">
+            <ResourceArtwork smooth src={item.icon} alt="" className="absolute top-1/2 left-[9%] block h-[4.6cqw] w-auto -translate-y-1/2" />
+            <span className="absolute top-1/2 left-[56%] -translate-x-1/2 -translate-y-1/2 font-number text-[3.2cqw] leading-none tabular-nums">{item.value}</span>
+          </button>}
           <ResourceAddButton type="button" aria-label={`Thêm ${item.name.toLowerCase()}`} onClick={item.run} className="absolute top-1/2 right-[10%] size-[4.5cqw] -translate-y-1/2" />
         </div>)}
       </div>
@@ -85,9 +90,9 @@ export function MobileHome({ home, music, onEnergy, onMessages }: Props) {
     <nav aria-label="Tiện ích điện thoại" className="absolute inset-x-[2%] bottom-[1%] z-40 grid grid-cols-6 gap-1 rounded-[3cqw] border-t border-[#b0833f] bg-[#1c120cdd] px-[1cqw] pt-[2cqw] pb-[max(2cqw,env(safe-area-inset-bottom))]">
       {([{ label: 'Xếp hạng', icon: 'trophy', run: home.openRanking }, { label: 'Lịch sử', icon: 'history', run: home.openHistory }, { label: 'Bạn bè', icon: 'friends', run: home.openFriends }, { label: 'Chat', icon: 'messages', run: onMessages }, { label: 'Cửa hàng', icon: 'shop', run: home.openShop }] as const).map(item => <div key={item.label} className="min-w-0 text-center">
         <button type="button" aria-label={item.label} onClick={item.run} className={dockButton}><HomeIcon name={item.icon} /></button>
-        <span className="mt-[1cqw] block whitespace-nowrap font-heading text-[3.2cqw] leading-normal">{item.label}</span>
+        <span className="mt-[1cqw] block whitespace-nowrap font-heading text-[3.6cqw] leading-normal">{item.label}</span>
       </div>)}
-      <div className="min-w-0 text-center"><HomeSettings music={music} placement="above" buttonClassName={dockButton} onError={() => home.setMessage('Không thể phát nhạc trên trình duyệt này.')} /><span className="mt-[1cqw] block font-heading text-[3.2cqw] leading-normal">Cài đặt</span></div>
+      <div className="min-w-0 text-center"><HomeSettings music={music} placement="above" buttonClassName={dockButton} onError={() => home.setMessage('Không thể phát nhạc trên trình duyệt này.')} /><span className="mt-[1cqw] block font-heading text-[3.6cqw] leading-normal">Cài đặt</span></div>
     </nav>
   </section>
 }

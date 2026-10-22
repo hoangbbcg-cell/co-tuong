@@ -5,7 +5,7 @@ import { RoomRepository } from '../server/repositories/roomRepository'
 describe('Cấu hình thời gian khi tạo bàn', () => {
   it.each([30, 60, 90, 120])('hết lượt đúng %i giây và giữ cấu hình khi reset', seconds => {
     let now = 0
-    const service = new RoomService(new RoomRepository(), () => now)
+    const service = new RoomService(new RoomRepository(), () => now, () => 'red')
     const { id } = service.create('Bàn cờ', 15, seconds)
     service.join(id, 'red', 'Đỏ')
     service.join(id, 'black', 'Đen')

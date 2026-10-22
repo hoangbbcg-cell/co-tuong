@@ -30,6 +30,7 @@ function PlayerLikeButton({ name, position, matchId, actorId, targetSide, avatar
   const liked = useSessionStore(state => state.matchLikeRecords.some(record => record.matchId === matchId && record.actorId === actorId && record.targetSide === targetSide))
   const recordMatchLike = useSessionStore(state => state.recordMatchLike)
   const likeBubbleLayerRef = useRef<HTMLSpanElement>(null)
+  const bubbleAnimations = useRef(new Set<Animation>())
   const lastBubbleAt = useRef(Number.NEGATIVE_INFINITY)
   const pickerTimer = useRef<number | null>(null)
   const pointerInside = useRef(false)
@@ -54,7 +55,11 @@ function PlayerLikeButton({ name, position, matchId, actorId, targetSide, avatar
       if (pointerInside.current || focusInside.current) setPickerVisible(true)
     }, delay)
   }
-  useEffect(() => () => clearPickerTimer(), [])
+  useEffect(() => () => {
+    clearPickerTimer()
+    bubbleAnimations.current.forEach(animation => animation.cancel())
+    bubbleAnimations.current.clear()
+  }, [])
   const handleClick = (reaction = '👍', keepPickerOpen = false, fromPicker = false) => {
     void saveMatchLike(matchId,actorId,targetSide).catch(()=>useSessionStore.getState().setNotice('Không lưu được lượt thích.'))
     if (!keepPickerOpen) {
@@ -96,9 +101,12 @@ function PlayerLikeButton({ name, position, matchId, actorId, targetSide, avatar
       { opacity: 0.85, offset: 0.62, transform: 'translate(calc(-50% - ' + Math.round(drift * 0.3) + 'px), -145%) scale(.9)' },
       { opacity: 0, transform: 'translate(calc(-50% + ' + Math.round(drift * 0.2) + 'px), -205%) scale(.75)' },
     ], { duration: 650, easing: 'cubic-bezier(.2,.65,.3,1)' })
-    animation.onfinish = () => bubble.remove()
+    bubbleAnimations.current.add(animation)
+    const remove = () => { bubble.remove(); bubbleAnimations.current.delete(animation) }
+    animation.onfinish = remove
+    animation.oncancel = remove
   }
-  return <div className={'group/like absolute top-1/2 z-6 -translate-y-1/2 ' + (position === 'left' ? 'right-[calc(100%+15px)]' : 'left-[calc(100%+15px)]')} onPointerEnter={() => { pointerInside.current = true; schedulePickerOpen() }} onPointerLeave={() => { pointerInside.current = false; if (!focusInside.current) { clearPickerTimer(); setPickerVisible(false) } }} onFocusCapture={() => { focusInside.current = true; schedulePickerOpen() }} onBlurCapture={event => { if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return; focusInside.current = false; if (!pointerInside.current) { clearPickerTimer(); setPickerVisible(false) } }}>
+  return <div className={'group/like absolute top-1/2 z-6 -translate-y-1/2 compact:static compact:translate-y-0 ' + (position === 'left' ? 'right-[calc(100%+15px)]' : 'left-[calc(100%+15px)]')} onPointerEnter={() => { pointerInside.current = true; schedulePickerOpen() }} onPointerLeave={() => { pointerInside.current = false; if (!focusInside.current) { clearPickerTimer(); setPickerVisible(false) } }} onFocusCapture={() => { focusInside.current = true; schedulePickerOpen() }} onBlurCapture={event => { if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return; focusInside.current = false; if (!pointerInside.current) { clearPickerTimer(); setPickerVisible(false) } }}>
       <button type="button" aria-label={'Thích ' + name} aria-pressed={liked} onPointerEnter={event => { likeButtonHovered.current = event.pointerType === 'mouse' }} onPointerLeave={() => {
         likeButtonHovered.current = false
         if (waitForLikeButtonHover.current) {
@@ -106,8 +114,8 @@ function PlayerLikeButton({ name, position, matchId, actorId, targetSide, avatar
           clearPickerTimer()
           setPickerVisible(false)
         }
-      }} onClick={() => handleClick()} className={buttonInteraction + ' relative z-0 grid size-10 place-items-center rounded-full border border-[#fff4cb] bg-[#233a32cc] p-0 shadow-[0_0_10px_#ffe2a1bb,inset_0_0_5px_#ffe2a166] compact:size-9'}>
-      <img src={likeIcon} alt="" aria-hidden="true" className="block size-6 object-contain drop-shadow-[0_2px_2px_#000a] compact:size-5" />
+      }} onClick={() => handleClick()} className={buttonInteraction + ' relative z-0 grid size-10 place-items-center rounded-full border border-[#fff4cb] bg-[#233a32cc] p-0 shadow-[0_0_10px_#ffe2a1bb,inset_0_0_5px_#ffe2a166] compact:size-[27px]'}>
+      <img src={likeIcon} alt="" aria-hidden="true" className="block size-6 object-contain drop-shadow-[0_2px_2px_#000a] compact:size-[17px]" />
       <span ref={likeBubbleLayerRef} aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-visible" />
     </button>
     <div aria-label="Chọn biểu cảm" aria-hidden={!pickerVisible} className={`absolute top-1/2 left-1/2 z-10 flex h-[180px] w-[42px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-0.5 rounded-[14px] border border-[#b2945e] bg-[#0a211d] px-1 py-2 shadow-[0_6px_18px_#0009] transition-[opacity,visibility] duration-100 compact:h-[167px] ${pickerVisible ? 'visible pointer-events-auto opacity-100' : 'invisible pointer-events-none opacity-0'}`}>
@@ -141,13 +149,16 @@ export function PlayerCard({ mobileEdge, empty = false, playerId, entranceHidden
   const machineAvatar = getComputerAvatar(originalName)
   const name = machineAvatar ? 'Ông Hoàng' : profile?.displayName ?? originalName
   const likeBubbleLayerRef = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    if (!likeVisible) likeBubbleLayerRef.current?.replaceChildren()
+  }, [likeVisible])
   const turnRatio = Math.max(0, Math.min(1, turnElapsed / turnTimeLimitMs))
   const turnAngle = turnRatio * 360
   const timerVisible = !machineAvatar && showClock && (active || timerExpired)
   if(empty)return null
-  return <section data-active={active} className={`mx-auto flex min-w-0 flex-col desktop:w-40 items-center pt-3 compact:grid-cols-[64px_minmax(0,1fr)] compact:gap-x-2 compact:gap-y-[3px] compact:p-0 compact:text-left short-desktop:pt-0 ${fillHeight ? 'h-full compact:h-auto' : 'flex-none desktop:self-center'} ${mobileEdge ? 'compact:relative compact:pointer-events-auto compact:min-h-[64px] compact:w-[200px] compact:translate-y-0 compact:grid' : side === 'red' ? 'compact:grid compact:-translate-y-[10px]' : 'compact:grid'} ${mobileEdge === 'top' ? 'compact:ml-[10px] compact:mr-auto' : mobileEdge === 'bottom' ? 'compact:mr-[10px] compact:ml-auto compact:grid-cols-[minmax(0,1fr)_64px] compact:[&_[data-player-identity]>p]:ml-auto compact:[&>div:nth-child(3)]:ml-auto' : ''}`} id={`player-${side}`} aria-label={`Người chơi quân ${side === 'red' ? 'đỏ' : 'đen'}`} style={{ visibility: entranceHidden ? 'hidden' : undefined } as CSSProperties}>
-    <div data-active={active} data-testid={`avatar-${side}`} className={`relative size-[132px] shrink-0 rounded-full bg-transparent p-2 shadow-[0_5px_18px_#071c1b99] compact:size-[64px] compact:mb-5 compact:p-[5px] short-desktop:size-[88px] ${mobileEdge === 'top' ? 'compact:col-start-1 compact:row-start-1 compact:self-center' : mobileEdge === 'bottom' ? 'compact:col-start-2 compact:row-start-2 compact:self-center' : ''}`} style={machineAvatar ? { boxShadow: 'none' } : undefined}>
-      {!machineAvatar && likeVisible && <PlayerLikeButton name={name} position={likePosition} matchId={likeMatchId} actorId={likeActorId} targetSide={side} avatarBubbleLayerRef={likeBubbleLayerRef} />}
+  return <section data-active={active} data-mobile-edge={mobileEdge} className={`mx-auto flex min-w-0 flex-col desktop:w-40 items-center pt-3 compact:grid-cols-[64px_minmax(0,1fr)] compact:gap-x-2 compact:gap-y-[3px] compact:p-0 compact:text-left short-desktop:pt-0 ${fillHeight ? 'h-full compact:h-auto' : 'flex-none desktop:self-center'} ${mobileEdge ? 'compact:relative compact:pointer-events-auto compact:min-h-[64px] compact:w-[200px] compact:translate-y-0 compact:grid' : side === 'red' ? 'compact:grid compact:-translate-y-[10px]' : 'compact:grid'} ${mobileEdge === 'top' ? 'compact:ml-[10px] compact:mr-auto' : mobileEdge === 'bottom' ? 'compact:mr-[10px] compact:ml-auto compact:grid-cols-[minmax(0,1fr)_64px] compact:[&_[data-player-identity]>p]:ml-auto' : ''}`} id={`player-${side}`} aria-label={`Người chơi quân ${side === 'red' ? 'đỏ' : 'đen'}`} style={{ visibility: entranceHidden ? 'hidden' : undefined } as CSSProperties}>
+    <div data-active={active} data-testid={`avatar-${side}`} data-mobile-avatar className={`relative size-[132px] shrink-0 rounded-full bg-transparent p-2 shadow-[0_5px_18px_#071c1b99] compact:size-[64px] compact:mb-5 compact:p-[5px] short-desktop:size-[88px] ${mobileEdge === 'top' ? 'compact:col-start-1 compact:row-start-1 compact:self-center' : mobileEdge === 'bottom' ? 'compact:col-start-2 compact:row-start-1 compact:self-center' : ''}`} style={machineAvatar ? { boxShadow: 'none' } : undefined}>
+      {!machineAvatar && likeVisible && <div className="compact:hidden"><PlayerLikeButton name={name} position={likePosition} matchId={likeMatchId} actorId={likeActorId} targetSide={side} avatarBubbleLayerRef={likeBubbleLayerRef} /></div>}
       <button type="button" disabled={!!machineAvatar} aria-label={machineAvatar ? 'Avatar Ông Hoàng' : `Xem hồ sơ ${name}`} title={!machineAvatar && onAvatarContextMenu ? 'Bấm chuột phải để phong danh hiệu' : undefined} onClick={machineAvatar ? undefined : onAvatarClick} onContextMenu={event => { event.preventDefault(); if (!machineAvatar) onAvatarContextMenu?.() }} className={`${buttonInteraction} relative block size-full rounded-full border-0 bg-transparent p-0 disabled:opacity-100`}>
         {machineAvatar ? <img src={machineAvatar} alt="" className="block size-full object-contain" style={{ transform: `scale(${AVATAR_FRAME_VISIBLE_SCALE})` }} /> : <AvatarPortrait avatarIndex={Number(profile?.avatarCode.replace('avatar-',''))||0} className="size-full rounded-full" />}<span aria-hidden="true" className={`pointer-events-none absolute inset-0 z-2 rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: `conic-gradient(from 0deg, transparent 0deg ${turnAngle}deg, #187b1299 ${turnAngle}deg 360deg)` }} />
         {!machineAvatar && <AvatarFrameOverlay src={getAvatarFrame(Number(profile?.avatarFrameCode.replace('frame-',''))||0).image} dimmed={timerVisible} />}
@@ -162,13 +173,17 @@ export function PlayerCard({ mobileEdge, empty = false, playerId, entranceHidden
       {!machineAvatar && ready && <img src={readyRibbon} alt="Sẵn sàng" className="pointer-events-none absolute top-1/2 left-1/2 z-[110] m-0 block h-auto w-[158px] -translate-x-1/2 -translate-y-1/2 border-0 p-0 drop-shadow-[0_2px_3px_#17200899] compact:w-[72px] short-desktop:w-[106px]" />}
       {!machineAvatar && outcome && <ResultFace outcome={outcome} />}
     </div>
-    <div data-player-identity className={`mt-[78px] w-full min-w-0 -translate-y-[28px] compact:mt-0 compact:translate-y-0 short-desktop:mt-[54px] ${mobileEdge === 'top' ? 'compact:col-start-2 compact:row-start-1 compact:self-center' : mobileEdge === 'bottom' ? 'compact:col-start-1 compact:row-start-2 compact:self-center' : ''}`}>
-      <h2 className="relative mx-auto my-0 w-fit leading-none"><PlayerNameplate name={name} className={`[--nameplate-width:170px] ${mobileEdge ? 'compact:[--nameplate-width:128px] compact:[&_.font-number]:text-[0.9em]' : 'compact:[--nameplate-width:120px]'}`} /></h2>
-      <p hidden={started || !!machineAvatar} className="relative mx-auto mt-2 mb-[9px] flex h-[37px] w-fit items-center justify-center gap-2 bg-[length:100%_100%] bg-center bg-no-repeat px-[14px] font-georgia leading-none text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008] compact:mx-0 compact:mt-1 compact:mb-0.5 compact:h-[28px] compact:gap-[3px] compact:px-[10px]" style={{ backgroundImage: `url(${eloFrame})` }}>
+    <div data-player-identity className={`mt-[78px] w-full min-w-0 -translate-y-[28px] compact:mt-0 compact:translate-y-0 short-desktop:mt-[54px] ${mobileEdge === 'top' ? 'compact:col-start-2 compact:row-start-1 compact:self-center' : mobileEdge === 'bottom' ? 'compact:col-start-1 compact:row-start-1 compact:self-center' : ''}`}>
+      <h2 className={`relative mx-auto my-0 w-fit leading-none ${mobileEdge === 'top' ? 'compact:ml-[-3px] compact:mr-auto' : mobileEdge === 'bottom' ? 'compact:ml-auto compact:mr-[-3px]' : ''}`}><PlayerNameplate name={name} className={`[--nameplate-width:170px] ${mobileEdge ? 'compact:[--nameplate-width:128px] compact:[&_.font-number]:text-[0.9em]' : 'compact:[--nameplate-width:120px]'}`} /></h2>
+      <p hidden={started || !!machineAvatar} className="[&[hidden]]:hidden! relative mx-auto mt-2 mb-[9px] flex h-[37px] w-fit items-center justify-center gap-2 bg-[length:100%_100%] bg-center bg-no-repeat px-[14px] font-georgia leading-none text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008] compact:mx-0 compact:mt-1 compact:mb-0.5 compact:h-[28px] compact:gap-[3px] compact:px-[10px]" style={{ backgroundImage: `url(${eloFrame})` }}>
         <span role="img" aria-label={variant === 'jieqi' ? 'ELO · Cờ Úp' : 'ELO · Cờ Tướng'} className="grid size-[20px] shrink-0 place-items-center compact:size-[18px]"><CrispUiImage src={variant === 'jieqi' ? concealedPiece : redGeneral} alt="" className="block size-full object-contain" /></span><strong className="grid h-[20px] place-items-center font-number text-[18px] font-normal leading-none text-[#ffe5a3] lining-nums tabular-nums compact:h-[18px] compact:text-[15px]">{elo}</strong>
       </p>
+      <div className={`hidden compact:flex compact:items-center compact:gap-2 ${mobileEdge === 'bottom' ? 'compact:flex-row-reverse' : ''}`}>
+        <div data-testid={`mobile-clock-${side}`} hidden={!started || !showClock || !!machineAvatar} className={`[&[hidden]]:hidden! relative mx-auto mt-2 mb-[9px] hidden h-[37px] w-fit min-w-[70px] items-center justify-center rounded-[3px] border border-[#c5ad6b] px-[14px] py-0 font-number text-lg/[1.1] tabular-nums text-[#e8b923] compact:mx-0 compact:mt-1 compact:mb-0.5 compact:flex compact:h-[28px] compact:min-w-0 compact:px-[10px] compact:text-[15px] desktop:hidden ${active ? 'border-[#e8c479] bg-[#244b40] shadow-[0_0_0_1px_#e8c47933]' : 'bg-[#503a23]'}`} aria-hidden="true"><span>{formatClock(remaining)}</span></div>
+        {likeVisible && !machineAvatar && <PlayerLikeButton name={name} position={likePosition} matchId={likeMatchId} actorId={likeActorId} targetSide={side} avatarBubbleLayerRef={likeBubbleLayerRef} />}
+      </div>
     </div>
-    {!machineAvatar && showClock && <div hidden={!started} className={`mt-3 flex w-fit min-w-[70px] -translate-y-[23px] items-center justify-center rounded-[3px] border px-2 py-0.5 transition-[background-color,border-color,box-shadow] duration-100 compact:translate-y-0 compact:col-span-full compact:mt-1.5 compact:justify-self-center compact:px-[5px] compact:text-center ${mobileEdge === 'bottom' ? 'compact:row-start-1 compact:mb-1.5 compact:mt-0' : ''} ${active ? 'border-[#e8c479] bg-[#244b40] shadow-[0_0_0_1px_#e8c47933]' : 'border-[#c5ad6b] bg-[#503a23]'}`}>
+    {!machineAvatar && showClock && <div hidden={!started} className={`[&[hidden]]:hidden! mt-3 hidden w-fit min-w-[70px] -translate-y-[23px] items-center justify-center rounded-[3px] border px-2 py-0.5 transition-[background-color,border-color,box-shadow] duration-100 desktop:flex compact:translate-y-0 compact:col-span-full compact:mt-1.5 compact:justify-self-center compact:px-[5px] compact:text-center ${mobileEdge === 'bottom' ? 'compact:row-start-1 compact:mb-1.5 compact:mt-0 compact:hidden' : ''} ${active ? 'border-[#e8c479] bg-[#244b40] shadow-[0_0_0_1px_#e8c47933]' : 'border-[#c5ad6b] bg-[#503a23]'}`}>
       <output className="block font-number text-lg/[1.1] text-[#e8b923] tabular-nums" id={`clock-${side}`} aria-label={`Thời gian quân ${side === 'red' ? 'đỏ' : 'đen'}`}>{formatClock(remaining)}</output>
     </div>}
     {children}

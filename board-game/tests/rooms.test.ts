@@ -5,12 +5,22 @@ import { RoomService } from '../server/services/roomService'
 describe('Service phòng và server là nguồn sự thật', () => {
   let now: number, service: RoomService, id: string
   beforeEach(() => {
-    now = 0; service = new RoomService(new RoomRepository(), () => now)
+    now = 0; service = new RoomService(new RoomRepository(), () => now, () => 'red')
     id = service.create('Phòng test').id
     service.join(id, 'a', 'Đỏ'); service.join(id, 'b', 'Đen')
   })
   const move = { type: 'move', move: { from: { row: 6, col: 0 }, to: { row: 5, col: 0 } } }
   const start = () => { service.command('a', { type: 'ready' }); service.command('b', { type: 'ready' }) }
+  it('cấp mã phòng thật riêng và giữ cùng mã qua danh sách, người tham gia và reset', () => {
+    const first = service.roomFor('a')!
+    const created = service.create('Phòng thứ hai')
+    expect(first.code).toMatch(/^\d{6}$/)
+    expect(created.code).toMatch(/^\d{6}$/)
+    expect(created.code).not.toBe(first.code)
+    expect(service.list().find(room => room.id === id)?.code).toBe(first.code)
+    expect(service.join(id, 'viewer', 'Người xem').code).toBe(first.code)
+    expect(service.command('a', { type: 'reset' }).code).toBe(first.code)
+  })
   it.each([3, 5, 10, 15, 30])('áp dụng %i phút cho clock và giữ khi reset', minutes => {
     const created = service.create('Có thời gian', minutes)
     expect(created.minutes).toBe(minutes)

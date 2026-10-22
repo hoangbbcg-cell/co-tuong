@@ -24,11 +24,21 @@ export function useBoardLayout() {
     const scene = arena?.parentElement
     const board = arena?.querySelector('#board')
     if (!arena || !scene || !board) return
-    const identity = arena.querySelector('[data-player-identity]')
+    const identity = arena.querySelector('[data-mobile-edge="top"] [data-player-identity]') ?? arena.querySelector('[data-player-identity]')
+    const bottomIdentity = arena.querySelector('[data-mobile-edge="bottom"] [data-player-identity]')
+    const main = scene.parentElement
+    const actions = main?.querySelector<HTMLElement>('#matchActions')
     const measure = () => {
       if (identity) {
         const rect = identity.getBoundingClientRect()
         scene.style.setProperty('--mobile-viewer-center', `${rect.top + rect.height / 2}px`)
+      }
+      if (bottomIdentity && main) {
+        const rect = bottomIdentity.getBoundingClientRect()
+        const mainRect = main.getBoundingClientRect()
+        main.style.setProperty('--mobile-actions-top', `${rect.top - mainRect.top + rect.height / 2 - 31}px`)
+        const actionWidth = actions?.getBoundingClientRect().width ?? 0
+        main.style.setProperty('--mobile-actions-left', `${Math.max(10, rect.left - mainRect.left - actionWidth - 4)}px`)
       }
       const outer = scene.getBoundingClientRect()
       const inner = board.getBoundingClientRect()
@@ -44,6 +54,8 @@ export function useBoardLayout() {
     observer.observe(arena)
     observer.observe(board)
     if (identity) observer.observe(identity)
+    if (bottomIdentity) observer.observe(bottomIdentity)
+    if (actions) observer.observe(actions)
     return () => observer.disconnect()
   }, [width])
   return { arenaRef, backgroundMask, frameWidth: width, scale: width / 1134, frameHeight: width * 1296 / 1134 }

@@ -1,4 +1,5 @@
 import { GoogleLinkDialog } from './GoogleLinkDialog'
+import { ProfileRenameDialog } from './ProfileRenameDialog'
 import { CountryFlag } from '../../../lib/CountryFlag'
 import { countryNames } from '../../../lib/profileLocation'
 import { useProfilePersistence } from '../hooks/useProfilePersistence'
@@ -361,11 +362,11 @@ function AttendanceHonorBadge({ honor, isSelected, onSelect }: { honor: Attendan
   </button>
 }
 
-function AwardedHonorCount({ honor }: { honor: AwardedHonor }) {
+function AwardedHonorCount({ honor, catalogBadge = false }: { honor: AwardedHonor; catalogBadge?: boolean }) {
   if (honor.level < 2) return null
   const frameAnchorY = AWARDED_FRAME_COUNTER_ANCHOR_Y[honor.level] ?? 0
   const viewBadgeTop = `${((frameAnchorY / 500) * 1.36 - 0.18) * 100}%`
-  return <span aria-label={`Lượt phong tặng: ${honor.viewCount ?? 0}`} style={{ top: viewBadgeTop }} className="pointer-events-none absolute right-[12%] z-30 flex items-center compact:!top-0 compact:!text-[length:6cqw] gap-[0.24em] rounded-[0.45em] border border-[#d4a13c] bg-[linear-gradient(135deg,#8b6125,#5a3716)] px-[0.55em] py-[0.24em] text-[length:clamp(var(--ui-p-10,10px),4.4cqw,var(--ui-p-15,15px))] font-semibold leading-none text-[#ffe5a6] shadow-[0_1px_3px_#140804]">
+  return <span aria-label={`Lượt phong tặng: ${honor.viewCount ?? 0}`} style={{ top: viewBadgeTop }} className={`pointer-events-none absolute right-[12%] z-30 flex items-center compact:!top-0 compact:!text-[length:6cqw] gap-[0.24em] rounded-[0.45em] border border-[#d4a13c] bg-[linear-gradient(135deg,#8b6125,#5a3716)] px-[0.55em] py-[0.24em] text-[length:clamp(var(--ui-p-10,10px),4.4cqw,var(--ui-p-15,15px))] font-semibold leading-none text-[#ffe5a6] shadow-[0_1px_3px_#140804] ${catalogBadge ? 'translate-y-[5px] scale-90' : ''}`}>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-[1.35em] shrink-0" focusable="false" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" /><circle cx="12" cy="12" r="2.5" /></svg>
     <span className="font-number lining-nums tabular-nums">{honor.viewCount ?? 0}</span>
   </span>
@@ -378,7 +379,7 @@ function AwardedHonorBadge({ honor, isSelected, onSelect }: { honor: AwardedHono
   return <button type="button" aria-pressed={isSelected} aria-label={`Xem thông tin ${normalizeHonorTitle(honor.name)}${hasViewCount ? `. Lượt phong tặng: ${viewCount}` : ''}`} onClick={event => { event.stopPropagation(); onSelect(honor) }} className={titleFrameButtonClass(isSelected, `${honor.level === 1 ? 'translate-y-[var(--ui-p-2,2px)]' : honor.level >= 4 ? '-translate-y-[var(--ui-p-2,2px)]' : ''}`)}>
     <SelectedTitleFrameEffect active={isSelected} frameStyle={getAwardedFrameVisibleBoxStyle(honor.level)} sizeScale={honor.level <= 4 ? 1.3 : 1.25} />
     <FittedUiArtwork src={honor.image} alt="" aria-hidden="true" style={{ filter: isSelected ? SELECTED_TITLE_FRAME_FILTER : UNSELECTED_TITLE_FRAME_FILTER }} scaleX={scaleX} scaleY={1.36} className="pointer-events-none absolute inset-0 z-10 block size-full object-contain transition-[filter] duration-200 ease-out" />
-    <AwardedHonorCount honor={honor} />
+    <AwardedHonorCount honor={honor} catalogBadge />
     <span style={{ ...getAwardedHonorTitleAnchorStyle(honor.level), top: honor.level === 1 ? 'calc(53% + 4px)' : honor.level === 3 ? 'calc(53% + 1px)' : honor.level === 4 ? 'calc(53% - 2px)' : honor.level === 5 ? 'calc(53% - 3px)' : '53%' }} className="pointer-events-none absolute left-1/2 z-20 flex h-full w-[70%] -translate-x-1/2 -translate-y-1/2 compact:!top-[var(--awarded-title-center-y)] items-center justify-center overflow-hidden whitespace-nowrap text-center">
       <AwardedHonorTitle displayName={honor.displayName} />
     </span>
@@ -601,7 +602,7 @@ function HonorDetailPopover({ honor, onBack, standalonePosition, honorColumn, is
       ? `min(82vw, 54dvh, ${standalonePosition.anchorX}px)`
       : undefined
 
-  return <div data-honor-detail-popover="true" className={`absolute z-50 aspect-[932/1481] overflow-hidden ${standalone ? 'compact:!left-1/2 compact:!top-1/2 compact:!w-[min(82vw,54dvh)] compact:!transform-[translate(-50%,-50%)]' : 'top-[49.2173%] -translate-y-1/2 compact:!left-1/2 compact:!top-1/2 compact:!w-[82%] compact:-translate-x-1/2'}`} style={{ left: standalonePosition ? `${standalonePosition.anchorX}px` : left, top: standalone ? '50%' : undefined, transform: standalonePosition ? `translate(${standalonePosition.side === 'left' ? '-100%' : '0'}, -50%)` : undefined, width: standalone ? standaloneWidth : 'calc(43.4168% - 31.465px)' }}>
+  return <div data-honor-detail-popover="true" className={`absolute z-50 aspect-[932/1481] overflow-hidden ${standalone ? 'compact:!fixed compact:!left-1/2 compact:!top-1/2 compact:!w-[min(82vw,54dvh)] compact:!transform-[translate(-50%,-50%)]' : 'top-[49.2173%] -translate-y-1/2 compact:!left-1/2 compact:!top-1/2 compact:!w-[82%] compact:-translate-x-1/2'}`} style={{ left: standalonePosition ? `${standalonePosition.anchorX}px` : left, top: standalone ? '50%' : undefined, transform: standalonePosition ? `translate(${standalonePosition.side === 'left' ? '-100%' : '0'}, -50%)` : undefined, width: standalone ? standaloneWidth : 'calc(43.4168% - 31.465px)' }}>
     <CrispUiImage src={honorsDetailFrame} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 block size-full" />
     <h2 id="honors-detail-title" className="sr-only">Thông tin danh hiệu: {title}</h2>
     {!standalone && isHidden !== undefined && onToggleHidden && <HonorHiddenToggle isHidden={isHidden} onToggle={onToggleHidden} />}
@@ -739,6 +740,8 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
   const [otherAddress, setOtherAddress] = useState('TP. Hồ Chí Minh')
   const ownAddress = useSessionStore(state => state.address)
   const account=useSessionStore(state=>state.account)
+  const canRename = isOwnProfile && Boolean(account?.linked) && !account?.renamed
+  const [renameOpen,setRenameOpen] = useState(false)
   const displayedAccount=useDatabaseProfile(name,isOwnProfile)
   const ownElo = useSessionStore(state => state.elo)
   const displayedElo = displayedAccount?.stats.find(stat => stat.variant === 'xiangqi')?.elo ?? (isOwnProfile ? ownElo : 1000)
@@ -960,7 +963,7 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
   const dialogWidth = avatarCustomizationOpen ? layout.avatarWidth : layout.width
   const dialogHeight = avatarCustomizationOpen ? layout.avatarHeight : layout.height
   const dialogScale = avatarCustomizationOpen ? layout.avatarScale : layout.scale
-  const mobileProfilePanel = !avatarCustomizationOpen && !locationPickerOpen && !honorsOpen && !previewHonorDetailOpen
+  const mobileProfilePanel = !avatarCustomizationOpen && !honorsOpen
   const closePreviewHonorDetail = () => {
     setPreviewHonorDetailOpen(false)
     setPreviewDetailPosition(null)
@@ -969,7 +972,8 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
   const renderPhotoPanel = (sizeClass: string) => <PlayerInfoCard
     className={sizeClass}
     mobileExpanded
-    data={{ name, xiangqiScore: displayedAccount?.stats.find(s=>s.variant==='xiangqi')?.elo??1000, jieqiScore: displayedAccount?.stats.find(s=>s.variant==='jieqi')?.elo??1000, friends: displayedAccount?.friends??0, followers: displayedAccount?.followers??0, likes: String(displayedAccount?.likes??0), address, playerId: displayedProfileId }}
+    data={{ name:isOwnProfile?ownName:name, xiangqiScore: displayedAccount?.stats.find(s=>s.variant==='xiangqi')?.elo??1000, jieqiScore: displayedAccount?.stats.find(s=>s.variant==='jieqi')?.elo??1000, friends: displayedAccount?.friends??0, followers: displayedAccount?.followers??0, likes: String(displayedAccount?.likes??0), address, playerId: displayedProfileId }}
+    nameEditControl={canRename ? <button type="button" aria-label="Đổi tên người chơi" onClick={()=>setRenameOpen(true)} className={`${editButton} ml-auto`}><CrispUiImage src={editIcon} alt="" aria-hidden="true" className="block size-9 object-contain" /></button> : undefined}
     editControl={(editable||flagCode) ? avatarCustomizationOpen
       ? <span inert aria-hidden="true" className="pointer-events-none invisible hidden compact:contents">{editControl()}</span>
       : editControl() : undefined}
@@ -994,8 +998,8 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
       else if (avatarCustomizationOpen) setAvatarCustomizationOpen(false)
       else onClose()
     }
-  }} onCancel={event => { event.preventDefault(); if (friendship.removalName) friendship.cancelRemoval(); else if (profileActionFeedback) setProfileActionFeedback(null); else if (previewHonorDetailOpen) closePreviewHonorDetail(); else if (selectedHonor) setSelectedHonor(null); else if (honorsOpen) setHonorsOpen(false); else if (locationPickerOpen) setLocationPickerOpen(false); else if (avatarCustomizationOpen) setAvatarCustomizationOpen(false); else onClose() }} onClose={() => { setSelectedHonor(null); setPreviewHonorDetailOpen(false); setPreviewDetailPosition(null); setAvatarCustomizationOpen(false); setLocationPickerOpen(false); setHonorsOpen(false); setViewOtherProfileInfo(false); setProfileActionFeedback(null); friendship.cancelRemoval() }} className={`m-auto max-h-none max-w-none overflow-visible border-0 bg-transparent p-0 text-[#43240f] backdrop:bg-black/50 ${!locationPickerOpen && !honorsOpen && !previewHonorDetailOpen ? 'compact:[translate:0_-6px]' : ''}`} style={(honorsOpen || previewHonorDetailOpen ? { position: 'fixed', inset: 0, margin: 0, width: '100vw', height: '100dvh', display: 'grid', placeItems: 'center', transform: 'none' } : { width: dialogWidth * dialogScale, height: dialogHeight * dialogScale, transform: 'translateY(0px)' }) as CSSProperties}>
-    {honorsOpen ? <div className="compact:!w-[var(--honor-mobile-width)] compact:h-[var(--honor-mobile-height)] compact:-translate-y-[6px]" style={{ width: 'min(90vw, 123.06dvh)', '--honor-mobile-width': `${layout.width * layout.scale}px`, '--honor-mobile-height': `${layout.height * layout.scale}px` } as CSSProperties}><HonorsFrame ownedIds={account ? databaseHonors.ownedIds : []} resolveHonor={resolveHonor} onClose={() => { setSelectedHonor(null); setHonorsOpen(false) }} selectedHonor={selectedHonor} onSelectHonor={setSelectedHonor} onBack={() => setSelectedHonor(null)} selectedProfileHonors={eligibleProfileHonors} onToggleProfileHonor={toggleProfileHonor} honorDetailsHidden={honorDetailsHidden} onToggleHonorDetailsHidden={toggleHonorDetailsHidden} /></div> : <div onDragStart={event => { if (event.target instanceof HTMLImageElement) event.preventDefault() }} className={`absolute origin-top-left rounded-[var(--ui-p-22,22px)] border-[length:var(--ui-p-5,5px)] border-[#5e3014] bg-[linear-gradient(135deg,#7a431c,#2d160a)] p-4 shadow-[inset_0_0_0_2px_#e0b466,inset_0_0_0_7px_#875026,inset_0_0_0_9px_#160904] [&_img]:select-none [&_svg]:select-none`} style={{ left: previewHonorDetailOpen ? `calc(50% - ${dialogWidth * dialogScale / 2}px)` : 0, top: previewHonorDetailOpen ? `calc(50% - ${dialogHeight * dialogScale / 2}px)` : 0, ...getCrispUiLayout(dialogScale, dialogWidth, dialogHeight) } as CSSProperties}>
+  }} onCancel={event => { event.preventDefault(); if (friendship.removalName) friendship.cancelRemoval(); else if (profileActionFeedback) setProfileActionFeedback(null); else if (previewHonorDetailOpen) closePreviewHonorDetail(); else if (selectedHonor) setSelectedHonor(null); else if (honorsOpen) setHonorsOpen(false); else if (locationPickerOpen) setLocationPickerOpen(false); else if (avatarCustomizationOpen) setAvatarCustomizationOpen(false); else onClose() }} onClose={() => { setSelectedHonor(null); setPreviewHonorDetailOpen(false); setPreviewDetailPosition(null); setAvatarCustomizationOpen(false); setLocationPickerOpen(false); setHonorsOpen(false); setViewOtherProfileInfo(false); setProfileActionFeedback(null); friendship.cancelRemoval() }} className="m-auto max-h-none max-w-none overflow-visible border-0 bg-transparent p-0 text-[#43240f] backdrop:bg-black/50" style={(honorsOpen ? { position: 'fixed', inset: 0, margin: 0, width: '100vw', height: '100dvh', display: 'grid', placeItems: 'center' } : { width: dialogWidth * dialogScale, height: dialogHeight * dialogScale }) as CSSProperties}>
+    {honorsOpen ? <div className="compact:!w-[var(--honor-mobile-width)] compact:h-[var(--honor-mobile-height)] compact:-translate-y-[6px]" style={{ width: 'min(90vw, 123.06dvh)', '--honor-mobile-width': `${layout.width * layout.scale}px`, '--honor-mobile-height': `${layout.height * layout.scale}px` } as CSSProperties}><HonorsFrame ownedIds={account ? databaseHonors.ownedIds : []} resolveHonor={resolveHonor} onClose={() => { setSelectedHonor(null); setHonorsOpen(false) }} selectedHonor={selectedHonor} onSelectHonor={setSelectedHonor} onBack={() => setSelectedHonor(null)} selectedProfileHonors={eligibleProfileHonors} onToggleProfileHonor={toggleProfileHonor} honorDetailsHidden={honorDetailsHidden} onToggleHonorDetailsHidden={toggleHonorDetailsHidden} /></div> : <div onDragStart={event => { if (event.target instanceof HTMLImageElement) event.preventDefault() }} className="absolute origin-top-left rounded-[var(--ui-p-22,22px)] border-[length:var(--ui-p-5,5px)] border-[#5e3014] bg-[linear-gradient(135deg,#7a431c,#2d160a)] p-4 shadow-[inset_0_0_0_2px_#e0b466,inset_0_0_0_7px_#875026,inset_0_0_0_9px_#160904] [&_img]:select-none [&_svg]:select-none compact:-translate-y-[6px]" style={{ left: 0, top: 0, ...getCrispUiLayout(dialogScale, dialogWidth, dialogHeight) } as CSSProperties}>
     <div inert={Boolean(profileActionFeedback || friendship.removalName)} className={`relative flex h-full flex-col rounded-xl border-[length:var(--ui-p-3,3px)] border-[#d39a42] bg-[radial-gradient(ellipse_at_50%_20%,#b87a3344,transparent_43%),linear-gradient(135deg,#6e3718,#2b160b_48%,#5d2e14)] px-4 pb-3 shadow-[0_0_0_2px_#48220e,inset_0_0_18px_#160904]`}>
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[var(--ui-p-10,10px)]">
         <CrispUiImage src={profileScene} alt="" className={`absolute top-0 object-cover object-[left_top] ${avatarCustomizationOpen ? 'left-0 h-[calc(var(--ui-p-226,226px)+8px)] w-full' : 'left-0 h-[var(--ui-p-238,238px)] w-full'} ${mobileProfilePanel || avatarCustomizationOpen ? 'compact:h-[calc(var(--ui-p-270,270px)+var(--ui-p-32,32px))] compact:[mask-image:linear-gradient(to_bottom,black_65%,transparent_100%)]' : ''}`} />
@@ -1018,17 +1022,17 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
               </span>
             </button>
           </div>
-          {renderPhotoPanel('h-full self-center -translate-y-[var(--ui-p-21,21px)] compact:-translate-y-[var(--ui-p-20,20px)]')}
+          {renderPhotoPanel('h-full self-center -translate-y-[var(--ui-p-21,21px)] compact:-translate-y-[var(--ui-p-28,28px)]')}
         </section>
         <section aria-label="Thống kê ván đấu" className="grid h-[var(--ui-p-132,132px)] shrink-0 grid-cols-2 gap-5 compact:h-[var(--ui-p-170,170px)] compact:grid-rows-[minmax(0,1fr)]">
-          {[{ name: 'Cờ Tướng', image: xiangqiMode }, { name: 'Cờ Úp', image: hiddenMode }].map(mode => <div key={mode.name} className="rounded-[var(--ui-p-12,12px)] border-2 border-[#b8782d] bg-[linear-gradient(135deg,#f8d99e,#efbd6b)] px-3 py-2 text-[#54270d] shadow-[inset_0_0_0_2px_#fff0bd,inset_0_0_0_4px_#ce9648,0_3px_4px_#2b120755] compact:h-[calc(100%+var(--ui-p-16,16px))] compact:-translate-y-[var(--ui-p-16,16px)]">
+          {[{ name: 'Cờ Tướng', image: xiangqiMode }, { name: 'Cờ Úp', image: hiddenMode }].map(mode => <div key={mode.name} className="rounded-[var(--ui-p-12,12px)] border-2 border-[#b8782d] bg-[linear-gradient(135deg,#f8d99e,#efbd6b)] px-3 py-2 text-[#54270d] shadow-[inset_0_0_0_2px_#fff0bd,inset_0_0_0_4px_#ce9648,0_3px_4px_#2b120755] compact:h-[calc(100%+var(--ui-p-21,21px))] compact:-translate-y-[var(--ui-p-16,16px)]">
             <CrispUiImage src={mode.image} alt={mode.name} className="mx-auto mb-1 h-[var(--ui-p-36,36px)] w-auto object-contain compact:h-[var(--ui-p-44,44px)]" />
             <div className="grid grid-cols-2 divide-x divide-[#b77b43] text-center">
               {['Thắng', 'Thua'].map(label => <div key={label}><p className="text-lg font-bold leading-5 compact:text-2xl compact:leading-normal">{label}</p><p className="mt-1 font-number text-2xl font-bold text-[#c3261e] compact:text-3xl">{displayedAccount?.stats.find(s=>s.variant===(mode.name==='Cờ Tướng'?'xiangqi':'jieqi'))?.[label==='Thắng'?'wins':'losses']??0}</p></div>)}
             </div>
           </div>)}
         </section>
-        {showOtherProfileActions ? <section aria-label={`Thao tác với ${name}`} className={`${panel} grid min-h-[var(--ui-p-240,240px)] flex-1 grid-cols-3 grid-rows-2 gap-x-3 gap-y-5 px-3 pt-8 pb-10`}>
+        {showOtherProfileActions ? <section aria-label={`Thao tác với ${name}`} className={`${panel} grid min-h-[var(--ui-p-240,240px)] flex-1 grid-cols-3 grid-rows-2 gap-x-3 gap-y-5 px-3 pt-8 pb-10 compact:h-fit compact:min-h-0 compact:flex-none compact:content-start compact:grid-cols-2 compact:grid-rows-[auto_auto_auto] compact:gap-[5px] compact:px-[5px] compact:pt-[5px] compact:pb-[2px]`}>
           {([
             { id: 'info', label: 'Xem thông tin', icon: profileActionInfo },
             { id: 'challenge', label: 'So tài', icon: profileActionChallenge },
@@ -1075,6 +1079,7 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
         </>}
       </div>
       {googleLinkOpen && <GoogleLinkDialog onClose={()=>setGoogleLinkOpen(false)} />}
+      {renameOpen && canRename && <ProfileRenameDialog name={ownName} onSave={profilePersistence.rename} onClose={()=>setRenameOpen(false)} />}
       {!avatarCustomizationOpen && !locationPickerOpen && <footer className="relative mt-4 flex shrink-0 items-center justify-between gap-3">{showAccountActions && !account?.linked ? <button type="button" className={`${goldButton} compact:min-w-[var(--ui-p-240,240px)] compact:px-8 compact:py-4 compact:text-2xl`} onClick={()=>account?setGoogleLinkOpen(true):onPrimaryAction()}>{primaryActionLabel}</button> : viewOtherProfileInfo ? <button type="button" className={goldButton} onClick={() => setViewOtherProfileInfo(false)}>Quay lại</button> : <span />}<button type="button" autoFocus className={`${goldButton} compact:min-w-[var(--ui-p-240,240px)] compact:px-8 compact:py-4 compact:text-2xl`} onClick={showAccountActions ? () => { setLogoutError(''); logoutDialogRef.current?.showModal() } : onClose}>{showAccountActions ? 'Đăng xuất' : 'Thoát'}</button></footer>}
     </div>
     {['top-0 left-0', 'top-0 right-0 -scale-x-100', 'bottom-0 left-0 -scale-y-100', 'bottom-0 right-0 -scale-x-100 -scale-y-100'].map(position => <svg key={position} aria-hidden="true" viewBox="0 0 90 90" className={`pointer-events-none absolute size-[var(--ui-p-76,76px)] ${position}`} fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M7 79V20Q7 7 21 7h58M16 66V26q0-10 12-10h37M14 47c40 7 6-48 38-34 14 7-5 25-13 21S44 6 62 9M21 74c-8-24 22-9 19-28" stroke="#64320f" strokeWidth="11"/><path d="M7 79V20Q7 7 21 7h58M16 66V26q0-10 12-10h37M14 47c40 7 6-48 38-34 14 7-5 25-13 21S44 6 62 9M21 74c-8-24 22-9 19-28" stroke="#d8a34e" strokeWidth="6"/><path d="M7 74V20Q7 7 21 7h52M16 42c26 4 10-30 27-29" stroke="#ffe1a0" strokeWidth="2"/></svg>)}

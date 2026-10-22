@@ -36,7 +36,7 @@ Ngày chốt: 2026-10-16. Đây là quy tắc thiết kế lâu dài do người
 - Google là một cách đăng nhập được người dùng nêu cho thiết kế này; chưa triển khai tích hợp. Chưa chốt nơi lưu dữ liệu Guest, cách cấp tên ban đầu, danh sách đầy đủ nhà cung cấp liên kết, cách xử lý xung đột/liên kết tài khoản hoặc schema database. Không tự triển khai các phần này.
 - Bảng mô tả thiết kế mục tiêu, không tuyên bố các tính năng mẫu hoặc chưa nối backend đã hoạt động thật.
 
-## Bút đổi tên trong hồ sơ — chốt 2026-10-16
+## Bút đổi tên trong hồ sơ — chốt 2026-10-16, triển khai 2026-10-22
 
 - Guest không hiển thị bút chỉnh sửa tên và không được đổi tên.
 - Đăng nhập bằng Google hoặc đã liên kết tài khoản mới được hiện bút đổi tên, với điều kiện người chơi chưa đổi tên thành công.
@@ -44,7 +44,7 @@ Ngày chốt: 2026-10-16. Đây là quy tắc thiết kế lâu dài do người
 - Bút tồn tại cho tới khi người chơi đổi tên thành công; sau đó ẩn bút. Mở/hủy thao tác hoặc đổi tên thất bại không làm mất bút.
 - Trạng thái đã đổi tên phải thuộc tài khoản và được giữ khi đăng nhập lại/đổi thiết bị, không chỉ là trạng thái UI tạm thời. Cách lưu sẽ được thiết kế ở nhiệm vụ database sau.
 - Chưa có quy tắc cấp lại quyền đổi tên, đổi tên trả phí hoặc reset quyền khi liên kết lại; không tự bổ sung.
-- Đây là thiết kế cho sau này, chưa sửa UI/code và không ảnh hưởng bút sửa địa chỉ hiện hành.
+- Đã triển khai trong PlayerInfoCard/ProfileDialog: bút vàng ở cuối dòng tên chỉ dành cho hồ sơ chính mình có account.linked và chưa account.renamed. Form gọi PATCH /api/account/name qua useProfilePersistence; backend giữ xác thực và cập nhật name_changed_at một lần. Sau lưu tải lại account và dữ liệu theo tên mới; bút địa chỉ giữ chức năng riêng.
 
 ## Trạng thái thực hiện
 
@@ -64,6 +64,8 @@ Ngày chốt: 2026-10-16. Đây là quy tắc thiết kế lâu dài do người
 
 ## Quốc gia và địa chỉ (2026-10-16)
 Chọn quốc gia trước; Việt Nam chọn thêm tỉnh/thành và xã/phường. Chỉ lưu một lần, sau đó khóa cả quốc gia/địa chỉ và thay bút bằng cờ nước đã chọn. Hiện lưu localStorage theo Guest; khi tích hợp tài khoản thật cần chuyển sang user_id và kiểm tra bất biến tại backend. Chưa ghi MySQL trong task này.
+
+- 2026-10-21: Bộ chọn địa chỉ giữ kích thước và scene khung hồ sơ theo layout viewport khi mở bàn phím; ô tìm kiếm không tự focus và resize giảm chiều cao khi input focus bị bỏ qua. Ba bước quốc gia/tỉnh/xã dùng chung nút back icon để đóng hoặc quay về bước trước. Typecheck/build PASS; chưa QA trên bàn phím điện thoại thật.
 
 ## Cập nhật Guest — 2026-10-16
 

@@ -27,7 +27,7 @@ beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
   vi.spyOn(moveSound, 'useMoveSound').mockReturnValue({ playMatchIntro: vi.fn(), stopMatchIntro: vi.fn(), checkmateAudioComplete: true })
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} })
-  window.matchMedia = vi.fn().mockImplementation(() => ({ matches: true, addEventListener() {}, removeEventListener() {} }))
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({ matches: query !== '(max-width: 800px)', addEventListener() {}, removeEventListener() {} }))
   HTMLDialogElement.prototype.showModal = function () { this.open = true }
   HTMLDialogElement.prototype.close = function () { this.open = false }
   useGameStore.getState().reset(performance.now())
@@ -236,7 +236,7 @@ describe('React regression', () => {
   it('Chọn Bàn mở rèm và chạy lại khi mở lần nữa', () => {
     vi.useFakeTimers()
     vi.spyOn(roomApi, 'list').mockResolvedValue([])
-    window.matchMedia = vi.fn().mockImplementation(query => ({ matches: !query.includes('prefers-reduced-motion'), addEventListener() {}, removeEventListener() {} }))
+    window.matchMedia = vi.fn().mockImplementation(query => ({ matches: query !== '(max-width: 800px)' && !query.includes('prefers-reduced-motion'), addEventListener() {}, removeEventListener() {} }))
     useSessionStore.setState({ screen: 'home' })
     mount()
     fireEvent.click(screen.getByRole('button', { name: 'Chọn Bàn' }))
@@ -249,7 +249,7 @@ describe('React regression', () => {
   })
   it('giữ Home phía sau trong lúc mở phòng rồi gỡ sau khi rèm hoàn tất', () => {
     vi.useFakeTimers()
-    window.matchMedia = vi.fn().mockImplementation(query => ({ matches: !query.includes('prefers-reduced-motion'), addEventListener() {}, removeEventListener() {} }))
+    window.matchMedia = vi.fn().mockImplementation(query => ({ matches: query !== '(max-width: 800px)' && !query.includes('prefers-reduced-motion'), addEventListener() {}, removeEventListener() {} }))
     useSessionStore.setState({ screen: 'home' })
     mount()
     const home = screen.getByRole('main', { name: 'Màn hình chính' })
@@ -348,7 +348,7 @@ describe('React regression', () => {
   })
   it('giữ nút hành động trong animation và chuyển viền báo lượt sang người chơi đen', () => {
     vi.useFakeTimers()
-    window.matchMedia = vi.fn().mockImplementation(query => ({ matches: !query.includes('prefers-reduced-motion'), addEventListener() {}, removeEventListener() {} }))
+    window.matchMedia = vi.fn().mockImplementation(query => ({ matches: query !== '(max-width: 800px)' && !query.includes('prefers-reduced-motion'), addEventListener() {}, removeEventListener() {} }))
     mount()
     act(() => vi.advanceTimersByTime(1000))
     fireEvent.click(board().getByRole('button', { name: 'Sẵn sàng' }))
@@ -370,7 +370,7 @@ describe('React regression', () => {
   })
   it('khóa nước đi khi rèm đang mở, không tự bắt đầu ván sau khi mở xong', () => {
     vi.useFakeTimers()
-    window.matchMedia = vi.fn().mockImplementation(query => ({ matches: !query.includes('prefers-reduced-motion'), addEventListener() {}, removeEventListener() {} }))
+    window.matchMedia = vi.fn().mockImplementation(query => ({ matches: query !== '(max-width: 800px)' && !query.includes('prefers-reduced-motion'), addEventListener() {}, removeEventListener() {} }))
     mount()
     expect(screen.getByTestId('room-entrance')).toHaveAttribute('data-entering', 'true')
     expect(board().getByRole('button', { name: 'Hàng 7, cột 1, 兵' })).toBeDisabled()
@@ -405,6 +405,7 @@ describe('React regression', () => {
   })
   it('chat escape HTML, emoji và tin nhanh', () => {
     mount()
+    fireEvent.click(screen.getByLabelText('Thu gọn trò chuyện', { selector: 'button' }))
     fireEvent.click(screen.getByLabelText('Mở trò chuyện', { selector: 'button' }))
     fireEvent.change(screen.getByLabelText('Nội dung chat', { selector: 'input' }), { target: { value: '<img src=x> hello' } })
     fireEvent.submit(document.getElementById('chatForm')!)

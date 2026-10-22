@@ -31,7 +31,7 @@ export function EnergyNotice() {
   const seconds = energyRecoveryAt === null ? 420 : Math.max(0, Math.ceil((energyRecoveryAt - now) / 1000))
   const countdown = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
   return <dialog ref={dialogRef} data-screenshot-exclude="true" onClick={event => { if (event.target === event.currentTarget) dismiss() }} onCancel={event => event.preventDefault()} className="m-auto w-[min(490px,94vw)] max-w-none overflow-visible border-0 bg-transparent p-0 text-[#ffe5ac] backdrop:bg-[#080502b8]">
-    <section role="alertdialog" aria-modal="true" aria-labelledby="energy-notice-title" onClick={() => setCountdownOpen(false)} className="relative w-[min(490px,94vw)] rounded-xl border-2 border-[#d7a64d] bg-[linear-gradient(145deg,#4c2a13,#1c0e07)] px-6 py-7 text-center text-[#ffe5ac] shadow-[inset_0_0_0_2px_#6e421d,0_10px_40px_#000c]">
+    <section role="alertdialog" aria-modal="true" aria-labelledby="energy-notice-title" onClick={() => setCountdownOpen(false)} className="relative w-[min(490px,94vw)] rounded-xl border-2 border-[#d7a64d] bg-[linear-gradient(145deg,#4c2a13,#1c0e07)] px-6 py-7 text-center text-[#ffe5ac] shadow-[inset_0_0_0_2px_#6e421d,0_10px_40px_#000c] compact:pt-16">
     <div className="absolute top-3 left-3 z-10" onClick={event => { event.stopPropagation(); setCountdownOpen(false) }}>
       {countdownOpen && <div className="absolute bottom-full left-0 mb-2 whitespace-nowrap rounded-md border border-[#b99052] bg-[#2c1b12]/95 px-3 py-2 text-sm text-[#f0d4a1] shadow-[0_4px_12px_#0009]" onClick={event => event.stopPropagation()}>
         Hồi năng lượng sau: <span className="font-number lining-nums tabular-nums">{countdown}</span>

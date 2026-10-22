@@ -3,8 +3,8 @@ import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 export type OpeningMode = 'clip' | 'cover-transform'
 export const ROOM_OPENING_MODE: OpeningMode = 'cover-transform'
 
-export function useRoomEntrance(onComplete?: () => void, mode: OpeningMode = ROOM_OPENING_MODE) {
-  const [entering, setEntering] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+export function useRoomEntrance(onComplete?: () => void, mode: OpeningMode = ROOM_OPENING_MODE, enabled = true) {
+  const [entering, setEntering] = useState(() => enabled && !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
   const sceneRef = useRef<HTMLDivElement>(null)
   const finishEntrance = useCallback(() => setEntering(false), [])
   useLayoutEffect(() => {
