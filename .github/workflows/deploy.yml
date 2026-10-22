@@ -56,6 +56,7 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$VPS_HOST" =~ ^[a-zA-Z0-9.-]+$ && "$VPS_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          [[ "$VPS_USER" == cotuong_deploy ]] || { echo 'VPS_USER must be cotuong_deploy, not an administrator.' >&2; exit 1; }
           VPS_PORT="${VPS_PORT:-22}"
           [[ "$VPS_PORT" =~ ^[0-9]+$ ]]
           [[ ${#VPS_PORT} -le 5 ]] && (( 10#$VPS_PORT >= 1 && 10#$VPS_PORT <= 65535 ))
@@ -64,9 +65,9 @@ jobs:
           printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
           trap 'rm -f ~/.ssh/deploy_key' EXIT
-          ssh_opts=(-i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15)
-          remote="/home/nhat_hoang/.cotuong-incoming/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "umask 077; mkdir -p '$remote'"
+          ssh_opts=(-i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15)
+          remote="/home/cotuong_deploy/.cotuong-incoming/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "test \"\$(id -un)\" = cotuong_deploy && test \"\$HOME\" = /home/cotuong_deploy && test ! -L /home/cotuong_deploy/.cotuong-incoming && umask 077 && mkdir -p '$remote'"
           scp "${ssh_opts[@]}" -P "$VPS_PORT" release.tar.gz deploy-vps.sh "$VPS_USER@$VPS_HOST:$remote/"
           # Server lock is retained even if this runner disconnects. No automatic cancellation.
           [[ "$ROLLBACK_COMPATIBLE" == true || "$ROLLBACK_COMPATIBLE" == false ]]

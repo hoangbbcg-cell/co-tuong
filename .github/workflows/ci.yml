@@ -57,3 +57,5 @@ jobs:
         run: bash -n scripts/deploy-vps.sh
       - name: Backup adapter regression (no database or systemd)
         run: python3 -m unittest discover -s tests/backup_adapter -v
+      - name: Deploy-user regression (disposable paths, mocked service and sudo)
+        run: python3 -m unittest discover -s tests/deploy_user -v

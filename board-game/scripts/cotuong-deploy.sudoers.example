@@ -1,3 +1,3 @@
 # Install only with visudo; verify /usr/bin/systemctl on this Ubuntu VPS first.
 # Never grant the deploy user access to start backup/cloud units directly.
-nhat_hoang ALL=(root) NOPASSWD: NOSETENV: /usr/local/sbin/cotuong-backup-check verify-existing, /usr/local/sbin/cotuong-backup-check create-and-verify, /usr/bin/systemctl stop cotuong.service, /usr/bin/systemctl start cotuong.service, /usr/bin/systemctl is-active --quiet cotuong.service
+cotuong_deploy ALL=(root) NOPASSWD: NOSETENV: /usr/local/sbin/cotuong-backup-check verify-existing, /usr/local/sbin/cotuong-backup-check create-and-verify, /usr/bin/systemctl stop cotuong.service, /usr/bin/systemctl start cotuong.service, /usr/bin/systemctl is-active --quiet cotuong.service
