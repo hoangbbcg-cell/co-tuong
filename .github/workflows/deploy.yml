@@ -20,7 +20,7 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 100
     environment: production
     steps:
       - uses: actions/checkout@v7
@@ -44,6 +44,7 @@ jobs:
           fi
           git archive --format=tar.gz --output=release.tar.gz "$TARGET" board-game
           cp board-game/scripts/deploy-vps.sh deploy-vps.sh
+          cp board-game/scripts/deploy-detached.sh deploy-detached.sh
       - name: Transfer and deploy over verified SSH
         env:
           SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
@@ -68,7 +69,29 @@ jobs:
           ssh_opts=(-i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15)
           remote="/home/cotuong_deploy/.cotuong-incoming/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "test \"\$(id -un)\" = cotuong_deploy && test \"\$HOME\" = /home/cotuong_deploy && test ! -L /home/cotuong_deploy/.cotuong-incoming && umask 077 && mkdir -p '$remote'"
-          scp "${ssh_opts[@]}" -P "$VPS_PORT" release.tar.gz deploy-vps.sh "$VPS_USER@$VPS_HOST:$remote/"
+          scp "${ssh_opts[@]}" -P "$VPS_PORT" release.tar.gz deploy-vps.sh deploy-detached.sh "$VPS_USER@$VPS_HOST:$remote/"
           # Server lock is retained even if this runner disconnects. No automatic cancellation.
           [[ "$ROLLBACK_COMPATIBLE" == true || "$ROLLBACK_COMPATIBLE" == false ]]
-          ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "bash '$remote/deploy-vps.sh' '$remote/release.tar.gz' '$TARGET' '$ROLLBACK_COMPATIBLE'"
+          # Launch deployment independently of the SSH connection.
+          ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "XDG_RUNTIME_DIR=/run/user/\$(id -u) systemd-run --user --unit=cotuong-deploy-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT} --collect --property=WorkingDirectory=$remote /usr/bin/bash '$remote/deploy-detached.sh' '$remote' '$TARGET' '$ROLLBACK_COMPATIBLE'"
+
+          # Poll using short SSH sessions instead of keeping one open.
+          deadline=$((SECONDS + 5400))
+          while true; do
+            if (( SECONDS >= deadline )); then
+              echo "Timed out waiting for deployment. Check VPS before retrying." >&2
+              exit 1
+            fi
+            if result=$(ssh "${ssh_opts[@]}" -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "if test -f '$remote/deploy.exit'; then cat '$remote/deploy.exit'; elif XDG_RUNTIME_DIR=/run/user/\$(id -u) systemctl --user is-active --quiet cotuong-deploy-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.service; then echo RUNNING; else echo STOPPED; fi"); then
+              if [[ "$result" == RUNNING ]]; then
+                sleep 20
+                continue
+              fi
+              [[ "$result" == STOPPED ]] && { echo "Deployment stopped without result." >&2; exit 1; }
+              [[ "$result" =~ ^[0-9]+$ ]] || { echo "Invalid deployment result: $result" >&2; exit 1; }
+              ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "tail -n 40 '$remote/deploy-output.log'"
+              exit "$result"
+            fi
+            echo "SSH polling failed; deployment may still be running on VPS."
+            sleep 20
+          done
