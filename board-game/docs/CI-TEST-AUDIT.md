@@ -65,3 +65,10 @@ Sửa UI test truy vấn theo role trong banner rồi chọn nút header `id=bac
 Đối chiếu 398 test sau sửa trên Local Windows: `381 PASS / 17 SKIP`; chênh đúng6 skip do 6 test gọi Pikafish thật chỉ bật khi có binary Windows. Ubuntu không có binary này nên chúng skip có điều kiện. 17 MySQL integration test là nhóm DB gate riêng, không được coi là bỏ qua: `npm run db:integration` dùng MySQL8 tạm chạy `17/17 PASS`, migrate30/rerun0, verify/smoke PASS. Tổng số test giữ nguyên398; không thêm `skip`, `only`, retry hoặc tăng timeout. Kết quả GitHub sau khi cập nhật PR chưa xác nhận vì chưa push.
 
 Workflow Actions được cập nhật `checkout@v7` và `setup-node@v7` trong CI; deploy workflow chỉ nâng checkout. Runtime project vẫn Node22. Các release mới dùng Node24 cho runtime của action và yêu cầu runner hỗ trợ Node24; GitHub-hosted `ubuntu-24.04` đáp ứng. Không thể đọc log cảnh báo cụ thể của lần PR qua trình duyệt trong phiên này; cập nhật xử lý cảnh báo runtime Node20 của các major cũ theo release chính thức. Chưa merge/deploy.
+
+
+## CI #8 regression — 2026-10-23
+
+CI #8 / PR #4, commit gốc 428ae4c: không đọc được log GitHub qua connector vì cần liên kết tài khoản; đã tái hiện đúng hai lỗi ui.test.tsx tại Local (hết giờ phe Đỏ/Đen). Test gộp start và timeout trong một act nên effect không quan sát playing; tách render playing trước khi kết thúc, giữ đủ assertions kết quả/biểu cảm. Full suite còn phát hiện kỳ vọng keyframe90% cũ, thiếu matchMedia desktop trong country-picker và server.test giả định người vào trước cầm Đỏ; chỉ cập nhật test theo animation liên tục và màu từ snapshot Ready. Không sửa runtime/Elo/tài khoản/bảo mật/workflow/VPS, không xóa test/skip/retry hoặc tăng timeout.
+
+Kiểm chứng 2026-10-23: related72/72; snapshot sạch từ HEAD cộng đúng4 file test: npm test397 PASS/23 SKIP vốn có (17MySQL+6Pikafish), exit0; typecheck/build PASS cả workspace và snapshot. Snapshot ZIP giữ tên asset tiếng Việt; lần giải nén tar trước đó lỗi Unicode không tính là PASS. Dist workspace đã cập nhật; thay đổi chỉ test nên không thêm mã runtime vào bundle. Chưa có kết quả lần CI GitHub mới tại thời điểm ghi chú; không merge/deploy.

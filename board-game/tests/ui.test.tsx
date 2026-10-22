@@ -388,8 +388,11 @@ describe('React regression', () => {
     vi.useFakeTimers()
     mount()
     act(() => useSessionStore.setState({ notice: 'Thông báo cũ' }))
+    // Commit the playing render before timeout, as in a real match. Result faces
+    // intentionally ignore a finished state without an observed live session.
+    act(() => useGameStore.getState().start(-1300))
+    expect(useGameStore.getState().game.phase).toBe('playing')
     act(() => {
-      useGameStore.getState().start(-1300)
       const game = useGameStore.getState().game
       useGameStore.setState({ game: { ...game, currentTurn: side, remainingTime: { ...game.remainingTime, [side]: 100 } } })
       useSessionStore.setState({ notice: 'Thông báo cũ' })
