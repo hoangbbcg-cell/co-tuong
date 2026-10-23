@@ -1,9 +1,20 @@
-import { afterAll,beforeAll,describe,expect,it,vi } from 'vitest'
+import { afterAll,beforeAll,beforeEach,describe,expect,it,vi } from 'vitest'
 import { io,type Socket } from 'socket.io-client'
 import { randomUUID } from 'node:crypto'
 import { createApplication } from '../server/app'
 import { getMysqlPool } from '../server/repositories/mysqlPool'
 import { createGame } from '../src/game/state/initial'
+import type { RoomSnapshot } from '../src/types/room'
+const assignment = vi.hoisted(() => ({ firstSide: 'red' as 'red' | 'black' }))
+// Use the existing side-selector seam; exercise both outcomes without probabilistic CI.
+vi.mock('../server/services/roomService', async importOriginal => {
+  const actual = await importOriginal<typeof import('../server/services/roomService')>()
+  return { ...actual, RoomService: class extends actual.RoomService {
+    constructor(...args: ConstructorParameters<typeof actual.RoomService>) {
+      super(args[0], args[1], () => assignment.firstSide)
+    }
+  } }
+})
 const googleTokens=vi.hoisted(()=>new Map<string,{sub:string;nonce:string;aud?:string}>())
 vi.mock('google-auth-library',()=>({OAuth2Client:class {
   async verifyIdToken({idToken,audience}:{idToken:string;audience:string}){
@@ -17,6 +28,7 @@ vi.mock('google-auth-library',()=>({OAuth2Client:class {
 describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket integration',()=>{
   let app:ReturnType<typeof createApplication>,base:string
   const sockets:Socket[]=[]
+  beforeEach(() => { assignment.firstSide = 'red' })
   beforeAll(async()=>{app=createApplication();await new Promise<void>(resolve=>app.http.listen(0,'127.0.0.1',resolve));const address=app.http.address();if(!address||typeof address==='string')throw Error('No port');base=`http://127.0.0.1:${address.port}`})
   afterAll(async()=>{sockets.forEach(s=>s.disconnect());await app?.close()})
   const request=async(path:string,method='GET',body?:unknown,cookie='')=>{
@@ -170,7 +182,8 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
     expect((await request('/account/honors','GET',undefined,a.cookie)).data.map((h:{code:string})=>h.code)).toContain('pt_5_ky-huu')
     expect((await request('/account/honors','PUT',{codes:['pt_5_ky-huu']},a.cookie)).status).toBe(200)
   })
-  it('records a zero-move started PvP resignation with Elo/gold once and replays it',async()=>{
+  it.each(['red','black'] as const)('records resignation and current names when first player starts %s',async firstSide=>{
+    assignment.firstSide = firstSide
     const a=await guest(),b=await guest()
     const connect=async(cookie:string)=>{const socket=io(base,{extraHeaders:{Cookie:cookie},transports:['websocket'],autoConnect:false});sockets.push(socket);await new Promise<void>((resolve,reject)=>{socket.once('connect',resolve);socket.once('connect_error',reject);socket.connect()});return socket}
     const sa=await connect(a.cookie),sb=await connect(b.cookie)
@@ -179,7 +192,12 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
     expect((await sa.timeout(8000).emitWithAck('room:join',{roomId:room.data.id,name:'forged'})).ok).toBe(true)
     expect((await sb.timeout(8000).emitWithAck('room:join',{roomId:room.data.id,name:'forged2'})).ok).toBe(true)
     expect((await command(sa,'ready')).ok).toBe(true)
-    expect((await command(sb,'ready')).ok).toBe(true)
+    const started = await command(sb,'ready')
+    expect(started.ok).toBe(true)
+    const aSide = (started.data as RoomSnapshot).players.find(player => player.id === sa.id)!.side
+    expect(aSide).toBe(firstSide)
+    const aNameField = aSide === 'red' ? 'redName' : 'blackName'
+    const bNameField = aSide === 'red' ? 'blackName' : 'redName'
     expect((await command(sa,'resign')).ok).toBe(true)
     const history=await request('/account/history','GET',undefined,a.cookie)
     expect(history.data).toHaveLength(1);expect(history.data[0].states.at(-1).result.reason).toBe('resign')
@@ -193,11 +211,15 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
     await getMysqlPool().execute('UPDATE users SET linked_at=UTC_TIMESTAMP(3) WHERE id=?',[a.data.id])
     expect((await request('/account/name','PATCH',{name:'Hoàng'},a.cookie)).status).toBe(200)
     expect((await request('/account/name','PATCH',{name:'Tên mới'},a.cookie)).status).toBe(400)
-    expect((await request('/account/history','GET',undefined,a.cookie)).data[0].redName).toBe('Hoàng')
-    expect((await request('/account/saved-matches','GET',undefined,a.cookie)).data[0].redName).toBe('Hoàng')
+    for (const path of ['/account/history', '/account/saved-matches']) {
+      const saved = (await request(path,'GET',undefined,a.cookie)).data[0]
+      expect(saved[aNameField]).toBe('Hoàng')
+      expect(saved[bNameField]).toBe(b.data.displayName)
+    }
     sa.disconnect();sb.disconnect()
   })
-  it('preserves bonus energy and persists a played draw with zero Elo and zero gold',async()=>{
+  it.each(['red','black'] as const)('preserves bonus energy and a played draw when first player starts %s',async firstSide=>{
+    assignment.firstSide = firstSide
     const a=await guest(),b=await guest()
     await getMysqlPool().execute('UPDATE user_resources SET energy=8 WHERE user_id=?',[a.data.id])
     const connect=async(cookie:string)=>{const socket=io(base,{extraHeaders:{Cookie:cookie},transports:['websocket'],autoConnect:false});sockets.push(socket);await new Promise<void>((resolve,reject)=>{socket.once('connect',resolve);socket.once('connect_error',reject);socket.connect()});return socket}
@@ -206,9 +228,13 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
     for(const socket of [sa,sb])expect((await socket.timeout(8000).emitWithAck('room:join',{roomId:room.id,name:'forged'})).ok).toBe(true)
     expect((await request('/account/history','GET',undefined,a.cookie)).data).toHaveLength(0)
     await sa.timeout(8000).emitWithAck('game:command',{type:'ready'})
-    await sb.timeout(8000).emitWithAck('game:command',{type:'ready'})
+    const started = await sb.timeout(8000).emitWithAck('game:command',{type:'ready'})
+    expect(started.ok).toBe(true)
+    const redPlayer = (started.data as RoomSnapshot).players.find(player => player.side === 'red')!
+    expect((started.data as RoomSnapshot).players.find(player => player.id === sa.id)!.side).toBe(firstSide)
+    const redSocket = redPlayer.id === sa.id ? sa : sb
     await new Promise(resolve=>setTimeout(resolve,1400))
-    expect((await sa.timeout(8000).emitWithAck('game:command',{type:'move',move:{from:{row:6,col:0},to:{row:5,col:0}}})).ok).toBe(true)
+    expect((await redSocket.timeout(8000).emitWithAck('game:command',{type:'move',move:{from:{row:6,col:0},to:{row:5,col:0}}})).ok).toBe(true)
     await sa.timeout(8000).emitWithAck('game:command',{type:'offer-draw'})
     expect((await sb.timeout(8000).emitWithAck('game:command',{type:'reply-draw',accepted:true})).ok).toBe(true)
     const history=(await request('/account/history','GET',undefined,a.cookie)).data
@@ -220,7 +246,8 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
     expect(profile.energy).toBe(7);expect(profile.energyRecoveryAt).toBeNull()
     sa.disconnect();sb.disconnect()
   },15000)
-  it('persists disconnect losses after start and no history for an unstarted room',async()=>{
+  it.each(['red','black'] as const)('persists disconnect losses when first player starts %s',async firstSide=>{
+    assignment.firstSide = firstSide
     const a=await guest(),b=await guest()
     const connect=async(cookie:string)=>{const socket=io(base,{extraHeaders:{Cookie:cookie},transports:['websocket'],autoConnect:false});sockets.push(socket);await new Promise<void>((resolve,reject)=>{socket.once('connect',resolve);socket.once('connect_error',reject);socket.connect()});return socket}
     const sa=await connect(a.cookie),sb=await connect(b.cookie)
@@ -231,12 +258,15 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
     const nextRoom=(await request('/rooms','POST',{name:'Disconnect active QA',minutes:10,turnSeconds:60},a.cookie)).data
     for(const socket of [sa,sb])expect((await socket.timeout(8000).emitWithAck('room:join',{roomId:nextRoom.id,name:'unused'})).ok).toBe(true)
     expect((await sa.timeout(8000).emitWithAck('game:command',{type:'ready'})).ok).toBe(true)
-    expect((await sb.timeout(8000).emitWithAck('game:command',{type:'ready'})).ok).toBe(true)
+    const started = await sb.timeout(8000).emitWithAck('game:command',{type:'ready'})
+    expect(started.ok).toBe(true)
+    const remainingSide = (started.data as RoomSnapshot).players.find(player => player.id === sb.id)!.side
+    expect(remainingSide).toBe(firstSide === 'red' ? 'black' : 'red')
     sa.disconnect()
     let history:Record<string,unknown>[]=[]
     for(let attempt=0;attempt<40;attempt++){history=(await request('/account/history','GET',undefined,b.cookie)).data;if(history.length)break;await new Promise(resolve=>setTimeout(resolve,50))}
     expect(history).toHaveLength(1)
-    expect((history[0].states as {result:{reason:string;winner:string}}[]).at(-1)?.result).toEqual({reason:'leave',winner:'black'})
+    expect((history[0].states as {result:{reason:string;winner:string}}[]).at(-1)?.result).toEqual({reason:'leave',winner:remainingSide})
     sb.disconnect()
   },10000)
 })
