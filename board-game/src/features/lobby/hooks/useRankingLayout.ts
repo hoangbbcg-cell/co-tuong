@@ -10,7 +10,7 @@ function measure() {
   const availableHeight = viewport?.height ?? window.innerHeight
   // Keep the existing scale so shortening the frame does not enlarge its width.
   const scale = Math.max(0.1, Math.min(0.85, (availableWidth - mobileDialogMargin(availableWidth, availableHeight)) / width, (availableHeight - 32) / 780))
-  return { scale, height: mobileDialogHeight(height, scale, availableWidth, availableHeight) }
+  return { scale, height: mobileDialogHeight(height, scale, availableWidth, availableHeight), compact: availableWidth <= 800 }
 }
 
 export function useRankingLayout() {

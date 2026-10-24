@@ -1,5 +1,19 @@
 # Hướng dẫn làm việc
 
+- 2026-10-22: CD chỉ SSH bằng cotuong_deploy, không dùng nhat_hoang/root. APP/WEB giữ đường dẫn production; incoming/state/lock/log ở /home/cotuong_deploy mode0700. Phân quyền qua ACL traverse riêng home quản trị và default ACL code/WEB, không chown cả cây hoặc cấp sudo rộng. Sudoers chỉ2action adapter + stop/start/is-active cotuong.service; --check không restart. User yêu cầu chỉ chuẩn bị Local/lệnh thủ công, không SSH/đổi quyền/restart/deploy ở task này. Xem board-game/docs/DEPLOY-USER.md.
+
+- 2026-10-22: Theo yêu cầu người dùng, riêng Xếp hạng mobile phóng nội dung từng dòng1.5×, gồm huy hiệu top1–4/avatar/tên/điểm/nút; để khoảng6 dòng. Biển tiêu đề tăng12%, hai tab Cờ Tướng/Cờ Úp tăng40%, nhãn cột đồng scale1.5× cho thẳng hàng. Elo trong hàng thu về1.35× và dịch phải24px theo scale dialog. Dock Home mobile dùng nút12.5cqw/nhãn3.6cqw. Laptop giữ nguyên. Bố cục còn khóa lại sau task.
+
+- 2026-10-22: Đính chính đi tiên: online bốc thăm một trong hai người nhận quân Đỏ, người còn lại quân Đen; Đỏ luôn đi trước. Bốc lại mỗi ván khi đủ Ready hoặc tự bắt đầu; không chọn lượt Đen mở đầu. Giữ cấu hình phe/FEN của máy/đánh thử. Khóa phiên hiệu ứng theo cặp ID người chơi, không theo thứ tự màu để bốc thăm không mở lại giao diện.
+
+- 2026-10-22: Không phát lại hiệu ứng mở bàn khi người khác vào phòng/đổi ghế. Lần tự vào phòng mới giữ opening; reset presentation theo cặp ghế không được kéo theo OpeningCover trong cùng phòng.
+
+- 2026-10-22: Hiệu ứng phiên đấu phải ngắt ngay khi một người đang đấu rời phòng hoặc xuống khán giả/đổi ghế; âm thanh, chiếu bí, biểu cảm, timer và popup cũ không sang phiên ghế mới. Quy tắc này thay việc giữ popup qua queue rotation trước đó; không sửa kết quả/thưởng server.
+
+- 2026-10-21: Không thưởng vàng khi hai người là bạn bè đã accepted hoặc cặp đấu đi qua lời mời Mời chơi/So tài. Backend chốt gold_reward_eligible lúc bắt đầu, kiểm tra thêm quan hệ bạn bè khi chốt kết quả; gỡ bạn giữa ván không bật lại thưởng. Giữ Elo/stat/năng lượng và thưởng đối thủ thường. Migration006 thêm cột chính sách, không sửa001–005.
+
+- 2026-10-21: Ngoại lệ năng lượng vô hạn cho public ID 29622295 và 96161606; quyền xác thực ở backend, không trừ năng lượng online hoặc máy thử, không chặn tạo/vào bàn, xếp hàng hay Sẵn sàng. UI Home hiển thị ∞. Giữ nguyên số dư DB, không áp dụng cho tài khoản khác.
+
 - 2026-10-21: User yêu cầu sao lớn hơn trên điện thoại/laptop toàn project. RANK_STAR_SIZE_SCALE=1.24; sao người chơi31cqw (trước25), gap0.5cqw, 3ô94% giữ neo/hướng điền cũ. Sao máy artwork riêng cũng tăng24% từ cùng token, giữ tâm. Không thay avatar/khung danh hiệu hoặc luật Elo.
 
 - 2026-10-19: Popup thắng/thua phải chờ cả hình chiếu bí và hai lớp âm thanh GameSounds.playCheckmate kết thúc (AudioBufferSourceNode.onended), không đoán bằng timeout. Máy giả2nước cũng trình diễn chiếu bí trước popup, kết quảserver vẫn resign; chỉ đổi presentation, không sửa luậtPvP/thưởng. Lỗi tải audio giải phóng an toàn, reset/rời bỏ completion cũ.
@@ -143,7 +157,7 @@
 
 ## Luật và hành vi cần bảo toàn
 
-- Bàn 10×9, 32 quân ban đầu, đỏ đi trước, luân phiên; không ăn quân cùng bên.
+- Bàn 10×9, 32 quân ban đầu, Đỏ đi trước rồi luân phiên; không ăn quân cùng bên. Online bốc thăm người cầm Đỏ mỗi ván; FEN/đánh thử giữ lượt đã cấu hình.
 
 - Tướng đi ngang/dọc một ô trong cung; không để hai tướng đối mặt. Sĩ đi chéo một ô trong cung.
 

@@ -2,7 +2,7 @@
 
 - 2026-10-13: Đấu máy là phiên riêng, không báo đang chơi/bận cho lời mời. Vẫn cho Mời chơi/So tài; đồng ý kết thúc phiên máy và chuyển phòng online theo người gửi. Không đưa người nhận vào phiên máy; UI Bạn bè giữ nguyên.
 
-- 2026-10-06: Avatar tại mọi tab mở hồ sơ người chơi bằng button cùng ô76px hiện hành; chỉ bổ sung hành vi, giữ hình học avatar/hàng. Hồ sơ người khác dùng6 nút3×2 tại vùng danh hiệu; nhãn trạng thái bạn dựa theo danh sách bạn bè và lời mời đang chờ.
+- 2026-10-06: Avatar tại mọi tab mở hồ sơ người chơi bằng button cùng ô76px hiện hành; chỉ bổ sung hành vi, giữ hình học avatar/hàng. Hồ sơ người khác dùng6 nút3×2 trên laptop và2×3 trên điện thoại tại vùng danh hiệu; nhãn trạng thái bạn dựa theo danh sách bạn bè và lời mời đang chờ.
 
 Đọc tài liệu này trước mọi thay đổi tại `src/features/lobby/components/FriendsDialog.tsx`, `useFriendsLayout.ts`, `SocialUi.tsx` hoặc asset được các phần đó dùng. `AGENTS.md` trỏ tới đây để không vô tình làm lệch các điều người dùng đã chốt.
 

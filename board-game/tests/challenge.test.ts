@@ -3,6 +3,7 @@ import { ChallengeRepository } from '../server/repositories/challengeRepository'
 import { RoomRepository } from '../server/repositories/roomRepository'
 import { ChallengeService } from '../server/services/challengeService'
 import { RoomService } from '../server/services/roomService'
+import { publicRoom } from '../server/services/publicRoom'
 
 describe('accepted play invitations', () => {
   let rooms: RoomService, challenges: ChallengeService
@@ -22,6 +23,8 @@ describe('accepted play invitations', () => {
     expect(rooms.roomFor('a')?.id).toBe(room?.id)
     expect(rooms.roomFor('b')?.id).toBe(room?.id)
     expect(previousRooms).toEqual([])
+    expect(room?.goldRewardExcludedPairs).toEqual([['a', 'b']])
+    expect(publicRoom(room!).goldRewardExcludedPairs).toBeUndefined()
   })
 
   it('moves the recipient from another room to a new room when sender has no room', () => {

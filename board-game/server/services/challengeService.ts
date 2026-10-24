@@ -59,6 +59,7 @@ export class ChallengeService {
       ? [this.rooms.leave(targetId)!] : []
     if (!senderRoom) this.rooms.join(destination.id, invite.senderId, sender.name)
     const room = this.rooms.join(destination.id, targetId, target.name)
+    this.rooms.markInvitedPair(room.id, invite.senderId, targetId)
     this.repository.invites.delete(invite.id)
     return { invite, room, previousRooms }
   }

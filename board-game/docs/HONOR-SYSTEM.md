@@ -161,6 +161,8 @@ Rendering2026-10-05: xem docs/UI-IMAGE-RENDERING.md. Crop scaleY và scale của
 - 2026-10-08, đồng bộ bộ đếm ngoài hồ sơ: các danh hiệu Phong Tặng cấp2–5 dùng chung AwardedHonorCount (con mắt và số font-number) cho catalog và badge ngoài hồ sơ; cấp1 giữ điều kiện hiển thị như catalog hiện hành. Bộ đếm là lượt phong tặng đang hoạt động của đúng người nhận/đúng mã danh hiệu, bắt đầu0 thay số mẫu1. Phong +1, bỏ phong -1; đọc cùng nguồn localStorage qua useHonorGrants và đồng bộ giữa các component trong cùng trang/các tab. Không cộng nhầm giữa người nhận hoặc danh hiệu khác. Chưa có tổng lượt cộng đồng từ backend; một hồ sơ trình duyệt chỉ đóng góp0 hoặc1 cho từng danh hiệu/người nhận.
 - 2026-10-08: Icon con mắt trong AwardedHonorCount dùng1.35em, ô bộ đếm bo góc0.45em (giảm từ rounded-full), theo lần chỉnh mới2026-10-08; đồng bộ trong catalog và ngoài hồ sơ, giữ font/cỡ số và vị trí bộ đếm.
 
+- 2026-10-21: Trong catalog Danh Hiệu Phong Tặng, thu toàn bộ huy hiệu con mắt/số còn90% và dịch xuống5px. Chỉ áp dụng catalog, giữ badge trong xem trước hồ sơ.
+
 - 2026-10-08, quyền phong danh hiệu trong bàn: người đang ngồi chỉ mở bảng ở avatar đối thủ, không tự mở/phong cho chính mình. Người xem mở được avatar cả hai người đang đấu. Dùng vai trò/phe trong phòng thay vì vị trí trái/phải hay lượt đang đi; ghế trống không mở bảng. Kiểm tra quyền ở điểm mở và thao tác phong/bỏ phong; avatar không có quyền không hiện gợi ý phong danh hiệu.
 
 - 2026-10-08: Bỏ thao tác chuột phải/phóng to và gợi ý hover trên huy hiệu danh hiệu. Chặn lan sự kiện lên avatar; chỉ chuột phải trực tiếp avatar mở Phong danh hiệu theo quyền đã chốt.

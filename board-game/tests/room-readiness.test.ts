@@ -5,7 +5,7 @@ import { RoomService } from '../server/services/roomService'
 let now: number, service: RoomService, id: string
 beforeEach(() => {
   now = 0
-  service = new RoomService(new RoomRepository(), () => now)
+  service = new RoomService(new RoomRepository(), () => now, () => 'red')
   id = service.create('Bàn').id
   service.join(id, 'a', 'Người A')
   service.join(id, 'b', 'Người B')

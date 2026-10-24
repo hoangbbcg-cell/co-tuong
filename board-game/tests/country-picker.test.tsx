@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { VietnamAddressPicker } from '../src/features/lobby/components/VietnamAddressPicker'
 vi.mock('../src/features/lobby/hooks/useVietnamAdministrativeUnits', () => ({
   useVietnamAdministrativeUnits: () => ({ provinces: [], wards: [], provincesLoading: false, wardsLoading: false })
 }))
-afterEach(cleanup)
+// These cases exercise desktop selection followed by the explicit save button.
+beforeEach(() => vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: false })))
+afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 it('shows countries as selectable rows and saves the selected country', async () => {
   const save = vi.fn()
   render(<VietnamAddressPicker onCancel={() => {}} onSave={save} />)

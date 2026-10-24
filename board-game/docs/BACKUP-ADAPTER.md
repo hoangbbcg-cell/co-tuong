@@ -1,6 +1,6 @@
 # Backup Adapter — Ubuntu 24.04
 
-Chuẩn bị cài thủ công, chưa SSH/cài/deploy production. Adapter chỉ đọc dump và gọi `systemctl start cotuong-backup.service`; không gọi mysql, restore, migration, rclone, xóa backup hoặc sửa unit/script backup hiện có.
+2026-10-22: người dùng xác nhận đã cài và chạy thành công cả hai action trên VPS. Lần chuyển CD sang `cotuong_deploy` chỉ cập nhật sudoers/hướng dẫn Local; không SSH hoặc thay adapter/unit production. Adapter chỉ đọc dump và gọi `systemctl start cotuong-backup.service`; không gọi mysql, restore, migration, rclone, xóa backup hoặc sửa unit/script backup hiện có.
 
 ## Hợp đồng và giới hạn
 
@@ -10,7 +10,7 @@ Chuẩn bị cài thủ công, chưa SSH/cài/deploy production. Adapter chỉ �
 - `verify-existing` kiểm file mới nhất, trạng thái thành công local/cloud hiện tại và thứ tự thời gian của hai job. Không tìm file cũ để bỏ qua file mới nhất bị hỏng. Sau reboot mà systemd mất lịch sử, adapter từ chối: quản trị chạy backup hiện có và chờ cloud thành công trước khi thử lại.
 - `create-and-verify` gọi đúng service cũ, yêu cầu một **tên file mới chưa có trước lời gọi**, mtime sau lời gọi; không chấp nhận touch/ghi đè tên cũ. Chờ local kết thúc rồi chờ cloud có start timestamp monotonic mới, sau local exit, và kết thúc thành công. Không dựa vào `InvocationID` vì có thể rỗng khi unit inactive; không coi OnSuccess được kích hoạt là cloud đã xong. Service phải sẵn có `Type=oneshot`, `RemainAfterExit=no`; khác cấu hình thì từ chối, không tự sửa.
 - Thời hạn900s gồm local và cloud. Timeout không stop/kill/restart các service; backup có thể vẫn chạy. Kiểm tra journal/trạng thái trước retry. File có tên theo giây: gọi hai lần cùng giây có thể bị từ chối an toàn. Timer đang chạy thì adapter từ chối để tránh nhập nhằng.
-- Lock/receipt riêng root-only tại `/var/lib/cotuong-backup-check`. Receipt SHA256 chỉ bảo vệ so với lần đã kiểm trước, không chứng minh nguồn gốc bản đầu. Giữ ownership `nhat_hoang:nhat_hoang` của dump hiện tại; deploy user vốn có thể sửa dump nên đây không phải backup bất biến chống tài khoản deploy bị xâm nhập. Không tự đổi ownership hệ thống backup.
+- Lock/receipt riêng root-only tại `/var/lib/cotuong-backup-check`. Receipt SHA256 chỉ bảo vệ so với lần đã kiểm trước, không chứng minh nguồn gốc bản đầu. Giữ ownership `nhat_hoang:nhat_hoang` của dump hiện tại. User CD riêng `cotuong_deploy` không được cấp thêm quyền vào dump/backup credential; adapter đọc bằng root. Không tự đổi ownership hệ thống backup.
 
 **Ba mức bằng chứng khác nhau:** gzip/marker/checksum hợp lệ chỉ là kiểm tra cấu trúc file; cloud exit0 chỉ chứng minh service đã kết thúc theo hợp đồng của script cloud; khả năng restore chỉ được xác nhận bằng restore thực tế vào MySQL cô lập. Adapter không tuyên bố đã kiểm restore hoặc tự chứng minh remote Drive chứa đúng dữ liệu/mã hóa chỉ từ exit0.
 
@@ -41,7 +41,7 @@ Trước khi bật CD, quản trị phải audit script cloud: chạy đồng b�
    ```
 
    Hai lệnh cuối chỉ sau khi đã review tải I/O/dung lượng và chọn giờ phù hợp. Tạo mới vẫn dùng mysqldump single-transaction cũ; không thay đổi DB. Chờ cloud kết thúc. Nếu xác minh cũ không đạt vì reboot/lịch sử unit, quản trị chạy **service backup đang có** rồi chờ local/cloud thành công, không xóa receipt/file để vượt lỗi. Backup cũ hỏng/hết hạn cần xử lý theo quy trình vận hành, không bypass gate.
-4. Review `scripts/cotuong-deploy.sudoers.example`, đường dẫn `/usr/bin/systemctl` và user `nhat_hoang` trên VPS. Dùng `sudo visudo -f /etc/sudoers.d/cotuong-deploy`, nhập đúng dòng đã review; `sudo chmod 0440 /etc/sudoers.d/cotuong-deploy`; `sudo visudo -cf /etc/sudoers.d/cotuong-deploy`; `sudo -l -U nhat_hoang`. Không cấp `ALL`, wildcard, `sudo python/bash/npm/rsync`, trực tiếp start backup/cloud hoặc quyền DB admin. Quyền sẵn có khác của user cũng phải audit; file này không thu hồi quyền rộng cũ.
+4. Review `scripts/cotuong-deploy.sudoers.example`, đường dẫn `/usr/bin/systemctl` và user `cotuong_deploy` trên VPS. Dùng `sudo visudo -f /etc/sudoers.d/cotuong-deploy`, nhập đúng dòng đã review; `sudo chmod 0440 /etc/sudoers.d/cotuong-deploy`; `sudo visudo -cf /etc/sudoers.d/cotuong-deploy`; `sudo -l -U cotuong_deploy`. Không cấp `ALL`, wildcard, `sudo python/bash/npm/rsync`, trực tiếp start backup/cloud hoặc quyền DB admin. Quyền sẵn có khác của user cũng phải audit; file này không thu hồi quyền rộng cũ. Phân quyền app và thư mục cha theo [DEPLOY-USER.md](DEPLOY-USER.md); giữ `nhat_hoang` làm quản trị riêng.
 5. Trong phiên SSH deploy user:
 
    ```sh

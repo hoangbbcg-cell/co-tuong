@@ -23,6 +23,7 @@ export function useLobby() {
   const [passwordRoom, setPasswordRoom] = useState<RoomSummary | null>(null)
   const requireEnergy = () => {
     const current = useSessionStore.getState()
+    if (current.account?.energyUnlimited) return true
     current.recoverEnergy()
     if (useSessionStore.getState().energy > 0) return true
     useSessionStore.getState().showEnergyNotice()

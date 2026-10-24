@@ -3,7 +3,7 @@ import { RoomRepository } from '../server/repositories/roomRepository'
 import { RoomService } from '../server/services/roomService'
 it('archives for late spectators and retains players through queue rotation', () => {
   let now = 0
-  const service = new RoomService(new RoomRepository(), () => now)
+  const service = new RoomService(new RoomRepository(), () => now, () => 'red')
   const { id } = service.create('Saved')
   service.join(id, 'red', 'Red'); service.join(id, 'black', 'Black')
   service.command('red', { type: 'ready' }); service.command('black', { type: 'ready' })

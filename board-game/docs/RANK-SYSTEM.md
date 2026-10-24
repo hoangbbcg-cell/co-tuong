@@ -10,6 +10,8 @@ Chuẩn toàn project2026-10-05 đã dịch xuống2px theo yêu cầu: danh hi�
 
 Xếp hạng giữ bố cục thiết kế1120×750, avatar84px/danh hiệu105.2px/hàng138px theo hệ số responsive. Không scale parent hoặc dùng Canvas cho ảnh tĩnh ở đây: RankingDialog chuyển kích thước sang CSS cuối cùng, làm tròn ô ảnh bằng Math.round. RankingRankBadge đọc AVATA_RATIO và dùng chính RankStars/RANK_TITLE_STARS_STYLE như Home để giữ đúng tỷ lệ kích thước/khoảng cách và hướng điền sao; ảnh gốc dùng img width/height và object-contain. Không thay nguồn hoặc tọa độ chuẩn để chữa mờ. Các màn còn lại cũng render ảnh gốc trực tiếp qua CrispUiImage, không Canvas/parent scale; xem docs/UI-IMAGE-RENDERING.md.
 
+- Ngoại lệ mobile theo yêu cầu 2026-10-22: nội dung mỗi hàng tăng1.5× theo chiều rộng điện thoại, gồm huy hiệu hạng/avatar/tên/điểm/thao tác; vùng cuộn của từng tab chia cho khoảng6 hàng. Biển tiêu đề tăng12%, hai tab mode tăng40%, hàng nhãn cột dùng cùng scale1.5× với hàng để giữ trục thẳng. Ô Elo thu xuống1.35× và dịch phải24px theo scale dialog để chừa chỗ hiển thị tên. Desktop, dữ liệu và artwork nguồn giữ nguyên.
+
 Bộ ảnh danh hiệu cập nhật 2026-10-04 dùng chung `src/lib/rankArtwork.ts`; bảy ảnh mới đã trim alpha tại `src/assets/ranks/rank-*-v2.png`. Nguồn và crop ghi tại `src/assets/ranks/rank-artwork-v2.md`. Bạn bè và AvatarRankBadge dùng cùng catalog này.
 
 | Bậc | Danh hiệu | Mốc Elo | Sao tối đa | Lên bậc tại |

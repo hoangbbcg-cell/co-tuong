@@ -4,7 +4,7 @@ import type { PoolConnection, RowDataPacket } from 'mysql2/promise'
 import { getMysqlConnection } from './mysqlPool'
 
 export const FOUNDATION_TABLES = ['users', 'user_game_stats', 'user_resources', 'matches', 'match_players', 'match_moves', 'resource_events', 'saved_matches', 'saved_positions', 'friendships', 'user_follows', 'user_blocks', 'conversations', 'conversation_members', 'messages', 'honors', 'user_honors', 'honor_endorsements', 'match_likes'] as const
-export const migrationFiles = ['001_foundation.sql', '002_accounts_and_resources.sql', '003_honor_catalog.sql', '004_google_identity.sql', '005_admin_tools.sql'] as const
+export const migrationFiles = ['001_foundation.sql', '002_accounts_and_resources.sql', '003_honor_catalog.sql', '004_google_identity.sql', '005_admin_tools.sql', '006_match_gold_reward.sql'] as const
 export interface MigrationStep { version: string; checksum: string; sql: string }
 
 /** Deliberately small format: no procedures, quoted semicolons or custom delimiters. */
@@ -116,6 +116,7 @@ export async function verifySchema(): Promise<void> {
       }
     }
     if(!columns.some(c=>c.name==='user_resources'&&c.columnName==='energy'&&c.type==='int unsigned'))throw new Error('Energy must support balances above natural recovery cap.')
+    if(!columns.some(c=>c.name==='matches'&&c.columnName==='gold_reward_eligible'))throw new Error('Missing match gold reward policy column.')
     if(constraints.some(c=>c.name==='user_resources'&&c.constraintName==='ck_resources_energy'))throw new Error('Obsolete energy cap CHECK remains.')
     for(const name of ['country_code','province_name','ward_name','location_set_at','guest_device_hash','guest_session_hash','activity_days','last_activity_date','google_sub','session_expires_at'])if(!columns.some(c=>c.name==='users'&&c.columnName===name))throw new Error(`Missing account column: ${name}`)
     const [catalog]=await connection.query<RowDataPacket[]>("SELECT code FROM honors WHERE code LIKE 'vqkd_%' OR code LIKE 'pt_%' OR code LIKE 'cct_%' OR code LIKE 'tvc_%' OR code LIKE 'occ_%'")

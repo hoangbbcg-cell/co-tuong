@@ -9,7 +9,7 @@ import moveIndicatorDot from '../../../assets/icons/move-indicator-dot.png'
 import checkmateHitAnimation from '../../../assets/effects/checkmate-hit-0.2s.webp'
 import concealedBack from '../../../assets/pieces/concealed-back.png'
 import { PIECE_MOVE_DURATION_MS, getPieceMovePath } from '../moveAnimation'
-import { ChessPiece, pieceColorFilter } from './ChessPiece'
+import { ChessPiece } from './ChessPiece'
 import { BOARD_COLUMNS as columns, BOARD_ROWS as rows } from '../boardGeometry'
 
 const x = (col: number) => columns[col]
@@ -103,7 +103,7 @@ function animatePieceLift(layer: HTMLDivElement | null, variant: PieceLiftVarian
   }
 
   const sample = pieceLiftSamples.find(item => item.name === variant) ?? pieceLiftSamples[1]
-  const { rise, shadowScaleX, shadowScaleY, shadowBlur, shadowOpacity } = sample
+  const { rise, shadowScaleX, shadowScaleY, shadowOpacity } = sample
   const riseOffset = pieceLiftRiseMs / pieceLiftDurationMs
   const holdOffset = (pieceLiftRiseMs + pieceLiftHoldMs) / pieceLiftDurationMs
   const shadowBaseTransform = 'rotate(20deg) scale(0.78, 0.95)'
@@ -121,26 +121,17 @@ function animatePieceLift(layer: HTMLDivElement | null, variant: PieceLiftVarian
 
     const shadow = piece.parentElement?.querySelector<HTMLElement>('[data-checkmate-shadow="true"]')
     if (shadow) {
+      // Keep raster filters fixed while moving the already rendered shadow.
+      const baseBlur = {}
+      const liftedBlur = {}
       animations.push(shadow.animate([
-        { opacity: 0.34, transform: shadowBaseTransform, filter: 'blur(1px)', offset: 0 },
-        { opacity: shadowOpacity, transform: `translate3d(${rise}px, ${rise}px, 0px) rotate(20deg) scale(${shadowScaleX}, ${shadowScaleY})`, filter: `blur(${shadowBlur}px)`, offset: riseOffset, easing: liftEasing },
-        { opacity: shadowOpacity, transform: `translate3d(${rise}px, ${rise}px, 0px) rotate(20deg) scale(${shadowScaleX}, ${shadowScaleY})`, filter: `blur(${shadowBlur}px)`, offset: holdOffset },
-        { opacity: 0.34, transform: shadowBaseTransform, filter: 'blur(1px)', offset: 1, easing: landingEasing },
+        { opacity: 0.34, transform: shadowBaseTransform, ...baseBlur, offset: 0 },
+        { opacity: shadowOpacity, transform: `translate3d(${rise}px, ${rise}px, 0px) rotate(20deg) scale(${shadowScaleX}, ${shadowScaleY})`, ...liftedBlur, offset: riseOffset, easing: liftEasing },
+        { opacity: shadowOpacity, transform: `translate3d(${rise}px, ${rise}px, 0px) rotate(20deg) scale(${shadowScaleX}, ${shadowScaleY})`, ...liftedBlur, offset: holdOffset },
+        { opacity: 0.34, transform: shadowBaseTransform, ...baseBlur, offset: 1, easing: landingEasing },
       ], { duration: pieceLiftDurationMs, easing: 'linear' }))
     }
 
-    const sprite = piece.querySelector<HTMLImageElement>('img')
-    if (sprite) {
-      const colorFilter = (sprite.dataset.faceFilter || (sprite.dataset.pieceSide === 'black' ? pieceColorFilter('black') : '')) + ' '
-      const baseShadow = `${colorFilter}drop-shadow(${9 * scale}px ${13 * scale}px ${4 * scale}px #6a4827c2)`
-      const liftedShadow = `${colorFilter}drop-shadow(${2 * scale}px ${3 * scale}px ${2 * scale}px #6a4827b8)`
-      animations.push(sprite.animate([
-        { filter: baseShadow, offset: 0 },
-        { filter: liftedShadow, offset: riseOffset, easing: liftEasing },
-        { filter: liftedShadow, offset: holdOffset },
-        { filter: baseShadow, offset: 1, easing: landingEasing },
-      ], { duration: pieceLiftDurationMs, easing: 'linear' }))
-    }
   })
   onStart?.()
   // A browser may cancel an individual animation during a snapshot/layout update.
@@ -159,11 +150,12 @@ function PieceMotion({ pieceId, selected, moving, duration, scale, path, childre
     const dy = Math.round((destination.top - pieceHeight / 2) * scale) - Math.round((start.top - pieceHeight / 2) * scale)
     const selectedLift = previouslySelected.current ? Math.round(12 * scale) : 0
     const lift = Math.round(pieceFlightHeight * scale)
-    const keyframes: Keyframe[] = [
-      { transform: `translate3d(0px, ${-selectedLift}px, 0px)`, offset: 0, easing: 'linear' },
-      { transform: `translate3d(${dx}px, ${dy - lift}px, 0px)`, offset: 0.9, easing: 'ease-out' },
-      { transform: `translate3d(${dx}px, ${dy}px, 0px)`, offset: 1 },
-    ]
+    // Land continuously instead of reaching the target early and dropping in 40ms.
+    const keyframes: Keyframe[] = Array.from({ length: 33 }, (_, index) => {
+      const t = index / 32
+      const height = selectedLift * (1 - t) + lift * Math.sin(Math.PI * t) ** 2
+      return { transform: `translate3d(${dx * t}px, ${dy * t - height}px, 0px)`, offset: t, easing: 'linear' }
+    })
 
     const motion = ref.current.animate(keyframes, { duration, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)', fill: 'both' })
     return () => motion.cancel()
@@ -173,7 +165,7 @@ function PieceMotion({ pieceId, selected, moving, duration, scale, path, childre
     transform: selected && !moving ? `translate3d(0px, ${-Math.round(12 * scale)}px, 0px)` : undefined,
   }}>
     {!moving && <div data-checkmate-shadow="true" className="pointer-events-none absolute bottom-[3%] left-[18%] z-0 h-[26%] w-[64%] rounded-[50%] bg-[#21170f]" style={{ opacity: 0.34, transform: 'rotate(20deg) scale(0.78, 0.95)', filter: 'blur(1.5px)' }} />}
-    <div ref={ref} data-checkmate-flight="true" data-piece-id={pieceId} className={`relative z-[1] size-full ${moving ? 'will-change-transform' : ''}`}>{children}</div>
+    <div ref={ref} data-checkmate-flight="true" data-piece-id={pieceId} className="relative z-[1] size-full will-change-transform backface-hidden">{children}</div>
   </div>
 }
 interface PieceViewProps {
@@ -301,7 +293,12 @@ export const Board = memo(function Board(props: Props) {
       return () => {
         window.clearTimeout(audioTimer)
         window.clearTimeout(effectTimer)
-        if (checkmateLiftRef.current === lift && lift.status === 'scheduled') checkmateLiftRef.current = null
+        if (checkmateLiftRef.current === lift) {
+          checkmateLiftRef.current = null
+          lift.cancel?.()
+          checkmateHitCancelRef.current?.()
+          checkmateHitCancelRef.current = null
+        }
       }
     }
     startCheckmateAudio()

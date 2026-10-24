@@ -34,6 +34,57 @@ const demoPlayers = [
 
 const rankNumberImages = [rankNumberOne, rankNumberTwo, rankNumberThree]
 
+function getRankingScaleStyle(scale: number): CSSProperties {
+  return {
+    '--spacing': `${4 * scale}px` ,
+    '--ranking-1': `${Math.round(1 * scale)}px` ,
+    '--ranking-10': `${Math.round(10 * scale)}px` ,
+    '--ranking-100': `${Math.round(100 * scale)}px` ,
+    '--ranking-11': `${Math.round(11 * scale)}px` ,
+    '--ranking-12': `${Math.round(12 * scale)}px` ,
+    '--ranking-122': `${Math.round(122 * scale)}px` ,
+    '--ranking-125': `${Math.round(125 * scale)}px` ,
+    '--ranking-132': `${Math.round(132 * scale)}px` ,
+    '--ranking-138': `${Math.round(138 * scale)}px` ,
+    '--ranking-14': `${Math.round(14 * scale)}px` ,
+    '--ranking-156': `${Math.round(156 * scale)}px` ,
+    '--ranking-173': `${Math.round(173 * scale)}px` ,
+    '--ranking-15': `${Math.round(15 * scale)}px` ,
+    '--ranking-17': `${Math.round(17 * scale)}px` ,
+    '--ranking-170': `${Math.round(170 * scale)}px` ,
+    '--ranking-18': `${Math.round(18 * scale)}px` ,
+    '--ranking-19': `${Math.round(19 * scale)}px` ,
+    '--ranking-20': `${Math.round(20 * scale)}px` ,
+    '--ranking-21': `${Math.round(21 * scale)}px` ,
+    '--ranking-22': `${Math.round(22 * scale)}px` ,
+    '--ranking-24': `${Math.round(24 * scale)}px` ,
+    '--ranking-25': `${Math.round(25 * scale)}px` ,
+    '--ranking-264': `${Math.round(264 * scale)}px` ,
+    '--ranking-28': `${Math.round(28 * scale)}px` ,
+    '--ranking-3': `${Math.round(3 * scale)}px` ,
+    '--ranking-34': `${Math.round(17 * scale) * 2}px` ,
+    '--ranking-38': `${Math.round(38 * scale)}px` ,
+    '--ranking-4': `${Math.round(4 * scale)}px` ,
+    '--ranking-42': `${Math.round(42 * scale)}px` ,
+    '--ranking-44': `${Math.round(44 * scale)}px` ,
+    '--ranking-46': `${Math.round(46 * scale)}px` ,
+    '--ranking-5': `${Math.round(5 * scale)}px` ,
+    '--ranking-50': `${Math.round(50 * scale)}px` ,
+    '--ranking-56': `${Math.round(56 * scale)}px` ,
+    '--ranking-6': `${Math.round(6 * scale)}px` ,
+    '--ranking-62': `${Math.round(62 * scale)}px` ,
+    '--ranking-650': `${Math.round(650 * scale)}px` ,
+    '--ranking-70': `${Math.round(70 * scale)}px` ,
+    '--ranking-76': `${Math.round(76 * scale)}px` ,
+    '--ranking-8': `${Math.round(8 * scale)}px` ,
+    '--ranking-84': `${Math.round(84 * scale)}px` ,
+    '--ranking-player-name-size': `calc(${Math.round(84 * scale)}px * 0.26190476)`,
+    '--ranking-9': `${Math.round(9 * scale)}px` ,
+    '--ranking-90': `${Math.round(90 * scale)}px` ,
+    '--ranking-99': `${Math.round(99 * scale)}px` ,
+  } as CSSProperties
+}
+
 function PresenceDot({ online }: { online: boolean }) {
   return <span aria-label={online ? 'Đang trực tuyến' : 'Ngoại tuyến'} className="block size-[var(--ranking-22)] shrink-0 rounded-full bg-[#8c6d42]/45 p-px shadow-[0_2px_3px_#4b2b1766]">
     <span className={`block size-full rounded-full border border-black/15 ${online ? 'bg-[radial-gradient(circle_at_35%_25%,#baff70_0_7%,#65e928_30%,#2ec10c_67%,#1b8d08_100%)] shadow-[inset_0_1px_1px_#e9ffd0,0_1px_1px_#176b0c88]' : 'bg-[radial-gradient(circle_at_35%_25%,#e1dfd5_0_7%,#b4b3aa_31%,#84857e_68%,#5f615d_100%)] shadow-[inset_0_1px_1px_#fffbe9,0_1px_1px_#403a3488]'}`} />
@@ -42,7 +93,7 @@ function PresenceDot({ online }: { online: boolean }) {
 
 export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
   dialogRef: RefObject<HTMLDialogElement | null>
-  layout: ReturnType<typeof useRankingLayout>
+  layout: Omit<ReturnType<typeof useRankingLayout>, 'compact'> & { compact?: boolean }
   onClose: () => void
   onOpenProfile: (name: string) => void
 }) {
@@ -51,54 +102,21 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
   const [previewNotice, setPreviewNotice] = useState('')
   const watch = useRankingWatch(dialogRef, onClose, mode)
   const renderingStyle = {
-    width: Math.round(layout.width * layout.scale), height: Math.round(layout.height * layout.scale),
-    '--spacing': `${4 * layout.scale}px` ,
-    '--ranking-1': `${Math.round(1 * layout.scale)}px` ,
-    '--ranking-10': `${Math.round(10 * layout.scale)}px` ,
-    '--ranking-100': `${Math.round(100 * layout.scale)}px` ,
-    '--ranking-11': `${Math.round(11 * layout.scale)}px` ,
-    '--ranking-12': `${Math.round(12 * layout.scale)}px` ,
-    '--ranking-122': `${Math.round(122 * layout.scale)}px` ,
-    '--ranking-125': `${Math.round(125 * layout.scale)}px` ,
-    '--ranking-132': `${Math.round(132 * layout.scale)}px` ,
-    '--ranking-138': `${Math.round(138 * layout.scale)}px` ,
-    '--ranking-14': `${Math.round(14 * layout.scale)}px` ,
-    '--ranking-156': `${Math.round(156 * layout.scale)}px`,
-    '--ranking-173': `${Math.round(173 * layout.scale)}px`,
-    '--ranking-15': `${Math.round(15 * layout.scale)}px` ,
-    '--ranking-17': `${Math.round(17 * layout.scale)}px` ,
-    '--ranking-170': `${Math.round(170 * layout.scale)}px` ,
-    '--ranking-18': `${Math.round(18 * layout.scale)}px` ,
-    '--ranking-19': `${Math.round(19 * layout.scale)}px` ,
-    '--ranking-20': `${Math.round(20 * layout.scale)}px` ,
-    '--ranking-21': `${Math.round(21 * layout.scale)}px` ,
-    '--ranking-22': `${Math.round(22 * layout.scale)}px` ,
-    '--ranking-24': `${Math.round(24 * layout.scale)}px` ,
-    '--ranking-25': `${Math.round(25 * layout.scale)}px` ,
-    '--ranking-264': `${Math.round(264 * layout.scale)}px` ,
-    '--ranking-28': `${Math.round(28 * layout.scale)}px` ,
-    '--ranking-3': `${Math.round(3 * layout.scale)}px` ,
-    '--ranking-34': `${Math.round(17 * layout.scale) * 2}px` ,
-    '--ranking-38': `${Math.round(38 * layout.scale)}px` ,
-    '--ranking-4': `${Math.round(4 * layout.scale)}px` ,
-    '--ranking-42': `${Math.round(42 * layout.scale)}px` ,
-    '--ranking-44': `${Math.round(44 * layout.scale)}px` ,
-    '--ranking-46': `${Math.round(46 * layout.scale)}px` ,
-    '--ranking-5': `${Math.round(5 * layout.scale)}px` ,
-    '--ranking-50': `${Math.round(50 * layout.scale)}px` ,
-    '--ranking-56': `${Math.round(56 * layout.scale)}px` ,
-    '--ranking-6': `${Math.round(6 * layout.scale)}px` ,
-    '--ranking-62': `${Math.round(62 * layout.scale)}px` ,
-    '--ranking-650': `${Math.round(650 * layout.scale)}px` ,
-    '--ranking-70': `${Math.round(70 * layout.scale)}px` ,
-    '--ranking-76': `${Math.round(76 * layout.scale)}px` ,
-    '--ranking-8': `${Math.round(8 * layout.scale)}px` ,
-    '--ranking-84': `${Math.round(84 * layout.scale)}px` ,
-    '--ranking-player-name-size': 'calc(var(--ranking-84) * 0.26190476)',
-    '--ranking-9': `${Math.round(9 * layout.scale)}px` ,
-    '--ranking-90': `${Math.round(90 * layout.scale)}px` ,
-    '--ranking-99': `${Math.round(99 * layout.scale)}px` ,
+    width: Math.round(layout.width * layout.scale),
+    height: Math.round(layout.height * layout.scale),
+    '--ranking-row-slot-gap': `${Math.round(8 * layout.scale)}px`,
+    '--ranking-title-width': `${Math.round(650 * layout.scale * (layout.compact ? 1.12 : 1))}px`,
+    '--ranking-tab-width': `${Math.round(264 * layout.scale * (layout.compact ? 1.4 : 1))}px`,
+    '--ranking-tab-height': `${Math.round(70 * layout.scale * (layout.compact ? 1.4 : 1))}px`,
+    ...getRankingScaleStyle(layout.scale),
   } as CSSProperties
+  const rowScale = layout.scale * (layout.compact ? 1.5 : 1)
+  const headerScale = layout.scale * (layout.compact ? 1.5 : 1)
+  const eloScale = layout.scale * (layout.compact ? 1.35 : 1)
+  const rowStyle = layout.compact ? {
+    flex: '0 0 calc(16.6667% - var(--ranking-row-slot-gap))',
+    ...getRankingScaleStyle(rowScale),
+  } as CSSProperties : undefined
 
   const modes: { key: Mode; label: string; image: string }[] = [{ key: 'xiangqi', label: 'Cờ Tướng', image: xiangqiTab }, { key: 'hidden', label: 'Cờ Úp', image: hiddenTab }]
 
@@ -110,20 +128,20 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
           <img src={socialHeaderLandscape} alt="" className="size-full object-cover object-center" />
         </div>
         <div aria-hidden="true" className="pointer-events-none absolute inset-2 overflow-hidden rounded-lg opacity-20"><svg viewBox="0 0 660 800" preserveAspectRatio="none" className="h-full w-full" fill="none" stroke="#b8873e" strokeWidth="5"><path d="M-30 130c85-90 120 30 40 18-60-12-15-84 30-42m450-100c-60 35-30 95 15 60s-40-70-65-20M-40 680c80-65 165 10 95 55-55 35-100-50-45-65 65-18 80 93 160 57m340 75c-65-70 15-125 58-75 30 40-45 80-60 30-10-40 80-80 140-20"/><path d="M-15 780q80-100 160 0m-145 0q65-80 130 0m-110 0q45-55 90 0M500 0q75 90 150 0m-130 0q55 65 110 0"/></svg></div>
-        <header className="relative z-10 mx-auto -mt-[var(--ranking-62)] mb-[calc(-1*var(--ranking-14))] w-[var(--ranking-650)] text-center">
+        <header className="relative z-10 mx-auto -mt-[var(--ranking-62)] mb-[calc(-1*var(--ranking-14))] w-[var(--ranking-title-width)] text-center">
           <img src={rankingTitle} alt="" className="pointer-events-none mx-auto h-auto w-full" />
           <h2 id="ranking-title" className="sr-only">Xếp hạng</h2>
         </header>
-        <div className="relative z-10 mx-auto mb-1 flex w-[68%] items-end justify-center gap-10" role="tablist" aria-label="Chế độ xếp hạng">
-          {modes.map(item => <button key={item.key} type="button" role="tab" aria-selected={mode === item.key} onClick={() => setMode(item.key)} className={`${buttonInteraction} relative block h-[var(--ranking-70)] w-[var(--ranking-264)] shrink-0 isolate overflow-visible border-0 bg-transparent p-0 leading-none`}><img src={item.image} alt="" className={`pointer-events-none block h-full w-full object-contain transition-[filter] duration-200 motion-reduce:transition-none ${mode === item.key ? selectedImageTabGlow : ''}`} /><span className="sr-only">{item.label}</span></button>)}
+        <div className="relative z-10 mx-auto mb-1 flex w-[68%] compact:w-[84%] items-end justify-center gap-10" role="tablist" aria-label="Chế độ xếp hạng">
+          {modes.map(item => <button key={item.key} type="button" role="tab" aria-selected={mode === item.key} onClick={() => setMode(item.key)} className={`${buttonInteraction} relative block h-[var(--ranking-tab-height)] w-[var(--ranking-tab-width)] shrink-0 isolate overflow-visible border-0 bg-transparent p-0 leading-none`}><img src={item.image} alt="" className={`pointer-events-none block h-full w-full object-contain transition-[filter] duration-200 motion-reduce:transition-none ${mode === item.key ? selectedImageTabGlow : ''}`} /><span className="sr-only">{item.label}</span></button>)}
         </div>
         <section aria-label={`Bảng xếp hạng ${mode === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}`} className={`${socialPanelClass} ranking-panel flex flex-col gap-[var(--ranking-6)]`} style={{ paddingInline: Math.round(20 * layout.scale), borderWidth: Math.round(3 * layout.scale), borderRadius: Math.round(14 * layout.scale), backgroundImage: `linear-gradient(#fff4dc52,#fff4dc52), url(${historyParchmentBackground})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
-          <div className="relative z-10 isolate grid h-[var(--ranking-38)] shrink-0 grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)] items-center gap-3 overflow-hidden rounded-[var(--ranking-9)] border border-[#c3a371] bg-[#b68c53]/30 px-3 font-heading text-[length:var(--ranking-21)] font-extrabold italic text-[#43240f] [-webkit-text-stroke:0.35px_currentColor]">
+          <div style={layout.compact ? getRankingScaleStyle(headerScale) : undefined} className="relative z-10 isolate grid h-[var(--ranking-38)] shrink-0 grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)] items-center gap-3 overflow-hidden rounded-[var(--ranking-9)] border border-[#c3a371] bg-[#b68c53]/30 px-3 font-heading text-[length:var(--ranking-21)] font-extrabold italic text-[#43240f] [-webkit-text-stroke:0.35px_currentColor]">
             <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-0 w-[var(--ranking-125)] bg-[linear-gradient(90deg,#4b271326_0%,#75451d1b_54%,transparent_100%)] shadow-[inset_8px_0_12px_-10px_#24100635]" />
             <span className="relative z-10 text-center">Hạng</span><span className="pl-[var(--ranking-100)]">Người chơi</span><span className="text-center">Điểm</span><span className="text-center">Thao tác</span>
           </div>
           <ol className="relative z-10 flex min-h-0 flex-1 flex-col gap-[var(--ranking-8)] overflow-x-hidden overflow-y-auto pr-2 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#ffffff_transparent] [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white [&::-webkit-scrollbar-thumb:hover]:bg-white [&::-webkit-scrollbar-corner]:bg-transparent [&::-webkit-scrollbar-button]:hidden">
-            {players.map((player, index) => <li key={player.name} className="relative isolate grid h-[var(--ranking-138)] min-h-[var(--ranking-138)] shrink-0 grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)] items-center gap-3 overflow-hidden rounded-[var(--ranking-10)] border border-[#c5a16a]/55 bg-[linear-gradient(90deg,#ead0a0,#f0dcb3_48%,#e8cca0)] px-3 py-0 shadow-[inset_0_1px_0_#f8e6bd]">
+            {players.map((player, index) => <li key={player.name} style={rowStyle} className="relative isolate grid h-[var(--ranking-138)] min-h-[var(--ranking-138)] shrink-0 compact:min-h-0 grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)] items-center gap-3 overflow-hidden rounded-[var(--ranking-10)] border border-[#c5a16a]/55 bg-[linear-gradient(90deg,#ead0a0,#f0dcb3_48%,#e8cca0)] px-3 py-0 shadow-[inset_0_1px_0_#f8e6bd]">
               <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-0 w-[var(--ranking-132)] bg-[linear-gradient(90deg,#4a261327_0%,#75451d1a_55%,transparent_100%)] shadow-[inset_9px_0_14px_-11px_#24100635]" />
               <span className="relative z-10 grid size-[var(--ranking-90)] place-items-center self-center justify-self-center" aria-label={`Hạng ${index + 1}`}>
                 {index < 3
@@ -131,19 +149,19 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
                   : <><img src={rankPlainFrame} alt="" className="pointer-events-none size-[var(--ranking-76)] object-contain" /><span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-['Times_New_Roman'] text-[length:var(--ranking-46)] leading-none font-bold italic text-[#ffe0a0] [text-shadow:0_2px_2px_#391b0b]">{index + 1}</span></>}
               </span>
               <div className="flex min-w-0 items-center gap-[var(--ranking-20)]">
-                <span className="ml-2 relative block w-[var(--ranking-84)] shrink-0" style={{ height: Math.round(124 * layout.scale) }}>
-                  <span className="relative block size-[var(--ranking-84)] overflow-visible" style={{ top: Math.round(6 * layout.scale) }}>
+                <span className="ml-2 relative block w-[var(--ranking-84)] shrink-0" style={{ height: Math.round(124 * rowScale) }}>
+                  <span className="relative block size-[var(--ranking-84)] overflow-visible" style={{ top: Math.round(6 * rowScale) }}>
                   {index === 0 && <svg aria-hidden="true" viewBox="0 0 157 119" className="pointer-events-none absolute top-[calc(0px-var(--ranking-5)-3px)] left-1/2 z-20 h-[var(--ranking-19)] w-[var(--ranking-25)] -translate-x-1/2 overflow-visible drop-shadow-[0_1px_1px_#4a250f]"><defs><clipPath id="top-one-crown-curve"><path d="M0 0H157V87Q78.5 126 0 87Z" /></clipPath></defs><image href={topOneCrown} width="157" height="119" clipPath="url(#top-one-crown-curve)" /></svg>}
                   <button type="button" onClick={() => onOpenProfile(player.name)} aria-label={`Mở hồ sơ của ${player.name}`} className={`${buttonInteraction} relative grid size-[var(--ranking-84)] place-items-center rounded-full border-0 bg-transparent p-0`}><AccountAvatar avatarCode={player.avatarCode} avatarFrameCode={player.avatarFrameCode} /></button>
-                  <RankingRankBadge elo={Number(player.elo)} scale={layout.scale} />
+                  <RankingRankBadge elo={Number(player.elo)} scale={rowScale} />
                   </span>
                 </span>
                 <div className="min-w-0"><h3 className="flex h-6 items-center font-heading text-[length:var(--ranking-player-name-size)] leading-6 text-[#251506]"><SocialPlayerName name={player.name} /></h3><p className={`mt-2 flex items-center gap-3 ${socialPresenceTextClass} text-[length:var(--ranking-19)] leading-5 ${(watch.matchFor(player.name) || player.online) ? 'text-[#268523]' : 'text-[#5a5147]'}`}><PresenceDot online={!!watch.matchFor(player.name) || player.online} /><span className="truncate">{watch.matchFor(player.name) ? 'Đang chơi Cờ Tướng' : player.online ? 'Đang online' : 'Offline'}</span></p></div>
               </div>
-              <div className="my-[var(--ranking-17)] flex h-[calc(100%_-_var(--ranking-34))] items-center justify-center rounded-[var(--ranking-9)] bg-[#b68c53]/20">
+              <div style={layout.compact ? { ...getRankingScaleStyle(eloScale), transform: `translateX(${Math.round(24 * layout.scale)}px)` } : undefined} className="my-[var(--ranking-17)] flex h-[calc(100%_-_var(--ranking-34))] items-center justify-center rounded-[var(--ranking-9)] bg-[#b68c53]/20">
                 <span className="relative flex h-[var(--ranking-44)] w-[var(--ranking-122)] items-center justify-center font-number text-[length:var(--ranking-22)] text-[#fff0d7]"><span aria-hidden="true" className="absolute inset-y-0 left-[var(--ranking-18)] right-0 rounded-r-lg border border-[#b4792d] bg-[linear-gradient(#673117,#2f1208)] shadow-[inset_0_0_0_1px_#9c5d23]" /><img src={redGeneral} alt={`Điểm ${mode === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}`} className="absolute -left-[var(--ranking-8)] z-10 size-[var(--ranking-50)] object-contain" /><span className="relative z-10 translate-x-[var(--ranking-15)]">{player.elo}</span></span>
               </div>
-              {watch.matchFor(player.name) && <RankingViewButton name={player.name} scale={layout.scale} onView={watch.watch} />}
+              {watch.matchFor(player.name) && <RankingViewButton name={player.name} scale={rowScale} onView={watch.watch} />}
             </li>)}
           </ol>
         </section>

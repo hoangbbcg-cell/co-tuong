@@ -33,6 +33,10 @@ it('does not restart the moving piece when a hint is cleared or unrelated UI rer
     expect(frames[0][0].transform).toBe('translate3d(0px, -6px, 0px)')
     expect(frames[0].at(-1)?.transform).toBe('translate3d(0px, -63px, 0px)')
     expect(frames[1].duration).toBe(400)
+    // Movement must continue toward the destination during the landing section.
+    const landing = frames[0].filter(frame => Number(frame.offset) >= 0.85 && Number(frame.offset) < 1)
+    expect(landing.length).toBeGreaterThan(1)
+    expect(landing.every(frame => frame.transform !== frames[0].at(-1)?.transform)).toBe(true)
     view.rerender(<Board {...props} board={next.board} animation={null} />)
     expect(cancel).toHaveBeenCalledTimes(1)
     expect(view.container.querySelector('[data-testid="piece-5-0"]')).toBe(piece)

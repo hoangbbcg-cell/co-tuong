@@ -12,6 +12,7 @@ import { useComputer } from './useComputer'
 import { useTestBot } from './useTestBot'
 import { useMoveSound } from './useMoveSound'
 import { PIECE_MOVE_DURATION_MS } from '../moveAnimation'
+import { useOnlineMoveAnimation } from './useOnlineMoveAnimation'
 
 export function useGame(replay?: { game: GameState; moveCount: number; animation: Move | null; moveOnlySound?: boolean; leave: () => void }) {
   const computerState = useComputer(!replay)
@@ -40,7 +41,8 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
   const moveHints = useMemo(() => selected ? getMoveHints(game, selected) : [], [selected, game.board, game.currentTurn, game.repetition])
   const legalMoves = useMemo(() => moveHints.filter(hint => hint.type === 'legal'), [moveHints])
   const forbiddenMoves = useMemo(() => moveHints.filter(hint => hint.type === 'repetition-forbidden'), [moveHints])
-  const animation: Move | null = replay ? replay.animation : online ? null : local.animation
+  const onlineAnimation = useOnlineMoveAnimation(online ? session.room!.id : null, game, moveCount)
+  const animation: Move | null = replay ? replay.animation : online ? onlineAnimation : local.animation
   useEffect(() => {
     if (replay) return
     const token = `${moveCount}:${game.repetition?.warningSide ?? ''}`
@@ -120,7 +122,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
   const toggleQueue = useCallback((queued: boolean) => {
     if (replay) return
     if (queued) useSessionStore.getState().recoverEnergy()
-    if (queued && useSessionStore.getState().energy < 1) {
+    if (queued && !useSessionStore.getState().account?.energyUnlimited && useSessionStore.getState().energy < 1) {
       useSessionStore.getState().showEnergyNotice()
       return
     }
@@ -173,7 +175,6 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
   }
   const leave = async () => {
     if (replay) { replay.leave(); return }
-    if (online && player && game.phase === 'playing' && !window.confirm('Rời phòng sẽ xử thua ván đang chơi. Bạn muốn rời phòng?')) return
     if (online) {
       try { await roomSocket.leave() } catch { /* Disconnect still releases the server seat. */ }
     } else session.append(`${session.name} đã rời phòng.`, true)
@@ -187,7 +188,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
     if (session.testBotId) { void testBot.start(game.variant ?? 'xiangqi'); return }
     if (online) {
       useSessionStore.getState().recoverEnergy()
-      if (useSessionStore.getState().energy < 1) {
+      if (!useSessionStore.getState().account?.energyUnlimited && useSessionStore.getState().energy < 1) {
         useSessionStore.getState().showEnergyNotice()
         return
       }
@@ -199,7 +200,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
     const testComputerEnergy = computer && session.computerEngine === 'basic'
     if (testComputerEnergy) {
       useSessionStore.getState().recoverEnergy()
-      if (useSessionStore.getState().energy < 1) {
+      if (!useSessionStore.getState().account?.energyUnlimited && useSessionStore.getState().energy < 1) {
         useSessionStore.getState().showEnergyNotice()
         return
       }

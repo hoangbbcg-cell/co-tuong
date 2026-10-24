@@ -30,12 +30,23 @@ export class RoomService {
   private readyWaits = new Map<string, { pair: string; since: number; readyPlayer: string | null; readySince: number | null }>()
   private histories = new Map<string, GameState[]>()
   private repetitionNoticeDeadlines = new Map<string, number | null>()
-  constructor(private repository: RoomRepository, private now = () => performance.now()) {}
+  constructor(private repository: RoomRepository, private now = () => performance.now(), private firstPlayerSide: () => 'red' | 'black' = () => randomInt(0, 2) === 0 ? 'red' : 'black') {}
+  private startMatch(room: RoomSnapshot, now: number) {
+    const chosenSide = this.firstPlayerSide()
+    room.players = room.players.map(player => ({ ...player, side: player.side === chosenSide ? 'red' : 'black' }))
+    room.game = startGame({ ...room.game, currentTurn: 'red' }, now, MATCH_INTRO_MS)
+    delete room.lastCompletedMatch
+  }
   list(): RoomSummary[] {
     this.repository.pruneEmpty()
-    return this.repository.all().map(({ id, name, players, viewers, game, minutes, province, locked }) => ({ id, name, players: players.length, viewerCount: viewers?.length ?? 0, playerNames: players.map(player => player.name), variant: game.variant ?? 'xiangqi', phase: game.phase, minutes: minutes ?? 10, province, locked: !!locked }))
+    return this.repository.all().map(({ id, code, name, players, viewers, game, minutes, province, locked }) => ({ id, code, name, players: players.length, viewerCount: viewers?.length ?? 0, playerNames: players.map(player => player.name), variant: game.variant ?? 'xiangqi', phase: game.phase, minutes: minutes ?? 10, province, locked: !!locked }))
   }
   readyPlayerIds(){return this.repository.all().filter(r=>r.game.phase==='ready'||r.game.phase==='finished').flatMap(r=>r.players.map(p=>p.id))}
+  markInvitedPair(roomId: string, sender: string, target: string) {
+    const room = this.get(roomId)
+    const pairs = room.goldRewardExcludedPairs ??= []
+    if (!pairs.some(pair => pair.includes(sender) && pair.includes(target))) pairs.push([sender, target])
+  }
   create(name: unknown, minutes: unknown = 10, turnSeconds: unknown = 60, province?: unknown, password?: unknown, variant:unknown='xiangqi'): RoomSummary {
     if(variant!=='xiangqi'&&variant!=='jieqi')throw new RoomError('Invalid game variant.')
     if (password !== undefined && (typeof password !== 'string' || password.length < 1 || password.length > 64)) throw new RoomError('Mật khẩu phải có từ 1 đến 64 ký tự.')
@@ -45,7 +56,10 @@ export class RoomService {
     this.repository.pruneEmpty()
     if (this.repository.all().length >= 100) throw new RoomError('Máy chủ đã đủ phòng. Vui lòng dùng phòng có sẵn.')
     const normalizedProvince = typeof province === 'string' ? province.trim().normalize('NFC') : undefined
-    const room: RoomSnapshot = { id: randomUUID(), name: textInput(name, 40), province: normalizedProvince, players: [], viewers: [], minutes, turnSeconds, game: createRoomGame(this.now(), minutes, turnSeconds, variant), messages: [], drawOffer: null, takebackOffer: null, takebackDecline: null, takebackRemaining: { red: 2, black: 2 }, moveCount: 0, repetitionNoticePaused: false, repetitionNoticeKind: null, repetitionAttemptNotice: null }
+    const usedCodes = new Set(this.repository.all().map(room => room.code))
+    let code = randomInt(100000, 1000000)
+    while (usedCodes.has(String(code))) code = code === 999999 ? 100000 : code + 1
+    const room: RoomSnapshot = { id: randomUUID(), code: String(code), name: textInput(name, 40), province: normalizedProvince, players: [], viewers: [], minutes, turnSeconds, game: createRoomGame(this.now(), minutes, turnSeconds, variant), messages: [], drawOffer: null, takebackOffer: null, takebackDecline: null, takebackRemaining: { red: 2, black: 2 }, moveCount: 0, repetitionNoticePaused: false, repetitionNoticeKind: null, repetitionAttemptNotice: null }
     this.histories.set(room.id, [])
     room.locked = password !== undefined
     if (typeof password === 'string') {
@@ -53,7 +67,7 @@ export class RoomService {
       this.repository.setPassword(room.id, { salt, hash: scryptSync(password, salt, 32) })
     }
     this.repository.save(room)
-    return { id: room.id, name: room.name, players: 0, viewerCount: 0, variant, phase: 'ready', minutes, province: normalizedProvince, locked: room.locked }
+    return { id: room.id, code: room.code, name: room.name, players: 0, viewerCount: 0, variant, phase: 'ready', minutes, province: normalizedProvince, locked: room.locked }
   }
   private get(id: string) {
     const room = this.repository.get(id)
@@ -132,8 +146,7 @@ export class RoomService {
       if (elapsed >= 30_000) {
         if(!this.repository.canStart(room)){room.readyCountdown=null;return true}
         room.players = room.players.map(player => ({ ...player, ready: true }))
-        room.game = startGame(room.game, now, MATCH_INTRO_MS)
-        delete room.lastCompletedMatch
+        this.startMatch(room, now)
         this.readyWaits.delete(room.id)
         return true
       }
@@ -309,7 +322,7 @@ export class RoomService {
         }
         if (room.game.phase !== 'ready') throw new RoomError('Ván đã bắt đầu.')
         room.players.find(member => member.id === playerId)!.ready = true
-        if (room.players.length === 2 && room.players.every(player => player.ready)) { if(!this.repository.canStart(room))throw new RoomError('Không đủ năng lượng hoặc tài khoản không hợp lệ.');room.game = startGame(room.game, now, MATCH_INTRO_MS); delete room.lastCompletedMatch }
+        if (room.players.length === 2 && room.players.every(player => player.ready)) { if(!this.repository.canStart(room))throw new RoomError('Không đủ năng lượng hoặc tài khoản không hợp lệ.');this.startMatch(room, now) }
         break
       case 'move': {
         if (room.takebackOffer) throw new RoomError('Hãy trả lời yêu cầu đi lại trước.')

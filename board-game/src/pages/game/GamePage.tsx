@@ -16,6 +16,8 @@ import gameBackground from '../../assets/backgrounds/home.png'
 import { useRoomEntrance, ROOM_OPENING_MODE } from '../../features/game/hooks/useRoomEntrance'
 import { OpeningCover } from '../../features/game/components/OpeningCover'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
+
 import { GameTools } from '../../features/game/components/GameTools'
 import { useGameTools } from '../../features/game/hooks/useGameTools'
 import { useScreenshotRenderer } from '../../features/game/hooks/useScreenshotRenderer'
@@ -47,6 +49,7 @@ import { sideName } from '../../game/state/selectors'
 import { isInCheck } from '../../game/rules'
 import { buttonInteraction, gameUtilityButton, lobbyButton } from '../../lib/uiClasses'
 import { GameBackIcon } from '../../features/game/components/GameBackIcon'
+import { HomeIcon } from '../../features/lobby/components/HomeIcon'
 import { createClientId } from '../../lib/clientId'
 import takebackDialog from '../../assets/takeback/takeback-dialog.png'
 import takebackDecline from '../../assets/takeback/takeback-decline.png'
@@ -57,9 +60,9 @@ import honorNoticeFrame from '../../assets/awarded-honors/grant-row.png'
 
 export const OPENING_MODE = ROOM_OPENING_MODE
 
-export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplete?: () => void; replayData?: RecordedMatch }) {
+export function GamePage({ onEntranceComplete, replayData, skipEntrance = false }: { onEntranceComplete?: () => void; replayData?: RecordedMatch; skipEntrance?: boolean }) {
   const screenshotRoot = useRef<HTMLElement | null>(null)
-  const entrance = useRoomEntrance(onEntranceComplete, OPENING_MODE)
+  const entrance = useRoomEntrance(onEntranceComplete, OPENING_MODE, !skipEntrance)
   const playback = useReplayPlayback(replayData, !entrance.entering)
   const replayMode = !!replayData
   const positionTrial = useSessionStore(state => state.customPositionTrial)
@@ -112,6 +115,8 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
     && (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     && new URLSearchParams(window.location.search).get('viewer') === '1'
   const { game } = match
+  const observedLiveSeats = useRef(game.phase !== 'finished')
+  if (game.phase === 'playing') observedLiveSeats.current = true
   const testBotId = useSessionStore(state => state.testBotId)
   const testBotGold = useSessionStore(state => state.testBotGold)
   const checkedSide = useMemo(() => game.phase === 'playing' && isInCheck(game.currentTurn, game.board) ? game.currentTurn : null, [game.board, game.currentTurn, game.phase])
@@ -159,7 +164,7 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
   const lobby = useLobby()
   const name = useSessionStore(state => state.name)
   const [localLikeMatchId] = useState(() => 'local:' + createClientId())
-  const likeMatchId = match.online ? match.room?.lastCompletedMatch?.id ?? 'online' : localLikeMatchId
+  const likeMatchId = match.online ? match.room?.activeMatchId ?? match.room?.lastCompletedMatch?.id ?? 'online' : localLikeMatchId
   const likeActorId = match.player?.id ?? 'session:' + name.trim().toLocaleLowerCase()
   const clearMatchLikes = useSessionStore(state => state.clearMatchLikes)
   const previousLikeResult = useRef(game.result)
@@ -211,12 +216,25 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
     return () => window.clearTimeout(timer)
   }, [game.result])
   const isRoomViewer = replayMode || !positionTrial && ((match.online && !match.player) || viewerPreview)
-  const actions = <MatchActions showDrawResign={!match.computer} visible={game.phase === 'playing' && !isRoomViewer && !match.computer} disabled={!!match.animation || match.pending} drawDisabled={!!match.room?.drawOffer} takebackDisabled={!match.canTakeback || !match.online && !match.computer || !!match.room?.takebackOffer || !!match.room?.drawOffer} takebacksLeft={match.takebacksLeft} onDraw={match.draw} onResign={match.resign} onTakeback={match.requestTakeback} />
+  const [compactViewport, setCompactViewport] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 800px)').matches)
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 800px)')
+    const update = () => setCompactViewport(query.matches)
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
+  const actionProps = { showDrawResign: !match.computer, visible: game.phase === 'playing' && !isRoomViewer && !match.computer, disabled: !!match.animation || match.pending, drawDisabled: !!match.room?.drawOffer, takebackDisabled: !match.canTakeback || !match.online && !match.computer || !!match.room?.takebackOffer || !!match.room?.drawOffer, takebacksLeft: match.takebacksLeft, onDraw: match.draw, onResign: match.resign, onTakeback: match.requestTakeback }
+  const actions = compactViewport ? null : <MatchActions {...actionProps} />
+  const mobileActions = compactViewport ? <MatchActions {...actionProps} className="desktop:hidden" /> : null
   const playerName = (side: 'red' | 'black') => replayData ? side === 'red' ? replayData.redName : replayData.blackName : computerDemo ? side === 'red' ? 'Máy · Đỏ' : 'Máy · Đen' : viewerPreview ? side === 'red' ? 'Picolozz' : 'Nguyễn Hoàng Minh Khôi' : positionTrial ? side === match.humanSide ? name : 'Ông Hoàng' : match.online ? match.room?.players.find(player => player.side === side)?.name ?? 'Đang chờ đối thủ' : match.computer ? side === match.humanSide ? name : testBotId ? 'Máy giả · 2 nước' : match.computerEngine === 'pikafish' ? 'Ông Hoàng' : 'Máy · Cơ bản' : side === 'red' ? name : 'A31977844'
   const leftSide = replayData ? savedMatchSide(replayData, name) : positionTrial || match.computer ? match.humanSide : match.online ? match.player?.side ?? 'red' : 'red'
   const rightSide = leftSide === 'red' ? 'black' : 'red'
   const playerSide = match.player?.side ?? (match.computer ? match.humanSide : leftSide)
-  const playCheckmateEffect = !replayMode && !!game.lastMove && (game.result?.reason === 'checkmate' || !!testBotId && !!game.result?.winner)
+  const mobileSelfSide = match.player?.side ?? (isRoomViewer && !replayData ? null : leftSide)
+  const leftMobileEdge = leftSide === mobileSelfSide ? 'bottom' : 'top'
+  const rightMobileEdge = rightSide === mobileSelfSide ? 'bottom' : 'top'
+  const playCheckmateEffect = observedLiveSeats.current && !replayMode && !!game.lastMove && (game.result?.reason === 'checkmate' || !!testBotId && !!game.result?.winner)
   const resultDialog = useMatchResult({
     game,
     roomKey: match.online ? match.room!.id : 'local',
@@ -226,7 +244,7 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
     audioComplete: match.checkmateAudioComplete,
     completed: match.online ? match.room?.lastCompletedMatch : undefined,
   })
-  const showLikeOnSide = (side: Side) => match.online && Boolean(match.room?.players.some(player => player.side === side)) && (isRoomViewer || side !== playerSide)
+  const showLikeOnSide = (side: Side) => match.online && Boolean(match.room?.activeMatchId) && game.phase === 'playing' && Boolean(match.room?.players.some(player => player.side === side)) && (isRoomViewer || side !== playerSide)
   const canGrantOnSide = (side: Side) => !replayMode && (isRoomViewer || side !== playerSide) && (!match.online || Boolean(match.room?.players.some(player => player.side === side)))
   const outcome = useResultFaces(game, match.online ? match.room!.id : 'local', match.online
     ? JSON.stringify(['red', 'black'].map(side => match.room?.players.find(player => player.side === side)?.id ?? null))
@@ -278,7 +296,23 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
     try { await useSavedMatches.getState().save(name, record); setPositionSaveNotice('Đã lưu ván đấu.') }
     catch { setPositionSaveNotice('Không thể lưu ván đấu. Bộ nhớ có thể đã đầy.') }
   }
+  const toggleMobileChat = () => {
+    if (!mobileChatOpen && chat.collapsed) chat.toggle()
+    setMobileChatOpen(open => !open)
+    setMobileMenuOpen(false)
+    setShowUsers(false)
+  }
+  const mobileChatButton = compactViewport && showRoomFeatures ? createPortal(
+    <button type="button" disabled={entrance.entering} className={gameUtilityButton + ' fixed top-[76px] right-[calc(54px+clamp(4px,calc((100vw-352px)/2),8px))] z-[350] size-[44px]! [&>svg]:size-8 disabled:opacity-50'} aria-label="Chat" aria-expanded={mobileChatOpen} aria-controls="mobile-room-chat" onClick={toggleMobileChat}><HomeIcon name="messages" /></button>,
+    document.body,
+  ) : null
+  const mobileChatPanel = compactViewport && showRoomFeatures ? createPortal(
+    <div id="mobile-room-chat" style={{ ...mobileChatStyle, '--board-height': `${layout.frameHeight}px` } as CSSProperties} className={mobileChatOpen ? 'pointer-events-auto fixed inset-x-0 bottom-[var(--mobile-chat-bottom,0px)] z-[500] h-[var(--mobile-chat-height,calc((100dvh-var(--board-height))/2+var(--board-height)*0.45))]' : 'hidden'}><Chat chat={chat} onAvatarClick={openPlayerProfile} /></div>,
+    document.body,
+  ) : null
   return <div id="gameScreen" onKeyDownCapture={event => { if (positionTrial && event.code === 'Space' && !(event.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]')) { event.preventDefault(); event.stopPropagation() } }} className="relative h-dvh w-full">
+    {mobileChatButton}
+    {mobileChatPanel}
     {saving.error && <div data-screenshot-exclude="true" className="fixed bottom-4 left-1/2 z-40 -translate-x-1/2 text-center">
       {saving.error && <p role="alert" className="rounded bg-[#241007] p-2 text-[#ffe5a6]">{saving.error}</p>}
     </div>}
@@ -291,38 +325,38 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
         <img src={gameBackground} alt="" className="absolute -inset-[8%] h-[116%] w-[116%] max-w-none object-cover object-center contrast-[1.08] saturate-[1.08]" />
       </div>
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,#2110061f,transparent_35%,transparent_65%,#2110061f)]" />
-      <header data-room-content className={`pointer-events-none absolute inset-x-3 top-3 z-20 flex h-12 items-center justify-start gap-[15px] p-0 compact:left-[10px] compact:right-auto compact:top-auto compact:bottom-[23px] compact:h-11 compact:gap-[clamp(4px,calc((100vw-352px)/2),8px)] compact:justify-start ${mobileMenuOpen ? 'compact:z-[300]' : 'compact:z-50'}`}>
+      <header data-room-content className={`pointer-events-none absolute inset-x-3 top-3 z-20 flex h-12 items-center justify-start gap-[15px] p-0 compact:left-auto compact:right-[10px] compact:top-[76px] compact:bottom-auto compact:h-11 compact:items-start compact:flex-row-reverse compact:gap-[clamp(4px,calc((100vw-352px)/2),8px)] compact:justify-start ${mobileMenuOpen ? 'compact:z-[300]' : 'compact:z-50'}`}>
         <button id="backButton" type="button" className={gameUtilityButton + ' compact:hidden'} aria-label="Rời phòng" onClick={() => void match.leave()}>
           <GameBackIcon />
         </button>
-        <div hidden={!showRoomFeatures} role="img" aria-label="Mã phòng 123456" className="absolute top-0 h-[94px] w-[196px] shrink-0 -translate-y-2 compact:hidden" style={{ left: `calc(25% - ${layout.frameWidth / 4}px - 74px)` }}>
+        <div hidden={!showRoomFeatures || !match.room?.code} role="img" aria-label={`Mã phòng ${match.room?.code ?? ''}`} className="absolute top-0 h-[94px] w-[196px] shrink-0 -translate-y-2 compact:fixed compact:top-[6px] compact:right-[10px] compact:left-auto! compact:h-[71px] compact:w-[148px] compact:translate-y-0" style={{ left: `calc(25% - ${layout.frameWidth / 4}px - 74px)` }}>
           <img src={roomCodeFrame} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 m-0 block size-full border-0 p-0" />
-          <span aria-hidden="true" className="absolute top-[44%] right-[22%] bottom-[22%] left-[22%] flex items-center justify-center overflow-hidden font-number text-[18px]/[1] font-bold lining-nums tabular-nums tracking-normal text-[#f6d696] [text-shadow:0_1px_2px_#160b04]">{Array.from('123456', (digit) => <span key={digit} className="inline-flex w-[0.7em] shrink-0 justify-center">{digit}</span>)}</span>
+          <span aria-hidden="true" className="absolute top-[44%] right-[22%] bottom-[22%] left-[22%] flex items-center justify-center overflow-hidden font-number text-[18px]/[1] compact:text-[16px] font-bold lining-nums tabular-nums tracking-normal text-[#f6d696] [text-shadow:0_1px_2px_#160b04]">{Array.from(match.room?.code ?? '', (digit, index) => <span key={index} className="inline-flex w-[0.7em] shrink-0 justify-center">{digit}</span>)}</span>
         </div>
         <button type="button" className={gameUtilityButton + ' desktop:hidden compact:size-11'} aria-label="Menu bàn cờ" aria-expanded={mobileMenuOpen} aria-controls="mobile-game-tools" onClick={() => setMobileMenuOpen(open => !open)}><svg viewBox="0 0 32 32" className="size-8" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M6 8h20M6 16h20M6 24h20" /></svg></button>
-        <span inert={entrance.entering} className="contents"><GameTools onChat={showRoomFeatures ? () => { if (!mobileChatOpen && chat.collapsed) chat.toggle(); setMobileChatOpen(open => !open); setMobileMenuOpen(false); setShowUsers(false) } : undefined} chatOpen={mobileChatOpen} mobileMenuOpen={mobileMenuOpen} onLeave={() => void match.leave()} showMatchTools={!replayMode} showSaveMatch={!computerMatch && (!replayMode || !!replayData?.replayRequiresSave)} showSavePosition={!computerMatch && (!replayMode || trial.active || replayData?.replayKind !== 'position')} onSave={replayMode ? saveReplayMatch : saving.save} saveDisabled={replayMode ? !replayData || replayData.replayKind === 'position' : !saving.recording} saved={replayMode ? replaySavedMatch : saving.saved} onFriends={() => friendsRef.current?.showModal()} playing={tools.playing} savePositionDisabled={!canSavePosition} onSavePosition={openPositionSave} onSound={() => void tools.toggleMusic()} onFullscreen={() => void tools.fullscreen()} /></span>
+        <span inert={entrance.entering} className="contents"><GameTools showMobileChatSlot={compactViewport && showRoomFeatures} mobileMenuOpen={mobileMenuOpen} onLeave={() => void match.leave()} showMatchTools={!replayMode} showSaveMatch={!computerMatch && (!replayMode || !!replayData?.replayRequiresSave)} showSavePosition={!computerMatch && (!replayMode || trial.active || replayData?.replayKind !== 'position')} onSave={replayMode ? saveReplayMatch : saving.save} saveDisabled={replayMode ? !replayData || replayData.replayKind === 'position' : !saving.recording} saved={replayMode ? replaySavedMatch : saving.saved} onFriends={() => friendsRef.current?.showModal()} playing={tools.playing} savePositionDisabled={!canSavePosition} onSavePosition={openPositionSave} onSound={() => void tools.toggleMusic()} onFullscreen={() => void tools.fullscreen()} /></span>
       </header>
       <div className="relative z-10 row-start-2 m-0 flex min-h-0 items-center justify-center gap-3"><div id="turnText" className="sr-only">{game.phase === 'finished' ? 'Ván cờ kết thúc' : `Lượt: ${sideName(game.currentTurn)}`}</div><div id="statusText" data-screenshot-exclude="true" className="absolute top-1 m-0 whitespace-pre-line rounded border border-[#dac086] bg-[#183f35] px-3 py-1.5 text-xs/[1.5] text-[#ffe2a1] empty:hidden" role="status">{screenshotRenderer.notice || tools.notice || match.repetitionAttemptNotice || (replayMode || game.result ? '' : match.status)}</div></div>
       <div className="relative row-start-3 grid min-h-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-2 compact:grid-cols-1 compact:grid-rows-[minmax(130px,1fr)_auto_minmax(130px,1fr)] compact:gap-0" ref={layout.arenaRef} style={{ '--board-height': `${layout.frameHeight}px` } as CSSProperties}>
-        <div data-room-content className="relative h-full min-h-0 self-center pt-[72px] desktop:max-h-(--board-height) compact:absolute compact:inset-x-0 compact:top-[15px] compact:z-[80] compact:pointer-events-none compact:h-auto compact:pt-0"><PlayerCard mobileEdge="top" showClock={!replayMode && !positionTrial && !match.computer} fillHeight={leftSide === 'red'} side={leftSide} empty={match.online && !match.room?.players.some(p=>p.side===leftSide)} playerId={match.room?.players.find(p=>p.side===leftSide)?.userId} variant={game.variant} name={playerName(leftSide)} started={game.phase !== 'ready'} active={!replayMode && !positionTrial && game.phase === 'playing' && game.currentTurn === leftSide} timerExpired={timerExpired(leftSide)} ready={isReady(leftSide)} remaining={game.remainingTime[leftSide]} turnElapsed={game.turnElapsed} turnTimeLimitMs={game.turnTimeLimitMs} outcome={outcome(leftSide)} takebackDeclineKey={declineNotice?.side === leftSide ? declineNotice.id : null} likeVisible={showLikeOnSide(leftSide)} likeMatchId={likeMatchId} likeActorId={likeActorId} likePosition="left" onAvatarClick={() => openPlayerProfile(playerName(leftSide))} onAvatarContextMenu={canGrantOnSide(leftSide) ? () => openGrantPanel(playerName(leftSide), leftSide) : undefined}>
+        <div data-room-content className={`relative h-full min-h-0 self-center pt-[72px] desktop:max-h-(--board-height) compact:absolute compact:inset-x-0 ${leftMobileEdge === 'top' ? 'compact:top-[15px] compact:z-[80]' : 'compact:bottom-[14px] compact:z-[100]'} compact:pointer-events-none compact:h-auto compact:pt-0`}><PlayerCard mobileEdge={leftMobileEdge} showClock={!replayMode && !positionTrial && !match.computer} fillHeight={leftSide === 'red'} side={leftSide} empty={match.online && !match.room?.players.some(p=>p.side===leftSide)} playerId={match.room?.players.find(p=>p.side===leftSide)?.userId} variant={game.variant} name={playerName(leftSide)} started={game.phase !== 'ready'} active={!replayMode && !positionTrial && game.phase === 'playing' && game.currentTurn === leftSide} timerExpired={timerExpired(leftSide)} ready={isReady(leftSide)} remaining={game.remainingTime[leftSide]} turnElapsed={game.turnElapsed} turnTimeLimitMs={game.turnTimeLimitMs} outcome={outcome(leftSide)} takebackDeclineKey={declineNotice?.side === leftSide ? declineNotice.id : null} likeVisible={showLikeOnSide(leftSide)} likeMatchId={likeMatchId} likeActorId={likeActorId} likePosition="left" onAvatarClick={() => openPlayerProfile(playerName(leftSide))} onAvatarContextMenu={canGrantOnSide(leftSide) ? () => openGrantPanel(playerName(leftSide), leftSide) : undefined}>
 
           {!replayMode && !positionTrial && actions}
         </PlayerCard>
 
-          <div className="pointer-events-auto absolute inset-x-0 top-[459px] -bottom-[10px] z-8 short-desktop:top-[379px] compact:fixed compact:right-[10px] compact:bottom-auto compact:left-auto compact:top-[calc(var(--mobile-viewer-center,45px)+22px)] compact:z-[100] compact:h-[min(220px,calc(100dvh-116px))] compact:w-[280px] compact:max-w-[calc(100vw-20px)]" hidden={!showRoomFeatures || !showUsers}><RoomUsersPanel users={roomUsers} queued={viewerQueueAction?.queued ?? false} queueDisabled={viewerQueueAction?.disabled ?? false} onToggleQueue={viewerQueueAction?.onToggle} onAvatarClick={openPlayerProfile} /></div>
+          <div className="pointer-events-auto absolute inset-x-0 top-[459px] -bottom-[10px] z-8 short-desktop:top-[379px] compact:fixed compact:right-auto compact:bottom-[54px] compact:left-[10px] compact:top-auto compact:z-[500] compact:h-[min(220px,calc(100dvh-116px))] compact:w-[280px] compact:max-w-[calc(100vw-20px)]" hidden={!showRoomFeatures || !showUsers}><RoomUsersPanel users={roomUsers} queued={viewerQueueAction?.queued ?? false} queueDisabled={viewerQueueAction?.disabled ?? false} onToggleQueue={viewerQueueAction?.onToggle} onAvatarClick={openPlayerProfile} /></div>
         </div>
         <Board onCheckmateEffectComplete={resultDialog.complete} hintMove={hints.hint} hiddenChess={game.variant === 'jieqi'} checkmateEffect={playCheckmateEffect} checkSide={checkedSide} flipped={leftSide === 'black'} board={game.board} selected={trial.active ? trial.selected : match.selected} legalMoves={trial.active ? trial.moves : match.legalMoves} forbiddenMoves={match.forbiddenMoves} animation={trial.active ? trial.animation : match.animation} lastMove={game.lastMove} frameWidth={layout.frameWidth} scale={layout.scale}
           disabled={trial.active ? entrance.entering || !!trial.animation || game.phase !== 'playing' : isRoomViewer || match.computer && game.currentTurn !== match.humanSide || entrance.entering || intro.visible || game.phase !== 'playing' || !!match.animation || match.pending || match.online && match.player?.side !== game.currentTurn}
           showStart={(!match.online || (match.room?.players.length ?? 0) === 2) && (demoReadyCountdown !== null || !isRoomViewer && !(match.online && match.player?.ready) && (game.phase === 'ready' && !(match.computer && match.computerEngine === 'pikafish') || game.phase === 'finished' && resultReady))} startDisabled={match.pending || match.online && !!match.player?.ready} startLabel={startLabel} readyCountdown={match.online ? match.room?.readyCountdown : demoReadyCountdown} onSelect={trial.active ? trial.select : match.select} onStart={match.start} />
-        <div data-room-content className={`relative flex h-full min-h-0 min-w-0 flex-col gap-[15px] self-center pt-[72px] desktop:max-h-(--board-height) compact:absolute compact:inset-x-0 compact:bottom-[20px] compact:pointer-events-none compact:h-auto compact:pt-0 ${mobileChatOpen ? 'compact:z-[200]' : 'compact:z-[60]'}`}>
-          <PlayerCard mobileEdge="bottom" showClock={!replayMode && !positionTrial && !match.computer} fillHeight={false} side={rightSide} empty={match.online && !match.room?.players.some(p=>p.side===rightSide)} playerId={match.room?.players.find(p=>p.side===rightSide)?.userId} variant={game.variant} name={playerName(rightSide)} started={game.phase !== 'ready'} active={!replayMode && !positionTrial && game.phase === 'playing' && game.currentTurn === rightSide} timerExpired={timerExpired(rightSide)} ready={isReady(rightSide)} remaining={game.remainingTime[rightSide]} turnElapsed={game.turnElapsed} turnTimeLimitMs={game.turnTimeLimitMs} outcome={outcome(rightSide)} takebackDeclineKey={declineNotice?.side === rightSide ? declineNotice.id : null} likeVisible={showLikeOnSide(rightSide)} likeMatchId={likeMatchId} likeActorId={likeActorId} likePosition="right" onAvatarClick={() => openPlayerProfile(playerName(rightSide))} onAvatarContextMenu={canGrantOnSide(rightSide) ? () => openGrantPanel(playerName(rightSide), rightSide) : undefined}>{positionTrial && <ReplayControls playback={playback} trial={trial} hintThinking={hints.thinking} onHint={() => void hints.request()} onNotice={setPositionSaveNotice} />}{replayMode && (trial.active || replayData?.replayKind !== 'position') && <ReplayControls playback={playback} trial={trial} hintThinking={hints.thinking} onHint={() => void hints.request()} onToggleMode={trialAllowed ? toggleTrial : undefined} onNotice={setPositionSaveNotice} />}{replayMode && !trial.active && replayData?.replayKind === 'position' && <ReplayModeButton active={false} onClick={toggleTrial} className="mt-[50px] compact:col-span-full compact:justify-self-center" />}</PlayerCard>
-          {showRoomFeatures && <div id="mobile-room-chat" style={mobileChatStyle} className={mobileChatOpen ? 'desktop:contents compact:pointer-events-auto compact:fixed compact:inset-x-0 compact:bottom-[var(--mobile-chat-bottom,0px)] compact:z-[100] compact:h-[var(--mobile-chat-height,calc((100dvh-var(--board-height))/2+var(--board-height)*0.45))]' : 'desktop:contents compact:hidden'}><Chat chat={chat} onAvatarClick={openPlayerProfile} /></div>}
+        <div data-room-content className={`relative flex h-full min-h-0 min-w-0 flex-col gap-[15px] self-center pt-[72px] desktop:max-h-(--board-height) compact:absolute compact:inset-x-0 ${rightMobileEdge === 'top' ? 'compact:top-[15px]' : 'compact:bottom-[14px]'} compact:pointer-events-none compact:h-auto compact:pt-0 ${mobileChatOpen ? 'compact:z-[500]' : rightMobileEdge === 'top' ? 'compact:z-[80]' : 'compact:z-[100]'}`}>
+          <PlayerCard mobileEdge={rightMobileEdge} showClock={!replayMode && !positionTrial && !match.computer} fillHeight={false} side={rightSide} empty={match.online && !match.room?.players.some(p=>p.side===rightSide)} playerId={match.room?.players.find(p=>p.side===rightSide)?.userId} variant={game.variant} name={playerName(rightSide)} started={game.phase !== 'ready'} active={!replayMode && !positionTrial && game.phase === 'playing' && game.currentTurn === rightSide} timerExpired={timerExpired(rightSide)} ready={isReady(rightSide)} remaining={game.remainingTime[rightSide]} turnElapsed={game.turnElapsed} turnTimeLimitMs={game.turnTimeLimitMs} outcome={outcome(rightSide)} takebackDeclineKey={declineNotice?.side === rightSide ? declineNotice.id : null} likeVisible={showLikeOnSide(rightSide)} likeMatchId={likeMatchId} likeActorId={likeActorId} likePosition="right" onAvatarClick={() => openPlayerProfile(playerName(rightSide))} onAvatarContextMenu={canGrantOnSide(rightSide) ? () => openGrantPanel(playerName(rightSide), rightSide) : undefined}>{positionTrial && <ReplayControls playback={playback} trial={trial} hintThinking={hints.thinking} onHint={() => void hints.request()} onNotice={setPositionSaveNotice} />}{replayMode && (trial.active || replayData?.replayKind !== 'position') && <ReplayControls playback={playback} trial={trial} hintThinking={hints.thinking} onHint={() => void hints.request()} onToggleMode={trialAllowed ? toggleTrial : undefined} onNotice={setPositionSaveNotice} />}{replayMode && !trial.active && replayData?.replayKind === 'position' && <ReplayModeButton active={false} onClick={toggleTrial} className="mt-[50px] compact:col-span-full compact:justify-self-center" />}</PlayerCard>
+          {!compactViewport && showRoomFeatures && <div id="mobile-room-chat" className="contents"><Chat chat={chat} onAvatarClick={openPlayerProfile} /></div>}
         </div>
       </div>
       {positionSaveNotice && <div role="status" data-screenshot-exclude="true" className="absolute bottom-3 left-1/2 z-30 max-w-[90%] -translate-x-1/2 rounded border border-[#dac086] bg-[#183f35] px-4 py-2 text-center text-sm text-[#ffe2a1] compact:fixed compact:bottom-3">{positionSaveNotice}</div>}
       <footer hidden={!showRoomFeatures} inert={entrance.entering} data-room-content className={`pointer-events-none absolute bottom-6 left-6 z-30 flex min-w-0 items-center gap-3 text-xs/[1.5] compact:top-auto compact:right-auto compact:bottom-[164px] compact:left-[10px] compact:z-[90] compact:flex-wrap compact:justify-start compact:flex ${showUsers ? 'desktop:opacity-20' : ''}`}>
-        <button id="viewersButton" className={`${buttonInteraction} pointer-events-auto inline-flex compact:fixed compact:top-[var(--mobile-viewer-center,45px)] compact:-translate-y-1/2 compact:right-[10px] compact:z-50 compact:h-[26px] compact:min-w-[48px] compact:gap-1 compact:px-1 compact:py-0 h-8 min-w-[62px] items-center justify-center gap-1.5 rounded-[3px] border border-[#d5b579] bg-[linear-gradient(#766448,#3a3022)] px-1.5 py-1 text-[#ffe2a1] shadow-[inset_0_0_0_1px_#ac8a55,inset_0_2px_3px_#e4cb9655,0_2px_3px_#0009]`} aria-label="Người trong phòng" aria-expanded={showUsers} aria-controls="roomUsers" onClick={() => setShowUsers(!showUsers)}>
-          <svg viewBox="0 0 40 30" className="h-6 w-8 shrink-0 compact:h-[18px] compact:w-6 [filter:drop-shadow(0_2px_1px_#21190e)]" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <button id="viewersButton" className={`${buttonInteraction} pointer-events-auto inline-flex compact:fixed compact:top-auto compact:bottom-[20px] compact:right-auto compact:left-[10px] compact:z-[250] compact:h-[26px] compact:min-w-[48px] compact:gap-1 compact:px-1 compact:py-0 h-8 min-w-[62px] items-center justify-center gap-1.5 rounded-[3px] border border-[#d5b579] bg-[linear-gradient(#766448,#3a3022)] px-1.5 py-1 text-[#ffe2a1] shadow-[inset_0_0_0_1px_#ac8a55,inset_0_2px_3px_#e4cb9655,0_2px_3px_#0009]`} aria-label="Người trong phòng" aria-expanded={showUsers} aria-controls="roomUsers" onClick={() => { setShowUsers(open => !open); setMobileChatOpen(false); setMobileMenuOpen(false) }}>
+          <svg viewBox="0 0 40 30" className="h-6 w-8 shrink-0 compact:h-[21px] compact:w-7 [filter:drop-shadow(0_2px_1px_#21190e)]" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M2 15C7 8 13 5 20 5s13 3 18 10c-5 7-11 10-18 10S7 22 2 15Z" />
             <path d="M7 6 3 10M33 6l4 4M8 24l4 3m20-3-4 3" stroke="#ba8e50" strokeWidth="2" />
             <ellipse cx="20" cy="15" rx="7" ry="9" />
@@ -336,8 +370,10 @@ export function GamePage({ onEntranceComplete, replayData }: { onEntranceComplet
       <div aria-hidden="true" className="pointer-events-none absolute inset-[2px] z-10 border border-[#e3bf78] shadow-[inset_0_0_0_2px_#63472055]" />
       <span aria-hidden="true" className="pointer-events-none absolute -bottom-1 left-0 z-10 font-georgia text-[38px] leading-none text-[#c3953e] [text-shadow:1px_1px_#513515,-1px_-1px_#ffe5a0]">❧</span>
       <span aria-hidden="true" className="pointer-events-none absolute right-0 -bottom-1 z-10 -scale-x-100 font-georgia text-[38px] leading-none text-[#c3953e] [text-shadow:1px_1px_#513515,-1px_-1px_#ffe5a0]">❧</span>
+    {mobileActions}
     </main>
     </div>
+
     {match.repetitionNotice && <div data-screenshot-exclude="true" data-testid="repetition-notice-card" className="fixed inset-0 z-[1000] grid place-items-center">
       {(!match.online || !!match.player) && <button type="button" aria-label="Đóng thông báo lặp nước" onClick={match.dismissRepetitionNotice} className="absolute inset-0 m-0 border-0 bg-transparent p-0" />}
       <div role="status" className="pointer-events-auto relative z-10 m-0 grid aspect-[1340/290] w-[min(760px,94vw)] place-items-center border-0 bg-transparent p-0">

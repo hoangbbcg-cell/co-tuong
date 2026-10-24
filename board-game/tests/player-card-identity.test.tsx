@@ -19,3 +19,10 @@ it('uses the occupied player profile for portrait, frame, name and Elo',()=>{
   expect(screen.getByText('1500')).toBeTruthy()
   expect([...view.container.querySelectorAll('img')].some(img=>img.getAttribute('src')===getAvatarFrame(2).image)).toBe(true)
 })
+it.each(['top','bottom'] as const)('keeps the %s player clock with the name beside the avatar after the game starts',mobileEdge=>{
+  const view=render(<PlayerCard {...props} mobileEdge={mobileEdge} playerId="123" started showClock remaining={125000} />)
+  const clock=view.container.querySelector('[data-testid="mobile-clock-black"]')
+  expect(clock?.textContent).toBe('02:05')
+  expect(view.container.querySelector('[data-player-identity]')?.contains(clock)).toBe(true)
+  expect(view.container.querySelector('[data-player-identity] p')?.hasAttribute('hidden')).toBe(true)
+})

@@ -14,6 +14,7 @@ export const accountApi={
   googleNonce:async(link=false)=>(await api.post<{nonce:string}>('/google/nonce',{link})).data.nonce,
   google:async(credential:string)=>(await api.post<AccountProfile>('/google',{credential})).data,
   logout:async()=>{await api.post('/logout')},
+  rename:async(name:string)=>{await api.patch('/name',{name})},
   location:async(input:unknown)=>{await api.patch('/location',input)},
   avatar:async(avatarCode:string,avatarFrameCode:string)=>{await api.patch('/avatar',{avatarCode,avatarFrameCode})},
   purchase:async(productId:string,requestId:string)=>(await api.post<AccountProfile>('/shop/purchase',{productId,requestId})).data,

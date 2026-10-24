@@ -26,7 +26,7 @@ RankStars + RANK_TITLE_STARS_STYLE là nguồn duy nhất, lấy Home làm chu�
 
 ## Giới hạn nguồn hiện tại
 
-Icon Điểm red-general60x62 khi hiển thị khoảng43px chưa đủ2x. Ảnh tab Lịch sử305x70/306x67 ở khoảng200x46 và khung Xem lại151x52 ở128x44 cũng chưa đủ2x. Đã giữ nguyên theo yêu cầu. Nguồn rank khoảng2000px và sao1199x1219 đủ độ phân giải; chữ rất nhỏ vẫn giới hạn bởi số pixel thật khi hiển thị.
+Icon Điểm red-general60x62 khi hiển thị khoảng43px chưa đủ2x. Ảnh tab Lịch sử305x70/306x67 ở khoảng200x46 và khung Xem lại151x52 ở128x44 cũng chưa đủ2x. Theo yêu cầu chỉnh mobile, hàng Lịch sử compact tăng khung Xem lại thành165x58 thiết kế; asset vẫn giữ nguyên nên giới hạn độ phân giải còn đó. Nguồn rank khoảng2000px và sao1199x1219 đủ độ phân giải; chữ rất nhỏ vẫn giới hạn bởi số pixel thật khi hiển thị.
 
 ## Khi sửa tiếp
 

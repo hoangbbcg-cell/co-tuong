@@ -126,8 +126,10 @@ it('still completes after one browser animation is canceled, waiting for all oth
   vi.useFakeTimers()
   vi.stubGlobal('matchMedia', () => ({ matches: false }))
   const pending: { resolve: () => void; reject: () => void }[] = []
+  const frames: Keyframe[][] = []
   const previous = Object.getOwnPropertyDescriptor(Element.prototype, 'animate')
-  Object.defineProperty(Element.prototype, 'animate', { configurable: true, value: () => {
+  Object.defineProperty(Element.prototype, 'animate', { configurable: true, value: (keyframes: Keyframe[]) => {
+    frames.push(keyframes)
     let resolve!: () => void, reject!: () => void
     const finished = new Promise<void>((yes, no) => { resolve = yes; reject = () => no(new Error('Canceled by browser')) })
     pending.push({ resolve, reject })
@@ -138,6 +140,8 @@ it('still completes after one browser animation is canceled, waiting for all oth
     const game = createGame()
     render(<Board board={game.board} selected={null} legalMoves={[]} animation={null} frameWidth={567} scale={0.5} disabled={true} showStart={false} startDisabled={false} startLabel="" onSelect={() => {}} onStart={() => {}} checkmateEffect={true} lastMove={{ from: { row: 7, col: 0 }, to: { row: 6, col: 0 } }} onCheckmateEffectComplete={complete} />)
     fireEvent.load(document.body.querySelector<HTMLImageElement>('img[src*="checkmate-hit"]')!)
+    expect(frames.length).toBeGreaterThan(0)
+    expect(frames.every(animation => animation.every(frame => !('filter' in frame)))).toBe(true)
     act(() => vi.advanceTimersByTime(200))
     await act(async () => pending[0].reject())
     expect(complete).not.toHaveBeenCalled()

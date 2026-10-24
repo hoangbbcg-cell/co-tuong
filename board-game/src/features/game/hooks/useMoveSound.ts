@@ -16,6 +16,7 @@ function moveSignature(move: Move | null) {
 
 export function useMoveSound(move: Move | null, board: Board, moveCount: number, phase: GameState['phase'], result: GameState['result'] = null, clockWarningKey: string | null = null, moveOnlyCue = false) {
   const previous = useRef({ move: moveSignature(move), board, moveCount, phase })
+  const observedPlaying = useRef(phase !== 'finished')
   const soundsRef = useRef<GameSounds | null>(null)
   const introRequested = useRef(false)
   const introHandledForGame = useRef(false)
@@ -55,6 +56,9 @@ export function useMoveSound(move: Move | null, board: Board, moveCount: number,
     const current = moveSignature(move)
     const before = previous.current
     previous.current = { move: current, board, moveCount, phase }
+    if (phase === 'playing') observedPlaying.current = true
+    // A new seat session must not replay the previous occupants' final cue.
+    if (phase === 'finished' && !observedPlaying.current) return
     if (phase === 'ready' && before.phase !== 'ready') {
       soundsRef.current?.stopAll()
       introRequested.current = false

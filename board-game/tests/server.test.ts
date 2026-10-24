@@ -43,24 +43,33 @@ describe("HTTP + Socket.IO integration", () => {
       });
       return client;
     };
-    const red = await connect(),
-      black = await connect();
+    const alice = await connect(),
+      bob = await connect();
     expect(
       (
-        await red
+        await alice
           .timeout(2000)
           .emitWithAck("room:join", { roomId: id, name: "Alice" })
       ).ok,
     ).toBe(true);
     expect(
       (
-        await black
+        await bob
           .timeout(2000)
           .emitWithAck("room:join", { roomId: id, name: "Bob" })
       ).ok,
     ).toBe(true);
-    await red.timeout(2000).emitWithAck("game:command", { type: "ready" });
-    await black.timeout(2000).emitWithAck("game:command", { type: "ready" });
+    await alice.timeout(2000).emitWithAck("game:command", { type: "ready" });
+    const started = await bob.timeout(2000).emitWithAck("game:command", { type: "ready" });
+    expect(started.ok).toBe(true);
+    if (!started.ok) throw new Error(started.error);
+    // Ready randomly assigns colors; connection/join order does not choose red.
+    const startedRoom: RoomSnapshot = started.data;
+    const redPlayer = startedRoom.players.find(player => player.side === "red");
+    expect(redPlayer).toBeDefined();
+    const red = redPlayer!.id === alice.id ? alice : bob;
+    const black = red === alice ? bob : alice;
+    expect(startedRoom.players.find(player => player.side === "black")?.id).toBe(black.id);
     await new Promise((resolve) => setTimeout(resolve, MATCH_INTRO_MS + 20));
     const move = {
       type: "move" as const,
@@ -82,7 +91,7 @@ describe("HTTP + Socket.IO integration", () => {
       true,
     );
     expect((await broadcast).game.currentTurn).toBe("black");
-    const chat = await red.timeout(2000).emitWithAck("chat:send", "Chào bạn!");
+    const chat = await alice.timeout(2000).emitWithAck("chat:send", "Chào bạn!");
     expect(chat.ok && chat.data.messages.at(-1)?.name).toBe("Alice");
     await red.timeout(2000).emitWithAck("game:command", { type: "offer-draw" });
     const draw = await black

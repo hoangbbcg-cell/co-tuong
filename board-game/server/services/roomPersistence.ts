@@ -22,6 +22,8 @@ export class RoomPersistence {
       this.active.set(room.id,id)
       this.pending.push(()=>this.matches.start(id,snapshot,{red:red.id,black:black.id}))
     }
+    if(room.game.phase==='playing') room.activeMatchId=this.active.get(room.id)
+    else delete room.activeMatchId
     if(room.game.phase==='finished'&&room.lastCompletedMatch&&this.active.has(room.id)) {
       const id=this.active.get(room.id)!
       room.lastCompletedMatch.id=id
@@ -39,8 +41,8 @@ export class RoomPersistence {
     const identity=this.identities.get(socketId)
     if(!identity)throw new AccountError('Cần đăng nhập.',401)
     const profile=await this.accounts.profile(identity.id)
-    this.energy.set(socketId,profile?.energy??0)
-    if(!profile||profile.energy<1)throw new AccountError('Không đủ năng lượng.')
+    this.energy.set(socketId,profile?.energyUnlimited?1:profile?.energy??0)
+    if(!profile||(!profile.energyUnlimited&&profile.energy<1))throw new AccountError('Không đủ năng lượng.')
   }
   async authorize(socketId:string) {
     const identity=this.identities.get(socketId)
@@ -48,7 +50,7 @@ export class RoomPersistence {
   }
   async activity(socketId:string){const identity=this.identities.get(socketId);if(identity)await new ContentRepository().activity(identity.id)}
   async prepareStarts(ids:string[]) {
-    for(const id of [...new Set(ids)]){const identity=this.identities.get(id);const profile=identity?await this.accounts.profile(identity.id):null;this.energy.set(id,profile?.energy??0)}
+    for(const id of [...new Set(ids)]){const identity=this.identities.get(id);const profile=identity?await this.accounts.profile(identity.id):null;this.energy.set(id,profile?.energyUnlimited?1:profile?.energy??0)}
   }
   canStart(room:RoomSnapshot) {
     const users=room.players.map(p=>this.identities.get(p.id)?.id)

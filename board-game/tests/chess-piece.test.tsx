@@ -195,7 +195,11 @@ describe('ChessPiece', () => {
       expect(calls[0].options).toMatchObject({ duration: 400, fill: 'both' })
       expect(calls[0].frames[0].transform).toBe('translate3d(0px, 0px, 0px)')
       const destinationY = animation.to.row === 0 ? -1161 : -131
-      expect(calls[0].frames[1]).toMatchObject({ offset: 0.9, transform: `translate3d(0px, ${destinationY - 8}px, 0px)` })
+      // Landing now continues through several samples instead of a 90% hold.
+      const landing = calls[0].frames.filter(frame => Number(frame.offset) >= 0.85 && Number(frame.offset) < 1)
+      expect(landing.length).toBeGreaterThan(1)
+      expect(new Set(landing.map(frame => frame.transform)).size).toBe(landing.length)
+      expect(landing.every(frame => frame.transform !== calls[0].frames.at(-1)?.transform)).toBe(true)
       expect(calls[0].frames.at(-1)).toMatchObject({ offset: 1, transform: `translate3d(0px, ${destinationY}px, 0px)` })
       cleanup()
       expect(cancel).toHaveBeenCalledOnce()
