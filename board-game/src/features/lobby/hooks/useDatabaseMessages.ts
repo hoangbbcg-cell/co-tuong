@@ -1,4 +1,6 @@
-﻿import { accountApi } from '../../../services/accountApi'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useSessionStore } from '../../../store/sessionStore'
+import { accountApi } from '../../../services/accountApi'
 export interface DatabaseConversation {id:string;type:string;title:string|null;avatarUrl:string|null;nickname:string|null;peerId:string|null;peerName:string|null;lastMessageAt:string|null;preview:string|null;unreadCount:number;mutedUntil:string|null;mutedIndefinitely:number}
 export interface DatabaseMessage {id:string;senderId:string;displayName:string;body:string;sentAt:string;clientMessageId:string}
 const databaseMessages={
@@ -18,10 +20,11 @@ const databaseMessages={
   member:async(id:string,action:string,value?:string)=>{await accountApi.request.patch(`/conversations/${id}`,{action,value})},
 }
 export function useDatabaseMessages(){
+  const queryClient = useQueryClient()
   return {...databaseMessages,
     social:()=>accountApi.social(),
     members:async(id:string)=>(await accountApi.request.get<{id:string;name:string;role:string}[]>(`/conversations/${id}/members`)).data,
-    read:async(id:string,messageId:string)=>{await accountApi.request.post(`/conversations/${id}/read`,{messageId})},
+    read:async(id:string,messageId:string)=>{await accountApi.request.post(`/conversations/${id}/read`,{messageId});void queryClient.invalidateQueries({queryKey:['message-unread-total']})},
     block:async(targetId:string,enabled:boolean)=>{await accountApi.socialAction({targetId,action:'message-block',enabled})},
     mute:async(id:string,hours:number|null)=>{await accountApi.request.patch(`/conversations/${id}/mute`,{hours})},
     avatar:async(id:string,image:string)=>(await accountApi.request.patch<{url:string}>(`/conversations/${id}/avatar`,{image})).data.url,
@@ -29,3 +32,13 @@ export function useDatabaseMessages(){
   }
 }
 
+export function useUnreadMessageCount() {
+  const accountId = useSessionStore(state => state.account?.id)
+  const { data } = useQuery({
+    queryKey: ['message-unread-total', accountId],
+    queryFn: databaseMessages.list,
+    enabled: !!accountId,
+    refetchInterval: 4000,
+  })
+  return accountId ? (data ?? []).reduce((total, conversation) => total + Math.max(0, Number(conversation.unreadCount) || 0), 0) : 0
+}

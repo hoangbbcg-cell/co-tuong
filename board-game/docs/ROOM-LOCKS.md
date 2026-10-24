@@ -1,5 +1,9 @@
 # Bàn khóa và mật khẩu
 
+- 2026-10-24: Theo user, header Chọn Bàn thêm form tìm số phòng6chữ số căn giữa ngang back. useLobby.joinByCode fetch API rooms mới toàn hệ thống, khớp code chính xác không phụ thuộc tỉnh/filter/cap30; phòng mở join, khóa mở RoomPasswordDialog hiện có rồi join theo password. Giữ validate tên/năng lượng/server role, không thấy phòng báo lỗi. Build/typecheck PASS; dist cập nhật; chưa browser/socket QA.
+
+- 2026-10-24: Theo user, gỡ hoàn toàn demoRooms/prop demo trong RoomTableGrid. Bộ đếm bàn chọn tỉnh/Tất cả chỉ tính phòng có ghế hoặc viewer, khớp danh sách; không xóa phòng RAM/không restart backend. useLobby.error không đưa join.error lên Chọn Bàn khi passwordRoom đang mở; passwordError giữ trong dialog. Test lọc tỉnh chọn explicit allProvinces=false theo mặc định mới. locked-room-ui+quickRoom4/4 PASS; build/typecheck PASS; dist cập nhật; chưa browser QA.
+
 Triển khai2026-10-15, thay bản UI xem trước trước đó.
 
 - Chọn Bàn: ba mục Tất cả, Còn trống, Bàn khóa từ trái sang phải. Bàn khóa chỉ lọc phòng có locked=true trong khu vực đang chọn. Tất cả gồm cả bàn mở và khóa; Còn trống giữ quy tắc một người ngồi/chưa đấu. Bàn khóa không tạo bàn mẫu giả khi danh sách trống.

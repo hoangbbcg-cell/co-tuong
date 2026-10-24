@@ -31,7 +31,7 @@ public static class ReplayCrop {
   }
 }
 '@
-$source = Join-Path $PSScriptRoot '../src/assets/6c0cdab5-e284-4ae6-ac70-c3119205ed80.png'
+$source = Join-Path $PSScriptRoot '../src/assets/references/uploads/history/6c0cdab5-e284-4ae6-ac70-c3119205ed80.png'
 $target = Join-Path $PSScriptRoot '../src/assets/history'
 [ReplayCrop]::Make($source,(Join-Path $target 'controls-frame-v2.png'),45,297,703,622,0,0,0,0)
 [ReplayCrop]::Make($source,(Join-Path $target 'controls-play-v2.png'),788,82,679,182,215,48,255,85)
@@ -41,5 +41,5 @@ $target = Join-Path $PSScriptRoot '../src/assets/history'
 [ReplayCrop]::Make($source,(Join-Path $target 'controls-machine-v2.png'),776,480,705,189,253,59,353,78)
 [ReplayCrop]::Make($source,(Join-Path $target 'controls-analysis-v2.png'),790,682,305,276,0,0,0,0)
 [ReplayCrop]::Make($source,(Join-Path $target 'controls-hint-v2.png'),1160,682,306,277,0,0,0,0)
-$resetSource = Join-Path $PSScriptRoot '../src/assets/0fed4f87-153a-4338-ad9b-a3a0e2e1ff1c.png'
+$resetSource = Join-Path $PSScriptRoot '../src/assets/references/uploads/history/0fed4f87-153a-4338-ad9b-a3a0e2e1ff1c.png'
 [ReplayCrop]::Make($resetSource,(Join-Path $target 'controls-reset-v2.png'),175,190,905,820,0,0,0,0)

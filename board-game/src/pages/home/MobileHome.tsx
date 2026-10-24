@@ -1,3 +1,4 @@
+import { useSocialStore } from '../../store/socialStore'
 import { ResourceAddButton } from '../../features/lobby/components/ResourceAddButton'
 import { ResourceArtwork } from '../../features/lobby/components/ResourceArtwork'
 import { useState } from 'react'
@@ -23,16 +24,17 @@ import { getAvatarFrame } from '../../lib/avatarFrames'
 import { CrispUiImage } from '../../lib/CrispUiImage'
 import { buttonInteraction, homeUtilityButton } from '../../lib/uiClasses'
 
-type Props = { home: ReturnType<typeof useHome>; music: ReturnType<typeof useHomeMusic>; onEnergy: () => void; onMessages: () => void }
+type Props = { unreadMessageCount?: number; home: ReturnType<typeof useHome>; music: ReturnType<typeof useHomeMusic>; onEnergy: () => void; onMessages: () => void }
 const dockButton = `${homeUtilityButton} mx-auto h-[12.5cqw]! w-[12.5cqw]! max-h-14 max-w-14`
 
-export function MobileHome({ home, music, onEnergy, onMessages }: Props) {
+export function MobileHome({ unreadMessageCount = 0, home, music, onEnergy, onMessages }: Props) {
   const [page, setPage] = useState(0)
   const [energyHovered, setEnergyHovered] = useState(false)
   const avatarIndex = useSessionStore(state => state.avatarIndex)
   const frameIndex = useSessionStore(state => state.avatarFrameIndex)
   const elo = useSessionStore(state => state.elo)
   const account = useSessionStore(state => state.account)
+  const pendingFriendRequests = useSocialStore(state => account ? state.friends.filter(friend => friend.status === 'pending' && friend.requestedBy !== account.id).length : 0)
   const pages = [
     [{ ...homeModeArtwork.quick, mobileScale: 0.94, mobileDrop: 0, name: 'Cờ Tướng', run: home.quickPlay }, { ...homeModeArtwork.rooms, mobileScale: 1, mobileDrop: 0, name: 'Chọn Bàn', run: home.openRooms }],
     [{ ...homeModeArtwork.hidden, mobileScale: 0.94, mobileDrop: 0, name: 'Cờ Úp', run: home.playHidden }, { ...homeModeArtwork.computer, mobileScale: 1, mobileDrop: 0, name: 'Chơi Với Máy', run: home.openComputer }],
@@ -89,7 +91,7 @@ export function MobileHome({ home, music, onEnergy, onMessages }: Props) {
     </div>
     <nav aria-label="Tiện ích điện thoại" className="absolute inset-x-[2%] bottom-[1%] z-40 grid grid-cols-6 gap-1 rounded-[3cqw] border-t border-[#b0833f] bg-[#1c120cdd] px-[1cqw] pt-[2cqw] pb-[max(2cqw,env(safe-area-inset-bottom))]">
       {([{ label: 'Xếp hạng', icon: 'trophy', run: home.openRanking }, { label: 'Lịch sử', icon: 'history', run: home.openHistory }, { label: 'Bạn bè', icon: 'friends', run: home.openFriends }, { label: 'Chat', icon: 'messages', run: onMessages }, { label: 'Cửa hàng', icon: 'shop', run: home.openShop }] as const).map(item => <div key={item.label} className="min-w-0 text-center">
-        <button type="button" aria-label={item.label} onClick={item.run} className={dockButton}><HomeIcon name={item.icon} /></button>
+        <button type="button" aria-label={item.icon === 'friends' && pendingFriendRequests > 0 ? `${item.label}, ${pendingFriendRequests} lời mời kết bạn` : item.icon === 'messages' && unreadMessageCount > 0 ? `${item.label}, ${unreadMessageCount} tin nhắn chưa đọc` : item.label} onClick={item.run} className={`${dockButton} relative`}><HomeIcon name={item.icon} />{((item.icon === 'friends' && pendingFriendRequests > 0) || (item.icon === 'messages' && unreadMessageCount > 0)) && <span aria-hidden="true" className="pointer-events-none absolute -top-[calc(2.2cqw+2px)] -right-[1.5cqw] grid size-[6cqw] min-h-5 min-w-5 place-items-center rounded-full border-2 border-[#ffe2a1] bg-[#d82323] font-number text-[3.5cqw] font-semibold leading-none text-white shadow-[0_1px_4px_#321407]">{(item.icon === 'messages' ? unreadMessageCount : pendingFriendRequests) > 99 ? '99+' : (item.icon === 'messages' ? unreadMessageCount : pendingFriendRequests)}</span>}</button>
         <span className="mt-[1cqw] block whitespace-nowrap font-heading text-[3.6cqw] leading-normal">{item.label}</span>
       </div>)}
       <div className="min-w-0 text-center"><HomeSettings music={music} placement="above" buttonClassName={dockButton} onError={() => home.setMessage('Không thể phát nhạc trên trình duyệt này.')} /><span className="mt-[1cqw] block font-heading text-[3.6cqw] leading-normal">Cài đặt</span></div>

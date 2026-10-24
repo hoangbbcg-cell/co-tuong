@@ -27,7 +27,7 @@ export const RANK_STAR_SIZE_SCALE = 1.24
 export const RANK_STAR_LAYOUT = {
   offsetXPx: 3,
   bottomInsetPx: 14,
-  clusterOffsetYPx: -6,
+  clusterOffsetYPx: -12,
   starWidthCqw: 25 * RANK_STAR_SIZE_SCALE,
   gapCqw: 0.5,
 } as const

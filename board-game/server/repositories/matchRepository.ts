@@ -44,25 +44,31 @@ export class MatchRepository {
       if(!result||final.phase!=='finished')throw new Error('Missing authoritative result')
       const players=await rows('SELECT side,CAST(user_id AS CHAR) userId,elo_before FROM match_players WHERE match_id=? ORDER BY user_id FOR UPDATE',[id],c)
       const variant=String(m[0].variant)
+      const isDraw=result.reason==='draw'
       const userIds=players.map(player=>String(player.userId)).sort((a,b)=>BigInt(a)<BigInt(b)?-1:1)
       const friends=await rows("SELECT 1 FROM friendships WHERE user_low_id=? AND user_high_id=? AND status='accepted'",userIds,c)
       const goldEligible=Number(m[0].gold_reward_eligible)===1&&!friends.length
       for(const p of players) {
         const side=p.side as Side,won=result.winner===side,draw=result.winner===null
         const opponent=players.find(x=>x.side!==side)!
-        const delta=ratingDelta(Number(p.elo_before),Number(opponent.elo_before),draw?'draw':won?'win':'loss')
+        // The persisted policy also freezes Elo for friends/invited pairs, including unfriend mid-game.
+        const delta=goldEligible?ratingDelta(Number(p.elo_before),Number(opponent.elo_before),draw?'draw':won?'win':'loss'):0
         await change('UPDATE match_players SET elo_delta=?,elo_after=elo_before+? WHERE match_id=? AND side=?',[delta,delta,id,side],c)
-        const stats=await rows('SELECT current_win_streak FROM user_game_stats WHERE user_id=? AND variant=? FOR UPDATE',[String(p.userId),variant],c)
-        const streak=won?Number(stats[0].current_win_streak)+1:0
-        await change('UPDATE user_game_stats SET elo=elo+?,played_count=played_count+1,win_count=win_count+?,draw_count=draw_count+?,loss_count=loss_count+?,current_win_streak=?,best_win_streak=GREATEST(best_win_streak,?) WHERE user_id=? AND variant=?',[delta,won?1:0,draw?1:0,!draw&&!won?1:0,streak,streak,String(p.userId),variant],c)
-        if(won&&goldEligible) {
+        if(!isDraw) {
+          const stats=await rows('SELECT current_win_streak FROM user_game_stats WHERE user_id=? AND variant=? FOR UPDATE',[String(p.userId),variant],c)
+          const streak=won?Number(stats[0].current_win_streak)+1:0
+          await change('UPDATE user_game_stats SET elo=elo+?,played_count=played_count+1,win_count=win_count+?,draw_count=draw_count+?,loss_count=loss_count+?,current_win_streak=?,best_win_streak=GREATEST(best_win_streak,?) WHERE user_id=? AND variant=?',[delta,won?1:0,draw?1:0,!draw&&!won?1:0,streak,streak,String(p.userId),variant],c)
+        }
+        if(!isDraw&&won&&goldEligible) {
           const gold=randomInt(125,151)
           await change('UPDATE user_resources SET gold=gold+?,version=version+1 WHERE user_id=?',[gold,String(p.userId)],c)
           await this.account.ledger(c,String(p.userId),'gold',gold,'online_match_win',`win:${id}:${p.userId}`,id)
         }
-        const totals=await rows('SELECT SUM(played_count) played,MAX(best_win_streak) streak FROM user_game_stats WHERE user_id=?',[String(p.userId)],c)
-        const honors=await rows("SELECT code,category,criteria FROM honors WHERE category IN ('games','streak') AND active=1",[],c)
-        for(const h of honors)if(Number(totals[0][h.category==='games'?'played':'streak'])>=Number(h.criteria.threshold))await change('INSERT INTO user_honors(user_id,honor_code,source_match_id) VALUES (?,?,?) ON DUPLICATE KEY UPDATE user_id=user_honors.user_id',[String(p.userId),String(h.code),id],c)
+        if(!isDraw) {
+          const totals=await rows('SELECT SUM(played_count) played,MAX(best_win_streak) streak FROM user_game_stats WHERE user_id=?',[String(p.userId)],c)
+          const honors=await rows("SELECT code,category,criteria FROM honors WHERE category IN ('games','streak') AND active=1",[],c)
+          for(const h of honors)if(Number(totals[0][h.category==='games'?'played':'streak'])>=Number(h.criteria.threshold))await change('INSERT INTO user_honors(user_id,honor_code,source_match_id) VALUES (?,?,?) ON DUPLICATE KEY UPDATE user_id=user_honors.user_id',[String(p.userId),String(h.code),id],c)
+        }
       }
       let ply=0
       for(let i=1;i<states.length;i++) {

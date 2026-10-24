@@ -3,11 +3,11 @@ import type { GameState, Side } from '../../../types/game'
 import type { RecordedMatch } from '../../../types/recordedMatch'
 
 /** Keeps the participant's original side even when the queue replaces a seat. */
-export function useMatchResult({ game, roomKey, side, enabled, waitForCheckmate, completed, audioComplete = true }: {
-  game: GameState; roomKey: string; side: Side | null; enabled: boolean; waitForCheckmate: boolean; completed?: RecordedMatch; audioComplete?: boolean
+export function useMatchResult({ game, roomKey, side, enabled, waitForCheckmate, completed, audioComplete = true, initialResultSide }: {
+  game: GameState; roomKey: string; side: Side | null; enabled: boolean; waitForCheckmate: boolean; completed?: RecordedMatch; audioComplete?: boolean; initialResultSide?: Side
 }) {
-  const participant = useRef<{ room: string; side: Side } | null>(null)
-  const seenCompletion = useRef(completed?.id)
+  const participant = useRef<{ room: string; side: Side } | null>(initialResultSide ? { room: roomKey, side: initialResultSide } : null)
+  const seenCompletion = useRef(initialResultSide ? undefined : completed?.id)
   const [outcome, setOutcome] = useState<{ room: string; value: 'win' | 'loss' } | null>(null)
   const [effectComplete, setEffectComplete] = useState(false)
   const [dismissed, setDismissed] = useState(false)
@@ -35,7 +35,7 @@ export function useMatchResult({ game, roomKey, side, enabled, waitForCheckmate,
       participant.current = null
       return
     }
-    if (game.result?.winner && participant.current) {
+    if (game.result?.reason !== 'draw' && game.result?.winner && participant.current) {
       setOutcome({ room: roomKey, value: game.result.winner === participant.current.side ? 'win' : 'loss' })
       seenCompletion.current = completed?.id
     }

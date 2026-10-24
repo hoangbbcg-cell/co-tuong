@@ -101,6 +101,7 @@ export function accountRouter(account:AccountService,persistence=new Persistence
     const current=online()
     res.json((await account.repository.ranking(variant,filter(req.query.country),filter(req.query.province),filter(req.query.ward))).map(p=>({...p,online:current.has(String(p.id))})))
   })
+  router.get('/social/suggestions',async(_req,res)=>res.json(await persistence.friendSuggestions(String(res.locals.userId))))
   router.get('/social',async(_req,res)=>{const data=await persistence.social.list(String(res.locals.userId)),current=online();res.json({...data,friends:data.friends.map(f=>({...f,online:current.has(String(f.id))}))})})
   router.post('/social',async(req,res)=>{await persistence.socialAction(String(res.locals.userId),req.body??{});res.json({ok:true})})
   router.get('/conversations',async(_req,res)=>res.json(await persistence.social.conversations(String(res.locals.userId))))
@@ -118,6 +119,7 @@ export function accountRouter(account:AccountService,persistence=new Persistence
     const value=action==='nickname'?(req.body.value?text(req.body.value,80):null):action==='add'?userId(req.body.value):null
     await persistence.social.member(String(res.locals.userId),uuid(req.params.id),action,value);res.json({ok:true})
   })
+  router.get('/match-rewards/:id',async(req,res)=>{res.setHeader('Cache-Control','no-store');res.json(await persistence.content.matchReward(String(res.locals.userId),uuid(req.params.id)))})
   router.get('/history',async(_req,res)=>res.json(await persistence.content.history(String(res.locals.userId))))
   router.get('/saved-matches',async(_req,res)=>res.json(await persistence.content.history(String(res.locals.userId),true)))
   router.put('/saved-matches/:id',async(req,res)=>{await persistence.content.bookmark(String(res.locals.userId),uuid(req.params.id),req.body?.enabled!==false);res.json({ok:true})})

@@ -10,13 +10,17 @@ function measure() {
   const availableHeight = viewport?.height ?? window.innerHeight
   // Match the Ranking frame scale so reducing the height does not enlarge the dialog.
   const scale = Math.max(0.1, Math.min(0.85, (availableWidth - mobileDialogMargin(availableWidth, availableHeight)) / width, (availableHeight - 32) / 780))
-  return { scale, height: mobileDialogHeight(height, scale, availableWidth, availableHeight) }
+  return { scale, height: mobileDialogHeight(height, scale, availableWidth, availableHeight), compact: availableWidth <= 800 }
 }
 
 export function useFriendsLayout() {
   const [layout, setLayout] = useState(measure)
   useEffect(() => {
-    const resize = () => setLayout(measure())
+    const resize = () => {
+      const active = document.activeElement
+      if (active instanceof HTMLInputElement && active.closest('dialog')) return
+      setLayout(measure())
+    }
     window.addEventListener('resize', resize)
     window.visualViewport?.addEventListener('resize', resize)
     return () => {

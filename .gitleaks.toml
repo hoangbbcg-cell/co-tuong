@@ -1,0 +1,10 @@
+title = "Co Tuong secret scanning"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "test-secret-do-not-upload"
+description = "Blocks synthetic secret markers used to verify the pre-push hook."
+regex = '''TEST_SECRET_DO_NOT_UPLOAD_[A-Za-z0-9_-]{4,}'''
+keywords = ["TEST_SECRET_DO_NOT_UPLOAD_"]

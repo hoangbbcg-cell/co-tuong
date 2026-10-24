@@ -1,8 +1,256 @@
 # Tiến độ
 
+- 2026-10-24: Nâng engine mặc định trong Chơi Với Máy từ HOVANG v0.3 lên v0.4; giữ API/UCCI, giao diện lựa chọn và toàn bộ Pikafish/Máy cơ bản. Source+tests+build script mới ở `engines/hovang-v0.4/`; executable Windows local `hovang-engine.exe` (~3 MB), v0.3 còn làm rollback. G++ WinLibs16.2 native suite PASS (stalemate, perft(4)=3290240,14.417 thế ngẫu nhiên, make/undo/Zobrist/FEN/timed search); UCCI handshake+bước `bestmove` PASS. Backend HTTP integration bằng engine thật PASS: readiness, 240 nửa nước hợp lệ gồm cả lượt Đỏ và Đen, kết thúc test bằng resignation vì luật game chưa adjudicate repetition. HOVANG adapter + Pikafish regression 11/11 PASS; typecheck/build PASS, dist xác nhận nhãn HOVANG v0.4. Chưa browser QA. HOVANG chưa có NNUE, chiếu dai/đuổi dai đầy đủ hoặc Elo đáng tin cậy.
+- 2026-10-24 (tiếp tục HOVANG): G++ WinLibs16.2 Windows executable đã build thành công static (`engines/hovang-v0.3/hovang-engine.exe`, khoảng3.0MB); native suite PASS (perft depth4,14.417 random positions, make/undo/Zobrist, check/FEN/timed search). Sửa script build cho path có dấu cách/Unicode và DLL runtime. HTTP E2E backend thật: `/ready` PASS; Đỏ đi đầu, Đen trả lời; HOVANG-vs-HOVANG thực hiện240 nửa nước hợp lệ, kết thúc test bằng resignation; không tự kết thúc do luật game chưa adjudicate repetition. Bộ HOVANG/Pikafish regression12/12 PASS, typecheck/build PASS. Chưa browser UI QA; Pikafish không bị sửa. Regression E2E lưu có gate ở `tests/hovang-native.test.ts`.
+
+- 2026-10-24: Theo user, form tìm phòng noValidate/bỏ required+pattern native để không hiện tooltip trình duyệt. Mã rỗng/sai6số hoặc tìm API thất bại hiện toast Không tìm thấy phòng bằng khung Shop, tựẩn2s/cleanup timer; không đẩy lỗi findRoom ra banner Chọn Bàn. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, thanh tìm phòng header Chọn Bàn dùng kiểu Bạn bè: input nền nâu gradient/viền inset vàng/icon kính lúp, chữ nhập Arial16/placeholder body14; nút Tìm vàng tách rời/font body bold. Giữ căn giữa/chức năng mã6số. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, header Chọn Bàn thêm form tìm số phòng6chữ số căn giữa ngang back. useLobby.joinByCode fetch API rooms mới toàn hệ thống, khớp code chính xác không phụ thuộc tỉnh/filter/cap30; phòng mở join, khóa mở RoomPasswordDialog hiện có rồi join theo password. Giữ validate tên/năng lượng/server role, không thấy phòng báo lỗi. Build/typecheck PASS; dist cập nhật; chưa browser/socket QA.
+
+- 2026-10-24: Theo user, picker tỉnh MOBILE tăng tiếp hình rộng min(36cqw,100cqh)/cao full ô, globe27cqw/78cqh; tên10.5cqw/34cqh, số9cqw/28cqh. Giữ object-contain/tỷ lệ ảnh và2×6; desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, picker tỉnh MOBILE tăng hình min(24cqw,65cqh)→min(30cqw,82cqh), tên8/26→9.5/30, số6.5/21→8/25 theo cqw/cqh; globe tăng21cqw/58cqh. Giảm padding/gap để nội dung vừa ô, giữ2×6/desktop. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Xem thử theo user, picker tỉnh MOBILE2cột×6hàng (cao ô=(100%-40px)/6); mỗi ô size container, icon clamp theo cqw/cqh, chữ tên min(8cqw,26cqh), số min(6.5cqw,21cqh), padding/gap tỷ lệ. Desktop giữ2×4. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, picker tỉnh/thành MOBILE đổi1→2cột, giữ4hàng trong vùng nhìn qua auto-rows(100%-24px)/4 và cuộn dọc. Desktop vốn2×4 giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, hộp nhắc thiết lập địa chỉ dùng khung thông báo thiếu tiền Shop: shopMobileDialogFrameClass, viền vàng2px/bo16/nền gradient/bóng inset, desktop cùng kiểu tương ứng. Giữ nội dung và Hủy/Đồng ý mở Hồ sơ. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, bấm chọn tỉnh khi chưa lưu địa chỉ mở hộp alertdialog Bạn chưa chọn địa chỉ, hãy thiết lập địa chỉ với Hủy/Đồng ý thay status banner. Hủy/Escape đóng, Đồng ý đóng và mở ProfileDialog editable hiện có để thiết lập. Áp dụng cả mobile/desktop. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, gỡ hoàn toàn demoRooms/prop demo trong RoomTableGrid. Bộ đếm bàn chọn tỉnh/Tất cả chỉ tính phòng có ghế hoặc viewer, khớp danh sách; không xóa phòng RAM/không restart backend. useLobby.error không đưa join.error lên Chọn Bàn khi passwordRoom đang mở; passwordError giữ trong dialog. Test lọc tỉnh chọn explicit allProvinces=false theo mặc định mới. locked-room-ui+quickRoom4/4 PASS; build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, Chọn Bàn mặc định Tất cả khi countryCode khác VN (gồm nước ngoài/chưa lưu). Địa chỉ Việt Nam vẫn vào tỉnh hồ sơ. Tất cả dùng chung danh sách bàn các tỉnh Việt Nam hiện có, giới hạn30 như trước; không đổi địa chỉ hồ sơ. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, Chơi nhanh trong Chọn Bàn giữ lọc đúng minutes từ API mới, hết bàn báo Không có bàn phù hợp với thời gian đã chọn thay mở Tạo bàn. Tắt prop20bàn demo, trở lại dữ liệu thật. Đối chiếu CreateRoomForm→useLobby→API→RoomService giữ minutes/turnSeconds/game.remainingTime/turnTimeLimitMs; không cần vá clock. quickRoom+room-time-settings11/11 PASS (30/60/90/120s và reset); build/typecheck PASS; dist cập nhật; chưa browser/socket QA thực.
+
+- 2026-10-24: User hủy yêu cầu avatar/ô chọn do nói nhầm. Chọn Bàn MOBILE thu mũi tên thời gian28→24px, tăng tên tỉnh/Tạo bàn16→18px; giữ số/icon khác/desktop. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, Chơi nhanh MOBILE chỉ tăng chữ Chơi nhanh/phút18→20px; số thời lượng giữ18px, icon32→28px. Giữ khung/desktop. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, nút Chơi nhanh Chọn Bàn MOBILE tăng icon24→32px và chữ16→18px (gồm thời lượng), giữ khung/desktop và hành vi. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, bỏ icon SVG ổ khóa nổi trên mỗi bàn khóa trong RoomTableGrid. Giữ artwork lockedBoard và logic mật khẩu/khóa;20bàn demo vẫn bật theo lượt xem thử trước. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: XEM THỬ tạm theo user: RoomSelection bật prop demo RoomTableGrid với20bàn minh họa (1/2ghế, nhiều thời gian/bàn khóa), disabled và chặn onJoin, không tạo phòng server. Tên/thời gian MOBILE14→13px. Dữ liệu/API thật giữ nguyên; gỡ prop demo khi user kết thúc xem thử. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, tên dưới bàn MOBILE bỏ ellipsis/truncate, cho wrap/overflow-wrap:anywhere và caption flex-wrap để hiện đủ. Artwork cao72→76%, hình người38→46% chiều bàn. Giữ desktop/lưới3×4. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, caption bàn MOBILE dùng font-body Arial cho tên lẫn số thời gian cùng14px/baseline. Vùng artwork cao60→72% ô, hình người28→38% chiều bàn; giữ lưới3×4 và desktop. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: User chốt mặc định Chọn Bàn: có địa chỉ lấy tỉnh hồ sơ, chưa có countryCode chọn Tất cả; đối chiếu hook hiện tại đã đúng nên giữ. Thu chữ tên/thời gian dưới mỗi bàn MOBILE20→14px qua compact:text-sm; desktop giữ20px. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: User đính chính bộ đếm người chọn tỉnh/Tất cả: chỉ cộng room.players (người ngồi ghế), không cộng viewerCount/hàng chờ/presence sảnh. Đồng bộ nút hiện tại và từng thẻ tỉnh/Tất cả, toàn bộ bàn không chỉ30mẫu. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, bộ đếm người Tất cả (nút hiện tại và thẻ trong picker) cộng players+viewerCount của toàn bộ bàn mọi tỉnh, không lấy presence sảnh hoặc30bàn mẫu. Giữ cap30. Lưới MOBILE3cột×4hàng trong viewport, hàng(100%-24px)/4 và cuộn; artwork người cạnh bàn mobile28% để vừa3cột, desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, nâng cụm tên tỉnh/thành và hàng số bàn/người trong nút chọn tỉnh Chọn Bàn lên3px qua wrapper relative top-3px; giữ ảnh/khung. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, Chọn Bàn khởi tạo allProvinces=true nếu chưa lưu địa chỉ (countryCode null), mặc định xem Tất cả tối đa30 bàn ngẫu nhiên. Có địa chỉ giữ mặc định tỉnh hồ sơ. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, bộ chọn tỉnh Chọn Bàn thêm Tất cả/icon globe trên cả mobile/desktop. allProvinces riêng không sửa tỉnh hồ sơ/presence/tỉnh tạo bàn. Lấy bàn thật có người từ mọi tỉnh, áp dụng lọc hiện tại rồi Fisher-Yates tối đa30, memo theo snapshot/filter; bộ đếm tổng mọi tỉnh. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, bỏ avatar/tên ở header Chọn Bàn và Chơi Với Máy trên cả mobile/laptop. Nút quay lại đưa vào flex header items-center thay absolute, tiện ích ml-auto để giữa dọc; không thay avatar máy trong nội dung. Giữ tên phiên và luồng bắt đầu/join. Build/typecheck PASS; dist cập nhật; chưa browser QA; phạm vi mở riêng header theo user.
+
+- 2026-10-24: Theo user, Chọn Bàn MOBILE ẩn tiện ích Toàn màn hình/Bạn bè/Thành tích; âm thanh và quay lại36px/icon20. Ba control tỉnh/Tạo bàn/Chơi nhanh cao64→52px, chữ18→16/icon tương ứng nhỏ; ba lọc dưới cao44→32/rộng110/chữ12. Giữ desktop/avatar/tên/luồng phòng. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, sắp xếp23PNG rời ở gốc src/assets: ảnh runtime Tạo nhóm→messages/create-group-frame.png;22ảnh nguồn→references/uploads theo tính năng (5ảnh chưa rõ mục đích giữ unclassified). Cập nhật import/đường dẫn nguồn liên quan; manifest tại src/assets/ASSET-ORGANIZATION.md. Không chỉnh pixel/UI. Build/typecheck PASS; dist cập nhật; chưa browser QA. Script crop-reference-pieces.ps1 còn tham chiếu c7ad3098 đã thiếu từ trước, ngoài23file lần này.
+
+- 2026-10-24: Theo user, mọi dòng Bạn bè MOBILE dùng chiều cao chuẩn Thêm bạn: panel làm size container, FriendRow flex-basis tính từ cùng100cqh trừ hàng tiêu đề54/search48/hai gap14 rồi chia6/trừ row-gap. Không phụ thuộc chiều cao list4nhận/2gửi nữa. Nút Hủy tăng chữ27→30/icon37→42logical riêng sent. Laptop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-24: Theo user, nút Hủy trong Đã gửi lời mời MOBILE dùng cùng kích thước/chữ27/icon37logical và giới hạn cao như Từ chối; dùng cùng vùng invitationActions và wrapper, một nút căn phải. Giữ API hủy/laptop. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-24: Theo user, nền nâu Lời mời nhận MOBILE bỏ override cao để dùng cùng công thức các dòng khác (100%-ui4-15px); cụm nút giới hạn cao bên trong nền với đệm8px. Nút Kết bạn/Đã gửi rộng250→280, chữ30→33logical; giữ cao118. Laptop/dòng khác giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-24: Tích hợp HOVANG v0.3 thử nghiệm: source/tests/CMake từ ZIP, UCCI backend API, giới hạn2 process/Hash16MB/watchdog/hủy process, xác thực lịch sử/nước lặp/nước hợp lệ, đổi tọa độ rank hai chiều; chọn engine desktop/mobile Chơi Với Máy và tái sử dụng GamePage. `npm.cmd run typecheck` PASS; adapter tests3/3 PASS; Pikafish regression cùng chạy11/11 PASS; `npm.cmd run build` PASS/dist cập nhật. Chưa build/chạy native engine hoặc browser/full-game QA vì host không có g++/clang++/MSVC/CMake. Xem `docs/HOVANG-INTEGRATION.md`.
+- Kiểm thử toàn bộ `npm.cmd test` đã thử nhưng Vitest không in tiến độ và không hoàn tất sau hơn2 phút; đã dừng lệnh đó. Bộ test nhắm riêng HOVANG/Pikafish chạy xong PASS.
+
+- 2026-10-24: Theo user, tăng tiếp nút Kết bạn/Đã gửi MOBILE220×106→250×118logical, chữ28→30 theo dialog scale. Giữ dòng/khung/laptop. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-24: Theo user, nút Kết bạn tại Thêm bạn MOBILE tăng173×90→220×106logical, chữ28logical theo dialog scale; trạng thái Đã gửi cùng kích thước tránh nhảy. Giữ dòng/khung/laptop. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-24: Sửa Gợi ý bạn trống do socialStore.search query rỗng luôn xóa users. Thêm GET /social/suggestions qua session auth→PersistenceService→SocialRepository: random tối đa20 active users, loại bản thân/accepted friends/block hai chiều. Query rỗng lấy gợi ý, query có chữ giữ search tên/ID; version bỏ phản hồi cũ. Mobile và desktop dùng chung dữ liệu, không đổi geometry laptop. Build/typecheck PASS; persistence-rules2/2 PASS; dist cập nhật. Chưa xác minh SQL trên DB/browser thật; backend cần nạp code mới, không restart/deploy trong task.
+
+- 2026-10-24: Theo user, chỉ hai nút nhận lời mời Bạn bè MOBILE thu icon khoảng20% (Add52.5→42, Remove46.5→37logical), tăng chữ25→27logical. Override token ngay cụm nút để không ảnh hưởng nút khác; giữ khung/offset trái3px. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-24: Theo user, dịch cả cụm hai nút Chấp nhận/Từ chối trong lời mời nhận Bạn bè MOBILE sang trái3px hiển thị qua translateX(-3px); giữ nền nâu/kích thước và laptop. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-24: Theo user, hai nút nhận lời mời Bạn bè MOBILE rộng hơn bằng giảm padding trái vùng nút40→22logical (mỗi nút thêm9logical); giảm cao tối đa126→108logical/hàng trừ20px, chữ30→25logical. Giữ nền nâu và giới hạn trong khung. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-24: Sửa riêng lời mời nhận Bạn bè MOBILE theo user: bỏ kéo nền nâu âm sang vùng trạng thái, mép trái nền inset7px; hai nút chia đều chiều rộng khả dụng và giới hạn chiều cao trong nền (hàng trừ14px, tối đa126logical), chữ29→30. Vùng nút padding trái40logical+7px tránh hoa văn, giữ khoảng đệm mọi cạnh. Build/typecheck PASS; dist cập nhật; chưa browser QA; laptop/dòng khác giữ nguyên.
+
+- 2026-10-24: Theo user, chỉ dòng Lời mời đã nhận Bạn bè MOBILE nới vùng thao tác440→500logical sang trái, nền nâu nới trái thêm12logical và cao thêm15px. Hai nút Chấp nhận/Từ chối190×106→220×118, chữ26→29 theo scale. Dùng prop invitationActions riêng, các dòng khác/laptop không đổi. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, hai nút Chấp nhận/Từ chối trong Lời mời đã nhận Bạn bè MOBILE tăng rộng145→190, cao90→106, chữ21.6→26 logical theo dialog scale; padding/gap cùng scale, không shrink nút. Giữ dòng/avatar/desktop và hành vi. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, hạ cụm sao toàn project2px theo khung tham chiếu: clusterOffsetYPx -14→-12; vị trí hiện tại cao hơn6px so trước chuỗi chỉnh. Token chung áp dụng mobile/laptop/người chơi/máy. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Theo user, nâng cụm sao toàn project thêm4px theo khung tham chiếu: clusterOffsetYPx -10→-14, tổng nâng8px so trước các lượt chỉnh. Token chung áp dụng mobile/laptop/người chơi/máy. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Theo user, nâng sao toàn project thêm2px theo khung tham chiếu: clusterOffsetYPx -8→-10, tổng nâng4px so trước hai lượt chỉnh. Đồng bộ mobile/laptop/người chơi/máy qua token chung. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Theo user, nâng cụm sao toàn project/mobile/laptop qua RANK_STAR_LAYOUT.clusterOffsetYPx -6→-8 (lên2px ở tỷ lệ tham chiếu, co cùng khung). RankTitleBadge và RankingRankBadge cùng dùng getRankTitleStarsStyle; gồm sao máy artwork riêng. Giữ kích thước sao/avatar/danh hiệu/luật Elo. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Sửa badge Lời mời MOBILE bị cắt bởi hàng tab overflow: nâng badge thêm3px, chừa padding-top bằng spacing+8px và bù margin-top để giữ mốc tab. Badge có khoảng3px phía trên cho hiển thị trọn; giữ cuộn ngang/Home/laptop. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, nâng cả badge Home MOBILE và badge tab Lời mời thêm2px hiển thị so vị trí trước; giữ cỡ/số/neo ngang. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, badge Bạn bè ngoài Home MOBILE nâng từ top-1.5cqw lên-2.2cqw. Badge tab Lời mời tăng35→38, số19→20 theo token compact; giữ vị trí trái và dữ liệu. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, Home MOBILE thêm badge đỏ góc trên phải nút Bạn bè, đếm tổng lời mời pending đã nhận (requestedBy khác account.id) từ socialStore thật; không tính bạn accepted/lời mời đã gửi. Không có lời mời thì ẩn, trên99 hiện99+; aria-label đọc tổng đầy đủ. Store cập nhật từ refresh Bạn bè hiện có. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Theo user, ba tab lớn Bạn bè MOBILE giảm gap8→5px hiển thị; badge đỏ Lời mời tăng28→35 và số15→19 theo token nội dung compact, giữ góc trái. Laptop giữ nguyên; khóa lại phạm vi. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Theo user, ba tab lớn Bạn bè MOBILE cách nhau đúng8px hiển thị (gap-[8px], không theo dialog scale); badge tròn đỏ Lời mời chuyển sang góc trái tab. Giữ kích thước tab/cuộn ngang và laptop. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, thu độ loang glow tab con Bạn bè MOBILE: hai drop-shadow blur2/7px giảm1/4px, giữ brightness1.1/saturate1.3 và không viền chọn. Tab lớn/laptop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, tab con Bạn bè MOBILE khi chọn chỉ dùng selectedImageTabGlow của tab lớn; bỏ pseudo-element nền/viền nới và viền inset vàng riêng. Nền cùng màu tab thường, border transparent khi chọn. Laptop giữ nguyên; khóa lại phạm vi. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Theo user, tab con lọc Bạn bè MOBILE dùng chính selectedImageTabGlow chung với ba tab lớn khi được chọn; giữ ô nền đã nới và kích thước chữ/icon. Laptop giữ nguyên; khóa lại phạm vi. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: User làm rõ tab con Bạn bè MOBILE cần TO ô nền chọn, không tăng sáng. Nền selected tách pseudo-element nới ngang4/dọc6 đơn vị spacing theo dialog scale; chữ/icon và slot giữ nguyên. Bỏ glow/active brightness125 của lượt hiểu sai. Laptop giữ nguyên; khóa lại phạm vi. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Theo user, ba tab lớn Bạn bè MOBILE dùng cùng cỡ tab Xếp hạng: rộng264×1.6 và cao70×1.6 theo dialog scale; không co tab, hàng lướt ngang khi thiếu chỗ. Laptop giữ riêng. Build/typecheck PASS; dist cập nhật; chưa QA thao tác vuốt trên thiết bị. Khóa lại phạm vi sau task.
+
+- 2026-10-23: Bạn bè mobile: nút Tìm dùng font-body Arial đậm không nghiêng như ba nút lọc Tất cả/Đang online/Bạn Facebook. Giữ cỡ, màu, khung, icon, bố cục và toàn bộ laptop. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+- 2026-10-23: User đính chính hiệu ứng tab con cần tăng trên MOBILE. Hoàn tác đúng glow/active brightness vừa thêm trên DesktopFriendsDialog; áp dụng selected glow viền2px/blur12spread3 và active brightness125 sang FriendsDialog mobile. Giữ toàn bộ cỡ tab/các chỉnh laptop trước đó. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Bạn bè laptop theo user tăng vùng hiệu ứng tab con: selectedFilter thêm viền sáng2px và glow12px/spread3px, lúc nhấn brightness125; giữ kích thước/bố cục tab, không tác động mobile hoặc nút khác. Build/typecheck PASS; dist index-1HCP8CoD.js/index-DY7iBcQh.css xác nhận; chưa browser QA.
+
+- 2026-10-23: Theo tiếp nối task font laptop, tăng tab con Bạn bè LAPTOP: filter cao54→66/chữ22→25, icon tăng14%; tiêu đề mục con cao50→60/chữ27→30, hàng Gợi ý66 và top căn giữa3px theo scale. Giữ font-body bold, avatar/dòng/nút khác và mobile. Build/typecheck PASS; dist index-C7-AItwJ.js/index-Bl4cpC0W.css xác nhận; chưa browser QA. Khóa lại desktop sau task.
+
+- 2026-10-23: User mở riêng FONT tab con Bạn bè laptop: đổi filterButton và friendSectionTitle ở DesktopFriendsDialog sang font-body Arial bold không nghiêng giống mobile. Giữ cỡ22/27, icon và toàn bộ geometry desktop. Build/typecheck PASS; dist index-Db04Kalm.js/index-Q13H9-aA.css xác nhận; chưa browser QA. Khóa lại laptop sau thay font.
+
+- 2026-10-23: Bạn bè mobile tăng chữ tab lọc22→25 và tiêu đề con27→30 theo token1.5; icon lọc tăng khoảng14% (online31, Facebook38/inner30, nhóm48×36). Giữ font-body bold, khung/dòng và desktop; các token25/36/38 được scale nội dung. Build/typecheck PASS; dist index-8IRzMIoM.js/index-Q13H9-aA.css xác nhận; chưa browser QA.
+
+- 2026-10-23: Bạn bè mobile: chữ Mời chơi32→34logical; icon35→40 và crop background/offset tăng cùng40/35 tránh cắt lệch. Tab lọc/tiêu đề con3mục dùng font-body Arial bold không nghiêng. Giữ kích thước nút/tab/dòng và DesktopFriendsDialog. Build/typecheck PASS; dist index-C0TyD6TS.js/index-Dkbcqxgk.css cập nhật; chưa browser QA.
+
+- 2026-10-23: Bạn bè mobile theo user tăng avatar118→128logical; AvatarRankBadge/danh hiệu/sao kế thừa cùng tỷ lệ và neo. Không đổi dòng/khung/cột. Mời chơi270×100→285×106, chữ30→32 theo dialog scale; nền nâu translateX -12logical giữ width/height hiện tại (đã giảm15px). DesktopFriendsDialog không đổi. Build/typecheck PASS, dist cập nhật; chưa browser QA; khóa lại phạm vi/avatar.
+
+- 2026-10-23: Bạn bè MOBILE theo user placeholder dùng font-body Arial không nghiêng (cả Danh sách/Thêm bạn), giữ cỡ hiện tại. Nền nâu bao2nút giảm cao thêm15px thật, giữ giữa dọc và kích thước nút/dòng; DesktopFriendsDialog không đổi. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Theo user, đấu bạn bè không cộng/trừ Elo. MatchRepository.complete dùng policy đã chốt gold_reward_eligible cùng kiểm tra accepted lúc kết thúc để delta0 cho cả2 người (gồm Mời chơi/So tài, gỡ bạn giữa ván không bật lại). Giữ stats/năng lượng/lịch sử và chính sách vàng; đối thủ thường Elo như cũ. Không migration vì tái dùng policy persisted. Existing match-gold-policy5/5 PASS; typecheck/build PASS; dist cập nhật (backend-only bundle không đổi). Môi trường từ chối ghi tests nên chưa thêm regression Elo; chưa QA DB thật, backend cần nạp code mới.
+
+- 2026-10-23: User xác nhận laptop vẫn phóng quá, yêu cầu hoàn tác đầy đủ bản cũ. DesktopFriendsDialog khôi phục nguyên component từ HEAD (chỉ đổi tên export), gồm dòng90/avatar76/danh hiệu cột riêng/nút173×60/chat63×54/search56. FriendsDialog chỉ chọn component theo compact, giữ nhánh mobile hiện tại. Không dùng bản desktop đã bị chỉnh size trong các lượt mobile. Build/typecheck PASS; dist index-MeDpNjVR.js/index-5juzdCui.css cập nhật; đối chiếu nội dung desktop với HEAD khớp hoàn toàn sau đổi tên. Chưa browser QA.
+
+- 2026-10-23: User yêu cầu trả lại nền nâu bao Mời chơi/Chat ở Bạn bè mobile. FriendRowShade hiển thị cả compact bên cột thao tác, lề âm12/không nhận pointer; giữ kiểu dòng/khung/khoảng cách mới. Desktop giữ nguyên nền nâu hiện có. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-23: User đính chính3tab chính Bạn bè mobile chỉ căn mốc với Xếp hạng, KHÔNG thu kích thước. Khôi phục hàng tab fullwidth/gap1, ảnh h-auto/w-full/scaleY1.12 theo cỡ trước đồng bộ; bỏ hàng84%/gap10 và chiều cao ép theo tab Xếp hạng. Giữ neo dọc từ SocialDialogFrame; laptop giữ nguyên nhánh riêng. Build/typecheck PASS; dist index-6XDeaDwx.js/index-CBth_oD0.css xác nhận. Chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: User khóa riêng Bạn bè LAPTOP, hoàn tác lượt đồng bộ vừa rồi trên desktop. FriendsDialogFrame chỉ dùng SocialDialogFrame khi compact; desktop khôi phục khung/nền/title/tab/dòng150 liền nhau/khung list/nền nâu SVG như ngay trước task đồng bộ. Mobile giữ dòng/khung/tab dùng chung Xếp hạng. Các chỉnh tiếp mặc định chỉ Bạn bè mobile trừ khi user mở laptop rõ. Tests ranking-view+mobile-dialog-layout3/3 PASS, typecheck/build PASS; dist index-DILmSzb6.js/index-DYj2_tBu.css xác nhận. Chưa browser QA.
+
+- 2026-10-23: Theo user đồng bộ Bạn bè với Xếp hạng: SocialDialogFrame dùng chung khung ngoài/khung trong/nền phong cảnh/hoa văn/tiêu đề/nút X; title slot theo tỷ lệ artwork Xếp hạng để hàng3tab Bạn bè cùng mốc với2tab Xếp hạng. socialModeTabsClass, socialPlayerRowClass/ListClass và getSocialRowStyle dùng chung: dòng desktop138, mobile6slot, gap8×dialogScale, bo10×rowScale/viền/nền giống nhau; bỏ khung danh sách/nền nâu SVG riêng Bạn bè. Lời mời giữ4nhận+2gửi qua biến số slot; giữ các nút và data/search/keyboard behavior. Avatar/tên/luật không đổi. Existing ranking-view+mobile-dialog-layout3/3 PASS, typecheck/build PASS; dist cập nhật. Chưa browser QA trực quan; khóa lại phạm vi.
+
+- 2026-10-23: Bạn bè mobile theo user đưa3tab chính lên: bỏ padding-top token48 (đang boost1.5) của content wrapper, hết khoảng chừa dư dưới tiêu đề. Panel bên dưới flex1 nhận toàn bộ chiều cao vừa giải phóng, giữ đáy và các điều khiển/dòng hiện hành; desktop không đổi. Build/typecheck PASS; dist index-CObBlHEV.js/index-CQsQa2jN.css xác nhận. Chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: User đính chính tab con Bạn bè mobile bị nhỏ: bỏ reset token về scale laptop ở hàng lọc/tiêu đề mục con, khôi phục boost nội dung1.5× cho cả3 mục; giữ kiểu/logic laptop. Placeholder giảm24→21 token (mobile tối thiểu14px), giữ font kiểu; chữ nhập Arial/min16px giữ nguyên. Build/typecheck PASS; dist index-wzSn32Eq.js/index-CEenSVvk.css xác nhận. Chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: User đính chính font tìm kiếm Bạn bè: placeholder giữ font-heading/Cormorant Garamond nghiêng cũ; chỉ chữ nhập dùng Arial bình thường. Nút Tìm trả font kiểu vàng cũ. Áp dụng cả Danh sách và Thêm bạn, giữ cỡ/keyboard layout. Build/typecheck PASS; dist index-CtxZtSqj.js/index-Cv7yuEY1.css xác nhận placeholder variant. Chưa browser QA.
+
+- 2026-10-23: Bạn bè theo user: tab lọc/tiêu đề mục con cả3tab dùng getCrispUiLayout theo tỷ lệ laptop, không nhận boost1.5 của hàng user. Search input/nút dùng Arial không nghiêng; mobile input tối thiểu16px tránh zoom. useFriendsLayout bỏ resize lúc input trong dialog focus để keyboard không co/dịch bảng và hàng bạn bè. Giữ lọc dữ liệu/tương tác cũ. Build/typecheck PASS, dist cập nhật; chưa QA bàn phím trên điện thoại thật. Khóa lại phạm vi.
+
+- 2026-10-23: Bạn bè theo user căn tên+trạng thái giữa chiều dọc dòng: bù xuống15% đường kính avatar để cân phần padding dưới30% của cụm avatar/danh hiệu. Tên giảm nhẹ26→25desktop/30→29mobile; trạng thái/avatar/chiều cao dòng giữ nguyên. Token29 mobile cùng scale nội dung. Build/typecheck PASS; dist index-CRazB_Nl.js/index-C4eihsx7.css xác nhận. Chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Theo user tăng avatar Bạn bè92desktop/118mobile (badge AvatarRankBadge tăng cùng tỷ lệ), tên26/30 và trạng thái22/24 theo token nội dung. Ô tìm và nút Tìm cao56→60, nút rộng170→190/chữ21→23, ô nhập chữ23→24 ở cả Danh sách/Thêm bạn. Giữ nguyên chiều cao dòng150desktop, mobile basis92%/số hàng và form48 để không làm đổi vùng danh sách. Build/typecheck PASS; dist index-D-oe8vwT.js/index-B-OY-xb7.css xác nhận. Chưa browser QA; khóa lại avatar/phạm vi.
+
+- 2026-10-23: User yêu cầu danh hiệu chồng avatar đúng Home: thay wrapper FriendRank tự dựng bằng chính AvatarRankBadge chung (đủ height theo avatar và z20 như Home), bỏ bản riêng. Dành phần dưới30% avatar thay padding60/76 cũ để cụm avatar/tên/trạng thái giữa hàng. Giảm chiều cao dòng desktop160→150, mobile basis92%/số hàng (ngắn8%). Build/typecheck PASS; dist index-B_ONnnQp.js/index-BJAP6EgS.css xác nhận. Chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: User đính chính danh hiệu Bạn bè phải gắn/chồng phần dưới avatar như Home. Dùng nguyên AVATA_TITLE_BADGE_STYLE chung cho top/left/width, bỏ override top100%/left50% gây tách rời. Áp dụng mọi hàng/tab mobile+laptop; giữ avatar/tên/nút. Build/typecheck PASS; dist index-CxSHuUmf.js/index-BZx2Uhjd.css cập nhật. Chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Bạn bè user yêu cầu căn danh hiệu theo avatar: dùng width của AVATA_TITLE_BADGE_STYLE chung (~125.23% avatar) thay170%, giữ badge ngay dưới/top100%, căn tâm50%; không đổi avatar/nút. Tên24desktop/28mobile, trạng thái21/23 theo token nội dung; hàng chữ tự cao tránh cắt, chữ-số giữ cùng font. Build/typecheck PASS; dist index-BNz6C6JW.js/index-CnNkfFDB.css xác nhận. Chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: User mở căn/kích thước cụm user Bạn bè: mép trái cả cụm danh hiệu dưới avatar cách viền10px thật (padding bù35% phần badge170%); avatar84desktop/108mobile, tăng nhẹ tên/trạng thái, danh hiệu kế thừa avatar. Mời chơi230×82 desktop/270×100 mobile; Chat104×88/118×100. Cột thao tác440, token160/440 khai báo theo scale; desktop hàng160/mobile giữ6 hàng. Build/typecheck PASS; dist index-lu1j4fNx.js/index-BNcPd06d.css xác nhận. Chưa browser QA; khóa lại phạm vi/avatar sau task.
+
+- 2026-10-23: User chốt danh hiệu Bạn bè nằm DƯỚI AVATAR (không cột riêng). Neo badge170% avatar, dành khoảng dưới tránh đè hàng; avatar giữ cỡ cũ. Giảm nhẹ tên/trạng thái; hàng2 cột identity/thao tác400 theo scale, nền nâu theo cột nút nên sang trái. Tăng Mời chơi mobile245×90/desktop210×74; Chat106×90/94×80. Token400 khai báo cục bộ theo scale; desktop hàng140, mobile giữ6 hàng. Build/typecheck PASS; dist index-BiDeDKsi.js/index-DUUA1eIE.css xác nhận. Chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Sửa lỗi Bạn bè nút Mời chơi/Chat tràn mất: các token73/92/184/200/230/350 mới chưa có trong getCrispUiLayout nên fallback pixel nguyên, làm cột vượt bảng. Khai báo đủ token cục bộ theo dialog scale cho cả desktop/mobile, giữ kích thước tương đối đã yêu cầu. Nền nâu lề âm12 bao đủ ảnh/nút và ngắn hơn lề âm40 cũ; không dùng lề dương cắt dưới danh hiệu. Build/typecheck PASS; dist index-DT7WBaz8.js/index-DHd1fBqX.css xác nhận. Chưa browser QA; khóa lại phạm vi. Khi thêm token phải kiểm tra có trong bảng scale hoặc khai báo cục bộ.
+
+- 2026-10-23: User đính chính chỉ thu khung nâu sang phải: tăng lề trái nền20→60 theo token dialog, mép phải giữ tại cột thao tác; min-w-0/overflow-hidden chặn SVG ép chiều rộng. Không tăng khung hoặc đổi cột/nút/danh hiệu trong lượt sửa này. Build/typecheck PASS; dist index-B4E64Hcj.js/index-CQ3169Oy.css xác nhận. Chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Bạn bè theo user thu nền nâu ngắn thêm bằng lề trái20 thay lề âm40; cột danh hiệu200desktop/230mobile, thao tác350. Ảnh danh hiệu184desktop/210mobile (chiều cao tương ứng); Mời chơi190×66/chữ23 desktop,220×80/chữ26 mobile; Chat84×72 desktop/94×80 mobile, cùng dialog scale. Build/typecheck PASS; dist index-DSD_69gK.js/index-PtHQ86nI.css xác nhận. Chưa browser QA; khóa lại phạm vi sau task.
+
+- 2026-10-23: Nối thưởng PvP thật vào popup kết quả mobile/desktop qua API đọc ledger + elo_delta theo tài khoản/ván, đợi giao dịch finished và cập nhật tài khoản sau chốt. 19/19 test liên quan PASS; typecheck/build PASS và dist cập nhật. Chưa QA điện thoại/DB live; chưa restart/deploy backend.
+
+- 2026-10-23: Bạn bè theo user: căn Mời chơi mobile200×72/chữ24 theo dialog scale, crop icon35 cùng scale nguồn; tăng Chat mobile84×72/desktop76×65. Cột thao tác330 cả hai, gap18 theo scale; nền nâu kéo trái thêm20 (lề âm40), giãn danh hiệu/nút. Build/typecheck PASS; dist index-DqsMIZe2.js/index-DgHs07uv.css xác nhận. Chưa browser QA; khóa lại phạm vi sau task.
+
+- 2026-10-23: Theo user, Bạn bè mobile/laptop bỏ chữ tên bậc rời bên cạnh ảnh danh hiệu. Thu cột danh hiệu desktop240→180/mobile320→210, căn ảnh giữa cột và bỏ offset trái; thu nền nâu về lề âm20, vẫn phủ cột thao tác. Giữ avatar/nút/chức năng; khóa lại phạm vi sau task. Build/typecheck PASS, dist index-CwwnwAnM.js/index-BqhHPnav.css xác nhận. Chưa browser QA.
+
+- 2026-10-23: Theo user, Xếp hạng mobile đổi nền và thẻ từ vàng sang trắng kem: phủ giấy #fffaf0eb, thẻ #fffdf7/#f7f3eb/#fffaf2, header #f2ede3, nền cột Elo #e9e2d5; giảm bóng vàng/nền cột hạng, giữ geometry/desktop. Build ban đầu bị chặn bởi2call FriendSearchButton truyền compact/scale mà component không nhận/dùng; gỡ2props dư tại call sites, không đổi UI Bạn bè. npm.cmd run build (typecheck + Vite) PASS; dist index-gRP5vQk1.js xác nhận màu mới. Chưa browser QA do browser use bị tắt; khóa lại phạm vi sau task.
+
+
+- 2026-10-23: Theo user, Bạn bè mobile: chữ danh hiệu nằm bên phải ảnh (flex-row), dành cột320logical cho danh hiệu/280 cho thao tác. Thu nền nâu từ trái38logical bằng lề âm88→50, vẫn trải sang thao tác. User mở đúng avatar Bạn bè mobile task này: tăng76→96logical, giữ ảnh/khung/click/tâm theo hàng; desktop giữ nguyên. Build/typecheck PASS; dist index-SbS0itO7.js/index-DO6q01GP.css cập nhật. Chưa browser QA; khóa lại avatar/phạm vi sau task.
+
+- 2026-10-23: Theo user, hai tab Cờ Tướng/Cờ Úp ở Xếp hạng mobile phóng đồng tỷ lệ1.4→1.6 lần kích thước gốc264×70 (tăng thêm14.3% so lượt trước); giữ tâm, ảnh nguyên tỷ lệ và cả hai trạng thái. Desktop giữ cỡ cũ; khóa lại phạm vi sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-S_3x5cUI.js xác nhận hệ số1.6. Chưa browser QA do browser use bị tắt.
+
+- 2026-10-23: User đính chính Bạn bè mobile: nền nâu danh hiệu phải trải qua cả cột thao tác như cũ (col2→4, khôi phục lề âm nền). Tên user tăng22→26 token, trạng thái19→21; dùng SocialPlayerName fullName/equalDigitSize như Xếp hạng, cùng font/cỡ chữ-số, cho xuống dòng. Avatar giữ hiện tại; desktop giữ nguyên. Build/typecheck PASS; dist index-CbYlu1On.js/index-Dkdd7-tY.css cập nhật. Chưa browser QA; khóa lại sau task.
+
+- 2026-10-23: Theo user, chữ Đang online trong Xếp hạng mobile phải bằng Offline: cả hai cùng cỡ22×rowScale cố định, một dòng; bỏ tự co riêng hai trạng thái này vì chuỗi online dài hơn gây chữ nhỏ. Trạng thái Đang chơi và tên vẫn fit như cũ. Giữ desktop, áp dụng cả hai tab; khóa lại sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-DBK5Hil6.js xác nhận font chung. Chưa browser QA do browser use bị tắt.
+
+- 2026-10-23: Bạn bè mobile theo user: ba tab chính thu về100% bề ngang, tăng chiều cao artwork12% và thêm padding; nội dung/control/search/tên/trạng thái token1.35→1.5×. Nền nâu chỉ còn cột danh hiệu, bỏ tràn sang thao tác và offset trái; danh hiệu rộng166→190/cao66.382→76, xếp tên bậc xuống dưới. Giữ6 người trước cuộn, avatar và desktop. npm.cmd run build/typecheck PASS; dist index-BwdRghSF.js/index-DhCfrtsr.css cập nhật. Chưa browser QA; khóa lại sau task.
+
+- 2026-10-23: Theo user, Xếp hạng mobile dịch Elo trái thêm12px logical (offset36→24 theo dialogScale), tiêu đề căn theo cùng eloOffset/eloWidthExtension. Đổi nhãn Điểm→Elo. Tên/trạng thái hiển thị đủ một dòng không ellipsis; RankingSingleLineText/useSingleLineTextSize đo chữ thật bằng Range, tự co font khi cột thiếu chỗ, tính lại khi resize/font tải xong. Max tên28/trạng thái22 theo rowScale; avatar và kích thước ô giữ nguyên. Khóa lại sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-hbEP_UGv.js/index-BsKURtdk.css xác nhận. Chưa browser QA do browser use bị tắt.
+
+- 2026-10-23: Theo user, Bạn bè mobile hạ nội dung bằng padding-top token48 để chừa nền; ba tab chính rộng thêm token54, giảm gap; token nội dung/filter tăng1.2→1.35×. Danh sách/Thêm bạn chia6 hàng trước cuộn; Lời mời chia4 nhận+2 gửi. Avatar/desktop giữ nguyên. Build/typecheck PASS; dist index-DAGFMFN2.js/index-BsKURtdk.css xác nhận friends-visible-rows. Chưa browser QA; khóa lại sau task.
+
+- 2026-10-23: Theo user, tăng riêng nội dung hàng Xếp hạng mobile: số/huy hiệu thứ hạng phóng15% bằng scale trong chính ô hạng; tên người chơi24→28 logical theo rowScale, trạng thái19→22. Giữ full name/wrap, avatar, cột/nhãn đã căn, Elo và desktop. Áp dụng cả Cờ Tướng/Cờ Úp, khóa lại sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-BnTfyQUx.js/index-C5W024b_.css xác nhận. Chưa browser QA do browser use đang tắt.
+
+- 2026-10-23: Theo user, khung ảnh tiêu đề Bạn bè/Lịch sử mobile tăng12% từ650 lên728 logical, cùng công thức650×scale×1.12 của Xếp hạng; ảnh tự cao theo tỷ lệ. Giữ neo giữa/top, desktop và nội dung. Build/typecheck PASS; dist index-CT3hn9Qs.js/index-CF_yB55F.css cập nhật. Chưa browser QA; khóa lại phạm vi sau task.
+
+- 2026-10-23: User yêu cầu căn nhãn Người chơi/Điểm với hàng dưới (các nhãn nằm ở Xếp hạng). Compact: header co cùng bề rộng nội dung danh sách qua useRankingListInset đo scrollbar/padding bằng ResizeObserver; Người chơi căn đúng mép tên sau avatar84+gap20+margin8 theo rowScale; Điểm căn giữa ô Elo có offset36 và phần rộng thêm34px theo dialogScale. Giữ nội dung hàng, avatar và desktop; khóa lại sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-Du_6wXFd.js xác nhận. Chưa browser QA vì browser use bị tắt.
+
+- 2026-10-22: User mở nội dung Bạn bè mobile: phóng20% token chữ/icon/control và chiều cao hàng (90→108 logical), ba tab giãn toàn bề rộng nội dung. Áp dụng Danh sách/Thêm bạn/Lời mời qua contentStyle chung. Các nút inline173/145px được tính scale ở compact để vừa cột; desktop và avatar giữ hiện tại. npm.cmd run build/typecheck PASS; dist index-rfYGowkG.js/index-CF_yB55F.css cập nhật. Chưa browser QA; khóa lại phạm vi sau task.
+
+- 2026-10-22: User đính chính nền Lịch sử mobile phải thay nền khung nâu bằng cùng ảnh phong cảnh social-header-landscape.png của Xếp hạng. frameStyle compact dùng ảnh làm background trực tiếp (rộng100%, caoauto/center top/no-repeat), thay gradient nâu phía sau tab; giữ hai khung Ván đấu/Thế cờ và nội dung danh sách. Desktop giữ cũ; khóa lại sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-0At-lcPu.js xác nhận background frame. Browser use bị tắt trong Work settings, chưa browser QA.
+
+- 2026-10-22: User đính chính phần nâu trong Lịch sử mobile: trả lại khung/viền/nền riêng của hai tab con Ván đấu/Thế cờ (giữ cỡ lớn); bỏ lớp phong cảnh nâu phụ phía sau header trên compact, thay yêu cầu kéo cao/fade trước đó. Giữ tab ảnh Đã chơi/Đã lưu,12 dòng và nhấn giữ hiện thùng rác. Khóa lại sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-n4J-LaiR.js/index-CF_yB55F.css xác nhận. Browser QA chưa thực hiện do browser use bị tắt trong Work settings.
+
+- 2026-10-22: Theo user, Lịch sử mobile bỏ viền/nền nâu của tab con Ván đấu/Thế cờ, giữ chữ và vùng bấm. Nền phong cảnh header hạ top từ-8 lên8px thiết kế, kéo cao270px và mask mờ dần mép dưới. Ván đấu/Thế cờ đã lưu dùng chung usePressToRevealDelete: mặc định ẩn thùng rác, giữ500ms hiện icon; di chuyển hơn8px/cuộn/đổi tab/đóng dialog hủy, không mở profile/replay khi thả sau giữ. Bấm thùng rác mới gọi API xóa cũ, lỗi vẫn báo; desktop giữ hành vi cũ. Khóa lại phạm vi sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-DojRcnXg.js/index-FYWrHosn.css xác nhận hook/điều kiện icon/mask. Chưa QA thao tác giữ trên điện thoại thật.
+
+- 2026-10-22: User yêu cầu nguyên mẫu nút × Xếp hạng cho Bạn bè/Lịch sử mobile: DialogCloseButton cố định borderRadius12px như Xếp hạng, không nhận --radius-xl bị getCrispUiLayout scale ở bảng khác; dùng cùng buttonInteraction. Cỡ72/56 theo scale; desktop trả đúng56/42 theo scale. Build/typecheck PASS; dist index-DXuPjUd7.js/index-CF_yB55F.css cập nhật; chưa browser QA.
+
+- 2026-10-22: Dùng chung DialogCloseButton cho Xếp hạng, Bạn bè và Lịch sử. Cùng markup/style dấu ×; compact là72px vùng bấm và56px glyph theo scale dialog; desktop56/42. Friends/history hooks cung cấp compact theo viewport. npm.cmd run build/typecheck PASS; dist index-BSq7Ldtc.js/index-BC4nPvAz.css cập nhật; chưa browser QA.
+
+- 2026-10-22: Theo user, nút đóng Bạn bè và Lịch sử điện thoại dùng cùng kích thước Xếp hạng: vùng bấm72px, dấu56px qua compact Tailwind và token theo scale dialog; desktop giữ56/42px. npm.cmd run build/typecheck PASS; dist index-BsH_1VBg.js/index-BzMcndy_.css cập nhật. Chưa browser QA.
+
+- 2026-10-22: Theo user, phóng riêng hai tab con Ván đấu/Thế cờ trong Đã lưu mobile: min-width210px/min-height72px thiết kế, chữ21→34, padding ngang28/dọc10; desktop và tab ảnh Đã chơi/Đã lưu giữ nguyên. Phạm vi mở đúng hai tab con, khóa lại sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-DWM1epBK.js/index-BaNARsmR.css xác nhận kích thước mới; chưa browser QA.
+
+- 2026-10-22: User yêu cầu hoàn tác riêng hai tab Lịch sử: trả Đã chơi/Đã lưu về ảnh gốc có chữ theo trạng thái, bỏ nền mask và chữ HTML vừa thử. Giữ kích thước tab trước đó và đồng bộ danh sách Đã lưu/Đã chơi12 dòng. Khóa lại sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-BBLLjLjz.js/index-BhkXs9JN.css cập nhật; chưa browser QA.
+
+- 2026-10-22: Theo user, tăng thêm nút × Xếp hạng mobile: vùng bấm64→72px, dấu48→56px. npm.cmd run build/typecheck PASS; dist index-uEKQmEuV.js/index-CyNrYBfH.css cập nhật; desktop giữ nguyên, chưa browser QA.
+
+- 2026-10-22: Theo user, nút × đóng Xếp hạng mobile tăng56→64px, dấu ×42→48px; desktop giữ hiện tại. npm.cmd run build/typecheck PASS; dist index-F6RiQncf.js/index-CyNrYBfH.css cập nhật. Chưa browser QA.
+
+- 2026-10-22: User yêu cầu Đã lưu/Ván đấu bằng Đã chơi trên mobile: hai tab dùng chung HistoryTabButton, cùng nền nét cọ lấy alpha asset Đã chơi và chữ HTML font-heading italic50px thiết kế; ảnh desktop giữ nguyên. Dành cùng chiều cao hàng chọn Ván đấu/Thế cờ cho cả hai tab (ẩn ở Đã chơi); cùng lưới5 cột và12 dòng, nút Xóa mobile nằm góc phải trên từng dòng thay cột riêng để không thu avatar/tên/Xem lại. Giữ tên đầy đủ và chức năng lưu/xóa/replay; khóa lại sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-B116HbFp.js/index-CyNrYBfH.css cập nhật, xác nhận component/tab/grid mới. Chưa QA trực quan danh sách có dữ liệu.
+
+- 2026-10-22: Xếp hạng mobile theo user: trạng thái online/offline/đang chơi bỏ truncate, cho wrap và giảm gap chấm/chữ để hiện đủ. Thanh cuộn mobile bỏ skin trắng/thin/gutter, dùng native overflow-y-auto cùng Lịch sử; màu xám/tự ẩn theo trình duyệt và hệ điều hành. Desktop giữ skin cũ. npm.cmd run build/typecheck PASS; dist index-CSMz296x.js/index-ByTeN08r.css cập nhật. Chưa browser QA trên điện thoại.
+
+- 2026-10-22: Theo user, avatar Lịch sử mobile84→76px thiết kế; tên giữ24px, bỏ ellipsis/truncate riêng compact bằng whitespace-normal/text-clip/overflow-wrap:anywhere, thẻ tên h-auto/min-h66 và padding4 để tự cao theo tên. Áp dụng hai người và Đã chơi/Đã lưu ván; giữ12 dòng. Khóa lại đúng phạm vi sau task. npm.cmd run build (typecheck + Vite) PASS; dist đã cập nhật và xác nhận tên wrap/avatar mới. Chưa QA trực quan bản ghi lịch sử.
+
+- 2026-10-22: Theo user, tăng thêm5px chiều ngang ô Elo Xếp hạng mobile; width calc từ29 lên34px×dialogScale. npm.cmd run build/typecheck PASS; dist/assets/index-BmjJ11DY.js và index-CcFjjYfI.css cập nhật. Desktop giữ nguyên; chưa browser QA.
+
+- 2026-10-22: User yêu cầu phóng thêm nội dung Lịch sử mobile: avatar72→84px thiết kế, thẻ tên58→66/chữ24, ngày giờ22, quân44→50, Xem lại cao54→63/chữ24. Cặp quân giữa compact gap0 để gần nhau hơn; giữ12 dòng, áp dụng Đã chơi/Đã lưu ván. Đúng phạm vi user mở task này, khóa lại sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-Ci1E61vu.js/index-CcFjjYfI.css xác nhận kích thước/gap mới. Chưa QA trực quan hàng có dữ liệu.
+
+- 2026-10-22: Theo user, ô nền Elo mobile giữ cao full hàng và tăng rộng thêm5px×dialogScale (29px tổng); build PASS, dist/assets/index-DLGEiX34.js mới nhất. Desktop giữ nguyên. Chưa browser QA.
+
+- 2026-10-22: Theo user, nền nâu bao Elo Xếp hạng mobile cao100% hàng, marginBlock0; rộng thêm24px×dialogScale về phải, giữ mốc trái/offset và vùng tên. Desktop giữ nguyên. npm.cmd run build/typecheck PASS; dist index-D7LsS19u.js/index-CNVVDGzD.css cập nhật; chưa browser QA.
+
+- 2026-10-22: Theo user, Lịch sử mobile hiển thị12 ván trong khung (thay10), chiều cao hàng trừ đúng11 khoảng cách; áp dụng Đã chơi/Đã lưu ván. Avatar60→72px thiết kế (tăng đều), thẻ tên48→58/chữ17→21, quân36→44, ngày giờ16→19, Xem lại cao44→54/chữ21 và tăng phần cột18fr. Cân lại cột co giãn, giữ desktop và hành vi; khóa lại phạm vi sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-7Mw-a01l.js/index-CNVVDGzD.css xác nhận12 dòng/kích thước mới; chưa QA trực quan với dữ liệu lịch sử.
+
+- 2026-10-22: Xếp hạng mobile: Elo cột122×eloScale/offset36×dialogScale; tên giữ24×rowScale, bỏ truncate và cho xuống dòng, h3 tự cao để không khuất. fullName+equalDigitSize dùng cùng font-heading/weight/lining-nums cho toàn tên (chữ và số bằng cỡ), chỉ compact. Desktop/consumer khác giữ mặc định. Build/typecheck PASS; dist index-g6Edeibv.js/index-C444bi-_.css xác nhận fullName; chưa browser QA.
+
+- 2026-10-22: Theo user, tăng đều avatar trong hai cụm người chơi ở hàng Lịch sử mobile từ44 lên60px thiết kế; tăng chiều cao thẻ tên34→48px, giữ căn giữa và lưới10 dòng. Áp dụng chung Đã chơi/Đã lưu; desktop giữ nguyên. Mở đúng phạm vi avatar/thẻ tên task này và khóa lại sau task. npm.cmd run build (typecheck + Vite) PASS; dist index-DJ1I7QHH.js/index-CbdUYjDb.css xác nhận kích thước mới. Chưa QA trực quan hàng có dữ liệu.
+
+- 2026-10-22: Theo user, tên trong Xếp hạng mobile tăng22→24 logical theo rowScale; chữ số trong tên dùng100% thay90% qua SocialPlayerName.equalDigitSize riêng compact. Laptop và các consumer khác giữ mặc định. npm.cmd run build/typecheck PASS; dist index-70fAFiZP.js xác nhận equalDigitSize. Chưa browser QA.
+
+- 2026-10-22: Sửa Xếp hạng mobile theo ảnh user: cột Elo dùng132×eloScale thay156×rowScale, trả phần rộng chênh lệch cho cột tên nên Elo dịch phải thực trong layout; header và hàng dùng chung gridTemplateColumns. Giữ offset24px, avatar/nút và desktop. npm.cmd run build (typecheck+Vite) PASS; dist index-B6l5561i.js xác nhận grid mới. Chưa browser QA.
+
 - 2026-10-22: Theo ảnh user, dịch thêm cụm Elo trong các hàng Xếp hạng mobile từ12 lên24px theo scale dialog, tạo khoảng trống hiển thị tên. Laptop giữ nguyên. `npm.cmd run build` (typecheck + Vite) PASS; dist/assets/index-9hjkmlPq.js/index-CcYwxfLn.css cập nhật. Chưa browser QA.
 
-- 2026-10-22: User mở lại đúng phần Lịch sử mobile cho task này: tab Đã chơi/Đã lưu dùng cùng khung kích thước 264×70 phóng1.4× như Cờ Tướng/Cờ Úp ở Xếp hạng; thu avatar hàng64→48, bảng tên50→38 và chữ24→19 để vừa 10 dòng. Laptop và các phần Lịch sử khác giữ nguyên; khóa lại sau task. `npm.cmd run build` (typecheck + Vite) PASS; dist `index-BTegBM5p.js`/`index-CcYwxfLn.css` cập nhật. Browser QA xác nhận preview mobile/empty state; chưa có dữ liệu lịch sử để kiểm tra hàng có nội dung.
+- 2026-10-22: Theo ảnh user, cân lại hàng Lịch sử mobile: lưới 5/6 cột theo tỉ lệ co giãn thay cột cố định, dành ngang tương xứng cho hai người chơi; thu ngày/nút/quân và avatar/bảng tên/kết quả để nội dung không lấn cột giữa. Desktop giữ nguyên. `npm.cmd run build` (typecheck + Vite) PASS; dist cập nhật. Preview hiện không có bản ghi nên chưa QA trực quan hàng có dữ liệu.
 
 - 2026-10-22: Theo user, căn lại nhãn cột Xếp hạng mobile cùng scale1.5× với hàng để thẳng trục; đẩy ô Elo thêm4px logic (tổng12px theo scale dialog) sang phải, chừa khoảng cho tên. Laptop giữ nguyên. `npm.cmd run build` (typecheck + Vite) PASS; dist/assets/index-BTegBM5p.js và index-CcYwxfLn.css cập nhật. Chưa browser QA.
 
@@ -2964,3 +3212,270 @@ pm.cmd run build (typecheck + Vite) PASS; dist/assets/index-Cgh9GUJJ.js đã c�
 
 
 - 2026-10-23: CI #8 / PR #4, commit gốc 428ae4c: không đọc được log GitHub qua connector vì cần liên kết tài khoản; đã tái hiện đúng hai lỗi ui.test.tsx tại Local (hết giờ phe Đỏ/Đen). Test gộp start và timeout trong một act nên effect không quan sát playing; tách render playing trước khi kết thúc, giữ đủ assertions kết quả/biểu cảm. Full suite còn phát hiện kỳ vọng keyframe90% cũ, thiếu matchMedia desktop trong country-picker và server.test giả định người vào trước cầm Đỏ; chỉ cập nhật test theo animation liên tục và màu từ snapshot Ready. Không sửa runtime/Elo/tài khoản/bảo mật/workflow/VPS, không xóa test/skip/retry hoặc tăng timeout. Kiểm chứng 2026-10-23: related72/72; snapshot sạch từ HEAD cộng đúng4 file test: npm test397 PASS/23 SKIP vốn có (17MySQL+6Pikafish), exit0; typecheck/build PASS cả workspace và snapshot. Snapshot ZIP giữ tên asset tiếng Việt; lần giải nén tar trước đó lỗi Unicode không tính là PASS. Dist workspace đã cập nhật; thay đổi chỉ test nên không thêm mã runtime vào bundle. Chưa có kết quả lần CI GitHub mới tại thời điểm ghi chú; không merge/deploy.
+
+- 2026-10-23: User yêu cầu hoàn tác thử màu nền/thẻ Xếp hạng: bỏ toàn bộ override màu compact vừa thêm, trở lại màu nền giấy/thẻ/header/cột Elo sẵn có trước task đổi trắng kem. Giữ các chỉnh sửa kích thước/căn cột trước đó; khóa lại phạm vi.
+- Kiểm chứng hoàn tác: npm.cmd run build (typecheck + Vite) PASS; dist index-VctTKNzY.js cập nhật. Chưa browser QA.
+
+- 2026-10-23: Đồng bộ tên/trạng thái hai tab Xếp hạng mobile theo user: tên cố định28×rowScale, font-heading, không tự co; vùng tên hai dòng cùng chiều cao/neo đáy. Trạng thái cùng font-heading/cỡ22×rowScale/line-height1.2, nhãn đang chơi đúng variant. Avatar/màu/desktop giữ hiện tại; khóa lại sau task.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-C-L0YMS6.js và index-DnIQdC8L.css cập nhật. Chưa browser QA.
+
+- 2026-10-23: Đính chính theo user: tên người chơi trong Xếp hạng mobile nằm một hàng. Tên dùng font-heading chung, tự co theo chiều rộng để hiện đủ; khung tên trở về chiều cao một hàng để trạng thái giữ vị trí thẳng hàng trên hai tab. Build/typecheck PASS; khóa lại phạm vi.
+
+- 2026-10-23: Đính chính theo user: tên Xếp hạng mobile không tự thu nhỏ; giữ cỡ28×rowScale trên một hàng và cho chữ tràn ngang nếu dài. Cùng font/cỡ/vị trí giữa Cờ Tướng và Cờ Úp; build/typecheck PASS.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-DmtGOxrq.js/index-DgHs07uv.css cập nhật. Chưa browser QA.
+- 2026-10-23: Theo yêu cầu người dùng, xóa vật lý tài khoản có display_name dài hơn10 ký tự khỏi MySQL và các dữ liệu profile/resource/social/chat của tài khoản. Một tài khoản khớp. Xóa hội thoại riêng; ẩn danh9 lần xuất hiện trong lịch sử bằng nhãn Người chơi đã xóa để không còn khóa/liên kết tới tài khoản và giữ lịch sử đối thủ. Xác minh account không còn, còn0 nick quá10 ký tự, 9 dòng lịch sử ẩn danh không liên kết; không sửa source/build.
+
+- 2026-10-23: Theo user, thu nhỏ nhẹ tên trong Xếp hạng mobile từ28 xuống26×rowScale. Giữ một hàng, tràn ngang khi dài, cùng font/vị trí trên hai tab; không đổi chiều cao vùng tên, trạng thái, avatar hay desktop. Build/typecheck PASS; khóa lại phạm vi.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-BVoMMVLz.js/index-BsZw0xvi.css cập nhật.
+
+- 2026-10-23: Theo user, thu nhỏ nhẹ huy hiệu Top 1–3 trong Xếp hạng mobile: scale phần huy hiệu trong ô hạng từ1.15 xuống1.08. Không đổi avatar, cột hoặc desktop; khóa lại sau task.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-BZXjawkI.js/index-BZx2Uhjd.css cập nhật.
+
+- 2026-10-23: Theo user, thu nhỏ thêm huy hiệu Top 1–3 Xếp hạng mobile: bỏ phần phóng thêm, về scale rowScale gốc (từ1.08). Desktop/avatar/các cột giữ nguyên; khóa lại sau task.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-BEOwYVYG.js/index-BZx2Uhjd.css cập nhật.
+
+- 2026-10-23: Theo user, giảm bo góc khung Elo Xếp hạng compact: khung nền và ô số từ bán kính9/8 về5 theo scale dialog. Desktop và số liệu giữ nguyên; khóa lại sau task.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-Dh4BBp66.js/index-DXQUUHyK.css cập nhật.
+
+- 2026-10-23: Theo user, thẻ Elo trong danh sách Xếp hạng dùng artwork/kiểu số của Home (elo-frame.png, font-number, CrispUiImage); Cờ Úp dùng icon quân ẩn và Elo theo variant hiện chọn. Thay khung nâu cũ, giữ dữ liệu, cột/offset và áp dụng cả desktop/compact.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-D6xgfJ-p.js/index-DaCr_iBc.css xác nhận asset thẻ Elo mới. Chưa browser QA.
+
+- 2026-10-23: Theo user đính chính thẻ Elo Xếp hạng: khôi phục viền nâu bao ngoài, tăng lớp viền và nền Home-frame lên cao42 (trước32), số18→22 và icon22→25 theo eloScale. Cờ Tướng/Cờ Úp cùng layout; dữ liệu/desktop scaling giữ đúng. Build/typecheck PASS.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-nKRD2nbu.js/index-BhO1Ooro.css cập nhật. Chưa browser QA.
+
+- 2026-10-23: Đính chính theo user: khung bao Elo là lớp nền nâu trong suốt cũ bg-[#b68c53]/20, desktop margin17/cao trừ34, mobile full hàng và bo5. Bỏ border/gradient/shadow vừa thêm nhầm. Giữ thẻ Elo Home cao42, số22/icon25 đã phóng; padding dùng token34 có sẵn. Khóa lại phạm vi.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-6bHSMW1d.js/index-B3RmVq8s.css xác nhận nền nâu cũ. Chưa browser QA.
+
+- 2026-10-23: Theo user, tăng tiếp thẻ Elo Xếp hạng: artwork cao42→46 theo scale; số22→24. Nền nâu bao ngoài nới thêm6px cả chiều rộng và cao, căn giữa trong ô; giữ viền/nền nâu cũ, icon và dữ liệu. Áp dụng cả desktop/compact.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-CXBJW7vB.js/index-Tg2fukBZ.css cập nhật.
+
+- 2026-10-23: Theo user, khung nâu bao Elo trong Xếp hạng điện thoại rộng thêm7px (tổng phần nới compact 6→13px theo dialog scale). Thẻ Elo bên trong và desktop giữ nguyên.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-Cq2N8zGM.js/index-5juzdCui.css cập nhật.
+
+- 2026-10-23: Theo ảnh user, chỉ nới nền nâu nhạt phía sau thẻ Elo mobile thêm đúng7px hiển thị sang phải: tách nền thành lớp absolute compact:-right-[7px]. Không thay bề rộng/neo của thẻ ảnh, icon hoặc số; desktop giữ nguyên. Khóa lại phạm vi.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-CBlC4AX3.js/index-UMxrbd2B.css xác nhận lớp nền nới7px. Chưa browser QA.
+
+- 2026-10-23: Đính chính theo user: nền nâu bao Elo mobile nới đều hai bên, trái3.5px/phải3.5px (tổng chiều ngang thêm7px), thay nới riêng bên phải7px. Giữ thẻ/số và tâm hiện tại; khóa lại phạm vi.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-ByCCEf6M.js/index-D0T0SB1q.css xác nhận nới đều hai bên. Chưa browser QA.
+
+- 2026-10-23: Theo user, mỗi dòng Lịch sử điện thoại (Đã chơi và Đã lưu/Ván đấu) xếp hai người trên–dưới, hai quân cờ ở giữa; ngày giờ bên trái, nút Xem lại cuối dòng bên phải. Grid compact 3 cột/3 hàng, chiều cao tối thiểu220 theo dialog scale để đủ nội dung. Giữ kích thước avatar, desktop, dữ liệu và hành vi xem lại/xóa. Khóa lại phạm vi sau task. Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-BP2J5pC0.js/index-CL70y7zz.css xác nhận class bố cục mới. Chưa browser QA.
+
+- 2026-10-23: Theo user, tăng nút đóng chung Xếp hạng/Bạn bè/Lịch sử mobile: vùng bấm72→84 và dấu×56→64 theo dialog scale. Giữ góc12px, vị trí/buttonInteraction, desktop56/42. Áp dụng qua DialogCloseButton dùng chung; khóa lại phạm vi.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-DrUdgmEj.js/index-CL70y7zz.css xác nhận kích thước nút chung mới. Chưa browser QA.
+
+- 2026-10-23: Theo user, nâng nút× chung Xếp hạng/Bạn bè/Lịch sử mobile lên3px hiển thị qua DialogCloseButton. Giữ kích thước84/64, neo ngang/góc và desktop. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, phóng nội dung hàng Lịch sử điện thoại: avatar76→96, tên/nút Xem lại24→32, badge Thắng/Thua66×32→90×43, quân50→72, ngày giờ22→28, nút cao63→84 theo dialog scale. Người trên căn trái/người dưới căn phải trong cột giữa (rộng90%); hàng tối thiểu300 để đủ chỗ. Dùng chung Đã chơi/Đã lưu ván; desktop và Thế cờ giữ nguyên. User mở riêng avatar/bố cục mobile cho task này, khóa lại sau task. Build/typecheck PASS; dist hiện hành xác nhận class căn trái/phải và avatar96. Chưa browser QA.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-CXp4TuuA.js/index-BfGhSI7B.css xác nhận offset nút×. Chưa browser QA.
+
+- 2026-10-23: Theo user, nâng nút× mobile thêm5px, tổng offset lên8px; đồng bộ Xếp hạng/Bạn bè/Lịch sử qua DialogCloseButton. Giữ kích thước và desktop; khóa lại phạm vi.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-C5ut9Td4.js/index-ChNTUYei.css xác nhận offset chung -8px. Chưa browser QA.
+
+- 2026-10-23: Theo user, dịch nút× mobile sang phải5px, giữ offset lên8px; đồng bộ Xếp hạng/Bạn bè/Lịch sử qua DialogCloseButton. Desktop giữ nguyên; khóa lại phạm vi.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-GKCfaEBL.js/index-C-Jw5ndw.css xác nhận offset nút× phải5/lên8px. Chưa browser QA.
+
+- 2026-10-23: Theo user chỉnh tiếp Lịch sử điện thoại: người trên sát mép trái toàn dòng, phía trên ngày giờ; người dưới sát mép phải, đảo avatar/tên/kết quả và viền/padding để đối xứng. Hai cụm cùng rộng75%; ngày giờ/quân/nút Xem lại cùng hàng giữa. Phóng thêm avatar118, tên/nút38, badge108×52, quân90, ngày giờ34, nút cao100; hàng tối thiểu380 theo dialog scale. Áp dụng Đã chơi và Đã lưu/Ván đấu, desktop giữ nguyên; khóa lại phạm vi sau task. Build/typecheck PASS, dist đã xác nhận class bố cục đối xứng/avatar118; chưa browser QA.
+
+- 2026-10-23: Theo user, dịch nút× mobile thêm lên10px/trái15px so vị trí trước; tổng offset trái10/lên18px. Đồng bộ Xếp hạng/Bạn bè/Lịch sử qua DialogCloseButton; khóa lại phạm vi.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-DvB1Bn7F.js/index-BGheNpaC.css xác nhận offset mới. Chưa browser QA.
+
+- 2026-10-23: User đính chính hướng dịch nút× lượt trước: phải15px thay trái15px, giữ nâng thêm10px. Tổng offset hiện tại phải20/lên18px cho Xếp hạng/Bạn bè/Lịch sử mobile; desktop giữ nguyên. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, Lịch sử mobile thu nhẹ avatar118→106, tăng tên38→44 và badge Thắng/Thua108×52→132×63 theo dialog scale. Giữ bố cục đối xứng và các thành phần khác/desktop. Áp dụng chung Đã chơi/Đã lưu ván; khóa lại phạm vi. Build/typecheck PASS; dist xác nhận đủ3 kích thước mới; chưa browser QA.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-Bi5CZk5_.js/index-Dkbcqxgk.css xác nhận hướng phải. Chưa browser QA.
+
+- 2026-10-23: Theo user, Lịch sử điện thoại thu avatar106→96; khung tên kéo chồng48 vào dưới avatar với padding60 đối xứng trái/phải, cao tối thiểu96 cùng avatar để liền khối thay vì chỉ chạm mép tròn. Giữ tên44/badge132×63 và bố cục, desktop nguyên trạng. Áp dụng Đã chơi/Đã lưu ván; khóa lại phạm vi. Build/typecheck PASS; dist xác nhận avatar96 và overlap hai hướng. Chưa browser QA.
+
+- 2026-10-23: User chốt Xếp hạng hiện tại xong, chuyển sang Tin nhắn mobile: kích thước dialog bằng layout Xếp hạng (width/height×scale), hai panel cao đầy khung. Token nội dung dùng1.5×dialog scale cho chữ/icon/control/hàng tương ứng; desktop giữ công thức cũ. Giữ cấu trúc2panel, dữ liệu/API và hành vi chat.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-oJEyNz77.js/index-Q13H9-aA.css cập nhật. Chưa browser QA trực quan (browser bị tắt trong môi trường).
+
+- 2026-10-23: Theo user, tên người chơi Lịch sử điện thoại tăng nhẹ44→48 theo dialog scale và font-bold thay font-medium trên compact. Áp dụng cả2 người/Đã chơi/Đã lưu ván; desktop và bố cục giữ nguyên; khóa lại phạm vi. Build/typecheck PASS; dist xác nhận tên48/font-bold; chưa browser QA.
+
+- 2026-10-23: Theo user, tên Lịch sử mobile cùng kiểu Xếp hạng: font-heading/extrabold, stroke0.2px, chữ/số cùng font và cỡ, một hàng/line1.4; giữ cỡ48 hiện tại. Đã lưu/Ván đấu luôn hiện thùng rác ở hàng đầu bên phải, trên Xem lại (vùng bấm72/icon43 theo scale), bỏ giữ lâu mới hiện riêng danh sách ván; Thế cờ giữ hành vi cũ. Desktop giữ font/layout và nút xóa hiện có. Build/typecheck PASS; dist xác nhận style tên/vị trí nút; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, dòng ván Lịch sử mobile dùng chung socialPlayerRowClass của Xếp hạng (nền giấy gradient/viền/bo góc/bóng inset/overflow); radius lấy getSocialRowStyle cùng scale. Giữ chiều cao và bố cục3hàng/tên/avatar/nút vừa chốt, áp dụng Đã chơi và Đã lưu/Ván đấu; desktop/Thế cờ giữ nguyên. Build/typecheck PASS; dist xác nhận shared row style. Chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, Tin nhắn mobile chuyển sang điều hướng một màn kiểu Zalo: full viewport, danh sách hội thoại toàn chiều ngang; tìm kiếm/tạo nhóm cùng hàng trên. Chọn người/nhóm ẩn danh sách và mở chat toàn chiều ngang; nút quay lại/Escape về danh sách. Đóng dialog dọn lựa chọn/tìm kiếm; Nhắn tin từ hồ sơ vẫn vào đúng đích. Dòng76px, nội dung/token mobile có scale tối thiểu0.65, avatar hàng48px theo quyền phóng nội dung Chat user đã cho. Giữ API/gửi/ảnh/emoji/nhóm/tùy chọn và desktop hai panel. Xếp hạng đã chốt, không sửa.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-AFLsSrmQ.js/index-Cnk1LBCe.css xác nhận điều hướng mobile mới. Chưa browser/touch QA vì môi trường tắt browser.
+
+- 2026-10-23: User làm rõ là ô lớn bao mỗi ván Lịch sử, không phải thanh tên. Mobile giữ socialPlayerRowClass/radius chung Xếp hạng, bổ sung gap8×dialogScale và lớp bóng gradient trái132×rowScale như dòng Xếp hạng. Giữ bố cục bên trong/thanh tên, desktop nguyên trạng. Build/typecheck PASS; dist xác nhận lớp bóng chung; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: User đính chính Tin nhắn mobile không full viewport: rộng/cao bằng dialog Xếp hạng qua layout.width/height×layout.scale. Giữ bố cục một màn danh sách hoặc hội thoại, hàng tìm kiếm/tạo nhóm, nội dung lớn và quay lại.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist đã cập nhật kích thước dialog giới hạn theo layout Xếp hạng. Chưa browser QA.
+
+- 2026-10-23: Theo user, danh sách Đã chơi mobile kéo lên sát2tab chính: bỏ hàng tab con ẩn nhưng vẫn chiếm chỗ (compact:invisible/compact:flex), dùng hidden thật khi không ở Đã lưu. Đã lưu vẫn hiện2tab con và giữ khoảng chừa; desktop giữ hành vi cũ. Build/typecheck PASS; dist xác nhận bỏ hàng chừa ẩn; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, Chat mobile tái dùng SocialDialogFrame giống Xếp hạng/Bạn bè, hideTitle riêng để không có chữ Tin nhắn; giữ khung các bảng khác qua mặc định hideTitle=false. Bỏ header chữ/khung phẳng mobile, dùng nút× chung. Tìm kiếm giữ chính màu laptop #241309/viền#dca44d/chữ trắng. Tạo nhóm mobile dựng icon/chữ HTML trên nút112×44px có viền/nền nâu vàng, không kéo méo artwork; desktop giữ ảnh gốc. Hai màn danh sách/chat nằm gọn trong khung, giữ điều hướng/API.
+- Kiểm chứng: npm.cmd run build/typecheck PASS; dist xác nhận nút Tạo nhóm112px và khung chung. Chưa browser QA vì browser bị tắt.
+
+- 2026-10-23: Theo user, phóng2tab con Ván đấu/Thế cờ trong Đã lưu mobile khoảng25%: chữ34→43, min-height72→90, min-width210→270, padding ngang28→36/dọc10→12 theo dialog scale. Desktop/Đã chơi giữ nguyên; khóa lại phạm vi. Build/typecheck PASS; dist xác nhận kích thước tab mới; chưa browser QA.
+
+- 2026-10-23: User đính chính nút Tạo nhóm Tin nhắn mobile phải giống laptop: tái dùng group-button.png có sẵn cho cả2 nhánh, bỏ icon/chữ HTML và nền/viền dựng riêng compact. Mobile object-contain trong vùng112×44 để giữ tỷ lệ artwork; laptop giữ nguyên object-fill và kích thước cũ. Giữ mở panel/API tạo nhóm. Build/typecheck PASS; dist xác nhận artwork mobile; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, chữ danh sách Tin nhắn trống “Không tìm thấy người chơi” mobile tăng lên22px thật và semibold; giữ màu/font/căn giữa, desktop nguyên trạng. Build/typecheck PASS; dist xác nhận style mới; chưa browser QA.
+
+- 2026-10-23: User đính chính chữ trống cần tăng là Lịch sử, không phải Tin nhắn. Hoàn tác chữ trống Tin nhắn; historyEmptyTextClass chung Đã chơi/Đã lưu ván/Thế cờ thêm compact22px/semibold, desktop giữ28 theo scale. Build bị chặn bởi lỗi TS2559 tại FriendsDialog.tsx:236 (contentStyle custom property --ranking-tab-width ngoài phạm vi task); chưa cập nhật dist/chưa browser QA.
+
+- 2026-10-23: Theo user, Chat mobile tăng chữ tìm kiếm18px, control cao50px; nút Tạo nhóm132×50/icon24/chữ17 dựng HTML để giữ tỷ lệ. Hội thoại dùng socialPlayerRowClass và radius từ getSocialRowStyle chung Xếp hạng, hàng92px/gap6px, avatar56px, tên20px, preview16px, giờ13px; màu chữ nâu trên nền kem chung. Giữ desktop và dữ liệu/điều hướng. Build/typecheck PASS; dist index-D8PxTPk2.js/index-7lmrkjr-.css xác nhận. Chưa browser QA.
+
+- 2026-10-23: Theo user,2tab chính Lịch sử mobile Đã chơi/Đã lưu tăng từ264×70×1.4 lên264×70×1.6 theo dialog scale, cùng công thức tab Xếp hạng. Desktop giữ nguyên. Build/typecheck PASS; dist xác nhận tab mới và bao gồm chữ trống Lịch sử22px từ lượt trước (lỗi build Bạn bè đã hết ở workspace hiện tại). Chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, tạm ẩn2tab con Ván đấu/Thế cờ trong Lịch sử MOBILE. SHOW_MOBILE_SAVED_CATEGORIES=false giữ markup/state/tính năng Thế cờ để phục hồi; compact luôn chọn matches khi ẩn, Đã lưu mở trực tiếp danh sách ván và không chừa chiều cao tab con nên khung lên ngang Đã chơi. Không xóa dữ liệu, desktop giữ2tab con. Build/typecheck PASS; dist đã cập nhật; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user đính chính Chat mobile: Tạo nhóm dùng đúng group-button.png của laptop, bỏ nút HTML thay thế; ảnh giữ tỷ lệ tự nhiên trong vùng144×42px (không kéo méo). Dòng hội thoại dùng nguyên socialPlayerRowClass/getSocialRowStyle và bổ sung đúng dải bóng trái/gradient #4a261327/#75451d1a rộng132×rowScale như Xếp hạng. Giữ nội dung lớn/desktop. Build/typecheck PASS; dist index-CmtssHAy.js/index-R6mo7Grr.css xác nhận; chưa browser QA.
+
+- 2026-10-23: Theo user, nhích2cụm avatar/tên Lịch sử mobile vào trong12 logical theo dialog scale (trên margin-left, dưới margin-right đối xứng) để khung avatar không khuất mép ô. Giữ kích thước/khung tên dính avatar và desktop. Build/typecheck PASS; dist xác nhận inset2hướng; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, dùng thanh cuộn Xếp hạng laptop cho danh sách Bạn bè/Xếp hạng/Lịch sử mobile: socialListScrollbarClass chung ở uiClasses, thumb trắng/bo tròn, track trong suốt, thin/6px, gutter stable, ẩn nút mũi tên. Friends áp dụng mọi tab/danh sách lời mời; History cả Đã chơi/Đã lưu và Thế cờ đang ẩn để phục hồi đồng bộ. Desktop giữ style cũ (Ranking tái dùng token cùng nội dung). Build/typecheck PASS; dist xác nhận thanh cuộn trắng; chưa QA trình duyệt điện thoại thật (thanh cuộn overlay do trình duyệt điều khiển). Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, thêm nút× vào góc trên phải bảng thông tin user MOBILE qua DialogCloseButton chung Xếp hạng (cỡ84/dấu64 và offset chung theo scale). onClose đóng hồ sơ; chỉ hiện trên bảng thông tin chính, không chèn lên chỉnh avatar/địa chỉ/catalog danh hiệu; desktop giữ nguyên. Build/typecheck PASS; dist xác nhận nút compact; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, Chat mobile thu hàng tìm kiếm/tạo nhóm vào36px tổng chiều ngang, nút nhóm rộng144→126px/cao42→46px và chữ20px. Nút dùng border-image từ chính artwork laptop để giữ góc/hoa văn khi đổi tỷ lệ; icon crop CSS từ cùng ảnh, chữ HTML độc lập để phóng mà không méo. Desktop giữ ảnh gốc. Build/typecheck PASS; dist index-jkKtnjSo.js/index-Iue8rzuG.css xác nhận. Chưa browser QA.
+
+- 2026-10-23: Theo user, dựng lại nút Tạo nhóm mobile bằng MessagesCreateGroupButton: nền/viền,4họa tiết góc SVG, icon nhóm SVG và chữ HTML là phần độc lập. Props width/height/iconSize/labelSize/ornamentSize cho chỉnh riêng, không crop hoặc kéo ảnh chứa chữ; giữ ref/focus/onClick. Laptop giữ artwork gốc. Build/typecheck PASS; dist index-DGLJB454.js/index-D3V5j6to.css xác nhận. Chưa browser QA.
+
+- 2026-10-23: User đính chính nút× hồ sơ mobile phải chính xác như Xếp hạng: dùng DialogCloseButton cùng scale từ useRankingLayout, cả offset top24/right28 tính theo ranking scale thay profile scale740 khiến nút lớn hơn. Giữ transform/style chung và neo góc bảng hồ sơ. Desktop giữ nguyên. Build/typecheck PASS; dist xác nhận offset mới; chưa browser QA.
+
+- 2026-10-23: Theo user, đồng bộ nút× MOBILE qua DialogCloseButton chung cho Hồ sơ/Xếp hạng/Bạn bè/Lịch sử (và nơi tái dùng): dịch trái4px (translateX20→16), tăng nhẹ vùng bấm84→90 và dấu64→68 theo scale. Hồ sơ giữ scale Xếp hạng đã chốt; mọi chỉnh tiếp dùng component chung, không offset riêng. Desktop giữ56/42 và không transform. Build/typecheck PASS; dist xác nhận offset chung mới; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, Chat mobile nới hàng tìm kiếm về toàn bề ngang, ô cao50→44px; chữ nhập16px, hint14px hiển thị đủ Tìm tên hoặc ID người chơi như laptop (tự xuống dòng khi thiếu chỗ, không cắt). Hàng hội thoại92→76px, avatar56→48px; thời gian ở mép phải14px, cùng formatter/nguồn lastMessageAt và quy tắc huy hiệu chưa đọc với laptop. Desktop giữ nguyên. Build/typecheck PASS; dist index-BvVz7seY.js/index-y3JzvEv5.css xác nhận. Chưa browser QA.
+
+- 2026-10-23: Theo user chỉnh Shop MOBILE: biển Cửa Hàng110×36 cạnh Back; tài nguyên riêng Shop116×26/ô, icon18/số14/plus18, góc trên phải xếp năng lượng trên/vàng dưới cách30px. Header72px; cụm MarketHeading lên trước dock chợ, vùng18dvh/min130; dock Phiên Chợ/Cao Cấp/Sự Kiện xuống ngay trước filter và panel sản phẩm qua order+section contents compact. Desktop/Home/resource token chung không đổi; giữ mua hàng/API/countdown. Build/typecheck PASS; dist xác nhận thứ tự/biển mới; chưa browser QA điện thoại.
+
+- 2026-10-23: Theo user, Shop mobile lưới3cột×4hàng thay2cột; gap/padding4px và footer32px/icon14/chữ12 để vừa ô hẹp. Giữ số sản phẩm thật, không nhân bản lấp12ô. Ba tab chợ chữ12→14px, line1.15; ẩn slot cuối trống compact để không tạo hàng grid phụ đẩy icon/tên lệch tâm dọc. Desktop giữ4×2 và kiểu cũ. Build/typecheck PASS; dist xác nhận grid3×4; chưa browser QA.
+
+- 2026-10-23: Theo user, Tạo nhóm mobile thay khung và icon SVG bằng2PNG mới trong src/assets: 95959a5a (khung2172×724) và49ad812e (nhóm1254×1254). CSS cắt khoảng alpha dư bằng các viewport riêng; khung chia3lát trái/giữa/phải để giữ góc khi resize, icon giữ tỷ lệ; chữ HTML Georgia bold gần font artwork cũ. Giữ width/height/iconSize/labelSize độc lập và laptop. Build/typecheck PASS; dist index-G_ZUQ2i0.js/index-BAJVcaKS.css xác nhận2asset mới; đã xem nguồn ảnh, chưa browser QA.
+
+- 2026-10-23: Theo user, thẻ Tạo nhóm mobile rộng126→148px, chữ20→17px. Cụm icon/chữ neo giữa trong vùng inset20px, gap4px để nằm trong lòng thẻ; giữ hai asset riêng và chiều cao46px. Avatar hàng hội thoại48→44px, không đổi avatar header hoặc desktop. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Theo user, thay riêng khung Tạo nhóm mobile bằng7c55d422-22c0-40f3-9c29-ee23f4b57d58.png (2172×724); crop CSS vùng x12..2160/y180..540, chia3lát cap300px để giữ đầu nhọn/viền. Giữ kích thước148×46, icon49ad812e và chữ17px. Build/typecheck PASS; dist index-uChmMj71.js/index-BYT1m-2a.css xác nhận asset mới; đã xem ảnh nguồn, chưa browser QA.
+
+- 2026-10-24: Theo user, Chat mobile tách thời gian/huy hiệu chưa đọc thành cột riêng bên phải căn giữa chiều dọc hàng. Cụm tên/preview tăng khoảng cách với avatar thêm7px thật qua margin-left. Giữ quy tắc thời gian/chưa đọc và desktop. Build/typecheck PASS; dist index-BAA9p7Gk.js/index-B6elaPna.css xác nhận. Chưa browser QA.
+
+- 2026-10-24: Theo ảnh user, khung ngoài Chat mobile thay SocialDialogFrame bằng conversation-list-frame.png của danh sách laptop: nền nâu hoa văn/viền vàng, cùng inset nguồn. Giữ kích thước dialog hiện tại, nội dung và điều hướng mobile, nút× chung; desktop nguyên trạng. Build/typecheck PASS; dist index-DdSBJ2aq.js/index-U-k3JYlK.css xác nhận. Chưa browser QA.
+
+- 2026-10-24: Theo user, khung Chat mobile bù khoảng trống nguồn của artwork laptop (rect x10/y36/445×940 trên465×998) để đường viền nâu/vàng phủ bằng kích thước dialog các bảng khác; giữ layout nominal. Hàng hội thoại thêm chữ Đang online/Offline cạnh chấm, tách preview xuống dưới. Thời gian cột phải luôn ở hàng trên ngang tên, huy hiệu chưa đọc ở slot dưới (không thay thế thời gian trên mobile). Desktop giữ quy tắc cũ. Build/typecheck PASS; dist index-DjuaXENJ.js/index-BLvoTCl8.css xác nhận. Chưa browser QA.
+
+- 2026-10-24: Theo user, làm đẹp3filter Shop MOBILE Tất cả/Avatar/Khung Viền: tab bo8/viền vàng, selected gradient kem-vàng/bóng sáng nhẹ, idle nâu nổi; highlight mép trên, chữ16/extrabold. Thanh48px/gap6/padding5, hiệu ứng nhấn hạ2px/scale0.96 và transition200ms có motion-reduce; focus outline. SVG và hình thức desktop giữ nguyên, filter data/mua hàng không đổi. Build/typecheck PASS; dist xác nhận hiệu ứng/tab mới; chưa browser QA.
+
+- 2026-10-24: Theo user, Cửa Hàng Cao Cấp có countdown tuần dạngXd HH:MM:SS (ngày ký hiệu d). Mốc chọn00:00 thứHai UTC+7, tự lặp7ngày; tái dùng hook timer/focus/visibility và daily mặc định giữ nguyên. Quy tắc thời gian dùng chung hai viewport, không đổi geometry laptop. Chỉ đồng hồ UI, chưa tự thay catalog/backend. Kiểm tra3mốc thứHai/giây cuối/trước2ngày PASS; build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, thu nhẹ3filter Shop mobile: thanh48→42px, chữ16→14px; giữ nền/viền/effect nhấn và desktop. Build/typecheck PASS; dist xác nhận chiều cao mới; chưa browser QA.
+
+- 2026-10-24: Theo user, khung Tạo nhóm mobile thay bằng0963fdaa-fd2f-4c9d-bcce-0cd1500ccfd8.png; CSS crop vùng x48..2124/y132..560, chia3lát cap300 để giữ góc bo. Giữ icon/chữ/kích thước và desktop. Build/typecheck PASS; dist index-CH16LqMF.js/index-D54ybWBF.css xác nhận asset mới; đã xem nguồn, chưa browser QA.
+
+- 2026-10-24: Theo user,3filter Shop mobile dùng hiệu ứng như tab con Danh sách Bạn bè: transition filter150ms/hover110, selected brightness1.1/saturate1.3/drop-shadow1px vàng+4px cam; bỏ nhấn lún2px/scale0.96 và glow cũ. Giữ kích thước42/chữ14, hình thức và desktop. Build/typecheck PASS; dist xác nhận hiệu ứng mới; chưa browser QA.
+
+- 2026-10-24: Theo phản hồi icon Tạo nhóm mobile bị méo, ảnh icon khóa tỷ lệ nguồn vuông1:1 bằng width/height intrinsic và height:auto, chỉ scale theo một chiều bằng pixel; đặt trong viewport vuông và căn giữa phần alpha thật. Không ép width/height phần trăm độc lập. Giữ khung/chữ/hành vi. Build/typecheck PASS; dist index-BWYA1Sj1.js/index-809XO8Im.css cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, bỏ đổi nền vàng của3filter Shop mobile khi chọn: selected giữ cùng nền nâu/viền/chữ/bóng như idle, chỉ khác hiệu ứng filter phát sáng đã chốt. Desktop giữ màu chọn cũ. Build/typecheck PASS; dist xác nhận selected nền nâu; chưa browser QA.
+
+- 2026-10-24: Theo ảnh user, vết lõm cạnh icon thực tế là đường nối3lát khung Tạo nhóm. Bỏ ghép lát, dùng một ảnh khung0963fdaa liên tục với crop CSS toàn vùng2076×428 để không sinh seam/đứt viền. Icon/chữ/kích thước giữ nguyên. Build/typecheck PASS; dist index-bnx9cpIA.js/index-BoCLPUD6.css xác nhận. Chưa browser QA.
+
+- 2026-10-24: Theo user,3filter Shop mobile selected có nền vàng nâu nhẹ gradient#8a652e→#604019, viền#c69a54/chữ#fff0c4; giữ glow đã chốt và idle nâu. Desktop giữ nguyên. Build/typecheck PASS; dist xác nhận nền mới; chưa browser QA.
+
+- 2026-10-24: User đính chính lỗi là icon ba người Tạo nhóm chứ không phải khung. Thay riêng render PNG bằng SVG ba người với đường tròn/cung mượt, gradient vàng và viền mảnh, tỷ lệ40:32; useId cho gradient độc lập. Giữ khung0963fdaa/chữ/hành vi. Thay quy tắc dùng iconPNG trong các lượt trước theo yêu cầu sửa icon mới. Build/typecheck PASS; dist index-CtTuPbbJ.js/index-DuwSurX4.css xác nhận. Chưa browser QA.
+
+- 2026-10-24: Theo user, popup xác nhận mua Shop mobile dùng font-body Arial chính cho nội dung/nút, title24/body18 line-relaxed. Giá tách số và chữ vàng, inline-flex items-baseline, số font-number lining/tabular/not-italic để ngay hàng. Desktop giữ font/kích thước cũ; không đổi giao dịch. Build/typecheck PASS; dist xác nhận số mới; chưa browser QA.
+
+- 2026-10-24: Theo user, tên hội thoại mobile nhỏ20→18px/line22, cụm tên/trạng thái/preview tự căn giữa chiều dọc. Thời gian chuyển vào cùng flex hàng tên/items-baseline để luôn ngang tên, bỏ cột phải tự stretch; huy hiệu chưa đọc nằm bên phải dòng preview phía dưới. Giữ dữ liệu/desktop/khoảng avatar. Build/typecheck PASS; dist index-B7ohCkoh.js/index-D3MUXt0i.css xác nhận. Chưa browser QA.
+
+- 2026-10-24: Theo user, dòng phụ hội thoại mobile giữ chấm presence và hiển thị tin cuối thay chữ Đang online/Offline khi có nội dung; chưa có tin thì fallback trạng thái. Gộp trạng thái/preview thành một dòng dưới tên, ảnh gửi hiện 📷 Ảnh; giữ thời gian ngang tên và badge dưới. Desktop giữ hiện tại. Build/typecheck PASS; dist index-xyMthWFJ.js/index-D5_7bNE4.css cập nhật; chưa browser QA.
+
+- 2026-10-24: Sửa mua Shop kẹt Đang mua trên mobile HTTP/LAN: useShopPurchase gọi crypto.randomUUID ngoài try sau khi khóa busy, browser không secure context có thể thiếu hàm khiến không gửi API/không chạy finally. Đổi sang createClientId sẵn có (getRandomValues tạo UUIDv4) và đưa sinh/lưu requestId vào try để luôn giải phóng busy khi lỗi. Giữ Mua→Xác nhận và giao dịch thật/chống trùng/retry cùng key, không giả trừ vàng hoặc tự cấp đồ. Regression HTTP thiếu randomUUID + shop inventory/page4/4 PASS; typecheck/build PASS, dist cập nhật. Chưa mua trên điện thoại/DB thật.
+
+- 2026-10-24: Theo user, Chat mobile trở về khung chung SocialDialogFrame như các bảng thông tin/social (không title), thay artwork nâu laptop riêng. Đổi vị trí Tạo nhóm sang trái/tìm kiếm sang phải; nút nhóm148→128px, phần rộng trả cho ô tìm kiếm. Giữ danh sách/điều hướng/icon và desktop. Build/typecheck PASS; dist index-_Dvift2C.js/index-Bd3a8kKr.css xác nhận; chưa browser QA.
+
+- 2026-10-24: Theo user, Shop mobile lỗi thiếu vàng hiển thị chỉ Không đủ tiền ở giữa viewport, tự tắt2000ms qua effect cleanup; nhận đúng thông báo lỗi thiếu vàng server, không che lỗi khác. Dấu× thông báo mobile tăng36px/vùng bấm44px. Desktop và giao dịch giữ nguyên. Build/typecheck PASS; dist xác nhận thông báo mới; chưa browser QA.
+
+- 2026-10-24: Theo user, danh sách Chat mobile thêm socialPanelClass và nền giấy historyParchmentBackground/lớp phủ#fff4dc52 giống Xếp hạng. Hàng tiếp tục dùng socialPlayerRowClass/radius/dải bóng chung; padding ngang12×rowScale cộng5px thật để avatar vào phải/thời gian vào trái. Giữ chiều cao76px, nội dung và desktop. Build/typecheck PASS; dist index-DelhM9hv.js/index-C9kp2aIM.css xác nhận; chưa browser QA.
+
+- 2026-10-24: Theo user, làm đẹp khung Không đủ tiền Shop mobile: nền nâu gradient/ánh sáng trên, viền vàng2px+inset, bo16/bóng ngoài, min-height96, chữ Arial20semibold kem căn giữa thật; dấu× góc trên phải. Giữ text/tự tắt2s và desktop/thông báo khác. Build/typecheck PASS; dist xác nhận khung mới; chưa browser QA.
+
+- 2026-10-24: Theo user, danh sách Chat mobile chia10hàng vừa khung: mỗi hàng calc((100% - 54px)/10), trừ9gap6px; minHeight0 và overflow cuộn giữ các hội thoại còn lại. Avatar giới hạn theo chiều cao hàng, vẫn44px tối đa theo chiều ngang/tỷ lệ vuông. Desktop giữ8hàng cũ. Build/typecheck PASS; dist index-AAyvZ_bP.js/index-CLBj8hsU.css xác nhận10slot. Chưa browser QA.
+
+- 2026-10-24: Theo user, popup Xác nhận mua mobile dùng cùng khung Không đủ tiền: trích shopMobileDialogFrameClass chung cho2popup (nền nâu gradient/viền vàng/inset/bo16/bóng). Giữ nội dung/nút/giao dịch và desktop. Build/typecheck PASS; dist xác nhận khung chung; chưa browser QA.
+
+- 2026-10-24: User đổi Chat mobile về8hội thoại/khung (trừ7gap6px). Mỗi hàng là size container, avatar/tên/preview/thời gian/chấm/badge dùng cqh cùng tỷ lệ theo chiều cao hàng thay pixel cố định; tên/time vẫn cùng baseline, nội dung giữa hàng. Giữ khoảng avatar→text7px user đã chốt; desktop giữ nguyên. Build/typecheck PASS; dist index-Xax82OXF.js/index-c_eS99ht.css xác nhận8slot/cqh. Chưa browser QA.
+
+- 2026-10-24: User xác nhận thiết kế nút tab Đã lưu giống Đã chơi. HistoryTabButton MOBILE dùng chung dáng alpha nét cọ của playedTab, nền đỏ khi chọn/nâu khi chưa chọn và chữ HTML font-heading50/extrabold/italic vàng, đồng nhất cả2tab. Giữ kích thước/vị trí và desktop dùng ảnh gốc; dữ liệu/nội dung không đổi. Yêu cầu mới thay lần hoàn tác mask trước đây. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, hoàn tác riêng lượt đồng bộ thiết kế2nút Đã chơi/Đã lưu vừa thử: bỏ mask/chữ HTML, trả HistoryTabButton dùng ảnh tab gốc có chữ (compact:size-full). Giữ kích thước/tab/data/bố cục đã chốt trước lượt thử. Build/typecheck PASS; dist xác nhận ảnh tab gốc; chưa browser QA.
+
+- 2026-10-24: Theo user, focus tìm kiếm Chat mobile không co khung: chụp layout trước focus và giữ cho phiên dialog, tránh visualViewport bàn phím làm đổi kích thước/8hàng/nội dung. Đóng dialog giải phóng snapshot; thay đổi rộng lớn (đổi hướng) dùng layout mới. Không sửa hook layout chung hoặc desktop. Build/typecheck PASS; dist index-C3iEZWaq.js/index-c_eS99ht.css cập nhật; chưa QA bàn phím điện thoại thật.
+
+- 2026-10-24: Theo user, Chat mobile7hội thoại/khung (trừ6gap6px), nội dung tiếp tục cqh theo chiều cao hàng. Badge chưa đọc tăng33→39cqh, số19.5→22cqh. Preview khi unread>0 dùng semibold/màu nâu đậm#36200c, tự trở lại thường khi đã đọc. Desktop/logic read/API giữ nguyên. Build/typecheck PASS; dist cập nhật và xác nhận7slot; chưa browser QA.
+
+- 2026-10-24: Theo user, nút Chat ngoài Home hiển thị tổng unreadCount mọi hội thoại từ server, Query theo accountID/poll4giây; đọc tin invalidate query để giảm số. Mobile tái dùng chính markup/style huy hiệu lời mời Bạn bè (đỏ/viền kem, max99+), desktop cùng kiểu; số0 ẩn. MobileHome prop optional mặc định0 cho consumer cũ. Build/typecheck PASS sau sửa hợp đồng props; dist cập nhật; chưa browser/API live QA. Không đổi read API hoặc cơ sở dữ liệu.
+
+- 2026-10-24: Theo user, thay2tab Lịch sử MOBILE bằng4PNG mới ở assets: 0c6e579c active Đã chơi,527ca72d idle Đã chơi,c29af6e7 active Đã lưu,d30c4e9b idle Đã lưu. Giữ nguyên pixel nguồn2172×724; SVG viewBox0/90/2172/550 giảm lề trống dọc, không redraw chữ/nền. Desktop tiếp tục4ảnh cũ; giữ kích thước/vị trí tab. Đã xem đủ4ảnh, build/typecheck PASS; dist có đủ4asset mới; chưa browser QA.
+
+- 2026-10-24: Sửa tab Lịch sử mobile phóng khi chọn do4PNG có lề alpha khác nhau. Đo bounds alpha>32 từ nguồn, dùng viewBox riêng từng ảnh để artwork active/idle cùng chiếm hộp nút cố định; không thay width/height khi chọn. Desktop giữ nguyên. Build/typecheck PASS; dist xác nhận bounds riêng; chưa browser QA.
+
+- 2026-10-24: Theo user, Chat mobile thêm biển Tin nhắn trên đầu khung như các bảng khác: dùng messages/title-frame.png và chữ HTML font-heading vàng/nghiêng trong header SocialDialogFrame, showTitleText opt-in chỉ Chat; bỏ padding chừa header cũ. Nút Tạo nhóm128→112px/icon20/chữ15 để nới ô tìm kiếm; nội dung giữ7hàng theo tỷ lệ. Build/typecheck PASS; dist index-Wcyu5y0K.js/index-BMlGkRX0.css xác nhận. Chưa browser QA.
+
+- 2026-10-24: Theo ảnh user, phóng Tạo nhóm MOBILE bằng kích thước khung Chat; thêm Tên nhóm, tìm bạn theo tên/public ID thật từ socialStore, danh sách có nút +/chọn, khu thành viên đã chọn có nút bỏ và bộ đếm tối đa20 người được thêm, Hủy/Tạo nhóm. Giữ payload/API và nhánh laptop; backend vẫn giới hạn50 như trước. Đây là bước bố trí UI theo ảnh, chưa chốt pixel. Build/typecheck PASS sau sửa NumberText text prop; dist index-CH9CQkMg.js/index-BxFChZVn.css xác nhận nội dung mới; chưa browser QA (browser bị tắt trong Work).
+
+- 2026-10-24: User chốt Tin nhắn/Tạo nhóm MOBILE là hai khung riêng: khi mở Tạo nhóm unmount surface Tin nhắn, panel nhóm là sibling độc lập, dùng SocialDialogFrame và biển title-frame/chữ Tạo nhóm cùng kích thước tiêu đề chuẩn các bảng. Giữ snapshot layout từ trước mở nhóm/focus bất kỳ input đến khi đóng dialog, bỏ điều kiện chênh rộng80px khiến snapshot bị vô hiệu khi bàn phím thu viewport. Không co bảng khi tìm kiếm/nhập tên. Desktop giữ nguyên. Build/typecheck PASS; dist index-CawE3Qtj.js có create-group-frame-title. Chưa QA bàn phím/browser thật.
+
+- 2026-10-24: Theo user, mở Tạo nhóm MOBILE focus panel bằng preventScroll thay autoFocus ô tên để không tự bật bàn phím. Nhãn Tên nhóm giảm10%; chữ hai ô nhập về0.85em, padding trái7px (ô tìm kiếm tính từ icon), thêm icon nhóm vàng trước Bạn bè. Desktop giữ nguyên. Build/typecheck PASS; dist index-B3YA0zzV.js/index-D_lfgq5P.css xác nhận padding; chưa QA trên điện thoại thật.
+
+- 2026-10-24: Theo user, ba nhãn Tên nhóm/Bạn bè/Thành viên đã chọn MOBILE dùng cùng icon nhóm28px cố định (tránh size-6 co theo spacing SocialDialogFrame); thêm icon cho thành viên đã chọn. Hai ô tên/tìm kiếm tăng đệm trái7→14px, giảm cao8→6.5% với min32px. Giữ desktop/luồng chọn và kích thước bảng. Build/typecheck PASS; dist index-D1XGJ78S.js/index-6V5jZa5X.css xác nhận; chưa browser QA.
+
+- 2026-10-24: Theo user, Tạo nhóm MOBILE thu icon tiêu đề về1em theo chữ, kính tìm kiếm1em so với chữ input0.85em. Dòng bạn bè avatar48px, chấm trạng thái10px xanh online/cam offline ưu tiên socialStore.online rồi presence contact; có nhãn accessibility. Khoảng avatar→tên/ID10px cố định; nút cuối36px/dấu cộng30px. Dùng px riêng tránh spacing của SocialDialogFrame làm co chi tiết. Giữ desktop/API. Build/typecheck PASS; dist index-vuFzQx8g.js/index-DyhYhgh-.css cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, Tạo nhóm MOBILE chỉ lấy friends.status=accepted từ socialStore, refresh social khi mở có account; không nhập hội thoại chưa kết bạn hoặc dữ liệu demo. Avatar/khung dùng AccountAvatar với avatarCode/avatarFrameCode thật ở cả danh sách và thành viên đã chọn; payload cũng lọc theo bạn bè hiện tại. Icon nhóm1.15em, gap chữ10px. Danh sách chia3hàng trừ2gap6px, padding trái avatar10px. Nhãn Thành viên đã chọn padding dọc10px, ô dưới chia4slot với3gap8px, quá4 cuộn ngang. Desktop giữ nguyên. Build/typecheck PASS; dist index-diVa_jU1.js/index-Qao9CWZx.css xác nhận3slot; đã đối chiếu API social có trường avatar; chưa browser/API live QA.
+
+- 2026-10-24: Theo user, nhãn Thành viên đã chọn MOBILE cùng0.9em với Tên nhóm;4slot chọn/trống đều aspect-square/rounded-full, tên dưới vòng tròn. Hai nút cuối thu rộng84%/cao7%/chữ0.9em. Bộ đếm chỉ số lượng đã chọn, gỡ trần chọn20 và trần50 tại createConversation backend theo yêu cầu không giới hạn số người; vẫn validate mảng/ID/loại trùng và direct chat đúng1người. Build/typecheck PASS; dist index-BcDuYPbV.js/index-Cp0tHSXr.css xác nhận; chưa browser/API live QA, không restart/deploy backend.
+
+- 2026-10-24: Theo user,4vòng tròn thành viên MOBILE căn tâm dọc theo chính vòng tròn; tên đặt absolute bên dưới để không kéo lệch tâm. Số đã chọn tăng0.9→1.05em, đệm phải8px. Nút cuối dòng luôn dấu cộng, khi chọn brightness50% tối hơn; aria-pressed và toggle bỏ chọn giữ nguyên. Build/typecheck PASS; dist index-CcR8tXeS.js/index-CuxxeEen.css xác nhận; chưa browser QA.
+
+- 2026-10-24: Theo ảnh user, thẻ đã chọn MOBILE đổi thành chữ nhật bo16px/nền nâu, avatar neo trên đệm6px và giới hạn65cqh để tên nằm gọn bên dưới trong thẻ. Nút bỏ chọn neo cạnh avatar; vẫn4slot/cuộn ngang, slot trống giữ vòng tròn dấu cộng như ảnh. Bộ đếm giữ số đơn không giới hạn theo yêu cầu trước. Build/typecheck PASS; dist index-BEGDesw4.js/index-WuZHXD13.css xác nhận; chưa browser QA.
+
+- 2026-10-24: Theo user, dấu× bỏ thành viên đã chọn MOBILE chồng trên artwork avatar bằng z30; dịch trái3px (right-5→-2) và lên3px (top-3→-6). Không đổi avatar/thẻ/luồng. Build/typecheck PASS; dist xác nhận offset mới; chưa browser QA.
+
+- 2026-10-24: User đính chính dấu× MOBILE dịch sang phải3px thay trái3px ở yêu cầu trước: right=-8px so với gốc-5px, giữ top=-6px/z30. Build/typecheck PASS; dist index-vLu90JMV.js xác nhận. Chưa browser QA.
+
+- 2026-10-24: Theo user, Tạo nhóm MOBILE tách row/thẻ khỏi button: avatar ở danh sách và đã chọn đều gọi onViewInfo hiện ProfileDialog thật qua callback Home hiện có; chỉ nút+ thêm thành viên, đã chọn bấm+ không bỏ; chỉ nút× trong thẻ dưới bỏ chọn. Tránh nested button bằng sibling controls; chấm presence z30 đè artwork/khung avatar và pointer-events-none. Giữ offset×/dữ liệu/desktop. Build/typecheck PASS; dist xác nhận presence overlay; chưa browser QA.
+
+- 2026-10-24: Theo user,2tab Lịch sử mobile thay bằng sprite b52ef10c-bb5a-4de9-800e-24e6a8d904eb.png chứa4trạng thái: trái idle/phải active, trên Đã chơi/dưới Đã lưu. SVG crop mỗi ô cùng1050×220 (x20/1100,y110/374) trên nguồn2173×724, giữ kích thước hộp cố định; không sửa pixel asset. Bỏ import4ảnh mobile trước, desktop giữảnh cũ. Build/typecheck PASS; dist có sprite mới; chưa browser QA.
+
+- 2026-10-24: Kiểm tra Xếp hạng dùng ranking-title-transparent.png chứa chữ raster. Theo user dùng imagegen built-in edit nguồn đó tạo messages-title-gold-v2.png (Tin nhắn) và create-group-title-gold-v2.png (Tạo nhóm): prompt giữ biển đỏ/viền vàng/tua/font serif vàng nổi nghiêng, chỉ đổi chữ, alpha. Hai asset lưu src/assets/messages, bản gốc giữ nguyên. SocialDialogFrame thêm titleCrop opt-in SVG viewBox theo alpha bounds y179..544/181..544 để bỏ lề transparent khi render, giữ header geometry chuẩn Xếp hạng; bỏ chữ HTML riêng của2bảng mobile, h2 sr-only giữ accessibility. Xếp hạng/laptop không đổi. Đã xem cả2ảnh chữ đúng dấu; build/typecheck PASS; dist có2PNG mới; chưa browser QA.
+
+- 2026-10-24: User yêu cầu toàn project dùng thanh cuộn Xếp hạng, mở riêng phạm vi scrollbar cả mobile/laptop. Đồng bộ qua utility Tailwind trên html/index.html cho mọi descendant kể cả portal/dialog/input/textarea: thumb trắng bo tròn, track/corner transparent, thin và6px cả ngang/dọc, ẩn nút mũi tên. Bỏ override màu vàng/xanh/nâu và scrollbar:none ở10file src; giữ overflow và gutter hiện có. Vùng cuộn trước ẩn nay dùng kiểu chung. uiClasses giữ gutter riêng, appearance quản lý tập trung index.html. Build/typecheck PASS; dist HTML/CSS xác nhận quy tắc toàn cục; chưa QA browser/điện thoại thật (overlay do OS/browser quản lý). Lịch sử hiện tại user chốt tạm xong; khóa lại các layout sau task.
+
+- 2026-10-24: Theo user, Shop MOBILE mua thành công không hiện thông báo Đã mua. useShopPurchase thêm showSuccessMessage defaulttrue, ShopPage truyền!layout.compact; giữ cập nhật account/vàng/cosmetics và đóng popup, lỗi/thiếu tiền vẫn báo. Desktop giữ thông báo cũ. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, Back Shop MOBILE bằng Chọn Bàn: dùng cùng compact:size-9/icon SVG size-5 (36/20px theo spacing), giữ gameUtilityButton và desktop48px. Build/typecheck PASS; dist xác nhận class kích thước; chưa browser QA.
+
+- 2026-10-24: Theo user, scrollbar toàn project chỉ hiển thị dọc. Root index.html đổi chiều cao WebKit scrollbar ngang6→0, giữ dọc6px/trắng/bo; browser hỗ trợ WebKit dùng scrollbar-width:auto để không bị standard thin bỏ qua height0. Các vùng overflow-x-auto/scroll ẩn scrollbar qua selector chung (hỗ trợ Firefox), vẫn giữ overflow/kéo ngang. Đã đối chiếu3vùng kéo ngang hiện tại chỉ ngang, không chứa cuộn dọc. Build/typecheck PASS; dist HTML/CSS xác nhận selector; chưa browser QA. Áp dụng mobile+laptop.
+
+- 2026-10-24: Theo user, giữ khung tên/Elo cạnh avatar cố định khi mở chỉnh avatar MOBILE: preview PlayerInfoCard dùng cùng chiều cao270/translateY-28 như hồ sơ, thay-20 gây nhảy8logical. Mở nút× DialogCloseButton chung trên tùy chỉnh avatar; bấm quay lại hồ sơ, không tự lưu avatar; nút hồ sơ vẫn đóng dialog. Giữ avatar geometry/desktop. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, Đấu với máy MOBILE header tiện ích thu36/icon20 như Chọn Bàn (Back đã36). Thay form mobile sơ lược/lỗi nhãn tiếngViệt bằng panel nâu viền vàng, chân dung/nameplate máy, chọn engine, thẻ cấp5cột×2hàng, chọn bên và2nút ảnh gốc Vị trí tùy chỉnh/Đấu ngay. ComputerLevelButton tách nguyên markup desktop/Ornament tái dùng mobile (cao44/chữ18); laptop giữ nguyên markup lớp/geometry cũ. Giữ engine/level/side/API/start; không sửa gameplay. Build/typecheck PASS; dist xác nhận bố cục; chưa browser QA nên chưa xác nhận pixel/overflow thực tế.
+
+- 2026-10-24: Theo user, riêng hội thoại MOBILE dùng artwork conversation-chat-frame.png như laptop, surface chọn hội thoại bỏ SocialDialogFrame/title/landscape trang trí riêng để header nâu sát đầu trong viền ảnh; danh sách vẫn biển Tin nhắn mới. Header compact back tròn28px/chevron SVG18, avatar28px, padding phải6px để nút more sát viền nội dung. Message list chặn tràn ngang; ẩn riêng lỗi tải tin cũ trong hội thoại mobile (lỗi gửi/thao tác vẫn báo). Desktop không đổi. Build/typecheck PASS; dist xác nhận compact pr6; chưa browser QA.
+
+- 2026-10-24: Theo user, ẩn riêng lỗi tải tin trên cả danh sách/hội thoại MOBILE (trước chỉ hội thoại), lỗi thao tác khác giữ. Hội thoại mở inset ngang3→1.2% để thanh nâu phủ sát viền; bottom3→1.5%. Avatar header34px/more26px; thanh soạn58px, input38px/chữ16, ảnh30/icon22, emoji28/gửi32, gap6px. Desktop giữ nguyên. Build/typecheck PASS; dist xác nhận input38; chưa browser QA.
+
+- 2026-10-24: Sửa hội thoại MOBILE lem viền do inset1.2%/bottom1.5% quá sát artwork: vùng nội dung lùi left2.6%/right3.2%/top4%/bottom3.2%, giữ overflow-hidden để header/soạn tin nằm trong viền vàng. Header nâu giảm min64→cao54px cố định compact, avatar34px giữ. Build/typecheck PASS; dist xác nhận header54; chưa browser QA.
+
+- 2026-10-24: User đính chính hội thoại MOBILE dùng chính khung Tin nhắn: MessagesDialogSurface luôn SocialDialogFrame/biển Tin nhắn cho cả list/chat, gỡ activeChat bypass. Pane chat chỉ dùng phần nền cảnh laptop crop SVG viewBox30/45/820/910 để không có viền thứ2; nội dung full bên trong frame chung/overflow-hidden. Giữ header54/avatar34/more26/soạn58 và desktop. Build/typecheck PASS; dist index-E3M_sO9R.js xác nhận crop; chưa browser QA.
+
+- 2026-10-24: Theo user, hội thoại MOBILE vẫn khung Tin nhắn nhưng bỏ phần biển/khoảng landscape phía trên khi đang chat bằng hideTitle, contentStyle padding0/overflow-hidden để thanh nâu sát mép trong khung; nội dung phủ nền trang trí, list vẫn title Tin nhắn. Thanh soạn66px/input44/ảnh34/icon25/emoji32/gửi36. Desktop giữ. Build/typecheck PASS; dist index-BfQ24YI8.js xác nhận; chưa browser QA.
+
+- 2026-10-24: Theo user, hội thoại MOBILE thu nút ảnh34→30/icon25→22; emoji dùng SVG mặt cười thay glyph, ô emoji32px/gap4/chữ24 để không chồng do spacing scale. Bấm emoji blur ô nhập, chọn emoji không focus input trên mobile; chỉ chạm input mở bàn phím/đóng emoji. Mở options đóng emoji/blur và ẩn form soạn (giữ draft). Sửa send: cache ID hội thoại mới, tách lỗi send khỏi reload sau send, hiển thị lỗi API thật. Phát hiện fallback createClientId trước trả client-* bị server uuid reject: đổi fallback UUIDv4 với time/counter/random nonsecurity;3/3 client-id tests PASS. Local health3001/5173=200, readonly DB kiểm đủ cột chat; db:verify qua tsx lỗi uv_os_get_passwd ENOMEM của môi trường nên không xác nhận toàn schema. Chưa gửi bằng2phiên đăng nhập thật/browser QA. Build/typecheck PASS; dist index-DJUab4aG.js/index-BfwiGioW.css xác nhận thông báo riêng sau gửi. Không restart/deploy hoặc tạo tin test trong DB thật.
+
+- 2026-10-24: Theo user, hội thoại MOBILE hiện lại biển Tin nhắn; bỏ hideTitle và overflow-hidden trên contentStyle để không cắt biển vươn trên khung. Gửi bằng pointer giữ focus input qua preventDefault pointerdown, Enter giữ tự nhiên; pointer ngoài composer blur/đóng emoji. Không focus khi chọnemoji theo yêu cầu trước. Bubble chữ16px/line1.4/padding12×8/gap10/avatar tin32px; desktop giữ giá trị cũ. Build/typecheck PASS; dist index-XQFc7Dlg.js/index-C3R3o7uu.css xác nhận composer marker; chưa QA bàn phím điện thoại thật.
+
+- 2026-10-24: Theo user, hội thoại MOBILE biển Tin nhắn đè lên thanh nâu, thanh nâu bắt đầu sát mép trong trên. SocialDialogFrame thêm overlayTitle opt-in: header absolute/z30/pointer-events-none, không chiếm khoảng flex, ẩn landscape đầu khung. MessagesDialogSurface chỉ bật khi activeChat; list/Tạo nhóm/bảng khác giữ mặc định. Build/typecheck PASS; dist xác nhận overlayTitle; chưa browser QA.
+
+- Kiểm chứng lượt overlayTitle: build đầu Vite dừng mã-1073740791 sau transform; chạy lại npm.cmd run build thành công exit0, dist index-DHbtn2Fg.js/index-C3R3o7uu.css có overlayTitle.
+
+- 2026-10-24: Theo user, bỏ biển Tin nhắn riêng hội thoại MOBILE (hideTitle cùng overlayTitle để thanh nâu sát trên và không landscape); list vẫn có biển. Options ba chấm mobile phóng từ80% sang tối đa96% rộng/94% cao, giữ aspect894:1008; thêm uiScale opt-in nhân tỷ lệ nới width với scale hiện tại để font/icon/khoảng cách/nội dung tăng cùng ảnh và avatar. Desktop giữ kích thước và token cũ. Build/typecheck PASS; dist xác nhận uiScale; chưa browser QA.
+
+- 2026-10-24: Theo user tăng chiều cao bảng ba chấm MOBILE: dùng94% chiều cao khung Tin nhắn, bỏ clamp theo aspect/chiều ngang; giữ width/uiScale hiện tại và laptop. Các vùng đặt theo phần trăm tự giãn dọc. Build/typecheck PASS; dist index-CvRHxYtH.js xác nhận; chưa browser QA.
+
+- 2026-10-24: Theo user, options MOBILE avatar tăng token200→270 theo width; camera nhóm dùng width=height9.5% panel/đệm cân để tròn thật, neo cạnh avatar. Các action mobile thống nhất fullwidth800×90logical/gap12, chung OptionRowBackground/icon34/chữ22, giữ handlers; slot Xem thành viên cùng kích thước/vị trí theo quyền owner. Dùng MessagesBackButton chung với hội thoại (28px ở chat/32px options) để cùng mẫu tròn/chevron; desktop options giữ ảnh back/rowlayout cũ. Build/typecheck PASS; dist index-BfkCZxzT.js cập nhật; chưa browser QA.
+
+- 2026-10-24: User chốt HOVANG mới thêm chỉ giữ LOCAL, không đưa GitHub; bản GitHub chỉ giữ Pikafish. .gitignore bỏ toàn bộ engines/hovang-*, adapter client/server, tests và tài liệu/build HOVANG. Tích hợp HOVANG trong tracked files (app/session/hooks/UI) vẫn là thay đổi local, phải loại từng hunk khi chuẩn bị commit và kiểm tra staged diff/build snapshot Pikafish-only; không commit các file đó nguyên trạng. Không push task này. Giữ toàn bộ file local, không xóa máy.

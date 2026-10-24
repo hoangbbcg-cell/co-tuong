@@ -1,6 +1,7 @@
 // Complete class names let Tailwind detect shared styles at build time.
 export const buttonInteraction = 'cursor-pointer disabled:cursor-default disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe2a1]'
-export const messageScrollbarClass = '[scrollbar-color:#efb75d_#3a1b09] [scrollbar-width:thin]'
+// Scrollbar appearance is inherited globally from index.html, including portal content.
+export const messageScrollbarClass = ''
 export const selectedImageTabGlow = '[filter:brightness(1.1)_saturate(1.3)_drop-shadow(0_0_2px_#ffcf38)_drop-shadow(0_0_7px_#ffad16)]'
 export const selectionPalette = {
   selected: {
@@ -22,4 +23,9 @@ export const homeUtilityButton = `${buttonInteraction} grid size-12 place-items-
 
 export const messageSelectionHighlight = 'bg-[radial-gradient(ellipse_at_center,#724018_0%,#51280f_54%,#241007_100%)] shadow-[inset_0_0_9px_#f8b73c55,0_0_4px_#f8b73c]'
 
-export const historyEmptyTextClass = 'text-center font-heading text-[length:var(--ui-p-28,28px)]'
+export const historyEmptyTextClass = 'text-center font-heading text-[length:var(--ui-p-28,28px)] compact:text-[22px] compact:font-semibold'
+
+/** Preserve list gutter; scrollbar appearance is shared globally in index.html. */
+export const socialListScrollbarClass = '[scrollbar-gutter:stable]'
+
+export const shopMobileDialogFrameClass = "compact:rounded-2xl compact:border-2 compact:border-[#d5a657] compact:bg-[radial-gradient(ellipse_at_top,#85502466,transparent_70%),linear-gradient(145deg,#482910,#201007)] compact:shadow-[inset_0_0_0_3px_#3b1d0b,inset_0_0_0_4px_#a8753466,0_14px_40px_#0009]"

@@ -14,6 +14,7 @@ it('lọc Bàn khóa chỉ còn phòng khóa trong khu vực hiện tại', () =
     { id: 'other', province: 'Huế', locked: true, players: 1, phase: 'ready' },
   ] } as ReturnType<typeof useLobby>
   const { result } = renderHook(() => useRoomSelection(lobby))
+  act(() => result.current.setAllProvinces(false))
   act(() => result.current.setRoomFilter('locked'))
   expect(result.current.rooms.map(room => room.id)).toEqual(['locked'])
   act(() => result.current.setRoomFilter('all'))

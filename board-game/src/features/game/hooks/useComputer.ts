@@ -5,6 +5,7 @@ import { chooseComputerMove } from '../../../game/moves/computer'
 import { candidateRepetition } from '../../../game/rules/repetition'
 import { opposite } from '../../../game/state/initial'
 import { pikafishApi } from '../../../services/pikafish'
+import { hovangApi } from '../../../services/hovang'
 import { errorMessage } from '../../../services/api'
 
 export function useComputer(allowed = true) {
@@ -62,7 +63,9 @@ export function useComputer(allowed = true) {
         const state = useGameStore.getState()
         const move = engine === 'pikafish'
           ? await pikafishApi.move(state.moves, state.game.remainingTime[machineSide], level, controller.signal, ...(state.initialFen ? [state.initialFen] : []))
-          : chooseComputerMove(board, machineSide, Math.random(), state.game)
+          : engine === 'hovang'
+            ? await hovangApi.move(state.moves, state.game.remainingTime[machineSide], level, controller.signal, state.initialFen ?? undefined)
+            : chooseComputerMove(board, machineSide, Math.random(), state.game)
         if (!current()) return
         if (!move || board[move.from.row]?.[move.from.col]?.side !== machineSide) throw new Error('Máy không trả về nước đi hợp lệ.')
         if (candidateRepetition(state.game, move).forbidden) {

@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { useLobby } from './useLobby'
 import { useLobbyPresence } from './useLobbyPresence'
 import { useSessionStore } from '../../../store/sessionStore'
 
 export function useRoomSelection(lobby: ReturnType<typeof useLobby>) {
   const [province, setProvince] = useState(lobby.province)
+  const [allProvinces, setAllProvinces] = useState(() => useSessionStore.getState().countryCode !== 'VN')
   const presence = useLobbyPresence(province)
   const [roomFilter, setRoomFilter] = useState<'all' | 'vacant' | 'locked'>('all')
   const vacantOnly = roomFilter === 'vacant'
@@ -22,19 +23,26 @@ export function useRoomSelection(lobby: ReturnType<typeof useLobby>) {
   }, [timeOpen])
   const [quickMinutes, setQuickMinutes] = useState(10)
   const [message, setMessage] = useState('')
+  const [addressNoticeOpen, setAddressNoticeOpen] = useState(false)
   const openProvincePicker = () => {
     if (!useSessionStore.getState().countryCode) {
-      setMessage('Vui lòng chọn địa chỉ của bạn trong Hồ sơ trước khi chọn tỉnh/thành phố.')
+      setAddressNoticeOpen(true)
       return
     }
     setProvincePickerOpen(true)
   }
-  const provinceRooms = lobby.rooms.filter(room => room.province === province)
+  const provinceRooms = useMemo(() => {
+    const candidates = lobby.rooms.filter(room => (allProvinces || room.province === province) && (room.players > 0 || (room.viewerCount ?? 0) > 0) && (roomFilter !== 'locked' || room.locked) && (roomFilter !== 'vacant' || (room.players === 1 && room.phase !== 'playing')))
+    if (!allProvinces) return candidates
+    for (let i = candidates.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [candidates[i], candidates[j]] = [candidates[j], candidates[i]] }
+    return candidates.slice(0, 30)
+  }, [lobby.rooms, province, allProvinces, roomFilter])
   const available = provinceRooms.filter(room => room.players === 1 && room.phase !== 'playing')
   const quickPlay = () => {
-    lobby.quickPlay(() => setCreating(true), quickMinutes)
+    setMessage('')
+    lobby.quickPlay(() => setMessage('Không có bàn phù hợp với thời gian đã chọn.'), quickMinutes)
   }
-  return { openProvincePicker, quickTimeRef, timeOpen, setTimeOpen, quickMinutes, setQuickMinutes, provincePickerOpen, setProvincePickerOpen, province, setProvince, vacantOnly, roomFilter, setRoomFilter, creating, setCreating, message, setMessage, quickPlay,
+  return { addressNoticeOpen, setAddressNoticeOpen, openProvincePicker, quickTimeRef, timeOpen, setTimeOpen, quickMinutes, setQuickMinutes, provincePickerOpen, setProvincePickerOpen, province, setProvince, allProvinces, setAllProvinces, vacantOnly, roomFilter, setRoomFilter, creating, setCreating, message, setMessage, quickPlay,
     rooms: roomFilter === 'locked' ? provinceRooms.filter(room => room.locked) : vacantOnly ? available : provinceRooms,
     players: presence.provinceCounts[province] ?? (presence.province === province ? presence.players : 0), provinceCounts: presence.provinceCounts }
 }

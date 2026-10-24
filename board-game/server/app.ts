@@ -14,6 +14,8 @@ import { ChallengeService } from './services/challengeService'
 import { registerChallengeSockets } from './controllers/challengeController'
 import { PikafishService } from './services/pikafishService'
 import { pikafishRouter } from './controllers/pikafishController'
+import { HovangService } from './services/hovangService'
+import { hovangRouter } from './controllers/hovangController'
 import { registerLobbyPresence } from './controllers/lobbyPresenceController'
 import { LobbyPresenceService } from './services/lobbyPresenceService'
 import { LobbyPresenceRepository } from './repositories/lobbyPresenceRepository'
@@ -54,6 +56,7 @@ export function createApplication(options: { staticDirectory?: string } = {}) {
     })
   }
   const pikafish = new PikafishService()
+  const hovang = new HovangService()
   app.get('/api/health', (_req, res) => res.json({ status: 'ok' }))
   if(databaseEnabled)app.use('/api/rooms',async(req,_res,next)=>{
     if(req.method!=='POST')return next()
@@ -65,6 +68,7 @@ export function createApplication(options: { staticDirectory?: string } = {}) {
   })
   app.use('/api/rooms', roomRouter(service))
   app.use('/api/pikafish', pikafishRouter(pikafish))
+  app.use('/api/hovang', hovangRouter(hovang))
   app.use('/api', (_req, res) => res.status(404).json({ error: 'API không tồn tại.' }))
   const onError: ErrorRequestHandler = (error, _req, res, _next) => {
     const badInput = error instanceof RoomError || error instanceof AccountError || error?.type === 'entity.parse.failed'
@@ -78,6 +82,6 @@ export function createApplication(options: { staticDirectory?: string } = {}) {
   const interval = registerRoomSockets(io, service,persistence)
   registerLobbyPresence(io, new LobbyPresenceService(new LobbyPresenceRepository()))
   const challengeInterval = registerChallengeSockets(io, new ChallengeService(new ChallengeRepository(), service),persistence)
-  http.on('close', () => { clearInterval(interval); clearInterval(challengeInterval); pikafish.close() })
-  return { app, http, io, service, close: async () => { clearInterval(interval); clearInterval(challengeInterval); pikafish.close(); await new Promise<void>(resolve => io.close(() => resolve()));await persistence?.waitForCommands();await persistence?.flush();if(databaseEnabled)await closeMysqlPool() } }
+  http.on('close', () => { clearInterval(interval); clearInterval(challengeInterval); pikafish.close(); hovang.close() })
+  return { app, http, io, service, close: async () => { clearInterval(interval); clearInterval(challengeInterval); pikafish.close(); hovang.close(); await new Promise<void>(resolve => io.close(() => resolve()));await persistence?.waitForCommands();await persistence?.flush();if(databaseEnabled)await closeMysqlPool() } }
 }

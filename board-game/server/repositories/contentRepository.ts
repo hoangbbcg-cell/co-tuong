@@ -5,6 +5,13 @@ import { change, rows, transaction } from './accountRepository'
 import { AccountError } from '../errors'
 
 export class ContentRepository {
+  async matchReward(user:string,match:string) {
+    const result=await rows(`SELECT m.status,p.elo_delta eloDelta,
+      COALESCE((SELECT SUM(e.delta) FROM resource_events e WHERE e.match_id=m.id AND e.user_id=p.user_id AND e.resource_type='gold' AND e.reason='online_match_win'),0) gold
+      FROM matches m JOIN match_players p ON p.match_id=m.id WHERE m.id=? AND p.user_id=?`,[match,user])
+    if(!result.length)throw new AccountError('Không tìm thấy ván đấu.',404)
+    return { settled:result[0].status==='finished',gold:Number(result[0].gold),eloDelta:Number(result[0].eloDelta) }
+  }
   async history(id:string,saved=false):Promise<RecordedMatch[]> {
     const list=await rows(`SELECT DISTINCT m.id,m.ended_at endedAt,
       COALESCE(ru.display_name,r.name_snapshot) redName,COALESCE(bu.display_name,b.name_snapshot) blackName

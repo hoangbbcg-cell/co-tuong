@@ -4,6 +4,7 @@ import { getComputerAvatar } from '../../lib/computerAvatar'
 import { MatchResultDialog } from '../../features/game/components/MatchResultDialog'
 import { useMatchResult } from '../../features/game/hooks/useMatchResult'
 import { useResultFaces } from '../../features/game/hooks/useResultFaces'
+import { useOnlineMatchReward } from '../../features/game/hooks/useOnlineMatchReward'
 import { usePikafishHint } from '../../features/game/hooks/usePikafishHint'
 import { useReplayTrial } from '../../features/game/hooks/useReplayTrial'
 ﻿import { savedMatchSide } from '../../lib/savedMatchPerspective'
@@ -52,6 +53,7 @@ import { GameBackIcon } from '../../features/game/components/GameBackIcon'
 import { HomeIcon } from '../../features/lobby/components/HomeIcon'
 import { createClientId } from '../../lib/clientId'
 import takebackDialog from '../../assets/takeback/takeback-dialog.png'
+import drawDialog from '../../assets/takeback/draw-dialog.png'
 import takebackDecline from '../../assets/takeback/takeback-decline.png'
 import takebackAccept from '../../assets/takeback/takeback-accept.png'
 import roomCodeFrame from '../../assets/room-code/room-code-frame.png'
@@ -60,7 +62,7 @@ import honorNoticeFrame from '../../assets/awarded-honors/grant-row.png'
 
 export const OPENING_MODE = ROOM_OPENING_MODE
 
-export function GamePage({ onEntranceComplete, replayData, skipEntrance = false }: { onEntranceComplete?: () => void; replayData?: RecordedMatch; skipEntrance?: boolean }) {
+export function GamePage({ onEntranceComplete, replayData, skipEntrance = false, initialResultSide }: { onEntranceComplete?: () => void; replayData?: RecordedMatch; skipEntrance?: boolean; initialResultSide?: Side }) {
   const screenshotRoot = useRef<HTMLElement | null>(null)
   const entrance = useRoomEntrance(onEntranceComplete, OPENING_MODE, !skipEntrance)
   const playback = useReplayPlayback(replayData, !entrance.entering)
@@ -227,7 +229,7 @@ export function GamePage({ onEntranceComplete, replayData, skipEntrance = false 
   const actionProps = { showDrawResign: !match.computer, visible: game.phase === 'playing' && !isRoomViewer && !match.computer, disabled: !!match.animation || match.pending, drawDisabled: !!match.room?.drawOffer, takebackDisabled: !match.canTakeback || !match.online && !match.computer || !!match.room?.takebackOffer || !!match.room?.drawOffer, takebacksLeft: match.takebacksLeft, onDraw: match.draw, onResign: match.resign, onTakeback: match.requestTakeback }
   const actions = compactViewport ? null : <MatchActions {...actionProps} />
   const mobileActions = compactViewport ? <MatchActions {...actionProps} className="desktop:hidden" /> : null
-  const playerName = (side: 'red' | 'black') => replayData ? side === 'red' ? replayData.redName : replayData.blackName : computerDemo ? side === 'red' ? 'Máy · Đỏ' : 'Máy · Đen' : viewerPreview ? side === 'red' ? 'Picolozz' : 'Nguyễn Hoàng Minh Khôi' : positionTrial ? side === match.humanSide ? name : 'Ông Hoàng' : match.online ? match.room?.players.find(player => player.side === side)?.name ?? 'Đang chờ đối thủ' : match.computer ? side === match.humanSide ? name : testBotId ? 'Máy giả · 2 nước' : match.computerEngine === 'pikafish' ? 'Ông Hoàng' : 'Máy · Cơ bản' : side === 'red' ? name : 'A31977844'
+  const playerName = (side: 'red' | 'black') => replayData ? side === 'red' ? replayData.redName : replayData.blackName : computerDemo ? side === 'red' ? 'Máy · Đỏ' : 'Máy · Đen' : viewerPreview ? side === 'red' ? 'Picolozz' : 'Nguyễn Hoàng Minh Khôi' : positionTrial ? side === match.humanSide ? name : 'Ông Hoàng' : match.online ? match.room?.players.find(player => player.side === side)?.name ?? 'Đang chờ đối thủ' : match.computer ? side === match.humanSide ? name : testBotId ? 'Máy giả · 2 nước' : match.computerEngine === 'pikafish' ? 'Ông Hoàng' : match.computerEngine === 'hovang' ? 'HOVANG v0.4' : 'Máy · Cơ bản' : side === 'red' ? name : 'A31977844'
   const leftSide = replayData ? savedMatchSide(replayData, name) : positionTrial || match.computer ? match.humanSide : match.online ? match.player?.side ?? 'red' : 'red'
   const rightSide = leftSide === 'red' ? 'black' : 'red'
   const playerSide = match.player?.side ?? (match.computer ? match.humanSide : leftSide)
@@ -236,6 +238,7 @@ export function GamePage({ onEntranceComplete, replayData, skipEntrance = false 
   const rightMobileEdge = rightSide === mobileSelfSide ? 'bottom' : 'top'
   const playCheckmateEffect = observedLiveSeats.current && !replayMode && !!game.lastMove && (game.result?.reason === 'checkmate' || !!testBotId && !!game.result?.winner)
   const resultDialog = useMatchResult({
+    initialResultSide,
     game,
     roomKey: match.online ? match.room!.id : 'local',
     side: match.online ? match.player?.side ?? null : match.computer ? match.humanSide : 'red',
@@ -244,6 +247,7 @@ export function GamePage({ onEntranceComplete, replayData, skipEntrance = false 
     audioComplete: match.checkmateAudioComplete,
     completed: match.online ? match.room?.lastCompletedMatch : undefined,
   })
+  const onlineReward = useOnlineMatchReward(match.room?.lastCompletedMatch?.id, match.online && !replayMode && !positionTrial && !isRoomViewer && game.phase !== 'playing')
   const showLikeOnSide = (side: Side) => match.online && Boolean(match.room?.activeMatchId) && game.phase === 'playing' && Boolean(match.room?.players.some(player => player.side === side)) && (isRoomViewer || side !== playerSide)
   const canGrantOnSide = (side: Side) => !replayMode && (isRoomViewer || side !== playerSide) && (!match.online || Boolean(match.room?.players.some(player => player.side === side)))
   const outcome = useResultFaces(game, match.online ? match.room!.id : 'local', match.online
@@ -381,15 +385,12 @@ export function GamePage({ onEntranceComplete, replayData, skipEntrance = false 
         <p className="relative m-0 px-[12%] text-center font-cormorant text-[clamp(23px,3.5vw,31px)] font-bold leading-tight text-[#f3dda9]">{match.repetitionNotice}</p>
       </div>
     </div>}
-    {match.online && match.room?.drawOffer && match.room.drawOffer !== match.player?.side && <div className="fixed top-1/2 left-1/2 z-30 -translate-x-1/2 -translate-y-1/2 rounded-md border border-[#d1ad65] bg-[#193932] p-6 shadow-[0_8px_40px_#000a]" role="alertdialog" aria-label="Đối thủ cầu hòa">
-      <p>Đối thủ đề nghị hòa.</p><div className="mt-3 flex justify-center gap-3"><button className={lobbyButton} disabled={match.pending} onClick={() => match.replyDraw(true)}>Đồng ý</button><button className={lobbyButton} disabled={match.pending} onClick={() => match.replyDraw(false)}>Từ chối</button></div>
-    </div>}
-    {match.online && match.room?.takebackOffer && match.room.takebackOffer.requester !== match.player?.side && <div className="fixed inset-0 z-50 grid place-items-center bg-[#07171526]" role="alertdialog" aria-label="Đối thủ yêu cầu đi lại">
+    {match.online && !!match.player && (match.room?.drawOffer && match.room.drawOffer !== match.player.side || match.room?.takebackOffer && match.room.takebackOffer.requester !== match.player.side) && <div className="fixed inset-0 z-50 grid place-items-center bg-[#07171526]" role="alertdialog" aria-label={match.room?.drawOffer ? 'Đối thủ cầu hòa' : 'Đối thủ yêu cầu đi lại'}>
       <div className="relative w-[min(520px,calc(100%-32px))] overflow-hidden shadow-[0_10px_35px_#0009]">
-        <img src={takebackDialog} alt="Đối phương muốn đi lại" className="block h-auto w-full border-0" />
-        <button type="button" aria-label="Đóng và từ chối đi lại" disabled={match.pending} onClick={() => match.replyTakeback(false)} className="absolute top-[11.5%] right-[2.5%] m-0 aspect-square w-[9.8%] rounded-full border-0 bg-transparent p-0 enabled:hover:brightness-110 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe290]" />
-        <button type="button" aria-label="Từ chối đi lại" disabled={match.pending} onClick={() => match.replyTakeback(false)} className="absolute bottom-[10.45%] left-[11.85%] m-0 h-auto w-[36.6%] border-0 bg-transparent p-0 leading-none enabled:hover:brightness-110 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe290]"><img src={takebackDecline} alt="" className="block size-full border-0" /></button>
-        <button type="button" aria-label="Cho phép đi lại" disabled={match.pending} onClick={() => match.replyTakeback(true)} className="absolute right-[12.63%] bottom-[10.45%] m-0 h-auto w-[36.6%] border-0 bg-transparent p-0 leading-none enabled:hover:brightness-110 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe290]"><img src={takebackAccept} alt="" className="block size-full border-0" /></button>
+        <img src={match.room?.drawOffer ? drawDialog : takebackDialog} alt={match.room?.drawOffer ? 'Đối phương muốn cầu hòa' : 'Đối phương muốn đi lại'} className="block h-auto w-full border-0" />
+        <button type="button" aria-label={match.room?.drawOffer ? 'Đóng và từ chối cầu hòa' : 'Đóng và từ chối đi lại'} disabled={match.pending} onClick={() => match.room?.drawOffer ? match.replyDraw(false) : match.replyTakeback(false)} className="absolute top-[11.5%] right-[2.5%] m-0 aspect-square w-[9.8%] rounded-full border-0 bg-transparent p-0 enabled:hover:brightness-110 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe290]" />
+        <button type="button" aria-label={match.room?.drawOffer ? 'Từ chối cầu hòa' : 'Từ chối đi lại'} disabled={match.pending} onClick={() => match.room?.drawOffer ? match.replyDraw(false) : match.replyTakeback(false)} className="absolute bottom-[10.45%] left-[11.85%] m-0 h-auto w-[36.6%] border-0 bg-transparent p-0 leading-none enabled:hover:brightness-110 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe290]"><img src={takebackDecline} alt="" className="block size-full border-0" /></button>
+        <button type="button" aria-label={match.room?.drawOffer ? 'Đồng ý cầu hòa' : 'Cho phép đi lại'} disabled={match.pending} onClick={() => match.room?.drawOffer ? match.replyDraw(true) : match.replyTakeback(true)} className="absolute right-[12.63%] bottom-[10.45%] m-0 h-auto w-[36.6%] border-0 bg-transparent p-0 leading-none enabled:hover:brightness-110 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe290]"><img src={takebackAccept} alt="" className="block size-full border-0" /></button>
       </div>
     </div>}
     <LobbyDialog lobby={lobby} />
@@ -416,7 +417,7 @@ export function GamePage({ onEntranceComplete, replayData, skipEntrance = false 
       <p className="leading-relaxed">{profileNotice}</p>
       <button autoFocus className={`${lobbyButton} mx-auto mt-5 px-6`} onClick={() => setProfileNotice('')}>Đã hiểu</button>
     </dialog>
-    {resultDialog.outcome && <MatchResultDialog outcome={resultDialog.outcome} rewardGold={testBotId ? testBotGold : undefined} onClose={resultDialog.dismiss} />}
+    {resultDialog.outcome && <MatchResultDialog outcome={resultDialog.outcome} rewardGold={testBotId ? testBotGold : onlineReward?.gold} eloDelta={testBotId ? 0 : onlineReward?.eloDelta} variant={game.variant} onClose={resultDialog.dismiss} />}
     {match.computerState.error && game.phase === 'playing' && <button className={`${lobbyButton} fixed bottom-5 left-1/2 z-40 -translate-x-1/2`} onClick={match.computerState.retry}>Thử lại lượt máy</button>}
     {entrance.entering && OPENING_MODE === 'cover-transform' && <OpeningCover onComplete={entrance.finishEntrance} />}
   </div>
