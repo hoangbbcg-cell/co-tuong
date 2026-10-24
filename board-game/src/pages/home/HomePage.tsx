@@ -148,7 +148,7 @@ export function HomePage() {
               <CrispUiImage src={mode.image} alt="" draggable={false} className="pointer-events-none block h-full w-full max-w-none object-contain" />
             </button>
           </span>
-          <span aria-hidden="true" className="block h-[var(--ui-p-82,82px)] w-full shrink-0 compact:h-[var(--ui-p-48,48px)]" />
+          {mode.action === 'quick' ? <button type="button" onClick={home.openHovang} className={`${buttonInteraction} relative z-10 rounded-lg border-2 border-[#d5a657] bg-[linear-gradient(#70421b,#291307)] px-5 py-2 font-body text-lg text-[#ffe5a6]`}>HOVANG v0.4</button> : <span aria-hidden="true" className="block h-[var(--ui-p-82,82px)] w-full shrink-0 compact:h-[var(--ui-p-48,48px)]" />}
         </div>)}
       </section>
       <footer className="flex flex-wrap items-center justify-start gap-3 pb-1 text-xs text-[#453c29] compact:text-[length:var(--ui-p-8,8px)]">

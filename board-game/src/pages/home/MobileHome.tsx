@@ -63,7 +63,7 @@ export function MobileHome({ unreadMessageCount = 0, home, music, onEnergy, onMe
           <ResourceArtwork src={resourceFrame} alt="" className="pointer-events-none absolute inset-0 block size-full" />
           {item.energy ? <div aria-label={`Năng lượng ${item.value}. ${home.energyCountdown}`} onPointerEnter={() => setEnergyHovered(true)} onPointerLeave={() => setEnergyHovered(false)} className="absolute inset-y-0 left-0 w-[80%]">
             <ResourceArtwork smooth src={item.icon} alt="" className="absolute top-1/2 left-[9%] block h-[4.6cqw] w-auto -translate-y-1/2" />
-            <span className="absolute top-1/2 left-[56%] -translate-x-1/2 -translate-y-1/2 font-number text-[3.2cqw] leading-none tabular-nums">{item.value}</span>
+            <span className={`absolute top-1/2 left-[56%] -translate-x-1/2 -translate-y-1/2 font-number ${home.energyUnlimited ? 'text-[4.8cqw]' : 'text-[3.2cqw]'} leading-none tabular-nums`}>{item.value}</span>
             {energyHovered && <div role="tooltip" className="pointer-events-none absolute top-[calc(100%+6px)] right-0 z-50 whitespace-nowrap rounded-lg border border-[#d7a34e] bg-[linear-gradient(135deg,#48270f,#241207)] px-2 py-1 font-cormorant text-[3cqw] font-semibold leading-normal text-[#fff0cc] shadow-[inset_0_0_0_1px_#ffe2a326,0_4px_12px_#0009]">{home.energyCountdown}</div>}
           </div> : <button type="button" aria-label={`Vàng ${item.value}`} onClick={item.run} className="absolute inset-y-0 left-0 w-[80%] border-0 bg-transparent p-0">
             <ResourceArtwork smooth src={item.icon} alt="" className="absolute top-1/2 left-[9%] block h-[4.6cqw] w-auto -translate-y-1/2" />
@@ -80,9 +80,9 @@ export function MobileHome({ unreadMessageCount = 0, home, music, onEnergy, onMe
       <span className="mt-1 block text-center font-heading text-[2.7cqw] tracking-[0.18em] text-[#ffe5a6] [text-shadow:0_1px_3px_#241007]">ANH HÙNG HỘI NGỘ</span>
     </button>
     <section aria-label="Chế độ chơi điện thoại" className="absolute inset-x-[8%] top-[53%] bottom-[15%] flex items-center justify-center gap-[6%]">
-      {pages[page].map(mode => <button key={mode.name} type="button" aria-label={mode.name} disabled={home.joining} onClick={mode.run} className={`${buttonInteraction} block aspect-[561/701] min-w-0 flex-1 border-0 bg-transparent p-0 disabled:opacity-50`}>
+      {pages[page].map(mode => <div key={mode.name} className="relative min-w-0 flex-1"><button type="button" aria-label={mode.name} disabled={home.joining} onClick={mode.run} className={`${buttonInteraction} block aspect-[561/701] w-full min-w-0 border-0 bg-transparent p-0 disabled:opacity-50`}>
         <CrispUiImage src={mode.image} alt="" className="pointer-events-none block h-auto w-full object-contain" style={{ transform: `translateY(${(mode.artworkOffset + mode.mobileDrop) / 701 * 100}%) scale(${mode.mobileScale})`, transformOrigin: '50% 84%', clipPath: `inset(${mode.alphaInsets[0] / 701 * 100}% ${mode.alphaInsets[1] / 561 * 100}% ${mode.alphaInsets[2] / 701 * 100}% ${mode.alphaInsets[3] / 561 * 100}%)` }} />
-      </button>)}
+      </button>{mode.name === 'Cờ Tướng' && <button type="button" onClick={home.openHovang} className={`${buttonInteraction} absolute bottom-0 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-md border border-[#d5a657] bg-[linear-gradient(#70421b,#291307)] px-3 py-1 font-body text-sm text-[#ffe5a6]`}>HOVANG v0.4</button>}</div>)}
     </section>
     <div className="absolute inset-x-[2%] top-[49%] flex justify-between">
       {[-1, 1].map(direction => <button key={direction} type="button" aria-label={direction < 0 ? 'Chế độ trước' : 'Chế độ tiếp theo'} onClick={() => setPage(value => (value + direction + pages.length) % pages.length)} className={`${buttonInteraction} grid h-[11cqw] w-[7cqw] place-items-center rounded-[30%] border-2 border-[#e7b95e] bg-[linear-gradient(135deg,#a06820,#3d1d08)] p-0 text-[#fff0bf] shadow-[inset_0_0_0_2px_#4c2509,0_2px_3px_#0009]`}>

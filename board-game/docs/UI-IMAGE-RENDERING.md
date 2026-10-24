@@ -1,5 +1,11 @@
 # Rendering ảnh UI nhỏ
 
+- 2026-10-24: Theo user, tăng chữ/icon2nút máy MOBILE: chữ5.5→6.7cqw, icon11→15cqw; padding12→7cqw/gap5→4cqw để vừa nội dung. Laptop/cỡ khung giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, áp dụng ComputerActionButton chung cho2nút Vị trí tùy chỉnh/Đấu ngay MOBILE; thay ảnh chữ gộp bằng SVG/icon vector/chữ HTML co theo container như laptop. Giữ hàng cao48px/2cột/gap12, callback/disabled/busy. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, dựng lại2nút Vị trí tùy chỉnh/Đấu ngay LAPTOP bằng ComputerActionButton: khung SVG gradient/viền/góc, icon vector bánh răng/kiếm, nhãn HTML Arial bold. Nội dung cqw theo container nút để đổi kích thước đồng tỷ lệ, giữ ô/vị trí82px và callback/disabled/busy. Mobile giữ ảnh cũ vì user chỉ yêu cầu laptop. Không thay luật/engine. Build/typecheck PASS; dist cập nhật; chưa browser QA trực quan.
+
 Cập nhật 2026-10-05. Đọc cùng PROJECT-MEMORY.md và tài liệu của màn đang sửa.
 
 ## Nguyên nhân đã kiểm tra

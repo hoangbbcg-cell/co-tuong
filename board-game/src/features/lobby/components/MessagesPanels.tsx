@@ -27,7 +27,7 @@ export function MessagesChatPane({ width, height, children, compact, hidden }: P
   </div>
 }
 
-export function MessagesDialogSurface({ compact, activeChat = false, layout, onClose, children }: { compact: boolean; activeChat?: boolean; layout: { width: number; height: number; scale: number }; onClose: () => void; children: ReactNode }) {
+export function MessagesDialogSurface({ compact, activeChat = false, hideClose = false, layout, onClose, children }: { compact: boolean; activeChat?: boolean; hideClose?: boolean; layout: { width: number; height: number; scale: number }; onClose: () => void; children: ReactNode }) {
   if (!compact) return <>{children}</>
-  return <SocialDialogFrame layout={{ ...layout, compact }} titleImage={messagesTitle} titleCrop={{ width: 2172, height: 724, top: 179, cropHeight: 366 }} overlayTitle={activeChat} hideTitle={activeChat} contentStyle={activeChat ? { paddingInline: 0, paddingBottom: 0 } : undefined} titleId="messages-frame-title" title="Tin nhắn" onClose={onClose}>{children}</SocialDialogFrame>
+  return <SocialDialogFrame layout={{ ...layout, compact }} titleImage={messagesTitle} titleCrop={{ width: 2172, height: 724, top: 179, cropHeight: 366 }} hideClose={hideClose} overlayTitle={activeChat} hideTitle={activeChat} contentStyle={activeChat ? { paddingInline: 0, paddingBottom: 0 } : undefined} titleId="messages-frame-title" title="Tin nhắn" onClose={onClose}>{children}</SocialDialogFrame>
 }

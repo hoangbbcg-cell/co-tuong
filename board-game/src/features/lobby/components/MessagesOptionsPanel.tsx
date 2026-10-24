@@ -1,4 +1,10 @@
+import { messagesFriendsField, messagesFriendsInput } from './messagesInputStyles'
+import { socialActionByName } from '../../../store/socialStore'
+import { MessagesMemberFriendButton } from './MessagesMemberFriendButton'
+import { MessagesFriendRemovalConfirmation } from './MessagesFriendButton'
+import { errorMessage } from '../../../services/api'
 import { MessagesBackButton } from './MessagesBackButton'
+import { DialogCloseButton } from './DialogCloseButton'
 import { getCrispUiLayout } from '../../../lib/crispUiRendering'
 import { useDatabaseProfile } from '../hooks/useDatabaseProfile'
 import { useSessionStore } from '../../../store/sessionStore'
@@ -59,9 +65,10 @@ function OptionRowBackground({ showBlockIcon = false }: { showBlockIcon?: boolea
   </span>
 }
 
-export function MessagesOptionsPanel({ width, height, uiScale, image, name, accountName, nicknameValue, isBlocked, isGroup = false, members = [], memberImages = {}, creatorName, memberRowHeight, memberListWidth, selfName, selfAvatarIndex = 0, notificationMuteDuration = 1, onSaveNotificationMute, onBack, onViewInfo, onSaveNickname, onChangeGroupImage, onToggleBlock, onDeleteConversation }: {
+export function MessagesOptionsPanel({ width, height, uiScale, image, name, accountName, nicknameValue, isBlocked, isGroup = false, members = [], memberImages = {}, creatorName, memberRowHeight, memberListWidth, selfName, selfAvatarIndex = 0, notificationMuteDuration = 1, onSaveNotificationMute, onBack, onViewInfo, onMemberInfo, onRemoveMember, onSaveNickname, onChangeGroupImage, onToggleBlock, onDeleteConversation }: {
   width: number; height: number; uiScale?: number; image: string; name: string; accountName?: string; nicknameValue: string; isBlocked: boolean; isGroup?: boolean; members?: string[]; memberImages?: Record<string, string>; creatorName?: string; memberRowHeight?: number; memberListWidth?: number; selfName?: string; selfAvatarIndex?: number; onBack: () => void; onViewInfo: () => void; onSaveNickname: (nickname: string) => void; onChangeGroupImage: (image: string) => void; onToggleBlock: (blocked: boolean) => void; onDeleteConversation: () => void
   notificationMuteDuration?: NotificationMuteDuration; onSaveNotificationMute: (duration: NotificationMuteDuration) => void
+  onMemberInfo: (name: string) => void; onRemoveMember: (name: string) => Promise<void>
 }) {
   const ownName = useSessionStore(state => state.name)
   const ownElo = useSessionStore(state => state.elo)
@@ -74,6 +81,43 @@ export function MessagesOptionsPanel({ width, height, uiScale, image, name, acco
   const [confirmBlock, setConfirmBlock] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [viewingMembers, setViewingMembers] = useState(false)
+  const [memberMenu, setMemberMenu] = useState<string | null>(null)
+  const memberPanelRef = useRef<HTMLElement>(null)
+  const [memberMenuAnchor, setMemberMenuAnchor] = useState({ left: 0, top: 0 })
+  const [friendRemoval, setFriendRemoval] = useState<string | null>(null)
+  const [removingFriend, setRemovingFriend] = useState(false)
+  const [skipFriendConfirmation, setSkipFriendConfirmation] = useState(false)
+  async function removeFriend(name: string, skip: boolean) {
+    if (removingFriend) return
+    setRemovingFriend(true)
+    try {
+      if (useSessionStore.getState().account) await socialActionByName(name, 'remove')
+      else useSessionStore.getState().setFriendship(name, false)
+      if (skip) useSessionStore.getState().setFriendRemovalConfirmationMutedUntil(Date.now() + 10 * 60_000)
+      setFriendRemoval(null)
+      setMemberMenu(null)
+    } catch (error) { setMemberError(errorMessage(error)) }
+    finally { setRemovingFriend(false) }
+  }
+  function requestFriendRemoval(name: string) {
+    setSkipFriendConfirmation(false)
+    if ((useSessionStore.getState().friendRemovalConfirmationMutedUntil ?? 0) > Date.now()) void removeFriend(name, false)
+    else setFriendRemoval(name)
+  }
+  const [memberError, setMemberError] = useState('')
+  const [removingMember, setRemovingMember] = useState(false)
+  const [memberRemoval, setMemberRemoval] = useState<string | null>(null)
+  async function confirmMemberRemoval() {
+    if (!memberRemoval || removingMember) return
+    setRemovingMember(true)
+    setMemberError('')
+    try {
+      await onRemoveMember(memberRemoval)
+      setMemberRemoval(null)
+      setMemberMenu(null)
+    } catch (error) { setMemberError(errorMessage(error)) }
+    finally { setRemovingMember(false) }
+  }
   const [editingNotificationMute, setEditingNotificationMute] = useState(false)
   const [notificationMuteDraft, setNotificationMuteDraft] = useState<NotificationMuteDuration>(notificationMuteDuration)
   const groupAvatarInputRef = useRef<HTMLInputElement>(null)
@@ -87,7 +131,7 @@ export function MessagesOptionsPanel({ width, height, uiScale, image, name, acco
     setEditingNickname(false)
   }
   const avatarDiameter = width * (uiScale ? 270 : 200) / sourceWidth
-  const memberViewportHeight = Math.min((memberRowHeight || 58) * 8, Math.max(0, height * 0.88 - 78))
+  const memberViewportHeight = uiScale ? height * 0.76 : Math.min((memberRowHeight || 58) * 8, Math.max(0, height * 0.88 - 78))
   const avatarStyle: CSSProperties = {
     left: `${(isGroup ? 447.5 : 446) / sourceWidth * 100}%`,
     top: `${(isGroup ? 200 : 140) / sourceHeight * 100}%`,
@@ -95,8 +139,8 @@ export function MessagesOptionsPanel({ width, height, uiScale, image, name, acco
     height: avatarDiameter,
     transform: 'translate(-50%, -50%)',
   }
-  return <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/45" onClick={onBack}>
-    <div role="dialog" aria-modal="true" aria-label={`Tùy chọn với ${name}`} className="relative shrink-0" style={{ ...(uiScale ? getCrispUiLayout(uiScale) : {}), width, height }} onClick={event => event.stopPropagation()} onKeyDown={event => {
+  return <div className={`absolute inset-0 z-40 flex items-center justify-center ${uiScale ? 'bg-[#281205]' : 'bg-black/45'}`} onClick={uiScale ? undefined : onBack}>
+    <div role={uiScale ? 'region' : 'dialog'} aria-modal={uiScale ? undefined : true} aria-label={`Tùy chọn với ${name}`} className="relative shrink-0" style={{ ...(uiScale ? getCrispUiLayout(uiScale) : {}), width: uiScale ? '100%' : width, height: uiScale ? '100%' : height }} onClick={event => event.stopPropagation()} onKeyDown={event => {
       if (event.key !== 'Tab') return
       const buttons = event.currentTarget.querySelectorAll<HTMLButtonElement>('button')
       const first = buttons[0]
@@ -104,9 +148,9 @@ export function MessagesOptionsPanel({ width, height, uiScale, image, name, acco
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
       if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
     }}>
-      <CrispUiImage src={body} alt="" className="pointer-events-none absolute object-fill" style={place(31, 32, 834, 948)} />
-      <CrispUiImage src={scene} alt="" className="pointer-events-none absolute object-cover" style={place(31, 32, 834, 354)} />
-      <div aria-hidden="true" className="pointer-events-none absolute" style={{ ...place(31, 280, 834, 180), background: 'linear-gradient(to bottom, transparent 0%, rgba(40, 18, 5, 0.12) 42%, rgba(40, 18, 5, 0.68) 70%, #281205 100%)' }} />
+      <CrispUiImage src={body} alt="" className="pointer-events-none absolute object-fill" style={uiScale ? { inset: 0, width: '100%', height: '100%' } : place(31, 32, 834, 948)} />
+      <CrispUiImage src={scene} alt="" className="pointer-events-none absolute object-cover" style={uiScale ? place(0, 0, sourceWidth, 386) : place(31, 32, 834, 354)} />
+      <div aria-hidden="true" className="pointer-events-none absolute" style={{ ...(uiScale ? place(0, 280, sourceWidth, 180) : place(31, 280, 834, 180)), background: 'linear-gradient(to bottom, transparent 0%, rgba(40, 18, 5, 0.12) 42%, rgba(40, 18, 5, 0.68) 70%, #281205 100%)' }} />
       <span className="absolute z-10 block" style={avatarStyle}>
         {isGroup
           ? <MessagesGroupAvatar src={image} alt={`Avatar ${name}`} className="block size-full" />
@@ -137,13 +181,13 @@ export function MessagesOptionsPanel({ width, height, uiScale, image, name, acco
         <button type="button" aria-label="Đổi ảnh nhóm" onClick={() => groupAvatarInputRef.current?.click()} className={`${buttonInteraction} absolute z-20 grid place-items-center rounded-full border border-[#e7b755] bg-[#2d160a] p-1 text-[#ffe08b] shadow-[0_1px_3px_#160904]`} style={uiScale ? { left: '50%', top: `${200 / sourceHeight * 100}%`, marginLeft: avatarDiameter * 0.32, marginTop: -avatarDiameter * 0.5, width: width * 0.095, height: width * 0.095, padding: width * 0.018 } : place(499.5, 109, 48, 48)}><svg aria-hidden="true" viewBox="0 0 24 24" className="block size-full" fill="currentColor"><path d="M8 4 6 7H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2-3Z"/><circle cx="12" cy="13" r="4" fill="#2d160a"/><circle cx="12" cy="13" r="2.5" fill="currentColor"/></svg></button>
       </>}
       <span className="absolute z-10 w-[80%] -translate-x-1/2 truncate text-center font-heading text-[length:var(--ui-p-28)] font-bold leading-none text-[#ffe8ad]" style={{ left: `${(isGroup ? 447.5 : 447) / sourceWidth * 100}%`, top: `${(isGroup ? 315 : 316) / sourceHeight * 100}%` }}><SocialPlayerName name={name} /></span>
-      {uiScale ? <MessagesBackButton autoFocus label="Quay lại hội thoại" onClick={onBack} size={32} className="absolute z-20" style={{ left: `${40 / sourceWidth * 100}%`, top: `${35 / sourceHeight * 100}%` }} /> : <button autoFocus type="button" aria-label="Quay lại hội thoại" onClick={onBack} className={`${buttonInteraction} absolute m-0 border-0 bg-transparent p-0 leading-none`} style={place(40, 35, 85, 77)}>
+      {uiScale ? <MessagesBackButton autoFocus label="Quay lại hội thoại" onClick={onBack} size={28} className="absolute z-20" style={{ left: 6, top: 13 }} /> : <button autoFocus type="button" aria-label="Quay lại hội thoại" onClick={onBack} className={`${buttonInteraction} absolute m-0 border-0 bg-transparent p-0 leading-none`} style={place(40, 35, 85, 77)}>
         <CrispUiImage src={back} alt="" className="block h-full w-full object-contain" />
       </button>}
       {actions.filter(action => (action.image !== mute || notificationMuteEnabled) && (isGroup
         ? action.image !== info && action.image !== block && (canManageGroup || action.image !== nickname)
         : action.image !== mute)).map((action, index) => {
-        const actionBox = uiScale ? [47, 385 + (index + (isGroup && action.image !== nickname ? 1 : 0)) * 102, 800, 90] : isGroup
+        const actionBox = uiScale && isGroup && action.image === nickname ? [289, 388, 317, 77] : uiScale ? [47, 385 + (index + (isGroup && action.image !== nickname ? 1 : 0)) * 102, 800, 90] : isGroup
           ? action.image === nickname ? [289, 388, 317, 77]
             : action.image === mute ? [47, 581, 800, 85]
               : action.image === deleteChat ? [47, notificationMuteEnabled ? 672 : 581, 800, 85]
@@ -160,7 +204,7 @@ export function MessagesOptionsPanel({ width, height, uiScale, image, name, acco
         if (action.image === mute) { setNotificationMuteDraft(notificationMuteDuration); setEditingNotificationMute(true) }
         if (action.label === 'Xóa cuộc trò chuyện') setConfirmDelete(true)
       }} className={`${buttonInteraction} absolute m-0 border-0 bg-transparent p-0 leading-none ${editingNickname && (action.label === 'Xem thông tin' || action.label === 'Biệt danh') ? 'invisible' : ''}`} style={place(actionBox[0], actionBox[1], actionBox[2], actionBox[3])}>
-        {uiScale ? <><OptionRowBackground/><svg aria-hidden="true" viewBox="0 0 24 24" className="absolute left-[4%] top-1/2 size-[var(--ui-p-34)] -translate-y-1/2 text-[#f4c75e]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{action.image === info ? <><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></> : action.image === nickname ? <><path d="m4 16 12-12 4 4L8 20l-5 1Z"/><path d="m13 7 4 4"/></> : action.image === block ? <><circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/></> : action.image === deleteChat ? <><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></> : <><path d="M5 21V3m0 1c5-3 9 3 14 0v10c-5 3-9-3-14 0"/></>}</svg><span className="absolute left-[15%] top-0 flex h-full items-center font-cormorant text-[length:var(--ui-p-22)] font-bold text-[#ffe8ad]">{actionLabel}</span></> : <>
+        {uiScale && !(isGroup && action.image === nickname) ? <><OptionRowBackground/><svg aria-hidden="true" viewBox="0 0 24 24" className="absolute left-[4%] top-1/2 size-[var(--ui-p-34)] -translate-y-1/2 text-[#f4c75e]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{action.image === info ? <><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></> : action.image === nickname ? <><path d="m4 16 12-12 4 4L8 20l-5 1Z"/><path d="m13 7 4 4"/></> : action.image === block ? <><circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/></> : action.image === deleteChat ? <><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></> : <><path d="M5 21V3m0 1c5-3 9 3 14 0v10c-5 3-9-3-14 0"/></>}</svg><span className="absolute left-[15%] top-0 flex h-full items-center font-cormorant text-[length:var(--ui-p-22)] font-bold text-[#ffe8ad]">{actionLabel}</span></> : <>
         {!isGroup && action.image === block ? <OptionRowBackground showBlockIcon /> : <CrispUiImage src={isGroup && action.image === nickname ? blankActionButton : action.image} alt="" className={`block h-full w-full ${isGroup && action.image === nickname ? 'object-fill' : 'object-contain'}`} />}
         {!isGroup && action.image === block && <span className="absolute left-[15%] top-0 flex h-full items-center font-cormorant text-[length:var(--ui-p-22)] font-bold text-[#ffe8ad]">{actionLabel}</span>}
         {isGroup && action.image === nickname && <><svg aria-hidden="true" viewBox="0 0 24 24" className="absolute left-[19%] top-[22%] h-[56%] w-[12%] text-[#f4c75e]" fill="currentColor"><path d="m17.7 2.3 4 4a1 1 0 0 1 0 1.4l-2.4 2.4-5.4-5.4 2.4-2.4a1 1 0 0 1 1.4 0ZM12.5 6.1l5.4 5.4L8 21.4 2 23l1.6-6L12.5 6.1ZM3 22h18v1H3Z" /></svg><span className="absolute left-[36%] top-0 flex h-full w-[60%] items-center justify-center font-cormorant text-[length:var(--ui-p-24)] font-bold text-[#ffe8ad]">Đổi tên</span></>}
@@ -172,22 +216,32 @@ export function MessagesOptionsPanel({ width, height, uiScale, image, name, acco
         <svg aria-hidden="true" viewBox="0 0 24 24" className="absolute left-[4%] top-1/2 size-[var(--ui-p-34)] -translate-y-1/2 text-[#f4c75e]" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3Zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3Zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13Zm8 .17c-.29 0-.62.02-.97.05 1.16.84 1.97 1.94 1.97 3.28V19h6v-2.5c0-2.33-4.67-3.33-7-3.33Z" /></svg>
         <span className="absolute left-[15%] top-0 flex h-full items-center font-number text-[length:var(--ui-p-22)] font-normal text-[#ffe8ad] [font-variant-numeric:lining-nums]">Xem thành viên (<span className="font-number">{members.length}</span>)</span>
       </button>}
-      {viewingMembers && <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/70 p-[6%]">
-        <section role="dialog" aria-modal="true" aria-label={`Thành viên nhóm (${members.length})`} className="flex max-h-full max-w-full flex-col rounded-xl border-2 border-[#e7b755] bg-[linear-gradient(145deg,#4a260f,#241007)] p-4 shadow-[0_4px_18px_#120700]" style={{ width: memberListWidth ?? '100%' }}>
-          <div className="mb-3 flex items-center justify-between gap-3"><h2 className="font-cormorant text-[length:var(--ui-p-22)] font-bold text-[#ffe5a6] [font-variant-numeric:lining-nums]">Thành viên (<span className="font-number">{members.length}</span>)</h2><button type="button" autoFocus onClick={() => setViewingMembers(false)} aria-label="Đóng danh sách thành viên" className={`${buttonInteraction} rounded-lg border border-[#b8873e] px-3 py-1 text-[#ffe5a6]`}>×</button></div>
-          <ul className={`min-h-0 shrink-0 overflow-y-auto pr-1 ${messageScrollbarClass}`} style={{ height: memberViewportHeight }}>{sortedMembers.map(member => <li key={member} className="flex shrink-0 items-center gap-2 border-b border-[#79501e] px-1 py-1 font-heading text-[length:var(--ui-p-22)] font-bold text-[#fff6df] leading-tight" style={{ height: memberViewportHeight / 8 }}>
-            <span className="relative block size-[var(--ui-p-50)] shrink-0 cursor-pointer">
+      {viewingMembers && <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/70 p-[6%] compact:p-[3%]">
+        <section ref={memberPanelRef} role="dialog" aria-modal="true" aria-label={`Thành viên nhóm (${members.length})`} className="relative flex max-h-full max-w-full flex-col rounded-xl border-2 border-[#e7b755] bg-[linear-gradient(145deg,#4a260f,#241007)] p-4 shadow-[0_4px_18px_#120700]" style={{ width: uiScale ? '100%' : memberListWidth ?? '100%', height: uiScale ? '94%' : undefined }}>
+          <div className="mb-3 flex items-center justify-between gap-3"><h2 className="font-cormorant text-[length:var(--ui-p-22)] compact:text-[20px] font-bold text-[#ffe5a6] [font-variant-numeric:lining-nums]">Thành viên (<span className="font-number">{members.length}</span>)</h2>{uiScale ? <DialogCloseButton onClose={() => { setViewingMembers(false); setMemberMenu(null) }} compact scale={width / 1120} positionClass="top-[12px] right-[16px]" /> : <button type="button" autoFocus onClick={() => setViewingMembers(false)} aria-label="Đóng danh sách thành viên" className={`${buttonInteraction} rounded-lg border border-[#b8873e] px-3 py-1 text-[#ffe5a6]`}>×</button>}</div>
+          {memberError && <p role="alert" className="text-[14px] text-[#ffac80]">{memberError}</p>}
+          <ul className={`min-h-0 shrink-0 overflow-y-auto pr-1 ${messageScrollbarClass}`} style={{ height: memberViewportHeight }}>{sortedMembers.map(member => <li key={member} className="relative flex shrink-0 items-center gap-2 border-b border-[#79501e] px-1 py-1 font-heading text-[length:var(--ui-p-22)] compact:text-[16px] font-bold text-[#fff6df] leading-tight" style={{ height: memberViewportHeight / 8 }}>
+            <button type="button" aria-label={`Xem thông tin ${member}`} onClick={() => { setMemberMenu(null); onMemberInfo(member) }} className={`${buttonInteraction} relative block size-[var(--ui-p-50)] compact:size-[40px] shrink-0 cursor-pointer border-0 bg-transparent p-0`}> 
               {accountName ? <MessageAccountAvatar name={member} /> : member === selfName ? <AvatarPortrait avatarIndex={selfAvatarIndex} className="size-full rounded-full object-contain" /> : <CrispUiImage src={memberImages[member] ?? defaultMemberAvatar} alt={`Avatar ${member}`} className="block size-full rounded-full object-contain" />}
-              {member === creatorName && <span role="img" aria-label="Người tạo nhóm" className="absolute -right-[var(--ui-p-2)] -bottom-[var(--ui-p-2)] grid size-[var(--ui-p-20)] place-items-center rounded-full border border-[#666666] bg-[#666666] shadow-[0_1px_2px_#1c0e07]"><svg aria-hidden="true" viewBox="0 0 24 24" className="size-[var(--ui-p-13)] text-[#FBD65B]" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="8" r="5" /><path d="m12.5 11.5-9 9H7v-4h4v-4" /></svg></span>}
-            </span>
-            <span className="min-w-0 truncate"><SocialPlayerName name={member} /></span>
+              {member === creatorName && <span role="img" aria-label="Người tạo nhóm" className="absolute -right-[var(--ui-p-2)] -bottom-[var(--ui-p-2)] z-30 grid size-[var(--ui-p-20)] place-items-center rounded-full border border-[#666666] bg-[#666666] shadow-[0_1px_2px_#1c0e07]"><svg aria-hidden="true" viewBox="0 0 24 24" className="size-[var(--ui-p-13)] text-[#FBD65B]" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="8" r="5" /><path d="m12.5 11.5-9 9H7v-4h4v-4" /></svg></span>}
+            </button>
+            <span className="min-w-0 flex-1 truncate"><SocialPlayerName name={member} /></span>
+            {uiScale && member !== selfName && (canManageGroup ? <button type="button" aria-label={`Tùy chọn thành viên ${member}`} aria-expanded={memberMenu === member} onClick={event => { const button = event.currentTarget.getBoundingClientRect(); const panel = memberPanelRef.current?.getBoundingClientRect(); if (panel) setMemberMenuAnchor({ left: button.left - panel.left - 8, top: button.top - panel.top + button.height / 2 }); setMemberError(''); setMemberMenu(current => current === member ? null : member) }} className={`${buttonInteraction} grid h-[32px] w-[28px] shrink-0 place-items-center border-0 bg-transparent p-0 text-[24px] leading-none text-[#ffe5a6]`}>...</button> : <MessagesMemberFriendButton name={member} onRequestRemoval={requestFriendRemoval}/>)}
           </li>)}</ul>
+          {memberMenu && canManageGroup && <button type="button" aria-label="Đóng menu thành viên" onClick={() => setMemberMenu(null)} className="absolute inset-0 z-[35] cursor-default border-0 bg-transparent p-0" />}
+          {memberMenu && canManageGroup && <div role="group" aria-label={`Tùy chọn thành viên ${memberMenu}`} style={{ left: memberMenuAnchor.left, top: memberMenuAnchor.top, transform: 'translate(-100%, -50%)' }} className="absolute z-40 flex flex-col items-start whitespace-nowrap rounded-lg border border-[#b8873e] bg-[#321705] p-[10px] shadow-lg">
+            <button type="button" disabled={removingMember || memberMenu === creatorName} onClick={() => { setMemberError(''); setMemberRemoval(memberMenu); setMemberMenu(null) }} className={`${buttonInteraction} flex min-h-[32px] items-center gap-[8px] bg-transparent text-[14px] text-[#ffe5a6] disabled:opacity-50`}><svg aria-hidden="true" viewBox="0 0 24 24" className="size-[24px] shrink-0 text-[#ff4848]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>Xóa khỏi nhóm</button>
+            <hr className="my-[8px] w-full border-0 border-t border-[#b8873e]/60"/>
+            <MessagesMemberFriendButton name={memberMenu} showText onAction={() => setMemberMenu(null)} onRequestRemoval={requestFriendRemoval}/>
+          </div>}
+          {memberRemoval && <MessagesFriendRemovalConfirmation name={memberRemoval} message={`Bạn có chắc muốn xóa ${memberRemoval} khỏi nhóm không?`} showSkip={false} skip={false} onSkipChange={() => {}} pending={removingMember} error={memberError} onCancel={() => { if (!removingMember) setMemberRemoval(null) }} onConfirm={() => { void confirmMemberRemoval() }}/>}
+          {friendRemoval && <MessagesFriendRemovalConfirmation pending={removingFriend} error={memberError} name={friendRemoval} skip={skipFriendConfirmation} onSkipChange={setSkipFriendConfirmation} onCancel={() => { if (!removingFriend) setFriendRemoval(null) }} onConfirm={() => { void removeFriend(friendRemoval, skipFriendConfirmation) }}/>}
         </section>
       </div>}
-      {editingNickname && <form onSubmit={submitNickname} aria-label="Đặt biệt danh" className="absolute z-20 flex items-center gap-2 rounded-lg border-2 border-[#e7b755] bg-[linear-gradient(135deg,#4a260f,#241007)] px-2 shadow-[0_2px_8px_#120700]" style={place(106, 388, 682, 77)}>
-        <input autoFocus aria-label={isGroup ? 'Tên nhóm' : 'Biệt danh'} value={nicknameDraft} onChange={event => setNicknameDraft(event.target.value)} maxLength={32} placeholder={isGroup ? 'Nhập tên' : 'Nhập biệt danh'} className="h-[70%] min-w-0 flex-1 rounded-md border border-[#b8873e] bg-[#1c0e07] px-2 text-[length:var(--ui-p-18)] text-[#fff6df] outline-none placeholder:text-[#c8aa78]" />
-        <button type="button" onClick={() => setEditingNickname(false)} className={`${buttonInteraction} shrink-0 rounded-md border border-[#b8873e] bg-[#3e200e] px-2 text-[length:var(--ui-p-16)] text-[#ffe5a6]`}>Hủy</button>
-        <button type="submit" className={`${buttonInteraction} shrink-0 rounded-md border border-[#ffe08b] bg-[linear-gradient(#d99c37,#8f4d17)] px-3 text-[length:var(--ui-p-16)] font-bold text-[#fff2c8]`}>OK</button>
+      {editingNickname && <form onSubmit={submitNickname} aria-label="Đặt biệt danh" className="absolute z-20 flex items-center gap-2 rounded-lg border-2 border-[#e7b755] bg-[linear-gradient(135deg,#4a260f,#241007)] px-2 shadow-[0_2px_8px_#120700]" style={uiScale ? { ...place(47, 380, 800, 100), minHeight: 58 } : place(106, 388, 682, 77)}>
+        <input autoFocus aria-label={isGroup ? 'Tên nhóm' : 'Biệt danh'} value={nicknameDraft} onChange={event => setNicknameDraft(event.target.value)} maxLength={32} placeholder={isGroup ? 'Nhập tên' : 'Nhập biệt danh'} className={uiScale ? `h-[44px] px-[10px] ${messagesFriendsField} ${messagesFriendsInput}` : 'h-[70%] min-w-0 flex-1 rounded-md border border-[#b8873e] bg-[#1c0e07] px-2 text-[length:var(--ui-p-18)] text-[#fff6df] outline-none placeholder:text-[#c8aa78]'} />
+        <button type="button" onClick={() => setEditingNickname(false)} className={`${buttonInteraction} ${uiScale ? 'h-[40px] min-w-[44px] px-[8px] text-[16px]' : ''} shrink-0 rounded-md border border-[#b8873e] bg-[#3e200e] px-2 text-[length:var(--ui-p-16)] text-[#ffe5a6]`}>Hủy</button>
+        <button type="submit" className={`${buttonInteraction} ${uiScale ? 'h-[40px] min-w-[44px] px-[8px] text-[16px]' : ''} shrink-0 rounded-md border border-[#ffe08b] bg-[linear-gradient(#d99c37,#8f4d17)] px-3 text-[length:var(--ui-p-16)] font-bold text-[#fff2c8]`}>OK</button>
       </form>}
       {confirmBlock && <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/65 p-6">
         <section role="alertdialog" aria-modal="true" aria-labelledby="messages-block-confirmation-title" className="w-[82%] rounded-xl border-2 border-[#e7b755] bg-[linear-gradient(145deg,#54290f,#241007)] px-5 py-4 text-center shadow-[0_4px_18px_#120700]">
@@ -230,7 +284,7 @@ export function MessagesOptionsPanel({ width, height, uiScale, image, name, acco
           </div>
         </section>
       </div>}
-      <CrispUiImage src={frame} alt="" className="pointer-events-none absolute inset-0 block h-full w-full object-fill" />
+      {!uiScale && <CrispUiImage src={frame} alt="" className="pointer-events-none absolute inset-0 block h-full w-full object-fill" />}
     </div>
   </div>
 }

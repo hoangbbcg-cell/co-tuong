@@ -76,3 +76,9 @@ Kiểm chứng:3/3 test preview/route/Home compact PASS, typecheck/build PASS; l
 
 
 - 2026-10-24: Theo user, nút Chat ngoài Home hiển thị tổng unreadCount mọi hội thoại từ server, Query theo accountID/poll4giây; đọc tin invalidate query để giảm số. Mobile tái dùng chính markup/style huy hiệu lời mời Bạn bè (đỏ/viền kem, max99+), desktop cùng kiểu; số0 ẩn. MobileHome prop optional mặc định0 cho consumer cũ. Build/typecheck PASS sau sửa hợp đồng props; dist cập nhật; chưa browser/API live QA. Không đổi read API hoặc cơ sở dữ liệu.
+
+- 2026-10-24: Theo user, Home MOBILE dấu∞ năng lượng tăng3.2→4cqw (25%), giữ tâm; sốnănglượng thường/vàng/laptop/chínhsách2ID vôhạn giữ nguyên. Build/typecheck PASS; dist xác nhận4cqw; chưa browser QA.
+
+- 2026-10-24: User tăng tiếp dấu∞ Home MOBILE4→4.8cqw (thêm20%), giữ tâm/các giátrịkhác/laptop. Build đầu Vite lỗi-1073740791; chạy lại build/typecheck PASS exit0, dist có4.8cqw. Chưa browser QA.
+
+- 2026-10-24 — TODO do user yêu cầu ghi nhớ: sau này thiết kế thêm2mục Nhiệm vụ và Hòm thư ở bên phải ngoài Home. Hiện chỉ ghi backlog, chưa triển khai UI/chức năng, chưa mở khóa bố cục hoặc chốt kích thước; khi thực hiện mặc định mobile theo phạm vi phiên hiện tại, laptop cần yêu cầu riêng.

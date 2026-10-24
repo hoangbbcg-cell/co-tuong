@@ -10,7 +10,7 @@ Mỗi ý tưởng có một file Markdown trong nhóm phù hợp: `gameplay/`, `
 
 ## Làm sau
 
-Chưa có ý tưởng được lên kế hoạch làm sau.
+- [Nhiệm vụ và Hòm thư trên Home](ui/home-nhiem-vu-hom-thu.md) — bổ sung hai mục bên phải Home; ghi nhận 2026-10-24, chưa triển khai.
 
 ## Ý tưởng tương lai
 

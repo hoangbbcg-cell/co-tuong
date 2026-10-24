@@ -24,6 +24,12 @@ export function useDatabaseMessages(){
   return {...databaseMessages,
     social:()=>accountApi.social(),
     members:async(id:string)=>(await accountApi.request.get<{id:string;name:string;role:string}[]>(`/conversations/${id}/members`)).data,
+    removeMember:async(id:string,name:string)=>{
+      const members=(await accountApi.request.get<{id:string;name:string;role:string}[]>(`/conversations/${id}/members`)).data
+      const target=members.find(member=>member.name===name)
+      if(!target)throw new Error('Người chơi không còn trong nhóm.')
+      await databaseMessages.member(id,'remove',target.id)
+    },
     read:async(id:string,messageId:string)=>{await accountApi.request.post(`/conversations/${id}/read`,{messageId});void queryClient.invalidateQueries({queryKey:['message-unread-total']})},
     block:async(targetId:string,enabled:boolean)=>{await accountApi.socialAction({targetId,action:'message-block',enabled})},
     mute:async(id:string,hours:number|null)=>{await accountApi.request.patch(`/conversations/${id}/mute`,{hours})},

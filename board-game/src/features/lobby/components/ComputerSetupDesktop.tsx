@@ -1,8 +1,7 @@
 import { CrispUiImage } from '../../../lib/CrispUiImage'
 import { computerAvatar } from '../../../lib/computerAvatar'
 import { PlayerNameplate } from '../../game/components/PlayerNameplate'
-import customPosition from '../../../assets/computer-setup/custom-position.png'
-import startMatch from '../../../assets/computer-setup/start-match.png'
+import { ComputerActionButton } from './ComputerActionButton'
 import puzzles from '../../../assets/computer-setup/training-banner.png'
 import { buttonInteraction } from '../../../lib/uiClasses'
 import { useComputerLayout } from '../hooks/useComputerLayout'
@@ -30,9 +29,7 @@ export function ComputerSetupDesktop({ setup }: { setup: ReturnType<typeof useCo
           <div aria-hidden="true" className="pointer-events-none absolute bottom-[4px] left-[4px] size-[99px] rounded-bl-[95px] border-b border-l border-[#a67a3a66]" />
           <div aria-hidden="true" className="pointer-events-none absolute right-[4px] bottom-[4px] size-[99px] rounded-br-[95px] border-r border-b border-[#a67a3a66]" />
 
-          <div role="group" aria-label="Chọn engine" className="absolute top-[19px] right-[20px] z-10 flex gap-2">
-            {([{ value: 'pikafish', label: 'Pikafish' }, { value: 'hovang', label: 'HOVANG v0.4 · thử nghiệm' }] as const).map(option => <button key={option.value} type="button" disabled={setup.starting} aria-pressed={setup.engine === option.value} onClick={() => setup.setEngine(option.value)} className={`${buttonInteraction} rounded-md border px-3 py-2 font-[Arial,sans-serif] text-[15px] ${setup.engine === option.value ? 'border-[#ffe3a1] bg-[#790b0e] text-[#fff0cf]' : 'border-[#a67a3a] bg-[#211309] text-[#d9bd86]'}`}>{option.label}</button>)}
-          </div>
+
 
           <CrispUiImage src={computerAvatar} alt="Ông Hoàng" className="pointer-events-none absolute top-[13px] left-1/2 block h-[148px] w-[183px] max-w-none -translate-x-1/2 object-contain" />
           <div className="absolute top-[171px] left-1/2 grid h-[53px] w-[330px] -translate-x-1/2 place-items-center">
@@ -52,8 +49,8 @@ export function ComputerSetupDesktop({ setup }: { setup: ReturnType<typeof useCo
           </fieldset>
 
           <div className="absolute top-[521px] right-[48px] left-[58px] grid h-[82px] grid-cols-2 gap-[28px]">
-            <button type="button" disabled={setup.starting} className={`${buttonInteraction} relative overflow-hidden rounded-[5px] hover:brightness-110`} onClick={setup.customPosition}><CrispUiImage src={customPosition} alt="Vị trí tùy chỉnh" className="block size-full object-fill" /><Ornament color="#e1a544" /></button>
-            <button type="button" className={`${buttonInteraction} relative overflow-hidden rounded-[5px] hover:brightness-110`} disabled={setup.starting} aria-busy={setup.starting} onClick={() => void setup.start()}><CrispUiImage src={startMatch} alt={setup.starting ? 'Đang kết nối Ông Hoàng…' : 'Đấu ngay'} className="block size-full object-fill" /><Ornament color="#ff3346" /></button>
+            <ComputerActionButton action="position" disabled={setup.starting} onClick={setup.customPosition}>Vị trí tùy chỉnh</ComputerActionButton>
+            <ComputerActionButton action="start" disabled={setup.starting} aria-busy={setup.starting} onClick={() => void setup.start()}>{setup.starting ? 'Đang kết nối…' : 'Đấu ngay'}</ComputerActionButton>
           </div>
         </section>
         <button type="button" className={`${buttonInteraction} mt-[13px] aspect-[2132/348] w-[1268px] max-w-none shrink-0 rounded-xl hover:brightness-110`} onClick={() => setup.setMessage('Luyện cờ chưa được hỗ trợ.')}><CrispUiImage src={puzzles} alt="Luyện cờ — Luyện tập cùng máy, rèn kỹ năng mỗi ngày" className="block size-full object-contain" /></button>

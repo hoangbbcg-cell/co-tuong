@@ -115,8 +115,8 @@ export function accountRouter(account:AccountService,persistence=new Persistence
   router.post('/conversations/:id/images',async(req,res)=>{const image=messageImageData(req.body?.image);const id=await persistence.social.imageMessage(String(res.locals.userId),uuid(req.params.id),image.bytes,uuid(req.body?.clientMessageId),image.extension);res.json({id})})
   router.post('/conversations/:id/messages',async(req,res)=>res.json({id:await persistence.social.send(String(res.locals.userId),uuid(req.params.id),text(req.body?.body,300),uuid(req.body?.clientMessageId))}))
   router.patch('/conversations/:id',async(req,res)=>{
-    const action=req.body?.action;if(!['clear','nickname','leave','add'].includes(action))throw new AccountError('Thao tác không hợp lệ.')
-    const value=action==='nickname'?(req.body.value?text(req.body.value,80):null):action==='add'?userId(req.body.value):null
+    const action=req.body?.action;if(!['clear','nickname','leave','add','remove'].includes(action))throw new AccountError('Thao tác không hợp lệ.')
+    const value=action==='nickname'?(req.body.value?text(req.body.value,80):null):action==='add'||action==='remove'?userId(req.body.value):null
     await persistence.social.member(String(res.locals.userId),uuid(req.params.id),action,value);res.json({ok:true})
   })
   router.get('/match-rewards/:id',async(req,res)=>{res.setHeader('Cache-Control','no-store');res.json(await persistence.content.matchReward(String(res.locals.userId),uuid(req.params.id)))})

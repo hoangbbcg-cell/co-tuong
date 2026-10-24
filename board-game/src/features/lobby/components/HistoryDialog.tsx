@@ -98,7 +98,7 @@ export function HistoryDialog({ dialogRef, layout, name, onClose, onOpenProfile 
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 -top-[var(--ui-p-8,8px)] h-[var(--ui-p-104,104px)] overflow-hidden rounded-[var(--ui-p-10,10px)] opacity-80 shadow-[inset_0_0_18px_8px_#241107] compact:hidden">
           <CrispUiImage src={socialHeaderLandscape} alt="" className="size-full object-cover object-center" />
         </div>
-        <nav className="relative z-10 mx-auto mb-1 grid h-[var(--ui-p-58,58px)] w-[var(--ui-p-610,610px)] shrink-0 grid-cols-2 gap-4 compact:h-auto compact:w-[84%] compact:gap-10" style={{ '--history-tab-width': `${Math.round(264 * layout.scale * 1.6)}px`, '--history-tab-height': `${Math.round(70 * layout.scale * 1.6)}px` } as CSSProperties} role="tablist" aria-label="Loại lịch sử">
+        <nav className="relative z-10 compact:z-[25] mx-auto mb-1 grid h-[var(--ui-p-58,58px)] w-[var(--ui-p-610,610px)] shrink-0 grid-cols-2 gap-4 compact:h-auto compact:w-[84%] compact:gap-10" style={{ '--history-tab-width': `${Math.round(264 * layout.scale * 1.6)}px`, '--history-tab-height': `${Math.round(70 * layout.scale * 1.6)}px` } as CSSProperties} role="tablist" aria-label="Loại lịch sử">
           <HistoryTabButton label="Đã chơi" selected={tab === 'played'} image={tab === 'played' ? playedTab : playedTabUnselected} onClick={() => setTab('played')} />
           <HistoryTabButton label="Đã lưu" selected={tab === 'watched'} image={tab === 'watched' ? savedTabSelected : savedTab} onClick={() => setTab('watched')} />
         </nav>

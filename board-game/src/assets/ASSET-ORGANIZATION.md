@@ -61,3 +61,9 @@ Dọn ngày 2026-10-03: xóa 129 ảnh không được tham chiếu; gom 8 ảnh
 | e7544f25-2cc2-4bfb-8fcd-c3f3ff3dd520.png | references/uploads/home-actions/e7544f25-2cc2-4bfb-8fcd-c3f3ff3dd520.png |
 | ff38225e-a7c3-4f17-97dd-14a883c0cef9.png | references/uploads/game-result/ff38225e-a7c3-4f17-97dd-14a883c0cef9.png |
 
+
+- 2026-10-24: Nút Tìm dùng chung: buttons/search-button.png, nguồn references/uploads/cdd2fd06-7878-4694-8d67-d2ee730ad76c.png, trim vùng alpha >16, giữ artwork.
+
+- 2026-10-24: Hoàn tác dùng nút Tìm cdd2fd06 theo user; gỡ buttons/search-button.png, chỉ giữ nguồn reference.
+
+- 2026-10-24: buttons/search-frame.png từ references/uploads/4cdefa67-6cf6-49bc-9553-c6b97c1fe0e9.png, crop(467,158,1240,392), giữ chữ/icon HTML.

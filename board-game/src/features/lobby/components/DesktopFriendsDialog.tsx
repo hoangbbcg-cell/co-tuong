@@ -1,3 +1,5 @@
+import { SearchButton } from './SearchButton'
+
 import { AccountAvatar } from './AccountAvatar'
 import { useSocialStore, socialActionByName } from '../../../store/socialStore'
 import { CrispUiImage } from '../../../lib/CrispUiImage'
@@ -129,7 +131,7 @@ function SearchIcon({ className = '' }: { className?: string }) {
 }
 
 function FriendSearchButton() {
-  return <button className={`${goldButton} min-w-[var(--ui-p-170,170px)] gap-[var(--ui-p-9,9px)] text-[length:var(--ui-p-21,21px)]`} style={{ height: 'var(--ui-p-56,56px)' }} type="submit"><SearchIcon /><span>Tìm</span></button>
+  return <SearchButton className="w-[var(--ui-p-170,170px)] text-[length:var(--ui-p-21,21px)]" style={{ height: 'var(--ui-p-56,56px)' }}><SearchIcon /><span>Tìm</span></SearchButton>
 }
 
 function PresenceLabel({ presence, facebook }: { presence: Presence; facebook?: boolean }) {

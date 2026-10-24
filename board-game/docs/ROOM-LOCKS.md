@@ -18,3 +18,9 @@ Triển khai2026-10-15, thay bản UI xem trước trước đó.
 Kiểm chứng: unit service kiểm tra mật khẩu sai/thiếu/đúng ở cả ghế và người xem, giới hạn, không lộ secret qua JSON, giữ khóa sau reset; hook/UI kiểm tra lọc theo khu vực và gửi đúng mật khẩu; HTTP/Socket thật kiểm tra create→sai→đúng. QuickRoom/challenge/server regression liên quan cũng qua. Chưa QA trình duyệt trực tiếp.
 - 2026-10-15: Bàn khóa dùng room-selection/table-board-locked.png từ65c16869, crop107,140,1041,964; bàn mở giữ ảnh cũ. Áp dụng cả Tất cả/Còn trống/Bàn khóa thông qua RoomTableGrid.
 - 2026-10-16: Kết thúc xem thử bàn mẫu Chọn Bàn theo yêu cầu dữ liệu thật. RoomTableGrid chỉ dùng rooms API đã lọc khu vực/trạng thái, bỏ22 previewRooms và đường vào demo. Không có phòng hiện rỗng, không giả người/bàn; Tạo/vào/khóa/ghép nhanh giữ server thật.
+
+- 2026-10-24: Theo user, Chọn Bàn nới ô tìm theo số/nútTìm: form desktopmin440/46% thay360/42%, compactrộng viewport-112px thay58% để chừa back/âmthanh; nút min72desktop/64mobile, gap6mobile, thêm kínhlúpSVG16 bên chữTìm. Giữh36/logic joinByCode/mã6số/pending. Build/typecheck PASS; dist xác nhận440/46%; chưa browser QA.
+
+- 2026-10-24: User yêu cầu thu nhẹ cụm tìm Chọn Bàn: desktop410/44% thay440/46%, mobileviewport-124px thay-112; nútmin66desktop/60mobile thay72/64. Giữ cao/icon/logic. Build/typecheck PASS; dist xác nhận410/44%; chưa browser QA.
+
+- 2026-10-24: User thu thêm cụm tìm Chọn Bàn: desktop390/43%, mobileviewport-134px; nútmin62desktop/56mobile, cao/icon/logic giữ. Build/typecheck PASS; dist xác nhận390/43%; chưa browser QA.

@@ -47,7 +47,7 @@ export class SocialRepository {
       (SELECT COUNT(*) FROM messages m WHERE m.conversation_id=c.id AND m.sender_id<>cm.user_id AND m.id>GREATEST(COALESCE(cm.last_read_message_id,0),COALESCE(cm.cleared_through_message_id,0))) unreadCount
       FROM conversation_members cm JOIN conversations c ON c.id=cm.conversation_id
       LEFT JOIN users other ON other.id=IF(c.direct_user_low_id=?,c.direct_user_high_id,c.direct_user_low_id)
-      WHERE cm.user_id=? AND cm.left_at IS NULL AND (cm.cleared_through_message_id IS NULL OR EXISTS(SELECT 1 FROM messages m WHERE m.conversation_id=c.id AND m.id>cm.cleared_through_message_id)) ORDER BY c.last_message_at DESC LIMIT 100`,[id,id])
+      WHERE cm.user_id=? AND cm.left_at IS NULL AND (cm.cleared_through_message_id IS NULL OR EXISTS(SELECT 1 FROM messages m WHERE m.conversation_id=c.id AND m.id>cm.cleared_through_message_id)) ORDER BY COALESCE(c.last_message_at,c.created_at) DESC,c.created_at DESC,c.id DESC LIMIT 100`,[id,id])
   }
   async createConversation(id:string,targets:string[],title:string|null) {
     return transaction(async c=>{
@@ -92,7 +92,7 @@ export class SocialRepository {
       return String(r[0].id)
     })
   }
-  async member(id:string,conversation:string,action:'clear'|'nickname'|'leave'|'add',value:string|null) {
+  async member(id:string,conversation:string,action:'clear'|'nickname'|'leave'|'add'|'remove',value:string|null) {
     return transaction(async c=>{
       const conv=await rows('SELECT type FROM conversations WHERE id=? FOR UPDATE',[conversation],c)
       const member=await rows('SELECT role FROM conversation_members WHERE conversation_id=? AND user_id=? AND left_at IS NULL',[conversation,id],c)
@@ -101,7 +101,13 @@ export class SocialRepository {
       else if(action==='nickname') await change('UPDATE conversation_members SET title_override=? WHERE conversation_id=? AND user_id=?',[value,conversation,id],c)
       else if(conv[0].type!=='group')throw new AccountError('Chỉ áp dụng cho nhóm.')
       else if(action==='leave') await change('UPDATE conversation_members SET left_at=UTC_TIMESTAMP(3) WHERE conversation_id=? AND user_id=?',[conversation,id],c)
-      else if(member[0].role!=='owner')throw new AccountError('Chỉ chủ nhóm được thêm thành viên.',403)
+      else if(member[0].role!=='owner')throw new AccountError('Chỉ chủ nhóm được quản lý thành viên.',403)
+      else if(action==='remove') {
+        const target=await rows('SELECT role FROM conversation_members WHERE conversation_id=? AND user_id=? AND left_at IS NULL',[conversation,value],c)
+        if(!target.length)throw new AccountError('Người chơi không còn trong nhóm.',404)
+        if(target[0].role==='owner')throw new AccountError('Không thể xóa chủ nhóm.',403)
+        await change('UPDATE conversation_members SET left_at=UTC_TIMESTAMP(3) WHERE conversation_id=? AND user_id=?',[conversation,value],c)
+      }
       else await change("INSERT INTO conversation_members(conversation_id,user_id,role) VALUES (?,?,'member') ON DUPLICATE KEY UPDATE left_at=NULL",[conversation,value],c)
     })
   }

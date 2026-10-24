@@ -1,3 +1,5 @@
+import { SearchButton } from './SearchButton'
+
 import { socialListScrollbarClass } from '../../../lib/uiClasses'
 import { DesktopFriendsDialog } from './DesktopFriendsDialog'
 import { FriendsDialogFrame } from './FriendsDialogFrame'
@@ -134,7 +136,7 @@ function SearchIcon({ className = '' }: { className?: string }) {
 }
 
 function FriendSearchButton() {
-  return <button className={`${goldButtonBase} font-body not-italic min-w-[var(--ui-p-190,190px)] gap-[var(--ui-p-9,9px)] text-[length:var(--ui-p-23,23px)]`} style={{ height: 'var(--ui-p-60,60px)' }} type="submit"><SearchIcon /><span>Tìm</span></button>
+  return <SearchButton className="w-[var(--ui-p-190,190px)] text-[length:var(--ui-p-27,27px)] [&_svg]:size-[var(--ui-p-36,36px)]" style={{ height: 'calc(var(--ui-p-60,60px) * 1.17)' }}><SearchIcon /><span>Tìm</span></SearchButton>
 }
 
 function PresenceLabel({ presence, facebook }: { presence: Presence; facebook?: boolean }) {
@@ -160,7 +162,7 @@ function FriendRowShade() {
 }
 function FriendRow({ friend, children, onOpenProfile, compact = false, scale, invitationActions = false }: { friend: Friend; children: ReactNode; invitationActions?: boolean; onOpenProfile?: (name: string) => void; compact?: boolean; scale: number }) {
   const columns = 'grid-cols-[minmax(0,1fr)_var(--ui-p-440,440px)]'
-  return <li style={compact ? { ...getSocialRowStyle(scale, compact), flexBasis: 'calc((100cqh - var(--ui-p-54,54px) - var(--ui-p-48,48px) - 2 * var(--ui-p-14,14px)) / 6 - var(--social-row-gap))', ...(invitationActions ? { gridTemplateColumns: 'minmax(0,1fr) ' + Math.round(500 * scale) + 'px' } : {}) } : undefined} className={`${compact ? socialPlayerRowClass : 'relative isolate grid h-[var(--ui-p-150,150px)] min-h-[var(--ui-p-150,150px)] max-h-[var(--ui-p-150,150px)] grid-rows-[var(--ui-p-149,149px)] shrink-0 content-center items-center gap-3 border-b border-[#c5a16a]/55 bg-[linear-gradient(90deg,#ead0a0,#f0dcb3_48%,#e8cca0)] pr-[var(--ui-p-38,38px)] pl-0 py-0 shadow-[inset_0_1px_0_#f8e6bd] last:border-b-transparent'} ${columns}`}>
+  return <li style={compact ? { ...getSocialRowStyle(scale, compact), flexBasis: 'calc((100cqh - var(--ui-p-54,54px) - var(--ui-p-48,48px) - var(--ui-p-60,60px) * 0.17 - 2 * var(--ui-p-14,14px)) / 6 - var(--social-row-gap))', ...(invitationActions ? { gridTemplateColumns: 'minmax(0,1fr) ' + Math.round(500 * scale) + 'px' } : {}) } : undefined} className={`${compact ? socialPlayerRowClass : 'relative isolate grid h-[var(--ui-p-150,150px)] min-h-[var(--ui-p-150,150px)] max-h-[var(--ui-p-150,150px)] grid-rows-[var(--ui-p-149,149px)] shrink-0 content-center items-center gap-3 border-b border-[#c5a16a]/55 bg-[linear-gradient(90deg,#ead0a0,#f0dcb3_48%,#e8cca0)] pr-[var(--ui-p-38,38px)] pl-0 py-0 shadow-[inset_0_1px_0_#f8e6bd] last:border-b-transparent'} ${columns}`}>
     {compact && <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-0 bg-[linear-gradient(90deg,#4a261327_0%,#75451d1a_55%,transparent_100%)] shadow-[inset_9px_0_14px_-11px_#24100635]" style={{ width: Math.round(132 * scale * 1.5) }} />}
     <span aria-hidden="true" className="pointer-events-none col-start-2 col-end-3 row-start-1 -z-10 min-w-0 overflow-hidden -ml-[var(--ui-p-12,12px)] -translate-x-[var(--ui-p-12,12px)] h-[calc(100%-var(--ui-p-4,4px)-15px)] self-center" style={compact && invitationActions ? { marginLeft: 7, transform: 'none' } : undefined}><FriendRowShade /></span>
     <div className="relative z-10 col-start-1 row-start-1 min-w-0"><FriendIdentity friend={friend} onOpenProfile={onOpenProfile} compact={compact} /></div>
@@ -250,9 +252,9 @@ function MobileFriendsDialog({ dialogRef, layout, onClose, onOpenProfile, onOpen
               <button type="button" onClick={() => setFilter('online')} className={`${filterButton} ${filter === 'online' ? selectedFilter : idleFilter}`}><FilterIcon kind="online" />Đang online</button>
               <button type="button" onClick={() => setFilter('facebook')} className={`${filterButton} ${filter === 'facebook' ? selectedFilter : idleFilter}`}><FilterIcon kind="facebook" />Bạn Facebook</button>
             </div>
-            <form className="relative h-[var(--ui-p-48,48px)] shrink-0" onSubmit={event => { event.preventDefault(); setListQuery(listQuery.trim()) }}>
-              <div className="absolute inset-x-0 -top-[var(--ui-p-4,4px)] flex h-[var(--ui-p-60,60px)] gap-3">
-                <label className="flex h-[var(--ui-p-60,60px)] min-w-0 flex-1 items-center rounded-[var(--ui-p-10,10px)] border border-[#81420f] bg-[linear-gradient(#5a3219,#2b1508)] px-[var(--ui-p-11,11px)] shadow-[inset_0_0_0_1px_#ffd888,inset_0_0_0_3px_#a45f20,inset_0_0_0_4px_#55250b,0_1px_1px_#5b2b0d]">
+            <form className="relative h-[calc(var(--ui-p-48,48px)+var(--ui-p-60,60px)*0.17)] shrink-0" onSubmit={event => { event.preventDefault(); setListQuery(listQuery.trim()) }}>
+              <div className="absolute inset-x-0 -top-[var(--ui-p-4,4px)] flex h-[calc(var(--ui-p-60,60px)*1.17)] gap-3">
+                <label className="flex h-[calc(var(--ui-p-60,60px)*1.17)] min-w-0 flex-1 items-center rounded-[var(--ui-p-10,10px)] border border-[#81420f] bg-[linear-gradient(#5a3219,#2b1508)] px-[var(--ui-p-11,11px)] shadow-[inset_0_0_0_1px_#ffd888,inset_0_0_0_3px_#a45f20,inset_0_0_0_4px_#55250b,0_1px_1px_#5b2b0d]">
                 <SearchIcon className="text-[#f6d27b] [filter:drop-shadow(0_1px_#3a1b08)]" />
                 <input aria-label="Tìm bạn trong danh sách" value={listQuery} onChange={event => setListQuery(event.target.value)} placeholder="Nhập tên / ID người chơi..." className="ml-2 min-w-0 flex-1 bg-transparent font-arial text-[length:var(--ui-p-24,24px)] compact:text-[length:max(16px,var(--ui-p-24,24px))] leading-none font-normal not-italic lining-nums tabular-nums text-[#e5d8bc] outline-none placeholder:font-body placeholder:not-italic placeholder:text-[length:var(--ui-p-21,21px)] compact:placeholder:text-[length:max(14px,var(--ui-p-21,21px))] placeholder:text-[#c2ae81]" />
                 {listQuery && <button type="button" className={`${friendButtonInteraction} grid size-[var(--ui-p-30,30px)] shrink-0 place-items-center rounded-full text-[length:var(--ui-p-28,28px)] leading-none text-[#f6d27b] hover:bg-[#f6d27b]/15`} aria-label="Xóa nội dung tìm kiếm" onClick={() => setListQuery('')}>×</button>}
@@ -268,9 +270,9 @@ function MobileFriendsDialog({ dialogRef, layout, onClose, onOpenProfile, onOpen
             <div className="flex h-[var(--ui-p-54,54px)] shrink-0 items-start">
               <h3 className={`${friendSectionTitle} w-full`} style={friendSectionTitleStyle}>♟ Gợi ý cho bạn</h3>
             </div>
-            <form className="relative h-[var(--ui-p-48,48px)] shrink-0" onSubmit={event => { event.preventDefault(); updateFeedback(query.trim() ? `Đã tìm người chơi “${query.trim()}”.` : 'Hãy nhập tên người chơi để tìm.') }}>
-              <div className="absolute inset-x-0 -top-[var(--ui-p-4,4px)] flex h-[var(--ui-p-60,60px)] gap-3">
-                <label className="flex h-[var(--ui-p-60,60px)] min-w-0 flex-1 items-center rounded-[var(--ui-p-10,10px)] border border-[#81420f] bg-[linear-gradient(#5a3219,#2b1508)] px-[var(--ui-p-11,11px)] text-[#f6d27b] shadow-[inset_0_0_0_1px_#ffd888,inset_0_0_0_3px_#a45f20,inset_0_0_0_4px_#55250b,0_1px_1px_#5b2b0d]"><SearchIcon /><input aria-label="Tìm người chơi để kết bạn" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nhập tên / ID người chơi..." className="ml-2 min-w-0 flex-1 bg-transparent font-arial text-[length:var(--ui-p-24,24px)] compact:text-[length:max(16px,var(--ui-p-24,24px))] leading-none font-normal not-italic lining-nums tabular-nums text-[#e5d8bc] outline-none placeholder:font-body placeholder:not-italic placeholder:text-[length:var(--ui-p-21,21px)] compact:placeholder:text-[length:max(14px,var(--ui-p-21,21px))] placeholder:text-[#c2ae81]" /></label>
+            <form className="relative h-[calc(var(--ui-p-48,48px)+var(--ui-p-60,60px)*0.17)] shrink-0" onSubmit={event => { event.preventDefault(); updateFeedback(query.trim() ? `Đã tìm người chơi “${query.trim()}”.` : 'Hãy nhập tên người chơi để tìm.') }}>
+              <div className="absolute inset-x-0 -top-[var(--ui-p-4,4px)] flex h-[calc(var(--ui-p-60,60px)*1.17)] gap-3">
+                <label className="flex h-[calc(var(--ui-p-60,60px)*1.17)] min-w-0 flex-1 items-center rounded-[var(--ui-p-10,10px)] border border-[#81420f] bg-[linear-gradient(#5a3219,#2b1508)] px-[var(--ui-p-11,11px)] text-[#f6d27b] shadow-[inset_0_0_0_1px_#ffd888,inset_0_0_0_3px_#a45f20,inset_0_0_0_4px_#55250b,0_1px_1px_#5b2b0d]"><SearchIcon /><input aria-label="Tìm người chơi để kết bạn" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nhập tên / ID người chơi..." className="ml-2 min-w-0 flex-1 bg-transparent font-arial text-[length:var(--ui-p-24,24px)] compact:text-[length:max(16px,var(--ui-p-24,24px))] leading-none font-normal not-italic lining-nums tabular-nums text-[#e5d8bc] outline-none placeholder:font-body placeholder:not-italic placeholder:text-[length:var(--ui-p-21,21px)] compact:placeholder:text-[length:max(14px,var(--ui-p-21,21px))] placeholder:text-[#c2ae81]" /></label>
                 <FriendSearchButton />
               </div>
             </form>

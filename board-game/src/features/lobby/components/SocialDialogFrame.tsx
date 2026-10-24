@@ -15,11 +15,12 @@ export function getSocialRowStyle(scale: number, compact: boolean): CSSPropertie
   } as CSSProperties
 }
 
-export function SocialDialogFrame({ layout, titleImage, titleCrop, titleId, title, onClose, contentStyle, hideTitle = false, showTitleText = false, overlayTitle = false, children }: {
+export function SocialDialogFrame({ layout, titleImage, titleCrop, titleId, title, onClose, contentStyle, hideTitle = false, showTitleText = false, overlayTitle = false, hideClose = false, children }: {
   layout: { width: number; height: number; scale: number; compact?: boolean }
   hideTitle?: boolean
   showTitleText?: boolean
   overlayTitle?: boolean
+  hideClose?: boolean
   titleImage: string
   titleCrop?: { width: number; height: number; top: number; cropHeight: number }
   titleId: string
@@ -39,7 +40,7 @@ export function SocialDialogFrame({ layout, titleImage, titleCrop, titleId, titl
     height: Math.round(layout.height * scale),
   } as CSSProperties
   return <div className="absolute top-0 left-0 origin-top-left rounded-[var(--ranking-22)] border-[length:var(--ranking-5)] border-[#5e3014] bg-[linear-gradient(135deg,#7a431c,#2d160a)] p-4 shadow-[inset_0_0_0_2px_#e0b466,inset_0_0_0_7px_#875026,inset_0_0_0_9px_#160904]" style={frameStyle}>
-    <DialogCloseButton onClose={onClose} scale={scale} compact={layout.compact ?? false} positionClass="top-[var(--ranking-24)] right-[var(--ranking-28)]" />
+    {!hideClose && <DialogCloseButton onClose={onClose} scale={scale} compact={layout.compact ?? false} positionClass="top-[var(--ranking-24)] right-[var(--ranking-28)]" />}
     <div className="relative flex h-full min-h-0 flex-col rounded-xl border-[length:var(--ranking-3)] border-[#d39a42] bg-[radial-gradient(ellipse_at_50%_8%,#b87a3344,transparent_38%),linear-gradient(135deg,#6e3718,#2b160b_48%,#5d2e14)] px-2 pb-2 shadow-[0_0_0_2px_#48220e,inset_0_0_18px_#160904]" style={contentStyle}>
       {!overlayTitle && <div aria-hidden="true" className="pointer-events-none absolute inset-x-2 top-2 h-[var(--ranking-170)] overflow-hidden rounded-[var(--ranking-9)] opacity-80 shadow-[inset_0_0_18px_8px_#241107]">
         <img src={socialHeaderLandscape} alt="" className="size-full object-cover object-center" />

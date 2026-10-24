@@ -14,10 +14,11 @@ export function MessagesFriendButton({ name, isFriend, pending, incoming = false
   </button>
 }
 
-export function MessagesFriendRemovalConfirmation({ name, skip, onSkipChange, onCancel, onConfirm }: {
+export function MessagesFriendRemovalConfirmation({ name, skip, onSkipChange, onCancel, onConfirm, message, showSkip = true, pending = false, error }: {
   name: string; skip: boolean; onSkipChange: (value: boolean) => void; onCancel: () => void; onConfirm: () => void
+  message?: string; showSkip?: boolean; pending?: boolean; error?: string
 }) {
-  const actionClass = `${buttonInteraction} min-w-[var(--ui-p-210,210px)] rounded-[var(--ui-p-12,12px)] border-2 border-[#e3a74c] bg-[linear-gradient(135deg,#734016,#261207_62%,#59260f)] px-6 py-3 text-lg font-bold text-[#ffebba] shadow-[inset_0_0_0_2px_#4b200b,inset_0_0_0_4px_#bd772c,0_3px_4px_#14080488] [text-shadow:0_2px_2px_#291207] hover:brightness-110`
+  const actionClass = `${buttonInteraction} min-w-0 w-full rounded-[var(--ui-p-12,12px)] border-2 border-[#e3a74c] bg-[linear-gradient(135deg,#734016,#261207_62%,#59260f)] px-3 py-3 text-lg font-bold whitespace-nowrap text-[#ffebba] shadow-[inset_0_0_0_2px_#4b200b,inset_0_0_0_4px_#bd772c,0_3px_4px_#14080488] [text-shadow:0_2px_2px_#291207] hover:brightness-110 disabled:opacity-50`
   return <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 p-5" onKeyDown={event => {
     if (event.key !== 'Tab') return
     const controls = event.currentTarget.querySelectorAll<HTMLElement>('button,input')
@@ -27,9 +28,10 @@ export function MessagesFriendRemovalConfirmation({ name, skip, onSkipChange, on
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
   }}>
     <section role="alertdialog" aria-modal="true" aria-labelledby="message-friend-removal-title" className="relative w-full max-w-[var(--ui-p-420,420px)] rounded-[var(--ui-p-14,14px)] border-2 border-[#c58a35] bg-[linear-gradient(135deg,#3b1d0b,#1b100b)] p-5 text-center text-[#ffe3a2] shadow-[inset_0_0_0_2px_#7d451b,inset_0_0_22px_#120904,0_2px_4px_#14080499]">
-      <p id="message-friend-removal-title" className="mb-5 text-lg">Bạn có chắc muốn xóa bạn với {name} không?</p>
-      <div className="flex justify-center gap-3"><button type="button" className={actionClass} onClick={onCancel}>Hủy</button><button type="button" autoFocus className={actionClass} onClick={onConfirm}>Đồng ý</button></div>
+      <p id="message-friend-removal-title" className="mb-5 text-lg">{message ?? `Bạn có chắc muốn xóa bạn với ${name} không?`}</p>
+      {error && <p role="alert" className="mb-3 text-sm text-[#ffac80]">{error}</p>}
+      <div className="grid w-full grid-cols-2 gap-3"><button type="button" disabled={pending} className={actionClass} onClick={onCancel}>Hủy</button><button type="button" disabled={pending} autoFocus className={actionClass} onClick={onConfirm}>Đồng ý</button></div>
     </section>
-    <label className="absolute bottom-5 right-5 flex cursor-pointer items-center gap-2 text-sm text-[#ffe3a2]"><input type="checkbox" checked={skip} onChange={event => onSkipChange(event.target.checked)} className="size-4 accent-[#d9a44c]" />Không hiển thị lại</label>
+    {showSkip && <label className="absolute bottom-5 right-5 flex cursor-pointer items-center gap-2 text-sm text-[#ffe3a2]"><input type="checkbox" disabled={pending} checked={skip} onChange={event => onSkipChange(event.target.checked)} className="size-4 accent-[#d9a44c]" />Không hiển thị lại</label>}
   </div>
 }

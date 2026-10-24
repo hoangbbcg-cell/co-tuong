@@ -1,5 +1,30 @@
 # Tiến độ
 
+- 2026-10-24: Theo user, tăng chữ/icon2nút máy MOBILE: chữ5.5→6.7cqw, icon11→15cqw; padding12→7cqw/gap5→4cqw để vừa nội dung. Laptop/cỡ khung giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+## Việc cần làm sau
+
+- Home: bổ sung Nhiệm vụ và Hòm thư ở bên phải (user ghi nhớ ngày 2026-10-24). Chưa triển khai; mặc định mobile.
+
+
+- 2026-10-24: Theo user, áp dụng ComputerActionButton chung cho2nút Vị trí tùy chỉnh/Đấu ngay MOBILE; thay ảnh chữ gộp bằng SVG/icon vector/chữ HTML co theo container như laptop. Giữ hàng cao48px/2cột/gap12, callback/disabled/busy. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, dựng lại2nút Vị trí tùy chỉnh/Đấu ngay LAPTOP bằng ComputerActionButton: khung SVG gradient/viền/góc, icon vector bánh răng/kiếm, nhãn HTML Arial bold. Nội dung cqw theo container nút để đổi kích thước đồng tỷ lệ, giữ ô/vị trí82px và callback/disabled/busy. Mobile giữ ảnh cũ vì user chỉ yêu cầu laptop. Không thay luật/engine. Build/typecheck PASS; dist cập nhật; chưa browser QA trực quan.
+
+- 2026-10-24: Theo user, chuyển lựa chọn HOVANG v0.4 ra Home dưới Cờ Tướng cả mobile/laptop; openHovang chọn engine hovang rồi mở ComputerPage, Chơi Với Máy chọn Pikafish. Gỡ selector engine khỏi setup hai bản. Mobile ẩn fullscreen, nameplate210→170px, thêm banner Luyện cờ cuối setup cùng artwork/hành vi chưa hỗ trợ desktop. Giữ engine/backend/level/luật. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, ô nhập và nút Tìm Bạn bè MOBILE cao thêm17% đồng bộ cả Danh sách/Thêm bạn; tăng slot form tương ứng tránh chồng dòng, công thức chiều cao dòng chung trừ thêm phần tăng. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-24: Theo user, nút Tìm Bạn bè MOBILE tăng chữ23→27 và icon31→36 theo token compact; giữ khung/cỡ nút và desktop/Chọn Bàn. Build/typecheck PASS; dist cập nhật; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-24: Theo user, thay riêng nền nút Tìm bằng khung trống4cdefa67 tại Chọn Bàn/Bạn bè mobile+desktop; shared SearchButton giữ chữ/icon HTML và submit/disabled. Chữ vàng sáng để đọc trên nền nâu; nguồn references/uploads, runtime buttons/search-frame.png crop(467,158,1240,392). Build/typecheck PASS; dist cập nhật; chưa browser QA. Mở riêng artwork nút Tìm desktop theo user.
+
+- 2026-10-24: User yêu cầu hoàn tác lần dùng ảnh nút Tìm cdd2fd06. Khôi phục nút HTML vàng trước đó trong Chọn Bàn/Bạn bè mobile+desktop, gỡ SearchButton và ảnh runtime crop. Giữ ảnh nguồn trong references/uploads; chức năng tìm kiếm giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, dùng ảnh cdd2fd06 cho nút Tìm Chọn Bàn và Bạn bè cả mobile/desktop. Shared SearchButton, giữ submit/disabled và kích thước theo ngữ cảnh; nguồn references/uploads/cdd2fd06..., runtime buttons/search-button.png trim alpha>16. Build/typecheck PASS; dist cập nhật; chưa browser QA. User mở riêng artwork nút Tìm laptop task này.
+
+- 2026-10-24: Theo user, picker tỉnh dùng DialogCloseButton chung theo scale social/compact thay X SVG riêng. Tạo bàn MOBILE nới khung tới min92vw/90dvh và aspect1369/1200, parent padding8px, chữ/field/nút tăng tương ứng khoảng15–20%; desktop giữ khung cũ. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
 - 2026-10-24: Nâng engine mặc định trong Chơi Với Máy từ HOVANG v0.3 lên v0.4; giữ API/UCCI, giao diện lựa chọn và toàn bộ Pikafish/Máy cơ bản. Source+tests+build script mới ở `engines/hovang-v0.4/`; executable Windows local `hovang-engine.exe` (~3 MB), v0.3 còn làm rollback. G++ WinLibs16.2 native suite PASS (stalemate, perft(4)=3290240,14.417 thế ngẫu nhiên, make/undo/Zobrist/FEN/timed search); UCCI handshake+bước `bestmove` PASS. Backend HTTP integration bằng engine thật PASS: readiness, 240 nửa nước hợp lệ gồm cả lượt Đỏ và Đen, kết thúc test bằng resignation vì luật game chưa adjudicate repetition. HOVANG adapter + Pikafish regression 11/11 PASS; typecheck/build PASS, dist xác nhận nhãn HOVANG v0.4. Chưa browser QA. HOVANG chưa có NNUE, chiếu dai/đuổi dai đầy đủ hoặc Elo đáng tin cậy.
 - 2026-10-24 (tiếp tục HOVANG): G++ WinLibs16.2 Windows executable đã build thành công static (`engines/hovang-v0.3/hovang-engine.exe`, khoảng3.0MB); native suite PASS (perft depth4,14.417 random positions, make/undo/Zobrist, check/FEN/timed search). Sửa script build cho path có dấu cách/Unicode và DLL runtime. HTTP E2E backend thật: `/ready` PASS; Đỏ đi đầu, Đen trả lời; HOVANG-vs-HOVANG thực hiện240 nửa nước hợp lệ, kết thúc test bằng resignation; không tự kết thúc do luật game chưa adjudicate repetition. Bộ HOVANG/Pikafish regression12/12 PASS, typecheck/build PASS. Chưa browser UI QA; Pikafish không bị sửa. Regression E2E lưu có gate ở `tests/hovang-native.test.ts`.
 
@@ -3479,3 +3504,47 @@ pm.cmd run build (typecheck + Vite) PASS; dist/assets/index-Cgh9GUJJ.js đã c�
 - 2026-10-24: Theo user, options MOBILE avatar tăng token200→270 theo width; camera nhóm dùng width=height9.5% panel/đệm cân để tròn thật, neo cạnh avatar. Các action mobile thống nhất fullwidth800×90logical/gap12, chung OptionRowBackground/icon34/chữ22, giữ handlers; slot Xem thành viên cùng kích thước/vị trí theo quyền owner. Dùng MessagesBackButton chung với hội thoại (28px ở chat/32px options) để cùng mẫu tròn/chevron; desktop options giữ ảnh back/rowlayout cũ. Build/typecheck PASS; dist index-BfkCZxzT.js cập nhật; chưa browser QA.
 
 - 2026-10-24: User chốt HOVANG mới thêm chỉ giữ LOCAL, không đưa GitHub; bản GitHub chỉ giữ Pikafish. .gitignore bỏ toàn bộ engines/hovang-*, adapter client/server, tests và tài liệu/build HOVANG. Tích hợp HOVANG trong tracked files (app/session/hooks/UI) vẫn là thay đổi local, phải loại từng hunk khi chuẩn bị commit và kiểm tra staged diff/build snapshot Pikafish-only; không commit các file đó nguyên trạng. Không push task này. Giữ toàn bộ file local, không xóa máy.
+
+- 2026-10-24: Theo user, options MOBILE khôi phục riêng thẻ Đổi tên nhóm: blankActionButton/icon bút/chữ cũ và vị trí/kích thước289/388/317/77; các dòng còn lại giữ đồng bộ. Khung ngoài chuyển sang SocialDialogFrame như Tin nhắn, hideTitle/overlayTitle và bỏ ảnh frame cũ trên mobile; body/scene/handlers giữ, desktop còn khung cũ. OptionsFrame module-level tránh remount khi stateđổi. Build/typecheck PASS; dist index-R1l0KLeo.js xác nhận message-options-title; chưa browser QA.
+
+- 2026-10-24: Theo user, bỏ nút× ngoài bảng options MOBILE qua hideClose opt-in SocialDialogFrame, giữ back. Bảng Xem thành viên mobile rộng100% vùng popup/cao94%, inset3%, viewport list76% chiều cao options thay chiều cao8hàng ở danh sách hội thoại; title20px/tên16/avatar40px, vẫn8hàng/cuộn. Desktop giữ. Build/typecheck PASS; dist có hideClose; chưa browser QA.
+
+- 2026-10-24: User chốt ba chấm MOBILE là trang trong cùng khung: gỡ OptionsFrame/SocialDialogFrame riêng khỏi options; options phủ100% vùng nội dung hiện tại với nền nâu opaque, role=region thay nested dialog, không backdrop click để đóng. Khung Tin nhắn duy nhất giữ nguyên, ẩn nút× khi optionsOpen theo yêu cầu trước; nút back trở lại chat giữ draft/history. Dimensions tính avatar/rows theo vùng khung hiện tại, desktop giữ modal/artwork cũ. Build/typecheck PASS; dist index-Bm2NZYK0.js cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, background trang options MOBILE phủ kín ngang và sát mép trên: body inset0/100%×100%, scene x0/y0/rộng894logical, gradient hòa nền cũng fullwidth. Không đổi content/khung/laptop. Build/typecheck PASS; dist index-DpKMkuXU.js xác nhận; chưa browser QA.
+
+- 2026-10-24: Theo user, back options MOBILE cùng chat28px/left6/top13. Xem thành viên dùng DialogCloseButton compact scale width/1120 như ngoài Tin nhắn; khóa người tạo z30 đè avatar/frame. Mỗi dòng mobile thêm nút text... cuối hàng, nền trong suốt/không viền tròn, mở mục Xem thông tin nối callback profile có sẵn; không thêm quyền quản trị/loại thành viên. Build/typecheck PASS; dist index-B3tKRkL6.js/index-hA2D6FGp.css xác nhận; chưa browser QA.
+
+- 2026-10-24: Theo user, quyền ở Xem thành viên MOBILE tính theo người đang xem: thường chỉ icon kết bạn; chủ nhóm (khóa vàng/canManageGroup) thấy... mở Xóa khỏi nhóm/Kết bạn. Không hiển thị action bản thân. MessagesMemberFriendButton dùng useMessageFriendship luồng thật; đã bạn/đã gửi disable, lời mời nhận cho chấp nhận. Bổ sung member remove API: validate ID, transaction khóa conversation, chỉ active owner group được remove active member, cấm removeowner; update left_at, không xóa user/tin. UI chỉ cập nhật sau API thành công, lỗi hiện trong bảng. Build đầu parse lỗi dấu ngoặc JSX đã sửa; build/typecheck cuối PASS; dist có Xóa khỏi nhóm. Chưa browser/API thao tác thật, không xóa thành viên test hoặc restart/deploy.
+
+- 2026-10-24: Theo user, menu thành viên MOBILE đặt bên trái nút.../tâm dọc bằng bounding rect tương đối memberpanel, render ngoài ul để không bị clip khi hàng đầu. Xóa khỏi nhóm thêm SVG× đỏ24px, hr ngang vàng ngăn với kết bạn. Đã kết bạn không disable nữa: bật confirm Xóa bạn/Hủy; chỉ xác nhận mới gọi socialActionByName remove (local demo setFriendship), pending khóa thao tác; quan hệ/nhóm tách riêng. Build/typecheck PASS; dist index-PNc4qTci.js/index-cEH_G9V8.css xác nhận; chưa browser/API thao tác thật, không xóa bạn thử trongDB.
+
+- 2026-10-24: Theo user, confirm xóa bạn trong Xem thành viên dùng chính MessagesFriendRemovalConfirmation như hội thoại, bỏ popup tự dựng; cùng nền/viền/nút Hủy-Đồng ý/checkbox Không hiển thị lại. Chọn skip lưu mốc10phút theo quy ước hook hiện có, sau mốc hiện lại. Guard pending chống gọi lặp; chỉ thay friendship, không loại khỏi nhóm. Build/typecheck PASS; dist index-CMAJ-MP-.js cập nhật; chưa browser/API thao tác thật.
+
+- 2026-10-24: Theo user, sửa tràn2nút confirm chung: bỏ min-width210logical, grid2cột min0/w100%/padding3 để Hủy-Đồng ý nằm trong panel ở mọi consumer. MessagesFriendRemovalConfirmation thêm message/showSkip/pending/error tùy chọn. Xóa khỏi nhóm nay chỉ mở confirm cùng mẫu, luôn có Hủy/Đồng ý/không checkboxskip; chỉ Đồng ý mới gọi API, pending khóa2nút/chốnglặp, lỗi ở trong confirm. Xóa bạn cũng khóa nút khi pending và hiển thị lỗi cùng mẫu. Build/typecheck PASS; dist xác nhận prompt khỏi nhóm; chưa browser/API thao tác thật.
+
+- 2026-10-24: Theo user, menu...2mục Xem thành viên thêm lớp bắt click ngoài trong memberpanel z35, menu z40; chạm ngoài đóng và không kích hoạt hàng bên dưới. Trang options ngoài hội thoại hiện lại DialogCloseButton của khung chung;× gọi dismissOptions quay về chat, không đóng toàn hộp Tin nhắn. Build/typecheck PASS; dist xác nhận Đóng menu thành viên; chưa browser QA.
+
+- 2026-10-24: Theo user, ô tìm kiếm list Tin nhắn MOBILE và input Đổi tên/Biệt danh dùng mẫu Bạn bè: nền nâu gradient#5a3219/#2b1508, viền inset vàng4lớp, bo10px/chữArial16/placeholder14 màu kem. Tách token messagesInputStyles tái dùng2nơi, giữ logic search/layout snapshot và submitrename; desktop/Friends không sửa. Build/typecheck PASS; một lần ghi MessagesDialog bị filemapped đã sửa bằng apply_patch/buildlại; dist xác nhận placeholder mẫu Friends; chưa browser QA.
+
+- 2026-10-24: Theo user, form Đổi tên/Biệt danh MOBILE cao100logical/min58px/rộng800logical thay682×77; input44px, nútHủy/OKcao40px/minrộng44/chữ16. Giữ mẫu ô Friends/submit/cancel và desktop. Build/typecheck PASS; dist xác nhận nút40×44; chưa browser QA.
+
+- 2026-10-24: Theo user, ô soạn chat MOBILE dùng cùng messagesFriendsField/messagesFriendsInput như tìm kiếm/Đổi tên, cao44px/đệm10px; giữ draft/focus/gửi/emoji và desktop. Build/typecheck PASS; dist index-C85eOQNQ.js xác nhận; chưa browser QA.
+
+- 2026-10-24: Theo user, bỏ thông báo Không lưu được biệt danh khỏi catch rename/title trong MessagesDialog; vẫn gọi API và chỉ reload khi thành công, không ghi giả dữ liệu khi thất bại. Build/typecheck PASS; dist index-C1VOvVBj.js không còn chuỗi lỗi cũ. Chưa browser/API live QA.
+
+- 2026-10-24: Theo user, avatar từng người trong Xem thành viên là button gọi onMemberInfo(member) mở ProfileDialog có sẵn, đóng menu... trước; giữ vòngavatar40px/khóa vàng z30 và dữ liệu, không đổi membership. Build/typecheck PASS; dist xác nhận onMemberInfo; chưa browser QA.
+
+- 2026-10-24: User chuyển từ Chat sang Lịch sử, mở riêng lớp hiển thị2tab MOBILE: nav Đã chơi/Đã lưu z25 thay10, cao hơn banner/họa tiết z20 để không bị che; nút× z30 vẫn trên. Không sửa vị trí/kích thước/assets/tab data, desktop giữ z10. Khóa lại phạm vi sau task. Build/typecheck PASS; dist xác nhận compact:z25; chưa browser QA.
+
+- 2026-10-24: Theo user, nhóm mới tạo lên đầu Tin nhắn. Nguyên nhân backend order last_message_at NULL của nhóm chưa tin bị đẩycuối; đổi order COALESCE(last_message_at,created_at) DESC,created_at DESC,id DESC để nhóm mới đúngthứtự cả polling/mởlại. Client sau create/reload đưa id nhóm mới lênđầu ngay và xóa query; local đã prepend giữ nguyên. Không ghi tin giả/đổi dữliệu tin. Build/typecheck PASS; dist index-gOgMGD3M.js cập nhật; chưa browser/API live QA, không restart/deploy backend.
+
+- 2026-10-24: Theo user, Chọn Bàn nới ô tìm theo số/nútTìm: form desktopmin440/46% thay360/42%, compactrộng viewport-112px thay58% để chừa back/âmthanh; nút min72desktop/64mobile, gap6mobile, thêm kínhlúpSVG16 bên chữTìm. Giữh36/logic joinByCode/mã6số/pending. Build/typecheck PASS; dist xác nhận440/46%; chưa browser QA.
+
+- 2026-10-24: User yêu cầu thu nhẹ cụm tìm Chọn Bàn: desktop410/44% thay440/46%, mobileviewport-124px thay-112; nútmin66desktop/60mobile thay72/64. Giữ cao/icon/logic. Build/typecheck PASS; dist xác nhận410/44%; chưa browser QA.
+
+- 2026-10-24: User thu thêm cụm tìm Chọn Bàn: desktop390/43%, mobileviewport-134px; nútmin62desktop/56mobile, cao/icon/logic giữ. Build/typecheck PASS; dist xác nhận390/43%; chưa browser QA.
+
+- 2026-10-24: Theo user, Home MOBILE dấu∞ năng lượng tăng3.2→4cqw (25%), giữ tâm; sốnănglượng thường/vàng/laptop/chínhsách2ID vôhạn giữ nguyên. Build/typecheck PASS; dist xác nhận4cqw; chưa browser QA.
+
+- 2026-10-24: User tăng tiếp dấu∞ Home MOBILE4→4.8cqw (thêm20%), giữ tâm/các giátrịkhác/laptop. Build đầu Vite lỗi-1073740791; chạy lại build/typecheck PASS exit0, dist có4.8cqw. Chưa browser QA.
