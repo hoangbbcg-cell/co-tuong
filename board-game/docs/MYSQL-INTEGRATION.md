@@ -1,5 +1,9 @@
 # MySQL integration — 2026-10-16
 
+- 2026-10-24: Sửa Gợi ý bạn trống do socialStore.search query rỗng luôn xóa users. Thêm GET /social/suggestions qua session auth→PersistenceService→SocialRepository: random tối đa20 active users, loại bản thân/accepted friends/block hai chiều. Query rỗng lấy gợi ý, query có chữ giữ search tên/ID; version bỏ phản hồi cũ. Mobile và desktop dùng chung dữ liệu, không đổi geometry laptop. Build/typecheck PASS; persistence-rules2/2 PASS; dist cập nhật. Chưa xác minh SQL trên DB/browser thật; backend cần nạp code mới, không restart/deploy trong task.
+
+- 2026-10-23: Theo user, đấu bạn bè không cộng/trừ Elo. MatchRepository.complete dùng policy đã chốt gold_reward_eligible cùng kiểm tra accepted lúc kết thúc để delta0 cho cả2 người (gồm Mời chơi/So tài, gỡ bạn giữa ván không bật lại). Giữ stats/năng lượng/lịch sử và chính sách vàng; đối thủ thường Elo như cũ. Không migration vì tái dùng policy persisted. Existing match-gold-policy5/5 PASS; typecheck/build PASS; dist cập nhật (backend-only bundle không đổi). Môi trường từ chối ghi tests nên chưa thêm regression Elo; chưa QA DB thật, backend cần nạp code mới.
+
 Cập nhật Google Sign-In thật đã triển khai/migration004: xem [GOOGLE-SIGN-IN.md](GOOGLE-SIGN-IN.md). Những ghi chú Google chưa triển khai phía dưới là trạng thái lịch sử trước thay đổi này.
 
 ## Trạng thái

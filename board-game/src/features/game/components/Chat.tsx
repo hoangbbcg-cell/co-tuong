@@ -20,7 +20,7 @@ export const Chat = memo(function Chat({ chat, onAvatarClick }: { chat: ReturnTy
         <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true"><path d={chat.collapsed ? 'M4 17 12 3 20 17Z' : 'M4 7 12 21 20 7Z'} fill="currentColor"/></svg>
       </button>
     </div>
-    <div id="chatMessages" hidden={chat.collapsed || visibleMessages.length === 0} className="relative z-1 mb-2 min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth motion-reduce:scroll-auto px-1 pt-[12px] pb-0.5 [scrollbar-width:thin] [scrollbar-color:#3b82f680_transparent]" role="log" aria-live="polite" aria-label="Tin nhắn" ref={chat.messagesRef}>
+    <div id="chatMessages" hidden={chat.collapsed || visibleMessages.length === 0} className="relative z-1 mb-2 min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth motion-reduce:scroll-auto px-1 pt-[12px] pb-0.5  " role="log" aria-live="polite" aria-label="Tin nhắn" ref={chat.messagesRef}>
       {visibleMessages.map(message => message.system
         ? <p key={message.id} className="m-0 px-0.5 py-px text-[14px]/[1.4] text-white [overflow-wrap:anywhere] [&+*]:mt-[12px]">{message.text}</p>
         : <article key={message.id} className="flex items-center gap-2 px-0.5 py-0.5 text-white [text-shadow:0_1px_2px_#00151c] [&+*]:mt-[12px]">

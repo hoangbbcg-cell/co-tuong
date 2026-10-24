@@ -30,16 +30,17 @@ export function ComputerSetupDesktop({ setup }: { setup: ReturnType<typeof useCo
           <div aria-hidden="true" className="pointer-events-none absolute bottom-[4px] left-[4px] size-[99px] rounded-bl-[95px] border-b border-l border-[#a67a3a66]" />
           <div aria-hidden="true" className="pointer-events-none absolute right-[4px] bottom-[4px] size-[99px] rounded-br-[95px] border-r border-b border-[#a67a3a66]" />
 
+          <div role="group" aria-label="Chọn engine" className="absolute top-[19px] right-[20px] z-10 flex gap-2">
+            {([{ value: 'pikafish', label: 'Pikafish' }, { value: 'hovang', label: 'HOVANG v0.4 · thử nghiệm' }] as const).map(option => <button key={option.value} type="button" disabled={setup.starting} aria-pressed={setup.engine === option.value} onClick={() => setup.setEngine(option.value)} className={`${buttonInteraction} rounded-md border px-3 py-2 font-[Arial,sans-serif] text-[15px] ${setup.engine === option.value ? 'border-[#ffe3a1] bg-[#790b0e] text-[#fff0cf]' : 'border-[#a67a3a] bg-[#211309] text-[#d9bd86]'}`}>{option.label}</button>)}
+          </div>
+
           <CrispUiImage src={computerAvatar} alt="Ông Hoàng" className="pointer-events-none absolute top-[13px] left-1/2 block h-[148px] w-[183px] max-w-none -translate-x-1/2 object-contain" />
           <div className="absolute top-[171px] left-1/2 grid h-[53px] w-[330px] -translate-x-1/2 place-items-center">
-            <PlayerNameplate name="Ông Hoàng" className="[--nameplate-width:250px]" />
+            <PlayerNameplate name={setup.engine === 'hovang' ? 'HOVANG v0.4' : 'Ông Hoàng'} className="[--nameplate-width:250px]" />
           </div>
 
           <div className="absolute top-[261px] right-[28px] left-[28px] grid grid-cols-5 gap-x-[16px] gap-y-[33px]">
-            {Array.from({ length: 10 }, (_, index) => index + 1).map(level => <button key={level} type="button" aria-pressed={setup.level === level} disabled={setup.starting} onClick={() => setup.setLevel(level)} className={`${buttonInteraction} relative h-[64px] rounded-full border-2 font-heading text-[25px] text-[#ffebbd] shadow-[inset_0_1px_1px_#ffe5a255,0_3px_3px_#0008] disabled:cursor-not-allowed disabled:opacity-60 ${setup.level === level ? 'border-[#ffe3a1] bg-[linear-gradient(180deg,#a00910_0%,#570006_80%)] shadow-[0_0_9px_2px_#ff4518,inset_0_0_0_2px_#a83214]' : 'border-[#c99044] bg-[linear-gradient(180deg,#513014_0%,#1c0f08_85%)] hover:brightness-125'}`}>
-              <Ornament color={setup.level === level ? '#f1ad56' : '#ab762d'} />
-              <span className="relative inline-flex items-baseline justify-center gap-[6px] leading-none"><span className="font-heading">Cấp</span><span className="font-number lining-nums tabular-nums">{level}</span></span>
-            </button>)}
+            {Array.from({ length: 10 }, (_, index) => index + 1).map(level => <ComputerLevelButton key={level} level={level} selected={setup.level === level} disabled={setup.starting} onClick={() => setup.setLevel(level)} />)}
           </div>
 
           <fieldset className="absolute top-[454px] right-0 left-0 flex h-[47px] items-center justify-center gap-[31px]">
@@ -61,4 +62,11 @@ export function ComputerSetupDesktop({ setup }: { setup: ReturnType<typeof useCo
     </div>
 
   </div>
+}
+
+export function ComputerLevelButton({ level, selected, disabled, onClick }: { level: number; selected: boolean; disabled: boolean; onClick: () => void }) {
+  return <button type="button" aria-pressed={selected} disabled={disabled} onClick={onClick} className={`${buttonInteraction} relative h-[64px] compact:h-11 compact:text-[18px] rounded-full border-2 font-heading text-[25px] text-[#ffebbd] shadow-[inset_0_1px_1px_#ffe5a255,0_3px_3px_#0008] disabled:cursor-not-allowed disabled:opacity-60 ${selected ? 'border-[#ffe3a1] bg-[linear-gradient(180deg,#a00910_0%,#570006_80%)] shadow-[0_0_9px_2px_#ff4518,inset_0_0_0_2px_#a83214]' : 'border-[#c99044] bg-[linear-gradient(180deg,#513014_0%,#1c0f08_85%)] hover:brightness-125'}`}>
+              <Ornament color={selected ? '#f1ad56' : '#ab762d'} />
+              <span className="relative inline-flex items-baseline justify-center gap-[6px] leading-none"><span className="font-heading">Cấp</span><span className="font-number lining-nums tabular-nums">{level}</span></span>
+            </button>
 }

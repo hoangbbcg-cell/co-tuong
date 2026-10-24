@@ -32,6 +32,7 @@ export class RoomService {
   private repetitionNoticeDeadlines = new Map<string, number | null>()
   constructor(private repository: RoomRepository, private now = () => performance.now(), private firstPlayerSide: () => 'red' | 'black' = () => randomInt(0, 2) === 0 ? 'red' : 'black') {}
   private startMatch(room: RoomSnapshot, now: number) {
+    room.takebackBlocked = {}
     const chosenSide = this.firstPlayerSide()
     room.players = room.players.map(player => ({ ...player, side: player.side === chosenSide ? 'red' : 'black' }))
     room.game = startGame({ ...room.game, currentTurn: 'red' }, now, MATCH_INTRO_MS)
@@ -337,6 +338,7 @@ export class RoomService {
         }
         this.histories.set(room.id, [...(this.histories.get(room.id) ?? []), before])
         room.game = next
+        room.takebackBlocked = { ...room.takebackBlocked, [player.side]: false }
         room.repetitionAttemptNotice = null
         room.moveCount = (room.moveCount ?? 0) + 1
         room.drawOffer = null
@@ -367,8 +369,10 @@ export class RoomService {
         const remaining = room.takebackRemaining ?? { red: 2, black: 2 }
         if (room.game.phase !== 'playing' || room.takebackOffer || room.drawOffer) throw new RoomError('Không thể yêu cầu đi lại lúc này.')
         if (remaining[player.side] <= 0) throw new RoomError('Bạn đã dùng hết 2 lần yêu cầu đi lại.')
+        if (room.takebackBlocked?.[player.side]) throw new RoomError('Bạn phải đi một nước mới trước khi yêu cầu đi lại tiếp.')
         const requestedPlies: 1 | 2 = room.game.currentTurn === player.side ? 2 : 1
         if (!history.length) throw new RoomError('Chưa có đủ nước đi để hoàn tác.')
+        if (!history.some(state => state.currentTurn === player.side)) throw new RoomError('Bạn phải đi ít nhất một nước trước khi yêu cầu đi lại.')
         const plies: 1 | 2 = requestedPlies === 2 && history.length === 1 ? 1 : requestedPlies
         room.takebackRemaining = { ...remaining, [player.side]: remaining[player.side] - 1 }
         room.takebackOffer = { requester: player.side, plies }
@@ -387,6 +391,7 @@ export class RoomService {
           room.moveCount = Math.max(0, (room.moveCount ?? history.length) - offer.plies)
           const remaining = room.takebackRemaining ?? { red: 2, black: 2 }
           room.takebackRemaining = { ...remaining, [offer.requester]: 2 }
+          room.takebackBlocked = { ...room.takebackBlocked, [offer.requester]: true }
           this.append(room, '', `${player.name} đồng ý cho đối thủ đi lại.`, true)
           room.takebackDecline = null
         } else {

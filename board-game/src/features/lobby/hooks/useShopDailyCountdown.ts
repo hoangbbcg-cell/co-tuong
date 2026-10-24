@@ -10,7 +10,19 @@ export function dailyShopCountdown(now: number) {
     .map(value => String(value).padStart(2, '0')).join(':')
 }
 
-export function useShopDailyCountdown(enabled: boolean) {
+/** Weekly display resets at Monday 00:00 in Vietnam. */
+export function weeklyShopCountdown(now: number) {
+  const local = new Date(now + VIETNAM_OFFSET_MS)
+  const daysSinceMonday = (local.getUTCDay() + 6) % 7
+  const elapsed = daysSinceMonday * DAY_MS + (now + VIETNAM_OFFSET_MS) % DAY_MS
+  const seconds = Math.ceil((7 * DAY_MS - elapsed) / 1000)
+  const days = Math.floor(seconds / 86400)
+  const clock = [Math.floor(seconds / 3600) % 24, Math.floor(seconds / 60) % 60, seconds % 60]
+    .map(value => String(value).padStart(2, '0')).join(':')
+  return days + 'd ' + clock
+}
+
+export function useShopDailyCountdown(enabled: boolean, cadence: 'daily' | 'weekly' = 'daily') {
   const [now, setNow] = useState(Date.now)
   useEffect(() => {
     if (!enabled) return
@@ -25,5 +37,5 @@ export function useShopDailyCountdown(enabled: boolean) {
       window.removeEventListener('focus', update)
     }
   }, [enabled])
-  return enabled ? dailyShopCountdown(now) : '--:--:--'
+  return enabled ? (cadence === 'weekly' ? weeklyShopCountdown(now) : dailyShopCountdown(now)) : '--:--:--'
 }

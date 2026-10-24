@@ -37,3 +37,20 @@ it('blocks overlapping submissions and retries uncertain purchases using the sam
   expect(api.mock.calls[0]).toEqual(api.mock.calls[1])
   expect(useSessionStore.getState().gold).toBe(500)
 })
+
+it('purchases without randomUUID on HTTP mobile and clears the busy state', async () => {
+  useSessionStore.setState({ account })
+  const originalCrypto = globalThis.crypto
+  vi.stubGlobal('crypto', { getRandomValues: originalCrypto.getRandomValues.bind(originalCrypto) })
+  try {
+    const api = vi.spyOn(accountApi, 'purchase').mockResolvedValue({ ...account, gold: '500', cosmetics: [{ kind: 'frame', code: 'frame-4' }] })
+    const hook = renderHook(() => useShopPurchase(vi.fn()))
+    act(() => hook.result.current.open(SHOP_PRODUCTS[0]))
+    await act(async () => { await hook.result.current.confirm() })
+    expect(api).toHaveBeenCalledTimes(1)
+    expect(api.mock.calls[0][1]).toMatch(/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i)
+    expect(hook.result.current.buying).toBe(false)
+    expect(hook.result.current.selected).toBeNull()
+    expect(useSessionStore.getState().gold).toBe(500)
+  } finally { vi.unstubAllGlobals() }
+})

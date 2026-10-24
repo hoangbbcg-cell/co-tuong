@@ -1,10 +1,14 @@
-﻿import { useDatabaseRanking } from '../hooks/useDatabaseRanking'
+import { socialListScrollbarClass } from '../../../lib/uiClasses'
+import { SocialDialogFrame, socialModeTabsClass, socialPlayerRowClass, socialPlayerListClass, getSocialRowStyle } from './SocialDialogFrame'
+import { useRankingListInset } from '../hooks/useRankingListInset'
+import { useSingleLineTextSize } from '../hooks/useSingleLineTextSize'
+import { useDatabaseRanking } from '../hooks/useDatabaseRanking'
 import { useState, type CSSProperties, type RefObject } from 'react'
 import type { useRankingLayout } from '../hooks/useRankingLayout'
 import rankingTitle from '../../../assets/rankings/ranking-title-transparent.png'
 import xiangqiTab from '../../../assets/rankings/ranking-xiangqi-tab-user.png'
 import hiddenTab from '../../../assets/rankings/ranking-hidden-tab-user.png'
-import socialHeaderLandscape from '../../../assets/rankings/social-header-landscape.png'
+
 import historyParchmentBackground from '../../../assets/history/history-parchment-background.png'
 import { SocialPlayerName, socialPresenceTextClass, socialPanelClass } from './SocialUi'
 import { RankingViewButton } from './RankingViewButton'
@@ -16,9 +20,13 @@ import rankNumberTwo from '../../../assets/rankings/rank-silver-v2.png'
 import rankNumberThree from '../../../assets/rankings/rank-bronze-v2.png'
 import topOneCrown from '../../../assets/rankings/top-one-crown.png'
 import redGeneral from '../../../assets/pieces/red-general.png'
+import concealedPiece from '../../../assets/history/history-hidden-user.png'
+import eloFrame from '../../../assets/player/elo-frame.png'
+import { CrispUiImage } from '../../../lib/CrispUiImage'
 import { buttonInteraction, selectedImageTabGlow } from '../../../lib/uiClasses'
 import { RankingRankBadge } from './RankingRankBadge'
 import { AccountAvatar } from './AccountAvatar'
+
 import { AvatarFrameOverlay } from '../../game/components/AvatarFrameOverlay'
 import { getAvatarFrame } from '../../../lib/avatarFrames'
 
@@ -106,44 +114,41 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
     height: Math.round(layout.height * layout.scale),
     '--ranking-row-slot-gap': `${Math.round(8 * layout.scale)}px`,
     '--ranking-title-width': `${Math.round(650 * layout.scale * (layout.compact ? 1.12 : 1))}px`,
-    '--ranking-tab-width': `${Math.round(264 * layout.scale * (layout.compact ? 1.4 : 1))}px`,
-    '--ranking-tab-height': `${Math.round(70 * layout.scale * (layout.compact ? 1.4 : 1))}px`,
+    '--ranking-tab-width': `${Math.round(264 * layout.scale * (layout.compact ? 1.6 : 1))}px`,
+    '--ranking-tab-height': `${Math.round(70 * layout.scale * (layout.compact ? 1.6 : 1))}px`,
     ...getRankingScaleStyle(layout.scale),
   } as CSSProperties
+  const { listRef, inset: headerInset } = useRankingListInset(Boolean(layout.compact))
   const rowScale = layout.scale * (layout.compact ? 1.5 : 1)
   const headerScale = layout.scale * (layout.compact ? 1.5 : 1)
   const eloScale = layout.scale * (layout.compact ? 1.35 : 1)
+  const eloOffset = Math.round(24 * layout.scale)
+  const eloWidthExtension = Math.round(34 * layout.scale)
+  const columnStyle: CSSProperties | undefined = layout.compact ? {
+    gridTemplateColumns: `${Math.round(90 * rowScale)}px minmax(0, 1fr) ${Math.round(122 * eloScale)}px ${Math.round(173 * rowScale)}px`,
+  } : undefined
   const rowStyle = layout.compact ? {
     flex: '0 0 calc(16.6667% - var(--ranking-row-slot-gap))',
-    ...getRankingScaleStyle(rowScale),
+    ...getRankingScaleStyle(rowScale), ...columnStyle,
+    '--ranking-player-name-size': `${Math.round(28 * rowScale)}px`,
   } as CSSProperties : undefined
 
   const modes: { key: Mode; label: string; image: string }[] = [{ key: 'xiangqi', label: 'Cờ Tướng', image: xiangqiTab }, { key: 'hidden', label: 'Cờ Úp', image: hiddenTab }]
 
   return <dialog ref={dialogRef} aria-labelledby="ranking-title" onCancel={event => { event.preventDefault(); onClose() }} className="m-auto max-h-none max-w-none overflow-visible border-0 bg-transparent p-0 text-[#43240f] backdrop:bg-black/45" style={renderingStyle}>
-    <div className="absolute top-0 left-0 origin-top-left rounded-[var(--ranking-22)] border-[length:var(--ranking-5)] border-[#5e3014] bg-[linear-gradient(135deg,#7a431c,#2d160a)] p-4 shadow-[inset_0_0_0_2px_#e0b466,inset_0_0_0_7px_#875026,inset_0_0_0_9px_#160904]" style={{ width: Math.round(layout.width * layout.scale), height: Math.round(layout.height * layout.scale) }}>
-      <button type="button" onClick={onClose} className={`${buttonInteraction} absolute top-[var(--ranking-24)] right-[var(--ranking-28)] z-30 grid size-[var(--ranking-56)] place-items-center rounded-xl border-2 border-[#efb75d] bg-[linear-gradient(#6e3d17,#291207)] text-[length:var(--ranking-42)] leading-none text-[#ffe3a2] shadow-[inset_0_0_0_3px_#3f1a08,0_3px_4px_#160804]`} aria-label="Đóng">×</button>
-      <div className="relative flex h-full flex-col rounded-xl border-[length:var(--ranking-3)] border-[#d39a42] bg-[radial-gradient(ellipse_at_50%_8%,#b87a3344,transparent_38%),linear-gradient(135deg,#6e3718,#2b160b_48%,#5d2e14)] px-2 pb-2 shadow-[0_0_0_2px_#48220e,inset_0_0_18px_#160904]">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-2 top-2 h-[var(--ranking-170)] overflow-hidden rounded-[var(--ranking-9)] opacity-80 shadow-[inset_0_0_18px_8px_#241107]">
-          <img src={socialHeaderLandscape} alt="" className="size-full object-cover object-center" />
-        </div>
-        <div aria-hidden="true" className="pointer-events-none absolute inset-2 overflow-hidden rounded-lg opacity-20"><svg viewBox="0 0 660 800" preserveAspectRatio="none" className="h-full w-full" fill="none" stroke="#b8873e" strokeWidth="5"><path d="M-30 130c85-90 120 30 40 18-60-12-15-84 30-42m450-100c-60 35-30 95 15 60s-40-70-65-20M-40 680c80-65 165 10 95 55-55 35-100-50-45-65 65-18 80 93 160 57m340 75c-65-70 15-125 58-75 30 40-45 80-60 30-10-40 80-80 140-20"/><path d="M-15 780q80-100 160 0m-145 0q65-80 130 0m-110 0q45-55 90 0M500 0q75 90 150 0m-130 0q55 65 110 0"/></svg></div>
-        <header className="relative z-10 mx-auto -mt-[var(--ranking-62)] mb-[calc(-1*var(--ranking-14))] w-[var(--ranking-title-width)] text-center">
-          <img src={rankingTitle} alt="" className="pointer-events-none mx-auto h-auto w-full" />
-          <h2 id="ranking-title" className="sr-only">Xếp hạng</h2>
-        </header>
-        <div className="relative z-10 mx-auto mb-1 flex w-[68%] compact:w-[84%] items-end justify-center gap-10" role="tablist" aria-label="Chế độ xếp hạng">
+    <SocialDialogFrame layout={layout} titleImage={rankingTitle} titleId="ranking-title" title="Xếp hạng" onClose={onClose}>
+        <div className={socialModeTabsClass} role="tablist" aria-label="Chế độ xếp hạng">
           {modes.map(item => <button key={item.key} type="button" role="tab" aria-selected={mode === item.key} onClick={() => setMode(item.key)} className={`${buttonInteraction} relative block h-[var(--ranking-tab-height)] w-[var(--ranking-tab-width)] shrink-0 isolate overflow-visible border-0 bg-transparent p-0 leading-none`}><img src={item.image} alt="" className={`pointer-events-none block h-full w-full object-contain transition-[filter] duration-200 motion-reduce:transition-none ${mode === item.key ? selectedImageTabGlow : ''}`} /><span className="sr-only">{item.label}</span></button>)}
         </div>
         <section aria-label={`Bảng xếp hạng ${mode === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}`} className={`${socialPanelClass} ranking-panel flex flex-col gap-[var(--ranking-6)]`} style={{ paddingInline: Math.round(20 * layout.scale), borderWidth: Math.round(3 * layout.scale), borderRadius: Math.round(14 * layout.scale), backgroundImage: `linear-gradient(#fff4dc52,#fff4dc52), url(${historyParchmentBackground})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
-          <div style={layout.compact ? getRankingScaleStyle(headerScale) : undefined} className="relative z-10 isolate grid h-[var(--ranking-38)] shrink-0 grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)] items-center gap-3 overflow-hidden rounded-[var(--ranking-9)] border border-[#c3a371] bg-[#b68c53]/30 px-3 font-heading text-[length:var(--ranking-21)] font-extrabold italic text-[#43240f] [-webkit-text-stroke:0.35px_currentColor]">
+          <div style={layout.compact ? { ...getRankingScaleStyle(headerScale), ...columnStyle, marginRight: headerInset } : undefined} className="relative z-10 isolate grid h-[var(--ranking-38)] shrink-0 grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)] items-center gap-3 overflow-hidden rounded-[var(--ranking-9)] border border-[#c3a371] bg-[#b68c53]/30 px-3 font-heading text-[length:var(--ranking-21)] font-extrabold italic text-[#43240f] [-webkit-text-stroke:0.35px_currentColor]">
             <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-0 w-[var(--ranking-125)] bg-[linear-gradient(90deg,#4b271326_0%,#75451d1b_54%,transparent_100%)] shadow-[inset_8px_0_12px_-10px_#24100635]" />
-            <span className="relative z-10 text-center">Hạng</span><span className="pl-[var(--ranking-100)]">Người chơi</span><span className="text-center">Điểm</span><span className="text-center">Thao tác</span>
+            <span className="relative z-10 text-center">Hạng</span><span className="pl-[var(--ranking-100)]" style={layout.compact ? { paddingLeft: Math.round(84 * rowScale) + Math.round(20 * rowScale) + 8 * rowScale } : undefined}>Người chơi</span><span className="text-center" style={layout.compact ? { transform: `translateX(${eloOffset + eloWidthExtension / 2}px)` } : undefined}>Elo</span><span className="text-center">Thao tác</span>
           </div>
-          <ol className="relative z-10 flex min-h-0 flex-1 flex-col gap-[var(--ranking-8)] overflow-x-hidden overflow-y-auto pr-2 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#ffffff_transparent] [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white [&::-webkit-scrollbar-thumb:hover]:bg-white [&::-webkit-scrollbar-corner]:bg-transparent [&::-webkit-scrollbar-button]:hidden">
-            {players.map((player, index) => <li key={player.name} style={rowStyle} className="relative isolate grid h-[var(--ranking-138)] min-h-[var(--ranking-138)] shrink-0 compact:min-h-0 grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)] items-center gap-3 overflow-hidden rounded-[var(--ranking-10)] border border-[#c5a16a]/55 bg-[linear-gradient(90deg,#ead0a0,#f0dcb3_48%,#e8cca0)] px-3 py-0 shadow-[inset_0_1px_0_#f8e6bd]">
+          <ol ref={listRef} className={`${socialPlayerListClass} ${socialListScrollbarClass}`}>
+            {players.map((player, index) => <li key={player.name} style={{ ...getSocialRowStyle(layout.scale, Boolean(layout.compact)), ...rowStyle }} className={`${socialPlayerRowClass} grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)]`}>
               <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-0 w-[var(--ranking-132)] bg-[linear-gradient(90deg,#4a261327_0%,#75451d1a_55%,transparent_100%)] shadow-[inset_9px_0_14px_-11px_#24100635]" />
-              <span className="relative z-10 grid size-[var(--ranking-90)] place-items-center self-center justify-self-center" aria-label={`Hạng ${index + 1}`}>
+              <span className="relative z-10 grid size-[var(--ranking-90)] place-items-center self-center justify-self-center" aria-label={`Hạng ${index + 1}`} style={layout.compact ? getRankingScaleStyle(rowScale) : undefined}>
                 {index < 3
                   ? <><img src={rankNumberImages[index]} alt="" className="pointer-events-none absolute top-1/2 left-1/2 size-[var(--ranking-99)] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain brightness-110 drop-shadow-[0_0_5px_#ffe3a080]" /><span aria-hidden="true" className="pointer-events-none absolute top-[12%] left-[10%] text-[length:var(--ranking-20)] leading-none text-[#fff8df] drop-shadow-[0_0_4px_#fff0ad] motion-safe:animate-pulse">✦</span><span aria-hidden="true" className="pointer-events-none absolute right-[5%] bottom-[20%] text-[length:var(--ranking-15)] leading-none text-[#fff8df] drop-shadow-[0_0_4px_#fff0ad] motion-safe:animate-pulse [animation-delay:900ms]">✦</span></>
                   : <><img src={rankPlainFrame} alt="" className="pointer-events-none size-[var(--ranking-76)] object-contain" /><span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-['Times_New_Roman'] text-[length:var(--ranking-46)] leading-none font-bold italic text-[#ffe0a0] [text-shadow:0_2px_2px_#391b0b]">{index + 1}</span></>}
@@ -156,21 +161,19 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
                   <RankingRankBadge elo={Number(player.elo)} scale={rowScale} />
                   </span>
                 </span>
-                <div className="min-w-0"><h3 className="flex h-6 items-center font-heading text-[length:var(--ranking-player-name-size)] leading-6 text-[#251506]"><SocialPlayerName name={player.name} /></h3><p className={`mt-2 flex items-center gap-3 ${socialPresenceTextClass} text-[length:var(--ranking-19)] leading-5 ${(watch.matchFor(player.name) || player.online) ? 'text-[#268523]' : 'text-[#5a5147]'}`}><PresenceDot online={!!watch.matchFor(player.name) || player.online} /><span className="truncate">{watch.matchFor(player.name) ? 'Đang chơi Cờ Tướng' : player.online ? 'Đang online' : 'Offline'}</span></p></div>
+                <div className="min-w-0 compact:flex-1"><h3 className="flex h-6 compact:h-[calc(var(--ranking-player-name-size)*1.4)] items-center font-heading text-[length:var(--ranking-player-name-size)] leading-6 text-[#251506]">{layout.compact ? <span className="block min-w-0 w-full flex-1 whitespace-nowrap font-heading font-extrabold leading-[1.4] lining-nums [-webkit-text-stroke:0.2px_currentColor]" style={layout.compact ? { fontSize: Math.round(26 * rowScale) } : undefined}>{player.name}</span> : <SocialPlayerName name={player.name} />}</h3><p className={`mt-2 flex items-center gap-3 compact:gap-1 ${socialPresenceTextClass} text-[length:var(--ranking-19)] compact:text-[length:var(--ranking-22)] compact:font-heading compact:leading-[1.2] leading-5 ${(watch.matchFor(player.name) || player.online) ? 'text-[#268523]' : 'text-[#5a5147]'}`}><PresenceDot online={!!watch.matchFor(player.name) || player.online} />{layout.compact ? (watch.matchFor(player.name) ? <span className="whitespace-nowrap" style={{ fontSize: Math.round(22 * rowScale) }}>{mode === 'hidden' ? 'Đang chơi Cờ Úp' : 'Đang chơi Cờ Tướng'}</span> : <span className="whitespace-nowrap" style={{ fontSize: Math.round(22 * rowScale) }}>{player.online ? 'Đang online' : 'Offline'}</span>) : <span className="truncate">{watch.matchFor(player.name) ? 'Đang chơi Cờ Tướng' : player.online ? 'Đang online' : 'Offline'}</span>}</p></div>
               </div>
-              <div style={layout.compact ? { ...getRankingScaleStyle(eloScale), transform: `translateX(${Math.round(24 * layout.scale)}px)` } : undefined} className="my-[var(--ranking-17)] flex h-[calc(100%_-_var(--ranking-34))] items-center justify-center rounded-[var(--ranking-9)] bg-[#b68c53]/20">
-                <span className="relative flex h-[var(--ranking-44)] w-[var(--ranking-122)] items-center justify-center font-number text-[length:var(--ranking-22)] text-[#fff0d7]"><span aria-hidden="true" className="absolute inset-y-0 left-[var(--ranking-18)] right-0 rounded-r-lg border border-[#b4792d] bg-[linear-gradient(#673117,#2f1208)] shadow-[inset_0_0_0_1px_#9c5d23]" /><img src={redGeneral} alt={`Điểm ${mode === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}`} className="absolute -left-[var(--ranking-8)] z-10 size-[var(--ranking-50)] object-contain" /><span className="relative z-10 translate-x-[var(--ranking-15)]">{player.elo}</span></span>
+              <div style={{ ...(layout.compact ? getRankingScaleStyle(eloScale) : {}), height: layout.compact ? 'calc(100% + 6px)' : `calc(100% - ${Math.round(28 * layout.scale)}px)`, width: `calc(100% + ${(layout.compact ? eloWidthExtension : 0) + Math.round((layout.compact ? 13 : 6) * layout.scale)}px)`, transform: `translateX(${layout.compact ? eloOffset : 0}px)` }} className="relative flex items-center justify-center">
+                <span aria-hidden="true" className="pointer-events-none absolute inset-0 compact:-left-[3.5px] compact:-right-[3.5px] rounded-[var(--ranking-9)] compact:rounded-[var(--ranking-5)] bg-[#b68c53]/20" />
+                <span className="relative flex h-[var(--ranking-46)] w-full min-w-0 items-center justify-center bg-center bg-no-repeat bg-[length:100%_100%] pl-[var(--ranking-34)] pr-[var(--ranking-10)] font-georgia text-[#ffe7ae] whitespace-nowrap [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}><CrispUiImage src={mode === 'hidden' ? concealedPiece : redGeneral} alt={`Elo ${mode === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}`} className="absolute left-[var(--ranking-8)] size-[var(--ranking-25)] shrink-0 object-contain" /><span className="font-number text-[length:var(--ranking-24)] leading-none lining-nums tabular-nums">{player.elo}</span></span>
               </div>
               {watch.matchFor(player.name) && <RankingViewButton name={player.name} scale={rowScale} onView={watch.watch} />}
             </li>)}
           </ol>
         </section>
-      </div>
-      {['top-0 left-0', 'top-0 right-0 -scale-x-100', 'bottom-0 left-0 -scale-y-100', 'bottom-0 right-0 -scale-x-100 -scale-y-100'].map(position => <svg key={position} aria-hidden="true" viewBox="0 0 90 90" className={`pointer-events-none absolute size-[var(--ranking-76)] ${position}`} fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M7 79V20Q7 7 21 7h58M16 66V26q0-10 12-10h37M14 47c40 7 6-48 38-34 14 7-5 25-13 21S44 6 62 9M21 74c-8-24 22-9 19-28" stroke="#64320f" strokeWidth="11"/><path d="M7 79V20Q7 7 21 7h58M16 66V26q0-10 12-10h37M14 47c40 7 6-48 38-34 14 7-5 25-13 21S44 6 62 9M21 74c-8-24 22-9 19-28" stroke="#d8a34e" strokeWidth="6"/><path d="M7 74V20Q7 7 21 7h52M16 42c26 4 10-30 27-29" stroke="#ffe1a0" strokeWidth="2"/></svg>)}
-    </div>
+    </SocialDialogFrame>
     {(watch.error || previewNotice) && !watch.passwordControls.passwordRoom && <p role={watch.error ? 'alert' : 'status'} onClick={() => setPreviewNotice('')} className="absolute bottom-3 left-1/2 z-30 max-w-[90%] -translate-x-1/2 rounded border border-[#c7a264] bg-[#f7e6c1] px-3 py-2 text-center text-[#43240f]">{watch.error || previewNotice}</p>}
     <RoomPasswordDialog lobby={watch.passwordControls}/>
   </dialog>
 }
-
 

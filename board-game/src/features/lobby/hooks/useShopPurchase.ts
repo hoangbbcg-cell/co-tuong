@@ -1,3 +1,4 @@
+import { createClientId } from '../../../lib/clientId'
 import { useRef, useState } from 'react'
 import axios from 'axios'
 import { accountApi } from '../../../services/accountApi'
@@ -7,7 +8,7 @@ import { useSessionStore } from '../../../store/sessionStore'
 import { alreadyOwnedMessage, ownsCosmetic } from '../../../lib/shopCatalog'
 import type { ShopProduct } from '../../../lib/shopCatalog'
 
-export function useShopPurchase(onMessage: (message: string) => void) {
+export function useShopPurchase(onMessage: (message: string) => void, showSuccessMessage = true) {
   const [selected, setSelected] = useState<ShopProduct | null>(null)
   const [buying, setBuying] = useState(false)
   const busy = useRef(false)
@@ -23,13 +24,13 @@ export function useShopPurchase(onMessage: (message: string) => void) {
     if (!selected || busy.current) return
     const product = selected
     busy.current = true; setBuying(true)
-    const requestId = attempts.current.get(product.id) ?? crypto.randomUUID()
-    attempts.current.set(product.id, requestId)
     try {
+      const requestId = attempts.current.get(product.id) ?? createClientId()
+      attempts.current.set(product.id, requestId)
       const profile = await accountApi.purchase(product.id, requestId)
       if (useSessionStore.getState().account?.id === profile.id) applyAccount(profile)
       attempts.current.delete(product.id)
-      onMessage(`Đã mua ${product.kind === 'avatar' ? 'avatar' : 'viền'} ${product.name}. Vật phẩm đã được lưu vào ${product.kind === 'avatar' ? 'Chọn avatar' : 'Chọn viền'}.`)
+      if (showSuccessMessage) onMessage(`Đã mua ${product.kind === 'avatar' ? 'avatar' : 'viền'} ${product.name}. Vật phẩm đã được lưu vào ${product.kind === 'avatar' ? 'Chọn avatar' : 'Chọn viền'}.`)
     } catch (error) {
       // Keep the key on timeout: the server may already have committed this purchase.
       if (axios.isAxiosError(error) && error.response && error.response.status < 500) attempts.current.delete(product.id)

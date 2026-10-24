@@ -1,4 +1,4 @@
-﻿import { randomUUID } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 import { change, rows, transaction } from './accountRepository'
 import { AccountError } from '../errors'
 import { mkdir, writeFile, unlink } from 'node:fs/promises'
@@ -10,6 +10,9 @@ export const messageImageDirectory = fileURLToPath(new URL('../../uploads/messag
 
 const pair=(a:string,b:string) => BigInt(a)<BigInt(b)?[a,b]:[b,a]
 export class SocialRepository {
+  async suggestions(id:string) {
+    return rows(`SELECT CAST(u.id AS CHAR) id,CAST(u.public_id AS CHAR) publicId,u.display_name name,u.avatar_code avatarCode,u.avatar_frame_code avatarFrameCode,s.elo FROM users u LEFT JOIN user_game_stats s ON s.user_id=u.id AND s.variant='xiangqi' WHERE u.status='active' AND u.id<>? AND NOT EXISTS (SELECT 1 FROM friendships f WHERE f.status='accepted' AND ((f.user_low_id=? AND f.user_high_id=u.id) OR (f.user_high_id=? AND f.user_low_id=u.id))) AND NOT EXISTS (SELECT 1 FROM user_blocks b WHERE (b.blocker_id=? AND b.blocked_id=u.id) OR (b.blocked_id=? AND b.blocker_id=u.id)) ORDER BY RAND() LIMIT 20`,[id,id,id,id,id])
+  }
   async imageMessage(id:string,conversation:string,bytes:Buffer,clientId:string,extension:'jpg'|'png'|'webp'|'gif'='jpg') {
     const membership=await rows('SELECT user_id FROM conversation_members WHERE conversation_id=? AND user_id=? AND left_at IS NULL',[conversation,id])
     if(!membership.length)throw new AccountError('Không thuộc cuộc trò chuyện.',403)

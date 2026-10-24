@@ -1,3 +1,16 @@
 ﻿/uploads/
 
 /.admin-access.txt
+engines/hovang-v0.3/hovang-engine
+engines/hovang-v0.3/hovang-engine.exe
+engines/hovang-v0.3/hovang-tests
+engines/hovang-v0.3/hovang-tests.exe
+
+# HOVANG is local-only; never publish its source, binaries or adapters.
+/engines/hovang-*/
+/docs/HOVANG-*.md
+/hovang-*
+/server/controllers/hovangController.ts
+/server/services/hovangService.ts
+/src/services/hovang.ts
+/tests/hovang-*.test.ts

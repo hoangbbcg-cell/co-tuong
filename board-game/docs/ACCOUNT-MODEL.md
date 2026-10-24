@@ -87,3 +87,11 @@ Chọn quốc gia trước; Việt Nam chọn thêm tỉnh/thành và xã/phư�
 
 - 2026-10-20: Restore gặp lỗi mạng/tải dữ liệu non401 hiện Thử lại để tải phiên cũ; không coi là chưa đăng nhập hoặc khuyến khích tạoGuest. Chỉ401 qua/me và/guest/restore mới vềLogin. Cookie/server vẫn authoritative; khôngkhôi phục bằngtên hoặc localStorage.
 
+
+- 2026-10-23: Theo user, thêm nút× vào góc trên phải bảng thông tin user MOBILE qua DialogCloseButton chung Xếp hạng (cỡ84/dấu64 và offset chung theo scale). onClose đóng hồ sơ; chỉ hiện trên bảng thông tin chính, không chèn lên chỉnh avatar/địa chỉ/catalog danh hiệu; desktop giữ nguyên. Build/typecheck PASS; dist xác nhận nút compact; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: User đính chính nút× hồ sơ mobile phải chính xác như Xếp hạng: dùng DialogCloseButton cùng scale từ useRankingLayout, cả offset top24/right28 tính theo ranking scale thay profile scale740 khiến nút lớn hơn. Giữ transform/style chung và neo góc bảng hồ sơ. Desktop giữ nguyên. Build/typecheck PASS; dist xác nhận offset mới; chưa browser QA.
+
+- 2026-10-23: Theo user, đồng bộ nút× MOBILE qua DialogCloseButton chung cho Hồ sơ/Xếp hạng/Bạn bè/Lịch sử (và nơi tái dùng): dịch trái4px (translateX20→16), tăng nhẹ vùng bấm84→90 và dấu64→68 theo scale. Hồ sơ giữ scale Xếp hạng đã chốt; mọi chỉnh tiếp dùng component chung, không offset riêng. Desktop giữ56/42 và không transform. Build/typecheck PASS; dist xác nhận offset chung mới; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-24: Theo user, giữ khung tên/Elo cạnh avatar cố định khi mở chỉnh avatar MOBILE: preview PlayerInfoCard dùng cùng chiều cao270/translateY-28 như hồ sơ, thay-20 gây nhảy8logical. Mở nút× DialogCloseButton chung trên tùy chỉnh avatar; bấm quay lại hồ sơ, không tự lưu avatar; nút hồ sơ vẫn đóng dialog. Giữ avatar geometry/desktop. Build/typecheck PASS; dist cập nhật; chưa browser QA.

@@ -1,5 +1,51 @@
 # Hệ thống bậc và sao theo Elo
 
+- 2026-10-23: Theo user, hạ cụm sao toàn project2px theo khung tham chiếu: clusterOffsetYPx -14→-12; vị trí hiện tại cao hơn6px so trước chuỗi chỉnh. Token chung áp dụng mobile/laptop/người chơi/máy. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Theo user, nâng cụm sao toàn project thêm4px theo khung tham chiếu: clusterOffsetYPx -10→-14, tổng nâng8px so trước các lượt chỉnh. Token chung áp dụng mobile/laptop/người chơi/máy. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Theo user, nâng sao toàn project thêm2px theo khung tham chiếu: clusterOffsetYPx -8→-10, tổng nâng4px so trước hai lượt chỉnh. Đồng bộ mobile/laptop/người chơi/máy qua token chung. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: Theo user, nâng cụm sao toàn project/mobile/laptop qua RANK_STAR_LAYOUT.clusterOffsetYPx -6→-8 (lên2px ở tỷ lệ tham chiếu, co cùng khung). RankTitleBadge và RankingRankBadge cùng dùng getRankTitleStarsStyle; gồm sao máy artwork riêng. Giữ kích thước sao/avatar/danh hiệu/luật Elo. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-23: User khóa riêng Bạn bè LAPTOP, hoàn tác lượt đồng bộ vừa rồi trên desktop. FriendsDialogFrame chỉ dùng SocialDialogFrame khi compact; desktop khôi phục khung/nền/title/tab/dòng150 liền nhau/khung list/nền nâu SVG như ngay trước task đồng bộ. Mobile giữ dòng/khung/tab dùng chung Xếp hạng. Các chỉnh tiếp mặc định chỉ Bạn bè mobile trừ khi user mở laptop rõ. Tests ranking-view+mobile-dialog-layout3/3 PASS, typecheck/build PASS; dist index-DILmSzb6.js/index-DYj2_tBu.css xác nhận. Chưa browser QA.
+
+- 2026-10-23: Theo user đồng bộ Bạn bè với Xếp hạng: SocialDialogFrame dùng chung khung ngoài/khung trong/nền phong cảnh/hoa văn/tiêu đề/nút X; title slot theo tỷ lệ artwork Xếp hạng để hàng3tab Bạn bè cùng mốc với2tab Xếp hạng. socialModeTabsClass, socialPlayerRowClass/ListClass và getSocialRowStyle dùng chung: dòng desktop138, mobile6slot, gap8×dialogScale, bo10×rowScale/viền/nền giống nhau; bỏ khung danh sách/nền nâu SVG riêng Bạn bè. Lời mời giữ4nhận+2gửi qua biến số slot; giữ các nút và data/search/keyboard behavior. Avatar/tên/luật không đổi. Existing ranking-view+mobile-dialog-layout3/3 PASS, typecheck/build PASS; dist cập nhật. Chưa browser QA trực quan; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, nền/thẻ Xếp hạng mobile phải trắng kem thay vàng: lớp phủ giấy #fffaf0eb, thẻ #fffdf7/#f7f3eb/#fffaf2, header #f2ede3, nền cột Elo #e9e2d5. Giảm ám vàng ở bóng panel và dải nền cột hạng. Chỉ màu compact, giữ geometry/asset/Elo/avatar/desktop; khóa lại sau task.
+
+- 2026-10-23: Theo user, hai tab Cờ Tướng/Cờ Úp ở Xếp hạng mobile phóng đồng tỷ lệ1.4→1.6 lần kích thước gốc264×70 (tăng thêm14.3% so lượt trước); giữ tâm, ảnh nguyên tỷ lệ và cả hai trạng thái. Desktop giữ cỡ cũ; khóa lại phạm vi sau task.
+
+- 2026-10-23: Theo user, chữ Đang online trong Xếp hạng mobile phải bằng Offline: cả hai cùng cỡ22×rowScale cố định, một dòng; bỏ tự co riêng hai trạng thái này vì chuỗi online dài hơn gây chữ nhỏ. Trạng thái Đang chơi và tên vẫn fit như cũ. Giữ desktop, áp dụng cả hai tab; khóa lại sau task.
+
+- 2026-10-23: Theo user, Xếp hạng mobile dịch Elo trái thêm12px logical (offset36→24 theo dialogScale), tiêu đề căn theo cùng eloOffset/eloWidthExtension. Đổi nhãn Điểm→Elo. Tên/trạng thái hiển thị đủ một dòng không ellipsis; RankingSingleLineText/useSingleLineTextSize đo chữ thật bằng Range, tự co font khi cột thiếu chỗ, tính lại khi resize/font tải xong. Max tên28/trạng thái22 theo rowScale; avatar và kích thước ô giữ nguyên. Khóa lại sau task.
+
+- 2026-10-23: Theo user, tăng riêng nội dung hàng Xếp hạng mobile: số/huy hiệu thứ hạng phóng15% bằng scale trong chính ô hạng; tên người chơi24→28 logical theo rowScale, trạng thái19→22. Giữ full name/wrap, avatar, cột/nhãn đã căn, Elo và desktop. Áp dụng cả Cờ Tướng/Cờ Úp, khóa lại sau task.
+
+- 2026-10-23: User yêu cầu căn nhãn Người chơi/Điểm với hàng dưới (các nhãn nằm ở Xếp hạng). Compact: header co cùng bề rộng nội dung danh sách qua useRankingListInset đo scrollbar/padding bằng ResizeObserver; Người chơi căn đúng mép tên sau avatar84+gap20+margin8 theo rowScale; Điểm căn giữa ô Elo có offset36 và phần rộng thêm34px theo dialogScale. Giữ nội dung hàng, avatar và desktop; khóa lại sau task.
+
+- 2026-10-22: User yêu cầu nguyên mẫu nút × Xếp hạng cho Bạn bè/Lịch sử mobile: DialogCloseButton cố định borderRadius12px như Xếp hạng, không nhận --radius-xl bị getCrispUiLayout scale ở bảng khác; dùng cùng buttonInteraction. Cỡ72/56 theo scale; desktop trả đúng56/42 theo scale. Build/typecheck PASS; dist index-DXuPjUd7.js/index-CF_yB55F.css cập nhật; chưa browser QA.
+
+- 2026-10-22: Dùng chung DialogCloseButton cho Xếp hạng, Bạn bè và Lịch sử. Cùng markup/style dấu ×; compact là72px vùng bấm và56px glyph theo scale dialog; desktop56/42. Friends/history hooks cung cấp compact theo viewport. npm.cmd run build/typecheck PASS; dist index-BSq7Ldtc.js/index-BC4nPvAz.css cập nhật; chưa browser QA.
+
+- 2026-10-22: Theo user, tăng thêm nút × Xếp hạng mobile: vùng bấm64→72px, dấu48→56px. npm.cmd run build/typecheck PASS; dist index-uEKQmEuV.js/index-CyNrYBfH.css cập nhật; desktop giữ nguyên, chưa browser QA.
+
+- 2026-10-22: Theo user, nút × đóng Xếp hạng mobile tăng56→64px, dấu ×42→48px; desktop giữ hiện tại. npm.cmd run build/typecheck PASS; dist index-F6RiQncf.js/index-CyNrYBfH.css cập nhật. Chưa browser QA.
+
+- 2026-10-22: Xếp hạng mobile theo user: trạng thái online/offline/đang chơi bỏ truncate, cho wrap và giảm gap chấm/chữ để hiện đủ. Thanh cuộn mobile bỏ skin trắng/thin/gutter, dùng native overflow-y-auto cùng Lịch sử; màu xám/tự ẩn theo trình duyệt và hệ điều hành. Desktop giữ skin cũ. npm.cmd run build/typecheck PASS; dist index-CSMz296x.js/index-ByTeN08r.css cập nhật. Chưa browser QA trên điện thoại.
+
+- 2026-10-22: Theo user, tăng thêm5px chiều ngang ô Elo Xếp hạng mobile; width calc từ29 lên34px×dialogScale. npm.cmd run build/typecheck PASS; dist/assets/index-BmjJ11DY.js và index-CcFjjYfI.css cập nhật. Desktop giữ nguyên; chưa browser QA.
+
+- 2026-10-22: Theo user, ô nền Elo mobile giữ cao full hàng và tăng rộng thêm5px×dialogScale (29px tổng); build PASS, dist/assets/index-DLGEiX34.js mới nhất. Desktop giữ nguyên. Chưa browser QA.
+
+- 2026-10-22: Theo user, nền nâu bao Elo Xếp hạng mobile cao100% hàng, marginBlock0; rộng thêm24px×dialogScale về phải, giữ mốc trái/offset và vùng tên. Desktop giữ nguyên. npm.cmd run build/typecheck PASS; dist index-D7LsS19u.js/index-CNVVDGzD.css cập nhật; chưa browser QA.
+
+- 2026-10-22: Xếp hạng mobile: Elo cột122×eloScale/offset36×dialogScale; tên giữ24×rowScale, bỏ truncate và cho xuống dòng, h3 tự cao để không khuất. fullName+equalDigitSize dùng cùng font-heading/weight/lining-nums cho toàn tên (chữ và số bằng cỡ), chỉ compact. Desktop/consumer khác giữ mặc định. Build/typecheck PASS; dist index-g6Edeibv.js/index-C444bi-_.css xác nhận fullName; chưa browser QA.
+
+- 2026-10-22: Theo user, tên trong Xếp hạng mobile tăng22→24 logical theo rowScale; chữ số trong tên dùng100% thay90% qua SocialPlayerName.equalDigitSize riêng compact. Laptop và các consumer khác giữ mặc định. npm.cmd run build/typecheck PASS; dist index-70fAFiZP.js xác nhận equalDigitSize. Chưa browser QA.
+
+- 2026-10-22: Sửa Xếp hạng mobile theo ảnh user: cột Elo dùng132×eloScale thay156×rowScale, trả phần rộng chênh lệch cho cột tên nên Elo dịch phải thực trong layout; header và hàng dùng chung gridTemplateColumns. Giữ offset24px, avatar/nút và desktop. npm.cmd run build (typecheck+Vite) PASS; dist index-B6l5561i.js xác nhận grid mới. Chưa browser QA.
+
 Nguồn quy tắc dùng chung: `src/lib/rankProgression.ts`. Elo dùng để xét bậc và sao; giới hạn tăng sao là **3000 Elo — Kỳ Thánh 3 sao**. Elo tổng vẫn có thể tăng cao hơn3000.
 
 Người chơi mới luôn khởi tạo ở `DEFAULT_PLAYER_ELO = 1000`: bậc1 Tân Binh, 1 sao. Session store dùng cùng hằng số; điểm Cờ Tướng và danh hiệu Home đọc cùng Elo trong session. Đây là mặc định cho dữ liệu người chơi mới khi bổ sung tạo tài khoản/persistence; hiện project chưa có backend tài khoản.
@@ -65,3 +111,45 @@ Quy tắc2026-10-05: Tân Binh giữ vị trí sao hiện hành. Sáu bậc2–7
 - 2026-10-16: Theo yêu cầu tăng độ đậm và dày số tên Bạn bè/Xếp hạng: SocialPlayerName giữ weight normal, số bỏ soften (opacity100% thay88%), stroke0.2→0.3px. Giữ phần chữ/font/cỡ/line-box1.4/baseline/hình học; áp dụng cả2 màn qua component chung, phạm vi khác giữ khóa.
 
 - 2026-10-19: Sửa sao/danh hiệu trong Thông tin người chơi/Tùy chỉnh và popup thông tin chat: AvatarRankBadge trước thiếu elo nên luôn mặc định1000/Tân Binh1sao. ProfileDialog lấy Elo xiangqi của đúng displayedAccount (hồ sơ mình fallback session.elo), truyền chung sang AvatarCustomization; MessagesOptionsPanel lấy profile đúng người. Không sửa hình học/avatar/star style hoặc công thức sao.11/11 regression profile/realtime-customization/otherplayer/logout/rank PASS, typecheck/build PASS, dist index-BsIxUJLJ.js xác nhận. Chưa browserQA.
+
+- 2026-10-23: User yêu cầu hoàn tác thử màu nền/thẻ Xếp hạng: bỏ toàn bộ override màu compact vừa thêm, trở lại màu nền giấy/thẻ/header/cột Elo sẵn có trước task đổi trắng kem. Giữ các chỉnh sửa kích thước/căn cột trước đó; khóa lại phạm vi.
+
+- 2026-10-23: Đồng bộ tên/trạng thái hai tab Xếp hạng mobile theo user: tên cố định28×rowScale, font-heading, không tự co; vùng tên hai dòng cùng chiều cao/neo đáy. Trạng thái cùng font-heading/cỡ22×rowScale/line-height1.2, nhãn đang chơi đúng variant. Avatar/màu/desktop giữ hiện tại; khóa lại sau task.
+
+- 2026-10-23: Đính chính theo user: tên người chơi trong Xếp hạng mobile nằm một hàng. Tên dùng font-heading chung, tự co theo chiều rộng để hiện đủ; khung tên trở về chiều cao một hàng để trạng thái giữ vị trí thẳng hàng trên hai tab. Build/typecheck PASS; khóa lại phạm vi.
+
+- 2026-10-23: Đính chính theo user: tên Xếp hạng mobile không tự thu nhỏ; giữ cỡ28×rowScale trên một hàng và cho chữ tràn ngang nếu dài. Cùng font/cỡ/vị trí giữa Cờ Tướng và Cờ Úp; build/typecheck PASS.
+
+- 2026-10-23: Theo user, thu nhỏ nhẹ tên trong Xếp hạng mobile từ28 xuống26×rowScale. Giữ một hàng, tràn ngang khi dài, cùng font/vị trí trên hai tab; không đổi chiều cao vùng tên, trạng thái, avatar hay desktop. Build/typecheck PASS; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, thu nhỏ nhẹ huy hiệu Top 1–3 trong Xếp hạng mobile: scale phần huy hiệu trong ô hạng từ1.15 xuống1.08. Không đổi avatar, cột hoặc desktop; khóa lại sau task.
+
+- 2026-10-23: Theo user, thu nhỏ thêm huy hiệu Top 1–3 Xếp hạng mobile: bỏ phần phóng thêm, về scale rowScale gốc (từ1.08). Desktop/avatar/các cột giữ nguyên; khóa lại sau task.
+
+- 2026-10-23: Theo user, giảm bo góc khung Elo Xếp hạng compact: khung nền và ô số từ bán kính9/8 về5 theo scale dialog. Desktop và số liệu giữ nguyên; khóa lại sau task.
+
+- 2026-10-23: Theo user, thẻ Elo trong danh sách Xếp hạng dùng artwork/kiểu số của Home (elo-frame.png, font-number, CrispUiImage); Cờ Úp dùng icon quân ẩn và Elo theo variant hiện chọn. Thay khung nâu cũ, giữ dữ liệu, cột/offset và áp dụng cả desktop/compact.
+
+- 2026-10-23: Theo user đính chính thẻ Elo Xếp hạng: khôi phục viền nâu bao ngoài, tăng lớp viền và nền Home-frame lên cao42 (trước32), số18→22 và icon22→25 theo eloScale. Cờ Tướng/Cờ Úp cùng layout; dữ liệu/desktop scaling giữ đúng. Build/typecheck PASS.
+
+- 2026-10-23: Đính chính theo user: khung bao Elo là lớp nền nâu trong suốt cũ bg-[#b68c53]/20, desktop margin17/cao trừ34, mobile full hàng và bo5. Bỏ border/gradient/shadow vừa thêm nhầm. Giữ thẻ Elo Home cao42, số22/icon25 đã phóng; padding dùng token34 có sẵn. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, tăng tiếp thẻ Elo Xếp hạng: artwork cao42→46 theo scale; số22→24. Nền nâu bao ngoài nới thêm6px cả chiều rộng và cao, căn giữa trong ô; giữ viền/nền nâu cũ, icon và dữ liệu. Áp dụng cả desktop/compact.
+
+- 2026-10-23: Theo user, khung nâu bao Elo trong Xếp hạng điện thoại rộng thêm7px (tổng phần nới compact 6→13px theo dialog scale). Thẻ Elo bên trong và desktop giữ nguyên.
+
+- 2026-10-23: Theo ảnh user, chỉ nới nền nâu nhạt phía sau thẻ Elo mobile thêm đúng7px hiển thị sang phải: tách nền thành lớp absolute compact:-right-[7px]. Không thay bề rộng/neo của thẻ ảnh, icon hoặc số; desktop giữ nguyên. Khóa lại phạm vi.
+
+- 2026-10-23: Đính chính theo user: nền nâu bao Elo mobile nới đều hai bên, trái3.5px/phải3.5px (tổng chiều ngang thêm7px), thay nới riêng bên phải7px. Giữ thẻ/số và tâm hiện tại; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, tăng nút đóng chung Xếp hạng/Bạn bè/Lịch sử mobile: vùng bấm72→84 và dấu×56→64 theo dialog scale. Giữ góc12px, vị trí/buttonInteraction, desktop56/42. Áp dụng qua DialogCloseButton dùng chung; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, nâng nút× chung Xếp hạng/Bạn bè/Lịch sử mobile lên3px hiển thị qua DialogCloseButton. Giữ kích thước84/64, neo ngang/góc và desktop. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, nâng nút× mobile thêm5px, tổng offset lên8px; đồng bộ Xếp hạng/Bạn bè/Lịch sử qua DialogCloseButton. Giữ kích thước và desktop; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, dịch nút× mobile sang phải5px, giữ offset lên8px; đồng bộ Xếp hạng/Bạn bè/Lịch sử qua DialogCloseButton. Desktop giữ nguyên; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, dịch nút× mobile thêm lên10px/trái15px so vị trí trước; tổng offset trái10/lên18px. Đồng bộ Xếp hạng/Bạn bè/Lịch sử qua DialogCloseButton; khóa lại phạm vi.
+
+- 2026-10-23: User đính chính hướng dịch nút× lượt trước: phải15px thay trái15px, giữ nâng thêm10px. Tổng offset hiện tại phải20/lên18px cho Xếp hạng/Bạn bè/Lịch sử mobile; desktop giữ nguyên. Khóa lại phạm vi.

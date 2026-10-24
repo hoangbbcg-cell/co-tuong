@@ -9,10 +9,10 @@ function measure() {
   const availableWidth = viewport?.width ?? window.innerWidth
   const availableHeight = viewport?.height ?? window.innerHeight
   const scale = Math.max(0.1, Math.min(0.85, (availableWidth - mobileDialogMargin(availableWidth, availableHeight)) / width, (availableHeight - 32) / 780))
-  return { scale, height: mobileDialogHeight(height, scale, availableWidth, availableHeight) }
+  return { scale, height: mobileDialogHeight(height, scale, availableWidth, availableHeight), compact: availableWidth <= 800 }
 }
 
-export function useHistoryLayout() {
+export function useHistoryLayout(): { width: number; scale: number; height: number; compact?: boolean } {
   const [layout, setLayout] = useState(measure)
   useEffect(() => {
     const resize = () => setLayout(measure())

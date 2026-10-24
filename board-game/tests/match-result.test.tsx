@@ -31,6 +31,20 @@ it.each(['button', 'img', 'dialog'])('locks dismissal for one second, then close
 const ended = (winner: Side | null, reason: 'checkmate' | 'timeout' | 'draw' = 'checkmate'): GameState => ({ ...playing, phase: 'finished', result: { winner, reason } })
 const props = (game: GameState, side: Side | null = 'red', enabled = true) => ({ game, side, enabled, roomKey: 'one', waitForCheckmate: game.result?.reason === 'checkmate' })
 
+it('shows the tracked winner after an opponent departure remount', () => {
+  const game: GameState = { ...playing, phase: 'finished', result: { winner: 'red', reason: 'leave' } }
+  const view = renderHook(() => useMatchResult({ ...props(game), initialResultSide: 'red' }))
+  expect(view.result.current.outcome).toBe('win')
+  act(() => view.result.current.dismiss())
+  expect(view.result.current.outcome).toBeNull()
+})
+
+it('does not give a late entrant the departure win', () => {
+  const game: GameState = { ...playing, phase: 'finished', result: { winner: 'red', reason: 'leave' } }
+  const view = renderHook(() => useMatchResult(props(game)))
+  expect(view.result.current.outcome).toBeNull()
+})
+
 it('recovers recorded results when online snapshots skip finished, excluding spectators', () => {
   const completed = { id: 'completed-1', endedAt: 1, redName: 'Red', blackName: 'Black', states: [ended('red')] }
   const initial = { ...props(playing, 'black'), completed: undefined as typeof completed | undefined }

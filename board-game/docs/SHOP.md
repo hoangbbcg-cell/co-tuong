@@ -105,3 +105,33 @@ Kiểm chứng:4/4 test shop-page/mobile-home/home-quick-wait PASS; typecheck/bu
 
 - 2026-10-20: User chốt Shop Sự Kiện dòng2 Chưa có sự kiện. Phiên Chợ Hàng Ngày Làm mới sau đếm HH:MM:SS đến0h Việt Nam UTC+7, qua ngày lặp24h; tính từ Date.now mỗi tick, focus/visibility cập nhật, đổi tab/unmount dọn timer/listener. Số tăng1.3em→1.6em, camvàng#ffad24 đậm hơn và glow5/12px; kiểu số chung MarketHeading. Cao Cấp giữ dòng tuần và placeholder thời gian; Sự Kiện không giả lịch. Đây là đồng hồ UI, chưa tự đổi catalog/backend khi qua ngày.3/3 tests countdown/shop PASS gồm midnight/resume/cleanup, typecheck/build PASS; dist xác nhận nhãn/style/hook. Chưa browser QA.
 
+
+- 2026-10-23: Theo user chỉnh Shop MOBILE: biển Cửa Hàng110×36 cạnh Back; tài nguyên riêng Shop116×26/ô, icon18/số14/plus18, góc trên phải xếp năng lượng trên/vàng dưới cách30px. Header72px; cụm MarketHeading lên trước dock chợ, vùng18dvh/min130; dock Phiên Chợ/Cao Cấp/Sự Kiện xuống ngay trước filter và panel sản phẩm qua order+section contents compact. Desktop/Home/resource token chung không đổi; giữ mua hàng/API/countdown. Build/typecheck PASS; dist xác nhận thứ tự/biển mới; chưa browser QA điện thoại.
+
+- 2026-10-23: Theo user, Shop mobile lưới3cột×4hàng thay2cột; gap/padding4px và footer32px/icon14/chữ12 để vừa ô hẹp. Giữ số sản phẩm thật, không nhân bản lấp12ô. Ba tab chợ chữ12→14px, line1.15; ẩn slot cuối trống compact để không tạo hàng grid phụ đẩy icon/tên lệch tâm dọc. Desktop giữ4×2 và kiểu cũ. Build/typecheck PASS; dist xác nhận grid3×4; chưa browser QA.
+
+- 2026-10-24: Theo user, làm đẹp3filter Shop MOBILE Tất cả/Avatar/Khung Viền: tab bo8/viền vàng, selected gradient kem-vàng/bóng sáng nhẹ, idle nâu nổi; highlight mép trên, chữ16/extrabold. Thanh48px/gap6/padding5, hiệu ứng nhấn hạ2px/scale0.96 và transition200ms có motion-reduce; focus outline. SVG và hình thức desktop giữ nguyên, filter data/mua hàng không đổi. Build/typecheck PASS; dist xác nhận hiệu ứng/tab mới; chưa browser QA.
+
+- 2026-10-24: Theo user, Cửa Hàng Cao Cấp có countdown tuần dạngXd HH:MM:SS (ngày ký hiệu d). Mốc chọn00:00 thứHai UTC+7, tự lặp7ngày; tái dùng hook timer/focus/visibility và daily mặc định giữ nguyên. Quy tắc thời gian dùng chung hai viewport, không đổi geometry laptop. Chỉ đồng hồ UI, chưa tự thay catalog/backend. Kiểm tra3mốc thứHai/giây cuối/trước2ngày PASS; build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, thu nhẹ3filter Shop mobile: thanh48→42px, chữ16→14px; giữ nền/viền/effect nhấn và desktop. Build/typecheck PASS; dist xác nhận chiều cao mới; chưa browser QA.
+
+- 2026-10-24: Theo user,3filter Shop mobile dùng hiệu ứng như tab con Danh sách Bạn bè: transition filter150ms/hover110, selected brightness1.1/saturate1.3/drop-shadow1px vàng+4px cam; bỏ nhấn lún2px/scale0.96 và glow cũ. Giữ kích thước42/chữ14, hình thức và desktop. Build/typecheck PASS; dist xác nhận hiệu ứng mới; chưa browser QA.
+
+- 2026-10-24: Theo user, bỏ đổi nền vàng của3filter Shop mobile khi chọn: selected giữ cùng nền nâu/viền/chữ/bóng như idle, chỉ khác hiệu ứng filter phát sáng đã chốt. Desktop giữ màu chọn cũ. Build/typecheck PASS; dist xác nhận selected nền nâu; chưa browser QA.
+
+- 2026-10-24: Theo user,3filter Shop mobile selected có nền vàng nâu nhẹ gradient#8a652e→#604019, viền#c69a54/chữ#fff0c4; giữ glow đã chốt và idle nâu. Desktop giữ nguyên. Build/typecheck PASS; dist xác nhận nền mới; chưa browser QA.
+
+- 2026-10-24: Theo user, popup xác nhận mua Shop mobile dùng font-body Arial chính cho nội dung/nút, title24/body18 line-relaxed. Giá tách số và chữ vàng, inline-flex items-baseline, số font-number lining/tabular/not-italic để ngay hàng. Desktop giữ font/kích thước cũ; không đổi giao dịch. Build/typecheck PASS; dist xác nhận số mới; chưa browser QA.
+
+- 2026-10-24: Sửa mua Shop kẹt Đang mua trên mobile HTTP/LAN: useShopPurchase gọi crypto.randomUUID ngoài try sau khi khóa busy, browser không secure context có thể thiếu hàm khiến không gửi API/không chạy finally. Đổi sang createClientId sẵn có (getRandomValues tạo UUIDv4) và đưa sinh/lưu requestId vào try để luôn giải phóng busy khi lỗi. Giữ Mua→Xác nhận và giao dịch thật/chống trùng/retry cùng key, không giả trừ vàng hoặc tự cấp đồ. Regression HTTP thiếu randomUUID + shop inventory/page4/4 PASS; typecheck/build PASS, dist cập nhật. Chưa mua trên điện thoại/DB thật.
+
+- 2026-10-24: Theo user, Shop mobile lỗi thiếu vàng hiển thị chỉ Không đủ tiền ở giữa viewport, tự tắt2000ms qua effect cleanup; nhận đúng thông báo lỗi thiếu vàng server, không che lỗi khác. Dấu× thông báo mobile tăng36px/vùng bấm44px. Desktop và giao dịch giữ nguyên. Build/typecheck PASS; dist xác nhận thông báo mới; chưa browser QA.
+
+- 2026-10-24: Theo user, làm đẹp khung Không đủ tiền Shop mobile: nền nâu gradient/ánh sáng trên, viền vàng2px+inset, bo16/bóng ngoài, min-height96, chữ Arial20semibold kem căn giữa thật; dấu× góc trên phải. Giữ text/tự tắt2s và desktop/thông báo khác. Build/typecheck PASS; dist xác nhận khung mới; chưa browser QA.
+
+- 2026-10-24: Theo user, popup Xác nhận mua mobile dùng cùng khung Không đủ tiền: trích shopMobileDialogFrameClass chung cho2popup (nền nâu gradient/viền vàng/inset/bo16/bóng). Giữ nội dung/nút/giao dịch và desktop. Build/typecheck PASS; dist xác nhận khung chung; chưa browser QA.
+
+- 2026-10-24: Theo user, Shop MOBILE mua thành công không hiện thông báo Đã mua. useShopPurchase thêm showSuccessMessage defaulttrue, ShopPage truyền!layout.compact; giữ cập nhật account/vàng/cosmetics và đóng popup, lỗi/thiếu tiền vẫn báo. Desktop giữ thông báo cũ. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, Back Shop MOBILE bằng Chọn Bàn: dùng cùng compact:size-9/icon SVG size-5 (36/20px theo spacing), giữ gameUtilityButton và desktop48px. Build/typecheck PASS; dist xác nhận class kích thước; chưa browser QA.

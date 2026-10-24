@@ -27,6 +27,7 @@ export interface RoomSnapshot {
   repetitionNoticeKind?: 'warning' | null
   repetitionAttemptNotice?: { id: string; recipient: Side; message: string } | null
   takebackRemaining?: Record<Side, number>
+  takebackBlocked?: Partial<Record<Side, boolean>>
   moveCount?: number
 }
 export type RoomCommand =

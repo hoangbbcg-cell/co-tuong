@@ -1,4 +1,5 @@
 import type { useMatchIntro } from '../hooks/useMatchIntro'
+import { createPortal } from 'react-dom'
 
 interface Props {
   intro: ReturnType<typeof useMatchIntro>
@@ -9,7 +10,7 @@ interface Props {
 const nameStyle = 'relative min-w-0 border-y-2 border-[#a77b32] px-2 py-3 text-center font-["Segoe_Script","URW_Chancery_L",Georgia,cursive] text-[clamp(18px,3.4vw,40px)] leading-tight font-black italic text-[#b88a42] [overflow-wrap:anywhere] [-webkit-text-stroke:0.4px_currentColor] [text-shadow:0_2px_2px_#201207] shadow-[0_1px_0_#e4c47c66,inset_0_1px_0_#e4c47c66]'
 const beamStyle = 'absolute top-0 h-full w-[18%] opacity-0 bg-[linear-gradient(90deg,transparent,#e4aa3288,#fff2b8,transparent)] blur-[2px] [filter:drop-shadow(0_0_8px_#ffca50)]'
 export function MatchIntro({ intro, redName, blackName }: Props) {
-  return <div ref={intro.panelRef} hidden={!intro.visible} data-testid="match-intro" className="pointer-events-none fixed inset-0 z-40 overflow-hidden" role="status" aria-label="Khai cuộc">
+  return createPortal(<div ref={intro.panelRef} hidden={!intro.visible} data-testid="match-intro" className="pointer-events-none fixed inset-0 z-[600] overflow-hidden" role="status" aria-label="Khai cuộc">
     <div className="absolute inset-0 bg-[#100d08]/45 backdrop-blur-[2px]" aria-hidden="true" />
     <div className="absolute top-1/2 left-1/2 w-[min(94vw,760px)] -translate-x-1/2 -translate-y-1/2">
       <div className="relative grid grid-cols-[minmax(0,1fr)_clamp(76px,14vw,140px)_minmax(0,1fr)] items-center gap-2">
@@ -36,5 +37,5 @@ export function MatchIntro({ intro, redName, blackName }: Props) {
         </div>
       </div>
     </div>
-  </div>
+  </div>, document.body)
 }

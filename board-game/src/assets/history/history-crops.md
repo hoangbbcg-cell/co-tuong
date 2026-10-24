@@ -17,3 +17,15 @@ Nguồn: `history-reference.png` (1470×1070), giữ lại nguyên bản làm �
 | `history-result-loss-v2.png` | 578, 449, 104, 49 | Giữ sọc và màu xanh bên trong, cắt bỏ viền gấp bên phải, phóng 4×; file cuối 416×196. |
 | `history-brown-texture.png` | 735, 962, 55, 60 | Texture gỗ nâu trống từ footer ảnh tham chiếu; dùng lặp theo chiều ngang ở footer Lịch sử. |
 | `history-parchment-background.png` | Generated 1024×1536 | Nền giấy nâu vàng toàn ảnh, không alpha/padding; tạo từ mẫu lịch sử bằng imagegen và dùng `cover` cho khung danh sách. |
+
+2026-10-22: Mobile dùng chung HistoryTabButton cho Đã chơi/Đã lưu: CSS mask lấy alpha của history-tab-played.png giữ dáng nét cọ, tô gradient đỏ/nâu theo trạng thái; chữ HTML font-heading italic cùng cỡ50px thiết kế. Không sửa asset gốc; desktop tiếp tục dùng ảnh tab có chữ như trước.
+
+2026-10-22 (hoàn tác theo user): bỏ cách tô mask/chữ HTML thử ở trên; cả mobile và desktop dùng lại ảnh tab gốc có chữ, giữ kích thước khung trước thử nghiệm.
+
+- 2026-10-24: User xác nhận thiết kế nút tab Đã lưu giống Đã chơi. HistoryTabButton MOBILE dùng chung dáng alpha nét cọ của playedTab, nền đỏ khi chọn/nâu khi chưa chọn và chữ HTML font-heading50/extrabold/italic vàng, đồng nhất cả2tab. Giữ kích thước/vị trí và desktop dùng ảnh gốc; dữ liệu/nội dung không đổi. Yêu cầu mới thay lần hoàn tác mask trước đây. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, hoàn tác riêng lượt đồng bộ thiết kế2nút Đã chơi/Đã lưu vừa thử: bỏ mask/chữ HTML, trả HistoryTabButton dùng ảnh tab gốc có chữ (compact:size-full). Giữ kích thước/tab/data/bố cục đã chốt trước lượt thử. Build/typecheck PASS; dist xác nhận ảnh tab gốc; chưa browser QA.
+
+- 2026-10-24: Theo user, thay2tab Lịch sử MOBILE bằng4PNG mới ở assets: 0c6e579c active Đã chơi,527ca72d idle Đã chơi,c29af6e7 active Đã lưu,d30c4e9b idle Đã lưu. Giữ nguyên pixel nguồn2172×724; SVG viewBox0/90/2172/550 giảm lề trống dọc, không redraw chữ/nền. Desktop tiếp tục4ảnh cũ; giữ kích thước/vị trí tab. Đã xem đủ4ảnh, build/typecheck PASS; dist có đủ4asset mới; chưa browser QA.
+
+- 2026-10-24: Theo user,2tab Lịch sử mobile thay bằng sprite b52ef10c-bb5a-4de9-800e-24e6a8d904eb.png chứa4trạng thái: trái idle/phải active, trên Đã chơi/dưới Đã lưu. SVG crop mỗi ô cùng1050×220 (x20/1100,y110/374) trên nguồn2173×724, giữ kích thước hộp cố định; không sửa pixel asset. Bỏ import4ảnh mobile trước, desktop giữảnh cũ. Build/typecheck PASS; dist có sprite mới; chưa browser QA.
