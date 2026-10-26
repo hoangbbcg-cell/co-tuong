@@ -3,7 +3,7 @@ import { useSessionStore } from '../../../store/sessionStore'
 import { isExistingFriend, hasInitialIncomingFriendRequest } from '../components/FriendsDialog'
 import { socialActionByName,useSocialStore } from '../../../store/socialStore'
 
-export function useMessageFriendship(name: string) {
+export function useMessageFriendship(name: string, onSent?: () => void) {
   const account=useSessionStore(s=>s.account)
   const relation=useSocialStore(s=>s.friends.find(f=>f.name===name))
   const legacyOverride = useSessionStore(state => state.friendshipOverrides[name])
@@ -30,25 +30,19 @@ export function useMessageFriendship(name: string) {
     setSkipConfirmation(false)
   }
   const requestRemoval = () => {
-    if (isFriend && (mutedUntil ?? 0) > Date.now()) {
-      if(useSessionStore.getState().account){void socialActionByName(name,'remove').catch(error=>useSessionStore.getState().setNotice(String(error)));return}
-      setFriendship(name, false)
-      return
-    }
     if (mutedUntil !== null) setMutedUntil(null)
     setSkipConfirmation(false)
     setRemovalName(name)
   }
   const activate = () => {
-    if(useSessionStore.getState().account){if(isFriend)requestRemoval();else void socialActionByName(name,incoming?'accept':pending?'remove':'request').catch(error=>useSessionStore.getState().setNotice(String(error)));return}
+    if(useSessionStore.getState().account){if(isFriend)requestRemoval();else void socialActionByName(name,incoming?'accept':pending?'remove':'request').then(() => { if (!incoming && !pending) onSent?.() }).catch(error=>useSessionStore.getState().setNotice(String(error)));return}
     if (isFriend) requestRemoval()
     else if (incoming) { setIncoming(name, false); setPending(name, false); setFriendship(name, true) }
-    else setPending(name, !pending)
+    else { setPending(name, !pending); if (!pending) onSent?.() }
   }
   const confirmRemoval = () => {
     if (!removalName) return
     if(useSessionStore.getState().account){void socialActionByName(removalName,'remove').then(cancelRemoval).catch(error=>useSessionStore.getState().setNotice(String(error)));return}
-    if (skipConfirmation) setMutedUntil(Date.now() + 10 * 60_000)
     setFriendship(removalName, false)
     cancelRemoval()
   }

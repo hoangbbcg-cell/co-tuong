@@ -1,5 +1,265 @@
 # Tiến độ
 
+- 2026-10-26: Theo user, SearchButton dùng asset580e9677-60e1-44a8-9fd5-45ef04444b44.png thay khung CSS vàng ở Bạn bè/Chọn Bàn cả mobile/laptop. Căn background theo vùng artwork(124,159)-(1650,725) trong ảnh1774×887 để khung phủ đúng nút, không sửa ảnh nguồn; chữ/icon nâu#2b1909 để rõ trên nền vàng. Giữ sizing từng nơi/submit/disabled/logic tìm. Typecheck/build PASS, dist có asset và import; chưa browser QA.
+
+- 2026-10-26: Theo user, lấy ô tìm Bạn bè làm chuẩn tỷ lệ sizing/bo góc. searchFieldMetrics chung: compact H60×1.17,placeholder21/input24/radius10; desktopH56/placeholder23/radius10; font nhập min16/placeholder mobilemin14 như Friends. Áp dụng theo chiều cao ô sẵn có tại Chọn Bàn, tìm hội thoại Tin nhắn, tìm bạn Tạo nhóm; giữ vị trí/kích thước ô/chức năng/font/màu, không đổi Bạn bè desktop đang khóa. messagesFriendsField bo10px→44×10/70.2px cho mọi nơi dùng khung nâu này (kể cả nhập chat/biệt danh), cỡ chữ mặc định nonsearch16/14 giữ nguyên; search truyền CSSvars. Ô địa chỉ/quốc gia dùng khung khác không đổi. Build/typecheck PASS; dist có helper CSSvars; chưa browser/keyboard QA.
+
+- 2026-10-26: Theo user giảm độ tối nút Mời chơi/So tài khi chờ5giây: brightness50→75% tại Bạn bè/Hồ sơ/Xếp hạng cả mobile/laptop; opacity100% để chỉ làm tối nhẹ. Giữ cooldown và hành vi. Typecheck/build PASS, dist xác nhận style75%; chưa browser QA.
+
+- 2026-10-26: Theo user, chữ “Không hiển thị lại” trong lời mời nằm sát bên trái ô tích, gap8px; cả cụm căn phải dưới×/✓ thay dàn đều hai mép. Giữ chữ20px/ô28px và hành vi. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-26: Theo user, sau khi bấm Mời chơi/So tài phải chờ tối thiểu5giây mới mời tiếp. challengeCooldownStore dùng chung các entry Bạn bè/Hồ sơ/Xếp hạng cả mobile/laptop; khóa ngay khi gửi, giữ qua đóng/mở/chuyển bảng, hết5giây tự mở khi request đã kết thúc. Nút mời bị disabled và tối brightness50% trong lúc chờ. Server chặn gửi thành công liên tiếp dưới5giây theo accountID (fallback socket), giữ qua reconnect cùng account và dọn mốc hết hạn. Không thay thời hạn lời mời hay quy tắc chặn người gửi. Test cooldown/service/socket11/11 PASS (lượt sandbox lỗi temp/localhost; chạy ngoài sandbox PASS); typecheck/build PASS, dist có cooldown và style. Chưa browser QA, không restart/deploy backend.
+
+- 2026-10-26: Theo user, nút Ẩn Danh hiệu MOBILE cách phải thêm8px: right15→23px. Build/typecheck PASS; dist xác nhận23px; chưa browser QA.
+
+- 2026-10-26: Theo user, nút Ẩn Danh hiệu MOBILE cách phải thêm5px: right10→15px. Giữ phần khác. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-26: Theo user, toggle Ẩn catalog Danh hiệu MOBILE chuyển từ giữa sang phải10px thật, bỏ left50%/translateX. Giữ cao/bật tắt/desktop. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-26: Theo user, thu nhẹ chữ Chưa có danh hiệu catalog: mobile24→22px, desktop3xl→2xl. Giữ font/màu/căn giữa. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-26: Theo user, tăng chữ Chưa có danh hiệu trong catalog Danh hiệu text-xl→text-3xl desktop, mobile24px thật để không co nhỏ theo dialog. Giữ font/màu/căn giữa và empty preview Thông tin. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-26: Hạ biển Danh hiệu2px theo user (translateY-4→-2px), giữ cỡ/khung/tab/X. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Điều tra 14 lỗi ban đầu của full suite. Mười lỗi tái hiện ở lượt chạy tập trung là test/fixture cũ: Cầu hòa đang ẩn; cảnh báo địa chỉ dùng addressNoticeOpen; chat overlay đóng ở lớp phủ; archive online cần ID mới; hỗ trợ ResizeObserver/accessibility của hàng Đã lưu; Shop dùng phiên server 6 món/3000 vàng; form tạo bàn được hủy nhưng form tìm kiếm vẫn còn; test cũ còn đòi input tên trong Chọn Bàn. Bốn lỗi còn lại (country-picker và3 test UI) không tái hiện ở lượt chạy tập trung và full suite cuối, nên chưa có bằng chứng để quy nguyên nhân riêng. Không phát hiện lỗi luật game/runtime trong nhóm tái hiện. Giữ nguyên patch import HOVANG; không sửa/xóa/di chuyển thuật toán hoặc file HOVANG local. Full suite cuối 423 PASS, 21 skip có sẵn (102 files); typecheck/build PASS, dist cập nhật. Chưa commit/push/deploy.
+
+- 2026-10-25: User yêu cầu hoàn tác riêng lượt trả khung Xóa bạn/Chặn/Xóa trò chuyện về mẫu cũ vừa sửa. Khôi phục mobileNoticePanelStyle/ButtonStyle dùng chung như trước lượt đó; giữ các thay đổi trước (kích thước/hàng nút/chữ giữa/độmờ). Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: User đính chính Xóa bạn/Chặn/Xóa trò chuyện dùng KHUNG CŨ Xóa trò chuyện, không kiểu Giải đấu. Trả xác nhận chung MOBILE về gradient nâu#54290f→#241007/viền vàng#e7b755/bo14/bóng cũ, Hủy nâu/Đồng ý vàng; giữ width360/height240/hàngnút cố định/chữ giữa/độmờ đã chốt. Chỉ thông báo một nút Profile/Friends giữ kiểu Giải đấu. Build/typecheck PASS; dist xác nhận khung xác nhận cũ; chưa browser QA.
+
+- 2026-10-25: Theo user, biển chữ Danh hiệu thu ngang6px thực (calc trừ6px), nâng4px bằng translateY; giữ chiều cao/khung lớn/tab/X. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, xác nhận Xóa bạn và các thông báo cùng kiểu MOBILE đồng bộ hình thức thông báo Giải đấu: nền nâu#30271e/viền#c7a264/bo12/bóng và nút vàng Home bo3. Dùng mobileNoticePanelStyle/ButtonStyle chung cho Profile feedback, Friends feedback và xác nhận Tin nhắn/Xóa bạn/Xóa thành viên; giữ rộng/cao/hàng nút đã chốt và giữ NGUYÊN lớp phủ/dộmờ từng nơi, không thêm blur. Desktop Bạn bè giữ nguyên; phạm vi mobile thông báo user mở task này. Build/typecheck PASS; dist xác nhận style mới; chưa browser QA.
+
+- 2026-10-25: Theo user, toggle Ẩn Danh hiệu MOBILE căn giữa ngang và giữa đáybiển→đầu tab bằng calc theo86token/offset-30token/slot50px/h18px. Header slot40→50 để đủ vùng toggle không chồng tab; biển tăng nhẹ rộng0.9→0.94/cao0.98→1.02×86token. Giữ khung ngoài/X/nội dung. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, các xác nhận Tin nhắn MOBILE (Xóa chat/Chặn/Bỏ chặn/Xóa bạn/Xóa thành viên) cố định cao240px/cùng width360 đã chốt, flexcol với nội dung căn giữa vùng phía trên và hàng Hủy/Đồng ý cố định đáy padding20px. Dùng chung messagesConfirmationBody/Actions:2cột bằng nhau/gap12/nút46px/chữ giữa; nội dung dài cuộn riêng, không đẩy nút. Desktop/luồng giữ nguyên. Build/typecheck PASS; dist xác nhận chiều cao/hàng nút; chưa browser QA.
+
+- 2026-10-25: Theo user, bỏ background phong cảnh Danh hiệu vừa thêm (giữ nền nâu), MOBILE đẩy tab/lưới lên12px qua header slot52→40; nội dung grid top1→0 nâng thêm. Biển chữ Danh hiệu chỉ tăng cao0.9→0.98×86token, ngang giữ0.9 như trước; khung lớn/X giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, thu biển chữ Danh hiệu10% giữ tâm/top, thêm profileScene cùng Thông tin phía trên trong viền trong. Ảnh cao238token/mobile302token, mask đen65%→transparent100% hòa xuống nền nâu, clip rounded trong khung. Giữ kích thước/vị trí khung lớn và close/lưới. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, gửi Kết bạn từ Tin nhắn dùng useInviteSentNotice chung Mời chơi, sau social request thành công mới toast Đã gửi (không toast accept/cancel/lỗi). Xóa trò chuyện/Chặn/Bỏ chặn/Tắt thông báo MOBILE chung rộng min360px,viewport-48/mincao200/padding20/chữ18/nút46px, giữ desktop và luồng. Câu hỏi Chặn dùng NumberText compact/normal để số tên cân hàng chữ. Token messagesConfirmationSize dùng chung Options và xác nhận Xóa bạn/Xóa thành viên. Build/typecheck PASS; dist xác nhận kích thước mới; chưa browser/API QA.
+
+- 2026-10-25: Theo user, biển Danh hiệu đồng bộ kích thước CHÍNH ảnh Thông tin: h86token/w86×2074/358, căn giữa thay width100%header phụ thuộc container. Mobile nâng thêm12token đúng translate của header Thông tin (top tổng-30token). Close wrapper inset5token bằng border ngoài Profile để cùng containing block và offset top/right; giữ cỡ closeScale. Dùng artwork Danh hiệu mới có chữ từ edit ảnh Thông tin, không tạo ảnh khác. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: User báo trạng thái Tin nhắn chưa thật. API GET conversations bổ sung online theo peerId trong tập tài khoản Socket.IO đang kết nối (cùng nguồn ranking/social), nhóm không giả online. MessagesDialog bỏ hardcode offline, dùng c.online và polling1s hiện có; header bỏ hardcode Đang hoạt động, đổi theo online/offline; chấm header MOBILE tăng12px, giữ chấm danh sách đã thu/geometry avatar. API regression1/1 PASS xác nhận online→offline và đổi tài khoản online qua lần poll; build/typecheck PASS, dist cập nhật. Backend cần nạp code mới; chưa restart/deploy. Chưa browser/socket nhiều thiết bị QA.
+
+- 2026-10-25: User báo Danh hiệu vẫn lệch Thông tin. Sửa MOBILE bỏ dialog fullscreen/grid riêng: dùng đúng native dialog width/height=dialogWidth/Height×scale như Thông tin, wrapper absolute0/0 widthheight chính xác và translateY-6px. Bỏ phụ thuộc !w CSSvar; đưa X ra khỏi grid nội dung, neo root khung với closeScale/top/right giống Profile. Desktop giữ viewport wrapper. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: User đính chính phần cần bằng Thông tin là DANH HIỆU, không Tin nhắn. Hoàn tác riêng useProfileLayout/matchingLayout/translate-6/close custom của MessagesDialog, giữ các sửa concurrent khác. Danh hiệu MOBILE giữ width/height từ chính layout Thông tin và translate-6, sửa closeScale/top24/right28 theo rankingCloseLayout giống chính Profile (trước dùng dialogScale khác). Giữ icon Mở danh hiệu đã tăng28/24. Build/typecheck PASS; dist cập nhật; chưa browser QA. Hủy ghi chú lượt trước áp dụng kích thước Tin nhắn.
+
+- 2026-10-25: Theo user, thu chấm trạng thái danh sách Tin nhắn MOBILE26→20cqh; tăng chấm trạng thái trên avatar Tạo nhóm MOBILE10→14px. Giữ màu online xanh/offline xám, vị trí/avatar/dữ liệu và desktop. Build/typecheck PASS; dist xác nhận2cỡmới; chưa browser QA.
+
+- 2026-10-25: Theo user, Tin nhắn MOBILE dùng useProfileLayout cùng Thông tin (width740/height responsive/scale), dialog dịch lên6px cùng mốc. Giữ searchLayout khi nhập chống co; desktop Tin nhắn giữ hiện trạng2cột. Ẩn close mặc định surface, gắn DialogCloseButton scale từ incoming ranking giống Profile với top24/right28scaled; options close vẫn dismissOptions. Icon bút Mở danh hiệu trong Profile tăng nút24→28/icon20→24theo token. Build/typecheck PASS; dist cập nhật; chưa browser/keyboard QA.
+
+- 2026-10-25: Theo user, dấu trạng thái Tạo nhóm Tin nhắn MOBILE dùng online xanh/offline xám gradient giống Bạn bè/Tin nhắn, bỏ offline đỏ; nhãn fallback cùng biến online lấy friends.online ưu tiên để không lệch chấm. Giữ avatar/layout/desktop/luồng tạo nhóm. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: User yêu cầu tạo lại biển Danh hiệu giống CHÍNH ảnh Thông tin. imagegen edit info-title-friends-frame chỉ đổi chữ Danh hiệu, giữ vàng/đỏ/mây/tua/alpha; gốc references/uploads/honors-title-info-source.png, crop alpha>32 thành2145×374 runtime profile/honors/honors-title-info-frame.png. HonorsDialogShell dùng ảnh có chữ thay title-frame+HTML, giữ geometry/khung ngoài. Đã xem ảnh gốc/crop; build/typecheck PASS; dist có asset; chưa browser QA.
+
+- 2026-10-25: Theo user, khung ngoài catalog Danh hiệu theo mẫu Thông tin: HonorsDialogShell dùng nền nâu/viền kép vàng/họa tiết4góc cùng giá trị, biển đỏ mây/tua từ artwork title-frame sẵn có và chữ Danh hiệu vàng nghiêng HTML. Dùng DialogCloseButton chung và token getCrispUiLayout; gỡ khung/title mobile cũ, desktop chỉ giữ crop sidebar artwork (không vẽ lại nội dung). Grid/catalog/ownership/chọn tối đa3/chi tiết giữ nguyên; mobile header slot52px chừa biển mới. User mở riêng artwork khung/biển thay quy tắc21/10 giữ khung mobile cũ. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: User báo nút chuyển máy replay mobile bay lên trên. Bỏ tọa độ midpoint đo JS, wrapper absolute insetx0/top164px+board-height/bottom0 flex items-center justify-center để tâm nút nằm giữa vùng dưới Board và đáy arena theo CSS. Chỉ nút nhận pointer, không che bàn; giữ thông báo. Build/typecheck PASS; dist xác nhận vùng căn giữa mới; chưa browser QA.
+
+- 2026-10-25: Theo user, nút chuyển máy Xem lại MOBILE căn giữa dọc khoảng đáyBoard→mép dưới viewport, ngang giữa; useBoardLayout đo rect ghi --mobile-replay-mode-center, wrapper translateY-50%. Thông báo Chức năng đang được cải tiến giữ khung modal như Giải đấu và đổi nút Đã hiểu sang homeUtilityButton đúng Home; thông báo khác giữ cũ. Build/typecheck PASS; dist xác nhận vị trí mới; chưa browser QA.
+
+- 2026-10-25: Theo user, nút chuyển đánh thử/máy trong Xem lại MOBILE luôn hiển thị dưới Board/căn giữa (mép Board+10px), dùng ReplayModeButton artwork cũ. Bỏ nút lặp trong controls/user phải mobile. Bấm nút hoặc Space mobile chỉ mở dialog Chức năng đang được cải tiến, không đổi trial; desktop giữ toggle thật và vị trí cũ. Build/typecheck PASS; dist xác nhận nút/thông báo; chưa browser QA.
+
+- 2026-10-25: Theo user, clock Xem lại MOBILE chuyển về cụm giữa cùng vị trí/Elo anchor như trận thật, tái dùng MobileMatchSummary clockOnly (ẩn biển/Bàn cờ) kèm đồng hồ cát. Bỏ clock dưới từnguser mobile; desktop giữ recordedClock. Thu margin nút chuyển đánh thử dưới controls50→4px riêng compact/replay để nhường hàng clock, giữ controls giữa2user. Thời gian vẫn snapshot thật, không tick. Build/typecheck PASS; dist xác nhận clockOnly; chưa browser QA.
+
+- 2026-10-25: User đính chính So tài trong Thông tin: thành công giữ toast Đã gửi; offline/lỗi trả lại bảng profileActionFeedback như cũ qua setProfileActionFeedback (không còn no-op lỗi). Giữ optional onSent và requestVersion. Build/typecheck PASS; dist cập nhật; chưa browser/socket QA.
+
+- 2026-10-25: Theo user, màn Xem lại ván hiển thị đồng hồ tĩnh của2user dưới Elo qua PlayerCard.recordedClock, đọc remainingTime đúng snapshot playback đang chọn. Tiến/lùi/phát đổi theo snapshot thật, không tick theo thời gian xem; không hiện trong đánh thử hoặc replay1thế, không sửa clock gameplay/DB. Bản lưu cũ chỉ hiển thị dữ liệu đã có, không suy đoán thời gian thiếu. Tests7/7 PASS gồm số dư clock snapshot thật và cập nhật khi tua; build/typecheck PASS, dist xác nhận clock; chưa browser QA.
+
+- 2026-10-25: Theo user, So tài trong ProfileDialog dùng chung useInviteSentNotice với Mời Xếp hạng/Bạn bè: ACK thành công hiện1Đã gửi giữa viewport/bay-fade1300ms, gửi lặp thay singleton, không modal. useProfileChallenge thêm optional onSent giữ requestVersion tránh phản hồi cũ; lỗi So tài không feedback như Mời. Chức năng khác hồ sơ giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser/socket QA.
+
+- 2026-10-25: User xác nhận khung cần chuyển là Phát/Lùi/Tiến TRONG màn Xem lại MOBILE. GamePage render ReplayControls riêng giữa2user ở top8px/width220/scale.72 như positionTrial; chỉ1instance, desktop giữ trong user phải. Ẩn MobileMatchSummary nhánh replay tránh chữ Bàn cờ đè controls. Đã hoàn tác lượt sửa nhầm danh sách Đã chơi (Xem lại cột phải/icon2phe giữa). Giữ callback/luật/replay state. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: User đính chính yêu cầu khung giữa2user nằm TRONG màn Xem lại, không phải danh sách Đã chơi. Hoàn tác đúng lượt vừa sửa HistoryDialog: Xem lại về cột phải hàng2, icon2phe về cột giữa; không chạm thay đổi khác. Chờ xác định khung điều khiển cần chuyển trong màn replay.
+
+- 2026-10-25: Theo user, Mời chơi Bạn bè MOBILE dùng đúng toast Đã gửi giữa màn hình/bay48px-fade1300ms/singleton như Xếp hạng. Tách useInviteSentNotice/component dùng chung; hook onSent sauACK thành công, bỏ modal feedback riêng challenge, các feedback kết bạn khác giữ nguyên. Desktop Bạn bè đang khóa giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser/socket QA.
+
+- 2026-10-25: Theo user mở riêng Lịch sử/Đã chơi MOBILE: Xem lại chuyển từ cột phải sang cột giữa hàng2 nằm giữa2user; icon Đỏ/Đen chuyển sang cột phải hàng2 để không chồng. Ngày giờ/cỡ/2user/desktop/Đã lưu/chức năng replay giữ nguyên. Khóa lại phạm vi sau task. Build/typecheck PASS; dist xác nhận vị trí mới; chưa browser QA.
+
+- 2026-10-25: Theo user, Mời lặp chỉ1toast Đã gửi giữa màn hình: singleton key thay mới giữ không xếp chồng; bỏ CSS translate trùng WAAPI khiến lệch tâm. challengeController không emit thông báo Lời mời đã được thay thế khi cùng người gửi mời lại cùng target; lời mời cũ vẫn bị thay. Người gửi khác giữ feedback cũ. Build/typecheck PASS; dist cập nhật; backend cần nạp code mới/chưa restart, chưa socket/browser QA.
+
+- 2026-10-25: User đổi phản hồi Mời Xếp hạng: chỉ khi sendChallenge ACK thành công mới onSent hiện Đã gửi giữa viewport (fixed50%,font18); giữ0.35 thời lượng rồi bay lên48px/fade, tổng1300ms, cleanup animation/onfinish xóa; reduced-motion chỉfade. Lỗi vẫn không toast theo lượt trước, người nhận vẫn popup. useFriendChallenge thêm optional onSent không đổi màn khác. Build/typecheck PASS; dist cập nhật; chưa browser/socket QA.
+
+- 2026-10-25: Theo user, bấm Mời ở Xếp hạng chỉ gửi, không hiển thị phản hồi gửi thành công/lỗi tại người gửi: callback useFriendChallenge no-op riêng RankingDialog. Giữ gửi socket/thực thi server/pending chống lặp và popup lời mời phía người nhận; các màn khác giữ thông báo cũ. Build/typecheck PASS; dist cập nhật; chưa browser/socket QA.
+
+- 2026-10-25: Theo user, nút Mời Xếp hạng gửi So tài thật đúng người. Sửa challengeController map target.id tài khoản số sang socket đang kết nối qua RoomPersistence.identities, giữ socketID truyền thống; thiếu kết nối báo offline. ChallengeService xác thực avatar/frame theo AVATAR_COUNT/FRAME_COUNT catalog thay giới hạn14/3 gây lỗi người dùng viền mới; bỏ câu Thông tin người chơi không hợp lệ thay phản hồi thử lại, không bỏ validation. Build/typecheck PASS; dist cập nhật; chưa test socket/browser và chưa restart backend, cần nạp backend mới để fix có hiệu lực.
+
+- 2026-10-25: Theo user, riêng nút Mời Xếp hạng thu rộng173→120/cao62đơnvị theo scale, justify-self:end/maxwidth100% chừa cách khung Elo nâu. Giữ chữ30/callback và nút Vào xem cũ. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, nút Xếp hạng online chỉ chữ Mời, bỏ mũi tên riêng invite/tăng chữ24→30theo scale; Vào xem giữ. Header Người chơi bỏ padding lệch, căn giữa cột giống Hạng; mobile tăng cao38→46/chữ21→24theo headerScale, cùng columnStyle hàng. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Xếp hạng online rảnh hiện Mời chơi (không hiện tự mời ownID); đang đấu giữ Vào xem, offline không nút. Dùng RankingViewButton chung artwork/cỡ với label invite và disabled pending; useFriendChallenge nhận optional targetId gửi sendChallenge chuẩn, phản hồi notice hiện có, không gọiAPI trong component. Áp dụng laptop/mobile và2tab; server vẫn chặn bận/offline/ràng buộc lời mời. Build/typecheck PASS; dist cập nhật; chưa browser/socket QA.
+
+- 2026-10-25: Theo user, tên user Đã lưu laptop/mobile dùng khung vàng/xanh của Đã chơi: historyPlayerFrame chung gradient/viền/bóng theo winner snapshot (vàng thắng, xanh còn lại như cũ), nối dưới avatar bằng negative margin/z10, giữ font/cỡ/avatar. Đã chơi chỉ tách token màu không đổi hình học. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, chỉ tên ván Đã lưu đổi font-body như ghi chú, cả mobile/laptop; input tên mobile đồng font, bỏ NumberText ở title để số/chữ cùng font. Giữ cỡ/đậm/nền/tên người chơi. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: User đính chính chỉnh font TÊN NGƯỜI CHƠI trong Đã lưu, không phải tên ván. Hoàn tác font tên ván/ô nhập về trước; tên user laptop/mobile dùng font-heading/extrabold/stroke0.2 như name Xếp hạng, chữ/số cùng font. Giữ cỡ/vị trí. Build/typecheck PASS; dist cập nhật; chưa browser QA. Thay ghi chú Arial tên ván ở lượt ngay trước.
+
+- 2026-10-25: Theo user, tên ván tab Đã lưu dùng font-arial cùng tên user cả laptop/mobile; ô nhập tên mobile cũng Arial, bỏ NumberText riêng để chữ/số cùng font. Giữ cỡ/đậm/nền và bố cục. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, thông báo So tài/không online/xóa bạn MOBILE phóng khung tới min360px/viewport-48, chữ18px line-relaxed/padding20px/nút46px thay token bị co theo dialog. Áp dụng phản hồi Friends/Profile, MessagesFriendRemovalConfirmation dùng chung xóa bạn/xóa khỏi nhóm và ChallengeNotifications; checkbox14/icon18. Desktop Bạn bè khóa giữ nguyên, không đổi hành vi challenge/xóa. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Đã lưu cả laptop/mobile thay vs bằng HistoryMatchPieces (cùng asset Quân đỏ+Quân đen/quân úp và kích cỡ47/90token như Đã chơi), thứ tự đỏ trước giữ độc lập owner. Không đổi avatar/tên/replay/dữ liệu. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Xếp hạng tối đa50người cả2variant/laptop/mobile. RANKING_PLAYER_LIMIT=50 dùng chung Repository SQL LIMIT và hook slice trước render (có hiệu lực ngay cả backend cũ trả100); giữ Elo DESC/id tie-break/filter/thứ hạng. Build/typecheck PASS; dist cập nhật; chưa browser/SQL QA, chưa restart backend.
+
+- 2026-10-25: Theo user, cụm avatar/tên/trạng thái Xếp hạng MOBILE dịch trái5px bằng wrapper translate, cả2tab. Không đổi kích thước/cột Elo/rank hay desktop. Build/typecheck PASS; dist xác nhận class; chưa browser QA.
+
+- 2026-10-25: Theo user, thu nhẹ cả cụm Elo Xếp hạng MOBILE eloScale1.5→1.42 (~5.3%): số/khung/icon/cột đồng tỷ lệ, cả2tab; desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, nhập tên/ghi chú MOBILE nâng/cuộn instant bỏ100ms/smooth, xử lý focusin, giữ scale. Cả laptop/mobile Đã lưu mở trực tiếp SavedMatchesList, bỏ tab con Ván đấu/Thế cờ; không xóa dữ liệu thế cờ. Build/typecheck PASS; dist cập nhật; chưa keyboard/browser QA.
+
+- 2026-10-25: Theo user, nhập tên/ghi chú Đã lưu MOBILE giữ scale/kích thước HistoryDialog khi visualViewport resize do bàn phím. data-history-input focus auto/cuộn giữa; useHistoryLayout bỏ đo scale khi đang focus, sau100ms cuộn ô nhập và translate dialog lên theo phần ô nhập bị viewport che (chừa16px), dọn timer/translate khi resize không nhập/unmount. Desktop giữ nguyên. Build/typecheck PASS; dist có data-history-input; chưa QA bàn phím điện thoại thật.
+
+- 2026-10-25: Theo user, bút sửa ghi chú Đã lưu/Ván đấu MOBILE mở expanded=true và textarea autoFocus/con trỏ cuối. useLayoutEffect theo editing/draft đo scrollHeight+2 tự cao đầy đủ nội dung khi mở/gõ, không cuộn nội bộ/cắt3dòng lúc sửa. Build/typecheck PASS; dist cập nhật; chưa browser QA bàn phím thật.
+
+- 2026-10-25: Theo user, ghi chú Đã lưu/Ván đấu MOBILE mặc định line-clamp-3 (3dòng/ellipsis), bấm nội dung toggle mở đầy đủ/thu lại; button có aria-expanded và data-history-edit tránh holdXóa. Bút sửa/giá trị lưu và desktop giữ nguyên. Build/typecheck PASS; dist xác nhận toggle; chưa browser QA.
+
+- 2026-10-25: User xác nhận ẩn toàn bộ danh hiệu chưa nhận, đủ điều kiện backend cấp mới xuất hiện. Đồng bộ cả Sở hữu và preview ngoài catalog: chỉ lấy databaseHonors.ownedIds, bỏ fallback local coi danh hiệu giải đấu/chưa cấp là sở hữu. Không xóa danh hiệu DB đã cấp/không sửa điều kiện; hook tiếp tục tải lại mỗi5giây khi mở hồ sơ. Build/typecheck PASS; dist cập nhật; chưa browser/MySQL QA.
+
+- 2026-10-25: Đã lưu/Ván đấu mobile tăng metadata12–14px/icon16, gap user-vs3px. Icon bàn cờ dùng HistoryBoardIcon chung cả laptop/mobile (gồm Thế cờ). Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, catalog Danh hiệu trong Thông tin user chỉ hiển thị danh hiệu đã sở hữu ở TẤT CẢ tab/nhóm, ẩn mọi danh hiệu chưa có. HonorsFrame lọc ownedIds cả streak/games/attendance như all/arena/awarded. useDatabaseHonors xóa dữ liệu cũ khi đổi user để không hiện nhầm sở hữu tài khoản trước lúc chờ API. Quyền sở hữu/cấp theo criteria ở backend giữ hiện hành: giải đấu cấp riêng; phong tặng threshold; chuỗi/tổng ván khi chốt ván; attendance theo ngày hoạt động. Build/typecheck PASS; dist cập nhật; chưa browser/MySQL QA.
+
+- 2026-10-25: Theo user, Đã lưu/Ván đấu MOBILE tên ván15→18px/font-black+stroke0.2px; metadata chuyển hàng fullwidth không wrap, icon tờ báo/Nước, chấm màu/bên tới lượt, bàn cờ/variant. Thùng rác luôn hiện góc phải trên7px/vùng24px/icon16px (thay ẩn chờ giữ riêng mục này). Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Đã lưu/Ván đấu MOBILE tên ván dùng font-heading/font-black/nền vàng highlight+NumberText như Thế cờ laptop; input cùng font-position-title-input. Tên user Arial thường/nền kem-xanh như laptop, giữ avatar/cỡ và cho đầy đủ xuống dòng. Bỏ phe/thắng-thua dưới từng user, thêm vs giữa hai người; metadata Nước N/chấm màu Đỏ hoặc Đen tới lượt/variant lấy snapshot cuối thật, không fake Nước1. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, riêng Đã lưu/Ván đấu MOBILE dùng socialPlayerRowClass như Đã chơi, cao theo nội dung/đệm và gap7px; mini Board rộng36%list thay30%, avatar96token/tên43token đầy đủ xuống dòng, phe/kết quả/variant/số nước dưới tên. Nút chỉ chữ Xem rộng48px ở phải giữa dọc. Thêm bút sửa TÊN VÁN (không đổi tên tài khoản) và ghi chú cuối dòng. Metadata savedTitle/savedNote theo bookmark riêng owner; store update→PATCH saved-matches/:id→PersistenceService validate100/5000→Repository owner-filter. Migration007 thêm saved_matches.title/note, giữ001–006; chưa apply DB/restart backend. Build/typecheck PASS; dist index-igZBPYB6.js có form mới; chưa browser/MySQL QA. Desktop UI giữ nguyên, mobile giữ500ms hiện Xóa; pen/input không kích hoạt hold.
+
+- 2026-10-25: User mở Lịch sử cả laptop/mobile: Đã lưu/Ván đấu dùng SavedMatchesList mới theo bố cục Thế cờ laptop (mini Board thật thế cuối, hai người, kết quả, số nước/variant, Xem lại/Xóa), hai hàng trong vùng nhìn và cuộn. Thế cờ giữ chỉnh tên/ghi chú/Mở thế/Xóa; bỏ cột ngày/giờ ở cả2loại đã lưu, không xóa timestamp dữ liệu. Mở Ván đấu/Thế cờ trên mobile như desktop; chung store/API/replay/ownership, mobile giữ500ms hiện Xóa, desktop nút Xóa sẵn. Đã chơi laptop giữ UI/hành vi cũ; chỉ Đã lưu đổi UI được user yêu cầu. Build/typecheck PASS; dist index-CgUN8pBV.js có bố cục mới; chưa browser QA/kiểm tra thao tác trên thiết bị thật.
+
+- 2026-10-25: Theo user, tăng cả cụm Elo Xếp hạng MOBILE: eloScale1.35→1.5 (~11% thêm) đồng bộ số điểm/khung ảnh/icon và cột chứa; icon giữ32đơnvị theo scale mới. Hai tab cùng áp dụng, desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, chỉ icon Elo Xếp hạng MOBILE tăng25→32đơn vị theo eloScale (~28%), áp dụng cả tab Cờ Tướng/Cờ Úp. Giữ số điểm/khung/bố cục và desktop. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: User chỉnh lại Shop MOBILE thành3cột×3hàng, thay yêu cầu4×3 ngay trước. Giữ chiều cao3hàng/cuộn và desktop. Build/typecheck PASS; dist index-BWTLGI6c.js xác nhận3×3; chưa browser QA.
+
+- 2026-10-25: Theo user, lưới Shop chỉ MOBILE đổi4cột×3hàng trong vùng nhìn; chiều cao hàng (100%-8px)/3 trừ2gap4px, hàng phát sinh cùng chiều cao và cuộn. Desktop4×2 giữ nguyên; không đổi sản phẩm/giao dịch. Build/typecheck PASS; dist index-Cmnxy_o1.js xác nhận class mới; chưa browser QA.
+
+- 2026-10-25: Theo user, khối nội dung Thông tin user chứa bảng tên/Elo nâng stacking z10→z30, trên header/họa tiết z20; giữ vị trí/kích thước avatar, bảng và chữ. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Sửa khả năng phục hồi ảnh Danh hiệu khi tải lỗi tạm thời: CrispUiImage có retryOnError opt-in, thử lại tối đa2lần sau500/1000ms bằng query mới để tránh cache response lỗi; ẩn biểu tượng ảnh hỏng trong lúc lỗi, dọn timer khi unmount/đổi src. Bật cho artwork danh hiệu trong ProfileDialog gồm preview/catalog/chi tiết và sprite, không đổi geometry/dữ liệu sở hữu. Chưa tái hiện lỗi mạng trên điện thoại nên chưa xác nhận nguyên nhân mạng gốc. Build/typecheck PASS; dist index-j1ysUa14.js có ui-image-retry; chưa browser QA.
+
+- 2026-10-25: Theo user, preview Chọn viền căn giữa mỗi ô cả2chiều: wrapper absolute inset0/grid place-items-center/size container, anchor vuông min77.1cqw/cqh để vừa cả rộng/cao thay h-full/mobilew-full gây tràn lệch. Chỉ preview catalog; avatar thật/overlay chung giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, lưới Chọn viền avatar đổi4cột×4hàng cả mobile/laptop; compact tính chiều cao4hàng trừ3gap ui36. Giữ chỉ viền sở hữu/không thêm ô khóa. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Chọn viền trong Tùy chỉnh avatar mobile+desktop chỉ render4viền mặc định và các viền đã sở hữu; gỡ toàn bộ ô placeholder khóa thay vì render18ô. Giữ index gốc/trang bị/geometry và không cấp quyền viền chưa mua. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, mỗi tài khoản chỉ1Like/ván và chỉ nút Like mặc định ghi nhận, mọi icon picker (kể cả👍) chỉ hiệu ứng. PlayerLikeButton chỉ gọi saveMatchLike khi !fromPicker; hook chặn lượt đã ghi/pending cùng account+match, retry lỗi được, vánID mới nhận lượt mới. DB khóa unique(match_id,actor_id) giữ nguyên, duplicate no-op giữ target đầu tiên và không cho hủy để tái sử dụng. Không sửa migration cũ/không xóa Like lịch sử. Tests10/10 PASS (like lặp/đổi đích/click đồng thời/ván mới/retry và broadcast); build/typecheck PASS, dist cập nhật. Chưa browser/MySQL thật QA.
+
+- 2026-10-25: Theo user, giãn khoảng icon trong picker gap2px→8px, khung desktop180→220px/mobile167→196px để đủ chỗ6icon; giữ neo trái Like/top10px. Thời gian bay local/online800→1200ms. Build/typecheck PASS; dist xác nhận thời gian/khoảng icon mới; chưa browser QA.
+
+- 2026-10-25: Theo user, bảng chọn Like/biểu cảm đặt bên trái nút Like (đo rect trái trừ42px), mép trên viewport10px; portal body tránh bị cắt/stacking parent, z950, resize đo lại. Thời gian bay icon local và người nhận online cùng800ms. Giữ chặn thao tác browser. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-25: Theo user, bỏ giới hạn200ms riêng và thông báo Thả biểu cảm quá nhanh ở socket room:reaction; giữ xác thực/rate limit chung và nhịp animation local. Cụm Like/picker chặn select/copy/cut/context menu/drag, touch-callout và tap highlight xanh; ảnh Like draggable=false, mousedown preventDefault để không bôi đen khi bấm nhiều lần. Chỉ cụm biểu cảm, giữ ô chat nhập/copy bình thường. Build/typecheck PASS; tests phòng/reaction PASS; dist xác nhận chặn thao tác browser; chưa browser QA.
+
+- 2026-10-25: Theo user, Back từ trận Vị trí tùy chỉnh chạy session.leave cleanup rồi screen computer thay home; màn xếp thế usePositionEditor.back vốn về computer giữ nguyên. Cả mobile/desktop về Chơi Với Máy, không ảnh hưởng Back online/replay thường. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Like/biểu cảm online phát realtime tới mọi người trong phòng gồm khán giả qua room:reaction. Service xác thực thành viên/đúng targetSide+ID và allowlist6emoji, controller dùng rate limit chung+200ms riêng, broadcast trừ người gửi (đã có animation local). PlayerCard nhận trên avatar kể cả không hiện nút Like; kiểm tra room/pair/target/match hiện tại, hủy animation khi đổi phiên/unmount, không replay/snapshot/lưuDB hiệu ứng. Lượt thích persistence cũ giữ nguyên. Tests28/28 PASS, gồm socket3client xác nhận đối thủ/khán giả cùng nhận và người gửi không nhận lặp; build/typecheck PASS, dist xác nhận room:reaction. Chưa browser QA nhiều thiết bị.
+
+- 2026-10-25: User đính chính xác nhận reset CHỈ áp dụng nút reset vàng trong bảng ReplayControls đánh thử (ảnh). Hoàn tác xác nhận ở Cài lại màn xếp thế; ReplayControls mở alertdialog portal body giữa viewport tránh scale parent, Hủy giữ trạng thái/Đồng ý practice.reset. Keyboard reset giữ hiện hành. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: User chốt lại Sẵn sàng online chỉ hiện khi đủ2người ngồi trên bàn; một mình không hiện, khán giả không tính. GamePage khôi phục gate players.length===2, vẫn khóa bấm trong entrance; local/máy giữ nguyên. Quy tắc này thay lượt cho hiện khi1người trước đó. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, bấm Cài lại trong Vị trí tùy chỉnh (mobile/desktop) mở xác nhận giữa màn hình Bạn có muốn cài lại bàn cờ không? Hủy/Escape đóng và giữ thế, Đồng ý mới editor.reset. Không đổi Xóa quân/luật. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, người chơi xin thua online hợp lệ gửi tin hệ thống chat “Tên đã đầu hàng.” qua RoomService.append, dùng tên server và kiểu system giống thông báo vào phòng; hiển thị chung laptop/mobile/khán giả, không đổi kết quả/thưởng. Tests phòng/server26/26 PASS; build/typecheck PASS, dist cập nhật (tin sinh ở backend); chưa browser QA.
+
+- 2026-10-25: Theo user, vào lại phòng là phiên lưu mới: useMatchSaving ghi nhớ ID archive lúc mount và không nhận lại ván cũ đó; vẫn giữ bản ván kết thúc mới trong phiên hiện tại. RoomService.join khi người mới vào ghế bàn finished đưa game về ready/thế đầu, reset ready/offer/undo/history/repetition và cửa sổ rotation; giữ archive/thưởng/lịch sử đã chốt. Sẵn sàng hiện khi người ngồi vừa vào kể cả chỉ1người, khóa bấm tới entrance hoàn tất. Chat mobile disabled trong entrance nhưng opacity100 để không tối. Tests liên quan39/39 PASS; build/typecheck PASS, dist xác nhận cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, thông báo Vị trí tùy chỉnh/trận đấu căn giữa viewport: editor/tools notice, statusText, positionSaveNotice và saving.error dùng fixed50%/translate-50%/z500 thay top/bottom riêng. Dialog/toast khác đã giữa giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Chat MOBILE mở có backdrop trong portal z499 dưới panel z500; bấm ngoài chỉ blur/đóng Chat ở click, giữ backdrop suốt pointerdown→click để không truyền chọn/đi quân hoặc bấm UI phía dưới. Bỏ listener document pointerdown đóng sớm ở useMobileChatOverlay, hook chỉ đo viewport (giữ tham số tùy chọn tương thích nơi gọi cũ). Desktop giữ nguyên. Build/typecheck PASS; dist xác nhận backdrop; chưa browser QA.
+
+- 2026-10-25: Theo user, nhãn đi tiên MOBILE cố định rộng66px theo Đen tiên để nút đổi bên không dịch khi đổi chữ. Bảng điều khiển positionTrial mobile scale.64→.72 (~158px). GamePage truyền machineImmediately=false cho useReplayTrial: vào từ Vị trí tùy chỉnh không tự máy đi, người dùng bật Máy đi nếu muốn; startImmediately vẫn true. Đấu ngay Chơi với máy giữ useComputer cũ. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, icon View MOBILE giữ vị trí giữa dưới Board5px, tách biến vị trí riêng trên main khỏi khung portal. Khung View thêm lớp bấm ngoài trong portal z899, panel z900 để đóng khi chạm ngoài, chỉ mobile. Giữ panel bottom58px/desktop. Build/typecheck PASS; dist xác nhận vị trí icon/lớp đóng ngoài; chưa browser QA.
+
+- 2026-10-25: Theo user, cụm đi tiên trong Vị trí tùy chỉnh MOBILE tăng cách âm lượng5px (right51→56). Bảng điều khiển đánh thử sau Đấu ngay từ vị trí tùy chỉnh (positionTrial) đưa lên giữa2user trên mobile, chỉ mount1bảng, desktop giữ trong PlayerCard; scale.64 rộng141px vừa khoảng giữa. Ẩn MobileMatchSummary ở positionTrial tránh chồng bảng. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, hạ khung View MOBILE thêm3px, bottom61→58px. Build/typecheck PASS; dist xác nhận bottom58px; chưa browser QA.
+
+- 2026-10-25: Theo user, chữ số trong tên mobileHeader và danh sách View thu thêm0.9→0.85em, chỉ số/không đổi chữ. Panel View MOBILE hạ3px (bottom64→61px). Build/typecheck PASS; dist xác nhận cả2thay đổi; chưa browser QA.
+
+- 2026-10-25: Theo user, View MOBILE mở panel qua portal document.body z900 để vượt stacking context avatar/Board/tiện ích, giữ vị trí/kích thước và nhánh desktop. Thu chữ số tên mobileHeader về0.9em qua NumberText compact; tên trong panel View mobile thu thêm về0.9em để cân với chữ. Không đổi avatar/logic. Build/typecheck PASS; dist xác nhận lớp panel mới; chưa browser QA.
+
+- 2026-10-25: Theo user, tạm ẩn riêng nút Cầu hòa cả laptop/mobile bằng SHOW_DRAW_BUTTON=false trong MatchActions; giữ nguyên JSX/icon/callback để bật lại bằng true. Xin thua/Đi lại và xử lý lời mời hòa hiện có giữ nguyên. Build/typecheck PASS; dist cập nhật, nút drawButton được loại khỏi bundle; chưa browser QA.
+
+- 2026-10-25: Theo user, Vị trí tùy chỉnh MOBILE nút đỏ chỉ hiện kiếm/khung (ẩn nhãn visual, aria-label Đấu ngay), đặt phải20%width/cao40; hai nút vàng căn giữa hàng/nhãn14px. Đổi thứ tự icon đổi bên ra trái công tắc trong cụm phải, tăng32→36px. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Vị trí tùy chỉnh MOBILE tắt overflow cuộn, bỏ Đấu ngay overlay giữa Board. Hàng dưới Board gồm Xóa quân/Cài lại và ComputerActionButton start đỏ/icon kiếm bên phải44%width/cao48px dùng chung màn máy. Giảm margin khay dưới để gọn; desktop giữ nút cũ. Build/typecheck PASS; dist cập nhật; chưa browser QA màn thấp.
+
+- 2026-10-25: Theo user, Xóa quân/Cài lại MOBILE force size36px/icon20 như Back (tránh class size12 ghi đè). Khay rộng86% thay full-16px, padding4/gap2; hàng full khay/quân74% thay64% để lớn nhẹ và gần nhau. Đấu ngay giữa Board44→52%width. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, dịch riêng cụm Cầu hòa/Đi lại/Xin thua MOBILE sang trái2px so với tâm (left calc50%-2px). Giữ cụm tiện ích/Back và desktop. Build/typecheck PASS; dist xác nhận offset trái2px; chưa browser QA.
+
+- 2026-10-25: Theo user, Xóa quân/Cài lại MOBILE36px/icon20 và nâng3px; quân khay70→64% trong hàng rộng86%/gap4px để nhỏ và gần hơn. Switch đi tiên48×24/knob20/chữ16, nhãn ở trái switch; icon đổi bên bỏ fixed trái, nằm cạnh switch trong cụm phải. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Xóa quân/Cài lại MOBILE đổi sang đúng gameUtilityButton + PositionIcon như khay laptop; nhãn font-heading18 nằm riêng dưới nút, gap4/giữa2nút24px. Giữ vị trí dưới Board/callback. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, quân trong khay MOBILE thu82→70%ô; icon Xóa quân/Cài lại16px (override SVG sẵn32px) căn giữa wrapper grid/shrink0, nút items-center/justify-center/chữ14 leading-none. Không đổi quân trên Board/desktop/logic. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: User đính chính cụm cần dịch phải2px là Lưu/Chat/Menu, không phải Cầu hòa/Đi lại/Xin thua. Trả MatchActions về center50%; header tiện ích mobile right10→8px, Chat portal đồng bộ offset46→44px. Giữ Back left8px theo yêu cầu trước. Build/typecheck PASS; dist xác nhận offset cụm tiện ích và center cũ; chưa browser QA.
+
+- 2026-10-25: Theo user, icon Cầu hòa MOBILE tối giản hình bắt tay chỉ còn silhouette/tay áo và một nét nếp gấp, bỏ nét ngón rườm rà. Cả cụm3nút dịch phải2px (left calc50%+2px); Back dịch trái2px (left10→8px). Giữ desktop/chức năng. Build/typecheck PASS; dist xác nhận offset mới; chưa browser QA.
+
+- 2026-10-25: Theo user, khay quân MOBILE thêm khung nâu/viền vàng, quân82%ô/gap8px; nút Xóa quân/Cài lại dưới Board có icon trash/restore. Switch đi tiên chuyển cạnh âm thanh phải51px, icon đổi bên tròn cạnh Back trái51px. Đấu ngay overlay giữa bàn44%width, nút dưới ẩn compact. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser/drag QA.
+
+- 2026-10-25: Theo user, icon bắt tay Cầu hòa MOBILE gọn26px, đơn giản silhouette/ngón và giữ vàng kem. Like căn giữa khoảng trống thật từ mép avatar tới mép mã phòng bằng đo rect/ResizeObserver, căn giữa dọc avatar; không đổi geometry avatar. Ô Elo mobileHeader cố định60px (=đệm16+icon15+gap3+số4ch26), số giữ4ch theo font13px nên điểm ít/nhiều không co khung. Giữ desktop/logic. Build/typecheck PASS; dist xác nhận đo Like và ô Elo4ch; chưa browser QA.
+
+- 2026-10-25: Theo user, Vị trí tùy chỉnh MOBILE bỏ khung/chữ chọn phe cũ, cạnh Back có switch nhãn động Đỏ tiên (phải)/Đen tiên (trái) và icon đổi bên riêng. MobilePositionPalette trên Board2hàng×7 (Đỏ trên/Đen dưới), dùng limits/ChessPiece/callback cũ. Khay desktop ẩn compact, giữ keyboard handler cũ; Xóa quân/Cài lại ra dưới Board, Đấu ngay giữ tiếp dưới. Board fullwidth/desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser/drag QA.
+
+- 2026-10-25: Theo user, icon Cầu hòa/Xin thua MOBILE chuyển sang vàng kem currentColor kế thừa mobileRoundAction (#ffe69b) như Đi lại; tô đầy hình bắt tay và lá cờ. Bắt tay có nét phân tách ngón màu nền nâu để rõ hình, cờ giữ cán nét và phần vải tô đầy. Kiểu nút/bố cục/desktop/callback giữ nguyên. Build/typecheck PASS; dist xác nhận icon tô đầy/màu kế thừa; chưa browser QA.
+
+- 2026-10-25: User đính chính icon Cầu hòa/Xin thua MOBILE phải nét viền trắng/rỗng như Đi lại, không phải emoji tô kín. Thay filter emoji bằng SVG fill none/stroke currentColor trắng, viewBox32 và nét2.4/bo tròn/cỡ30px như icon Đi lại; giữ kiểu nút, desktop và callback. Build/typecheck PASS; dist xác nhận icon outline trắng; chưa browser QA.
+
+- 2026-10-25: Theo user, Cầu hòa/Xin thua MOBILE dùng lại ký hiệu cũ 🤝/⚑ thay SVG mới; đổi icon trắng qua filter brightness(0) invert(1), giữ nút tròn và bố cục/desktop. Build/typecheck PASS; dist xác nhận icon cũ/filter trắng; chưa browser QA.
+
+- 2026-10-25: Theo user, Cầu hòa/Xin thua MOBILE đổi thành nút tròn36px cùng nền radial/viền/bóng với Đi lại, dùng mobileRoundAction chung cả3. Icon SVG bắt tay/lá cờ26px ở giữa; nhãn mobile sr-only và aria-label/title giữ ý nghĩa. Desktop và callback/disabled giữ nguyên. Build/typecheck PASS; dist xác nhận kiểu nút tròn/icon; chưa browser QA.
+
+- 2026-10-25: Theo user, GamePage MOBILE ẩn viền inset ngoài và hai hoa văn góc; Like chuyển lên cạnh trong avatar, hai bên mã phòng (top28px, trái center-103px/phải center+76px). Cụm Cầu hòa/Đi lại/Xin thua căn giữa dưới View8px, top đo theo Board.bottom+39px thay neo đáy; View vẫn cách Board5px/cao26px. Giữ avatar/desktop/callback/luật. Build/typecheck PASS; dist index-_nCNFBPR.js xác nhận vị trí Like/thao tác; chưa browser QA.
+
+- 2026-10-25: Theo user, Vị trí tùy chỉnh MOBILE Board full viewport width qua useBoardLayout(true), cao1296/1134 tương ứng, bỏ lề/viền ngoài và padding ngang. Arena flow scroll, top=max90px,(100dvh-boardHeight)/2 để bàn giữa màn hình khi đủ chỗ; khay/nút đẩy xuống sau Board20px, sửa riêng sau. Header giữ vị trí; desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Board trong GamePage MOBILE phủ toàn chiều ngang arena, không còn thu theo chiều cao còn lại; chiều cao giữ tỷ lệ1296/1134. useBoardLayout(fullMobileWidth) bật riêng GamePage; Vị trí tùy chỉnh và desktop giữ chế độ fit hiện hành. Thay quy tắc fit mobile phía trên. Build/typecheck PASS; dist index-CGGl5x7k.js xác nhận nhánh full width; chưa browser QA.
+
+- 2026-10-25: Theo user, Vị trí tùy chỉnh MOBILE đặt Chọn bên180px ở giữa phía trên bàn, Back fixed top/left7px và nav âm thanh fixed top/right7px. Header absolute không đẩy bàn; arena fullheight/căn giữa/cột mobile có paddingtop76px, Board justify-self-center. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, bàn cờ MOBILE tăng biển mã phòng120×58→144×70/chữ14→17; thêm SVG đồng hồ cát giữa hai clock. View căn giữa dưới mép Board5px bằng vị trí đo thật trong useBoardLayout; Back chuyển về góc trái đáy chỗ View cũ, bỏ Back trùng trong menu. Cụm thao tác giữa màn hình theo thứ tự Cầu hòa / Đi lại / Xin thua qua order compact. Giữ callback/logic và nhánh desktop; chưa browser QA.
+
+- 2026-10-25: Theo user, chỉ Vị trí tùy chỉnh MOBILE tạm ẩn nút Tạo bàn cờ từ ảnh (compact:hidden để mở lại), ẩn fullscreen; back/âm thanh36px/icon20 như tab khác. Cụm chọn bên rộng210px thay full, chữ14/padding gọn, header min36px. Desktop/luật xếp quân/ảnh nền giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: User xác nhận HOVANG chỉ Local, bản GitHub giữ Pikafish. Sửa lỗi CI TS2307: app/useComputer/useComputerSetup đã tracked nhưng 3 module HOVANG bị board-game/.gitignore loại. Gỡ tham chiếu HOVANG khỏi 11 file runtime tracked (server wiring, hooks/store, nhãn/nút chọn engine), không sửa thuật toán/luật; giữ adapter/source/binary/test HOVANG ignored. Lưu nguyên trạng tích hợp Local và restore-hovang.patch dưới board-game/.checkpoints/hovang-local-before-ci-20261025/; github-pikafish-only.patch chỉ chứa thay đổi task, không kèm UI đang sửa. Typecheck/build workspace và snapshot HEAD + đúng hunks task (không có HOVANG ignored) PASS; test máy/Pikafish/backend snapshot16 PASS/5 SKIP. Full test workspace410 PASS/3 FAIL/21 SKIP (ui.test.tsx2, lobby-presence.test.tsx1); snapshot Git sạch400 PASS/4 FAIL/26 SKIP (thêm chat timeout5s), chi tiết docs/CI-HOVANG-IMPORTS.md; không sửa/skip các test lỗi. Không commit/push/merge/deploy.
+
+- 2026-10-24: Theo user, Chọn Bàn/Chơi Với Máy phủ toàn viewport cả mobile/laptop: wrapper w-full h-dvh thay lề desktop120px/mobile6px và bỏ border5px/bóng/viền inset/hoa văn góc ngoài. Giữ khung nội dung/entrance600ms/dialog/chức năng. Quy tắc này thay hình học khung Home cũ riêng2màn. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: User đính chính Luyện cờ MOBILE chỉ tăng cao: trả rộng về100%+16px/margin-8 như trước lượt to thêm, aspect2132/418 thay2132/348 (~20% cao hơn), ảnh object-fill; giữ nâng10px. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, Luyện cờ MOBILE rộng tăng từ100%+16px lên100%+32px, margin ngang-16px; giữ nâng10px và tỷ lệ ảnh. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Xem thử theo user, Luyện cờ MOBILE rộng thêm16px (margin ngang-8px), giữ aspect artwork và nâng10px bằng relative top-10; desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, setup máy MOBILE căn giữa chữ Chọn bên, ba radio căn giữa gap24px thay trải đều. Gom riêng level→Chọn bên→2nút và translateY20px; Luyện cờ nằm ngoài wrapper giữ mt-auto/vị trí cũ. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, máy MOBILE nâng riêng icon bánh răng3px; radio Chọn bên dùng màu/viền/checked như desktop (Đỏ red, còn lại vàng), tiêu đề căn trái,3lựa chọn justify-between/gap20. Khoảng giữa các cụm setup20px (gap5), Luyện cờ giữ mt-auto/artwork/vị trí cuối. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, hai nút máy MOBILE thu icon18→16cqw, tăng chữ8.5→9cqw; giữ khung/căn giữa/desktop. Build bị chặn TS7053 ở MobileMatchSummary đang thay đổi: khai báo rightSide:Side để index clock đúng kiểu, không đổi hành vi. Build/typecheck sau sửa PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, hai nút máy MOBILE thu icon20→18cqw, tăng riêng chữ8→8.5cqw. Wrapper h-full/items-center, nhãn flex/self-stretch/items-center/leading-none để chữ+icon giữa dọc. Giữ khung và desktop fontsize/icon. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, tăng tiếp chữ/icon2nút máy MOBILE: chữ7.5→8cqw, icon18→20cqw; padding5→4cqw/gap3→2cqw. Laptop/khung giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, tăng tiếp chữ/icon2nút máy MOBILE: chữ6.7→7.5cqw, icon15→18cqw; padding7→5cqw/gap4→3cqw. Laptop/khung giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
 - 2026-10-24: Theo user, tăng chữ/icon2nút máy MOBILE: chữ5.5→6.7cqw, icon11→15cqw; padding12→7cqw/gap5→4cqw để vừa nội dung. Laptop/cỡ khung giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
 
 ## Việc cần làm sau
@@ -3548,3 +3808,76 @@ pm.cmd run build (typecheck + Vite) PASS; dist/assets/index-Cgh9GUJJ.js đã c�
 - 2026-10-24: Theo user, Home MOBILE dấu∞ năng lượng tăng3.2→4cqw (25%), giữ tâm; sốnănglượng thường/vàng/laptop/chínhsách2ID vôhạn giữ nguyên. Build/typecheck PASS; dist xác nhận4cqw; chưa browser QA.
 
 - 2026-10-24: User tăng tiếp dấu∞ Home MOBILE4→4.8cqw (thêm20%), giữ tâm/các giátrịkhác/laptop. Build đầu Vite lỗi-1073740791; chạy lại build/typecheck PASS exit0, dist có4.8cqw. Chưa browser QA.
+
+- 2026-10-24: User yêu cầu lưu UI bàn cờ hiện tại thành mốcA trước thử thayđổi. Checkpoint docs/checkpoints/board-ui-A có snapshot323file (gameUI/hooks/pages, token/styles và assetsboard/pieces/directimports), manifestSHA256 khớp323/323, gitHEAD thamchiếu; gồm uncommitted hiện tại. Khi hoàn tácA chỉ phục hồi phạm viUI yêu cầu, không resetcảproject/ghiđè thayđổi chức năng khác. Chưa sửaUI bàncờ ở lượt này; không ghiđè checkpointA.
+
+- Kiểm chứng checkpoint bàn cờA: build/typecheck PASS exit0, dist cập nhật (dist/assets/index-Cpid4rd6.css, dist/assets/index-CVd1enXP.js). Chưa browser QA; không có thay đổi UI bàn cờ trong task lưu mốc.
+
+- 2026-10-24: User mở riêng bố cục bàn cờ MOBILE theo ảnh:2PlayerCard trêncùng mìnhtrái/đốithủphải, avatar64giữ nguyên, tên dưới/Elo dưới tên (giữ khiđấu); MobileMatchSummary giữa hiểnthị mãphòng thật trên2clock theo màu/state. Header164px/bottom90px, hookfitreserve254px; giữboardgeometry/phe/luật/serverclock. Các tiệních/menu/chat/view và matchactions/like chuyểnxuốngdưới, menumởlên; controlsreplayđán hthử ởcụmdưới có maxheight/cuộn. Desktop nhánh cũ giữ. Tài liệu docs/MOBILE-BOARD-UI.md. Build/typecheck PASS; dist xác nhận Mã phòng và thời gian. CheckpointA đã đối chiếu323/323SHA256 nguyênvẹn. Chưa browser/thiếtbị QA, không chạythử gameplay; khôngsửadatabase/deploy.
+
+- 2026-10-24: Theo user thu nhỏ cụm người chơi MOBILE: avatar64→56px riêng mobileHeader, nameplateclamp84/26vw/108 thay96/30vw/124, Elo cao24/icon15/chữ13/đệm8. Hai cụm neo left/right2px và cột(100%-144)/2 để nhích ra ngoài. Clock nhỏ70×25/chữ14 đặt cạnhnhau (trái/phải đúng leftSide/rightSide) thay2hàng; mãphòng ởtrên. Desktop/clocklogic/checkpointA giữ nguyên. Build/typecheck PASS; dist xác nhận nameplate mới; chưa browser QA.
+
+- 2026-10-24: Theo user, bỏ nhãn màu Đỏ/Đen hiểnthị trên clock (aria giữ), avatarheader56→60px kéo danhhiệu/sao cùng tỷ lệ, hai cột user thu(100%-160)/2 để nhíchra2bên. Clockcao24 ngangElo; hook đo rect[data-player-elo] thật ghi --mobile-clock-top, observer identity tựcăn khi tên/profile/layout đổi; fallbackcalc chỉtrướcđo. Tên/Elo/cỡclock khác/laptop/mốcA giữ. Build/typecheck PASS; dist xác nhận --mobile-clock-top; chưa browser QA.
+
+- 2026-10-24: Theo user tăng cụmuser MOBILE: avatar60→64px kéo danhhiệu/sao theo; chữname tăng24→26/180 theo width nameplate (giữwidth để khôngtrànmép), ELOcao26/icon16/chữ14/đệm9. Mãphòng108×52→120×58/chữ14 và riêng plaque top+6px, khôngdịchclock; clockvẫnđo theoElo thật. Desktop/mốcA khôngsửa. Build/typecheck PASS; dist xác nhận plaque top6/120×58; chưa browser QA.
+
+- 2026-10-24: Theo user, header bàncờ MOBILE avatar64→68px (danhhiệu/sao theo tỷlệ), chữname26→28/180 theo width hiệncó; Elo thu cao26→24/đệm9→8/icon16→15/chữ14→13. Nút View khôi phục cao26px như snapshotA, giữ neo đáy hiện16px. Clockđo theoElotiếp tục, fallback cậpnhậtavatar. Desktop/mốcA giữ. Build/typecheck PASS; dist xác nhận name28/180; chưa browser QA.
+
+- 2026-10-24: Theo user, tên header bàncờ MOBILE hiểnthị đầyđủ, không...: PlayerNameplate thêm fullName opt-in/khôngtruncate/chữsốkhôngthu0.9em, đệm4px/tựxuốngdòng nếu dài và tựtăngcao biển; chỉPlayerCard mobileHeader bật, cáctab/laptop giữmặcđịnh.3nút Lưu/Chat/Menu thu44→36px/icon20 như tiệních Chọn Bàn, slotchat/offset46/headerh36 đồngbộ; núttrongmenu cũng36. ClockvẫnđoElo theoidentityheight. Build/typecheck PASS; dist xác nhận fullName; chưa browser QA.
+
+- Kiểm chứng lượt bố trí mobile2026-10-25: tăng vùng điều khiển dưới bàn90→144px và đồng bộ phép fit Board để View không chồng hàng thao tác ở màn thấp. Build/typecheck PASS, dist xác nhận mã vị trí View/icon mới; chưa browser QA.
+
+- 2026-10-25: Theo user, các nút tiện ích MOBILE back/sound/chat/menu/save/friends/reset/trash đồng cỡ dock Home: token mobileUtilityTokens ởuiClasses size min(12.5vw,56px)/icon28px. Game/RoomSelection/ComputerSetup/CustomPosition/Shop áp dụng; Home dock không đổi hình học, laptop chỉ thêm customproperty khôngđổi style. Bỏ override36/icon20, slotchat theo cùngsize/portaloffsetcalc8+size+gap; popupmenu mởtrên size+12, headerroom/computer cao size+12 để khôngtràn. GiữView/MatchActions/avatar/khóaUIkhác. Build/typecheck PASS; dist xác nhận token; chưa browser QA, snapshotA khôngsửa.
+
+- 2026-10-25: User thu lại lượt tăng nút tiện ích MOBILE bằng Home: hiện chỉ tăng nhẹ so với gốc36px/icon20 lên40px/icon22, thay size min(12.5vw,56px)/icon28 của lượt trước. Đồng bộ slotchat/portaloffset/header/popup theo40px; Home/laptop/View/avatar giữ nguyên. Build/typecheck PASS; dist index-BKiDThIc.css có token40px; chưa browser QA. Không sửa checkpointA.
+
+- 2026-10-25: Theo user tăng nhẹ tiếp nút tiện ích MOBILE40→42px/icon22→24px; slotchat/header/offset và menu đồng bộ42px. Home/desktop/View/avatar không đổi. Build/typecheck PASS; dist xác nhận token42px; chưa browser QA.
+
+- 2026-10-25: User mở Shop cả laptop/mobile để kiểm tra thêm khoảng20avatar. Thêm20 thẻ mẫu riêng ShopPage dùng18ảnh avatar sẵn có (lặp2ảnh), không tạo hình mới/catalog backend/giao dịch. Thẻ mẫu có nút Xem thử, không gọi mua/đánh dấu sở hữu;5sản phẩm thật giữAPI cũ. Lưới giữ4cột×2hàng laptop và3cột×4hàng mobile, hàng phát sinh cùngchiều cao để cuộn thay coô. Build/typecheck PASS; dist xác nhận avatar-preview; chưa browser QA. Đây là dữ liệu xem thử, chưa chốt hàng mở bán.
+
+- 2026-10-25: User xác nhận muốn20 hình avatar mới khác nhau, thay20thẻ dùngảnh cũ của lượt trước. Built-in image_gen tạo20portrait riêng phongcách cổtrang/chân dung giữa nền nâuđỏ; lưu20PNG gốc +20JPEG512 tại src/assets/shop/avatars/daily/, prompt/tên/nguồn tại source.json và contact-sheet.jpg. dailyAvatarPreviews.ts nạp20ảnh cho PhiênChợHằngNgày cả laptop/mobile; Xem thử mởShopAvatarPreview ảnh lớn, Escape/Đóng/bấmngoài đóng. Giữ5sản phẩm thật/backend/giao dịch; ảnhmới chỉxemthử, chưa mởbán. Đã xemcontactsheet20ảnh, build/typecheck PASS; kiểm đếm20ảnhgốc/20portraittrongdist; chưa browserQA.
+
+- 2026-10-25: User đính chính20viền Shop phải đơn giản như3viền hiện có, không họatiết long/phượng cầu kỳ. Bỏ hướngimagegen trangtrí (không dùngảnh đó trong project). Tạo20SVG gốc dạngvòngtròn, tâm/nềntrongsuốt,20palette và5kiểuđiểmnhấnnhỏ: trơn/ngọcthoi/hạt/khấc/đườngkhắc. Asset+source.json tại src/assets/shop/frames/daily; dailyFramePreviews.ts thêm20thẻ KhungViền/Tấtcả PhiênChợHằngNgày cả laptop/mobile. Popup xemthử nhậnkind, lồngviền lênavatar; khôngcliptrònviền. Giữ20avatarmới/5mónmua thật/backend;20viền mới chưa mởbán/cấpquyền. Build/typecheck PASS; đếm20SVG, dist cóframe-preview; chưa browserQA.
+
+- 2026-10-25: User thấy20viền quá đơn giản, yêu cầu làm lại thêm1–2họatiết/mẫu. Cậpnhật đúng20SVG hiệncó, giữpalette/dángvòngtròn/tâmtrongsuốt; mỗi mẫu1motif riêng (sen/mây/vươngmiện/lá/cánh/ấn/lửa/mai/ngọc/trai/quạt/trúc/sóng/sao/nút/cánhhoa/bội/núi/mặttrời/cuốnvân) và1điểmngọc nhỏmépdưới. Khôngthêmhàng/đổigeometryavatar hoặc backend/mua. source.json cậpnhật motif; cả laptop/mobile dùngcùngasset. Build/typecheck PASS; dist cậpnhật; chưa browserQA.
+
+- 2026-10-25: User bác20SVG, yêu cầu tối thiểu chấtliệu như3viền đỏ/ngọc/tím trongảnh. Tạo lại20ảnh riêng bằng built-in image_gen, dùng trực tiếp3PNG hiệncó làm style reference: vòngmen/ngọc/kimloại cóvân, bevel/ánhbóng/2ốp nhỏhai bên, tâm+nềntrongsuốt. PNG gốc1254² vàruntime512² tại src/assets/shop/frames/daily-v3/, prompt/nguồnsource.json, contact-sheet.jpg. dailyFramePreviews.ts chuyển20import sangPNG mới, SVG cũ khôngruntime; khôngthêm20thẻ nữa hoặcđổimua thật. Đãxemcontactsheet20mẫu; tâm/góc20ảnhalpha0 (alpha-report.json); build/typecheck PASS, distđủ20PNG. ÁpdụngShop laptop/mobile, giữpopupxemthử; chưa browserQA.
+
+- 2026-10-25 — Quy tắc Shop thật mới (thay các mục xem thử/500 vàng trước): cả laptop/mobile dùng catalog45 món (22avatar,23viền), toàn bộ Phiên Chợ Hằng Ngày giá3000vàng.20avatar mới code18–37/20viềnPNG mới code7–26 đã nối ADMIN catalog, render AvatarPortrait/getAvatarFrame/overlay và danh sách sở hữu; mua cập nhật DB/account, không tự equip. Card chỉ hiện6món server chọn (3avatar+3viền), bấm hình mở popup rõ dù đãmua, nútMua riêng mở xác nhận. Server chặn mua món ngoài ngày/phiên hết hạn sau kiểm tra idempotency, giữ transaction/chống trùng/thiếuvàng.
+- Lịch chung server theo00:00ViệtNam UTC+7; mỗi ngày1roll60%0móncũ/30%1/10%2 trên tổng6món. Cũ là từngxuấthiện bấtkỳngàytrước, không phải đãsởhữu; ngày đầu chưa cócũ chỉhàngmới. Khônglặpmón trongngày. Khi khôngđủ mới mỗi loại, bù tối thiểu bằngcũ để đủ3+3; hếtmới được6móncũ theo user, khôngreset lịch sử. DB daily_shop_state/daily_shop_days giữ lịch sử trọn đời và bộngày đã chốt; khóa singletontransaction để khôngrandomkhác giữa request/server/restart. Chỉ chốt khi phát sinh phiên ngày, không tạo lịch giả cho ngày không truy cập.
+- Thực hiện migration local chuẩn theo thứtự:007_saved_match_details:001 cònchờ (title/noteLịchsử) và008_daily_shop:001–002 đãapply+verifySchemaPASS (3bước).001–006 khôngsửa; khôngSSH/deploy/restart. CLItsx vướng uv_os_get_passwd ENOMEM, dùng Node native transform-types/resolvehook để chạy chính server/database.ts migrate. Đãkhởi tạo phiên thật2026-10-25 từShopService.daily:avatar27/36/31,frame23/8/11,đúng6×3000vàng; khôngmua thử/trừvàng/cấpđồuser. Build/typecheck PASS; dist index-BsP-6WJl.js có/shop/daily, không chạy tests/browserQA. ClientQuery poll30s/focus vàtimerrefreshAt để đổi ngày; lỗi cóThửlại, khôngfallbackcataloggiả.
+- 2026-10-25: Theo user, popup xem viền Shop cả laptop/mobile dùng avatar hiện tại từ sessionStore.avatarIndex thay avatar16 cố định. Theo dõi reactive cùng nguồn trang bị/account, chỉ đổi ảnh trong viền; xem avatar sản phẩm/geometry/mua không đổi. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-26: Theo user, bỏ dòng trạng thái “Không tìm thấy người chơi” khi danh sách Tin nhắn không có hội thoại phù hợp; giữ nguyên ô tìm kiếm, lọc và danh sách. Build/typecheck PASS; dist xác nhận không còn chuỗi trạng thái. Chưa browser QA.
+
+- 2026-10-26: Theo user, nềnmờ thôngbáo/xácnhận phải phủ toànviewport kểcả ngoài khunggame. Thêm NoticeOverlay dùng native dialog.showModal top-layer, fixedinset0/100vw×100dvh/maxnone để thoátclipping/transform khungcha nhưng kếthừatoken. Ápdụng MessagesFriendRemovalConfirmation dùngchung Hồsơ/Chat/thànhviênnhóm, feedbackHồsơ vàfeedbackBạnbè cả2viewport. Giữnộidung/nút/callback, EscapegọiHủy (pendingkhôngđóng); stopPropagationcancel/close để khôngđóng/resetdialogcha. Build/typecheck PASS,distcậpnhật; chưa browserQA. Chỉ mởphạmvilớpphủthôngbáo tasknày, geometryavatar/cácbảng giữkhóa.
+
+- 2026-10-26: Xem thử theo user: SearchButton chung Bạnbè mobile/laptop và ChọnBàn dùng ảnhfriend-action-button-frame.png nhưMờichơi thaysearch-frame.png; chữ/iconnâu#2b1909để rõ trênnềnvàng. Giữ size/class từngngữcảnh/type submit/disabled/callback; khôngđổiMờichơihoặclayoutBạnbè. Build/typecheck PASS,distcậpnhật; chưa browserQA. ChỉxemthửkhungnútTìm, khôngchốtkhóavĩnhviễn.
+
+- 2026-10-26: User thaythử SearchButton bằngkiểuvàng nútHủy/Đồngý trongảnh (mobileNoticeButtonStyle): bỏảnhMờichơi, nền gradient#ad7e08→#805100/viền#d8ac35/chữicon#ffe535/bo3px/insethighlight nhưmẫu. ÁpdụngchungTìm Bạnbè/ChọnBàn cảmobile/laptop; giữsize/submit/disabled/callback. Build/typecheck PASS,distcậpnhật; chưa browserQA. Đây làxemthử, thaylượt dùngảnhMờichơi trước.
+
+- 2026-10-26: Theo user, Không hiển thị lại của xác nhận xóa bạn chuyển xuống dưới panel15px, căn phải theo panel thay vì gócviewport. Label absolute topcalc100%+15/right0 bên trong sectionrelative, giữcheckbox/pending/hànhvi và nềnmờfullviewport; áp dụngcomponentchung Hồsơ/Chat/thànhviên cảmobile/laptop. Build/typecheck PASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: User bỏKhônghiểnthịlại ởxóabạn: gỡcheckboxkhỏiMessagesFriendRemovalConfirmation, bỏbypassmutedUntil/cấpmute ởhook vàmemberoptions đểluônxácnhận; giữhủy/đồngý vàbackend. ThôngbáoMờichơi/SoTài dùngNumberText compact/normal/khôngsoften cho2chỗtên, đồngfont/cỡsốnhưtênkhác. Thu2khung✓× desktop80×40→56×36/mobile90×46→64×38, tăngdấu24→32px/căngiữa; giữmàu/aria/pending/callback. Ápdụngcảlaptop/mobile. Build/typecheck PASS,distcậpnhật; chưa browserQA.
+
+- 2026-10-26: Theo user, thôngbáoMờichơi/SoTài xếpChặn/×/✓ (×trái✓phải). Haiô tick5phút/10phút chọnđộcquyền, mặcđịnh5; Chặn từchốilờimờihiệntại vàkhóa người gửitheokhoảngchọn,×chỉtừchối. ChallengeService validateacceptedfalse/block5|10, chặnserver trướcphátinvite; blocksRAM theo socketngườinhận+accountIDgửidoauthcontrollercấp (khôngtinclient), gửinốilạikhôngbypass, hếtgiờtựdọn. Receiverdisconnect xóablockphiên;reload/thoát-vàolạigame nhậnlờimờibìnhthường, rờibàntrongcùngkếtnốikhôngreset. KhôngDB/khôngchặnchat/hủybạn. Khi bịchặn gửi,mọientryBạnbè/Hồsơ hiệntoastĐãbịchặn dùngchungInviteSentNotice vớiĐãgửi; resultblockcũngtoast, khôngpopup lớn. Build/typecheck PASS,distcậpnhật; chưa QA2client/socketthật,khôngchạytests/khôngrestartserver.
+
+- 2026-10-26: Theo user dờiphầnChặn xuốngdưới2nút×/✓, táchbằngline/đệm16; nútChặn112×46/chữ20px, ôtick20px/chữthờigian18px/gap24 lớn hơn. Hai nút×/✓ vàlogicblock5/10phút giữnguyên. Ápdụnglaptop/mobile. Build/typecheck PASS,distcậpnhật; chưa browserQA.
+
+- 2026-10-26: User đổiChặn thành1checkboxtrắng bên dưới×/✓ cănphải. Bỏnútvàng/line/haiôthờigian; một hàngjustify-end ôtick20px+Chặn+select5/10phút (mặcđịnh5). Tickthựchiệnchặn server/từchối nhưnúttrước;×vẫnchỉtừchối,✓vẫnnhận. Ápdụngmobile/laptop,khôngđổilogicblockphiên. Build/typecheck PASS,distcậpnhật; chưa browserQA.
+
+- 2026-10-26: Theo user, checkbox lời mời So tài chỉ còn “Không hiển thị lại” + ô tích, nhãn bên trái và ô tích lớn28px căn sát phải; chữ20px. Tick vẫn chặn5phút mặc định và từ chối lời mời hiện tại; không sửa ×/✓ hoặc logic chặn server. Build cần chạy sau thay đổi; chưa browser QA.
+
+- 2026-10-26: Theo user, trang tùy chọn Tin nhắn của nhóm thêm mục cuối “Rời nhóm” với biểu tượng cửa/thoát màu vàng đồng bộ hàng icon và chữ hồng đỏ. Mở xác nhận kiểu thông báo Tin nhắn trước khi rời; dùng action member=leave đã có ở backend, chỉ xóa nhóm khỏi danh sách và lịch sử hiển thị của chính người rời, không xóa nhóm/tin nhắn toàn cục. Build/typecheck PASS; dist cập nhật; chưa browser/API live QA.
+
+- 2026-10-26: Theo user, lỗi thao tác Tin nhắn (tạo nhóm/thao tác quá nhanh và lỗi thành viên/rời nhóm) tự ẩn sau3giây, dọn timer khi đổi lỗi/unmount. Chủ nhóm có khóa vàng thấy dòng Cài đặt/icon bánh răng vàng ở đầu tùy chọn nhóm; các hàng chủ nhóm dời xuống cùng nhịp, Rời nhóm vẫn cuối. Cài đặt chưa có nghiệp vụ được chốt, bấm hiện toast Chức năng đang được cải tiến tự ẩn. Build/typecheck PASS; dist xác nhận Cài đặt nhóm; chưa browser/API live QA.
+
+- 2026-10-26: Quy tắc nhóm mới theo user (thay nút Cài đặt placeholder): Cài đặt chỉ chủ nhóm/khóa vàng, Đổi tên đưa vào trong, có Chuyển khóa vàng cho thành viên đang tham gia, công tắc Duyệt thành viên và Giải tán nhóm cuối bảng. Giải tán/Rời nhóm cùng chữ đỏ nhạt#ff9b9b. Chủ nhóm bấm Rời nhận popup Vui lòng chuyển khóa vàng cho người khác trước khi rời nhóm; backend chặn tương ứng409. Transfer khóa conversation trong transaction, hạ owner cũ/nâng người nhận; chỉ chủ nhóm được transfer/dissolve/đổi duyệt. Giải tán kết thúc mọi membership và dọn yêu cầu chờ, giữ dữ liệu lịch sử, cả nhóm không gửi tiếp được.
+- Duyệt mặc định tắt: thành viên thường thêm người vào thẳng khi tắt, khi bật tạo yêu cầu chờ không tạo membership và hiện thông báo chờ giống xác nhận Tin nhắn. Chủ nhóm thêm luôn trực tiếp và dọn yêu cầu tương ứng. Xem thành viên có Thêm thành viên chọn bạn đã accepted, chủ nhóm thêm tab Chờ duyệt/tên người mời/nút từ chối hoặc duyệt; polling dùng dữ liệu DB, chặn phản hồi cũ khi đổi nhóm/tài khoản. Tắt duyệt chỉ áp dụng lời mời mới, yêu cầu đã chờ vẫn để chủ nhóm xử lý. Không cấp quyền gửi/đọc tin cho người chờ.
+- Migration009_group_membership thêm conversations.member_approval_required và conversation_join_requests; giữ001–008 nguyên vẹn. Đã apply2bước vào MySQL local qua db:migrate và verifySchema PASS (lần sandbox bịEACCES, chạy lệnh được duyệt ngoài sandbox thành công). Regression group-administration18/18 PASS; typecheck/build PASS, dist xác nhận đủ điều khiển. Chưa browser/2tài khoản/API live QA; không SSH/deploy/restart server.
+
+- 2026-10-26: Theo user, Rời nhóm/Giải tán nhóm tăng đỏ từ#ff9b9b sang#ff5555; cả chữ và icon dùng đúng cùng màuđỏ, chỉ2mục này. Build/typecheck PASS, dist xác nhận; chưa browser QA.
+
+- 2026-10-26: User đổi Xem thành viên thành dãy tab ngang/lướt ngang: Tất cả → Trưởng và phó nhóm → Đã chặn → Duyệt thành viên (tab duyệt chỉ chủ nhóm). Tất cả/Trưởng-phó dùng role DB, khóa vàng owner/khóa bạc deputy và giữ avatar geometry; vàng được phong/gỡ phó trong menu..., quyền quản trị hiện chỉ owner. Bỏ Kết bạn trong danh sách/menu thành viên; menu vàng có Phong/Gỡ phó, Chặn/Bỏ chặn và Xóa khỏi nhóm ở cuối, chữ+icon Xóa cùng đỏ#ff5555 của Rời nhóm. Thêm thành viên chuyển khỏi tab sang icon người+ góc phải trên trang tùy chọn nhóm, đối diện back; danh sách mời riêng vẫn chọn bạn accepted. Cài đặt Duyệt thành viên nay mở chính tab thành viên, công tắc và danh sách chờ cùng một chỗ.
+- User xác nhận Chặn thành viên là chặn CHAT và MỜI, KHÔNG đuổi khỏi nhóm: giữ membership/quyền đọc, từ chối send(text/ảnh) và add/invite trên server; chặn chỉ trong nhóm đó, không sửa quan hệ bạn bè/chặn riêng. Tab Đã chặn lấy DB, owner có Bỏ chặn, phục hồi hai quyền mà không đổi ghế/role/membership. Owner không được chặn/phong lại chính owner; member/deputy không có quyền moderation. Migration010_group_moderation đổi CHECKrole thêmdeputy và tạo conversation_member_blocks,001–009 giữ nguyên. Đã apply2bước local+verifySchema PASS.
+- Kiểm chứng: group-administration18/18 và group-moderation12/12 PASS khi chạy từng file (chạy chung bị cache Temp ENOENT của môi trường); typecheck/build PASS, dist cập nhật. Chưa browser/2client/API live QA; không SSH/deploy/restart server.

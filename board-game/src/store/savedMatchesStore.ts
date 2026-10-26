@@ -16,9 +16,17 @@ export const useSavedMatches = create<{
   entries: SavedEntry[]
   save: (owner: string, match: RecordedMatch) => Promise<void>
   remove: (owner: string, id: string) => Promise<void>
+  update: (owner: string, id: string, title: string, note: string) => Promise<void>
 }>((set, get) => ({
   replay: null,
   entries: read(),
+  update: async (owner, id, title, note) => {
+    if (!get().entries.some(item => item.owner === owner && item.id === id)) throw new Error('Không tìm thấy ván đã lưu.')
+    if (useSessionStore.getState().account) await accountApi.updateBookmark(id, title, note)
+    const entries = get().entries.map(item => item.owner === owner && item.id === id ? { ...item, savedTitle: title.trim(), savedNote: note.trim() } : item)
+    if (!useSessionStore.getState().account) localStorage.setItem(storageKey, JSON.stringify(entries))
+    set({ entries })
+  },
   save: async (owner, match) => {
     if (match.states.at(-1)?.phase !== 'finished') throw new Error('Chỉ lưu được ván đã kết thúc.')
     if (get().entries.some(item => item.owner === owner && item.id === match.id)) return

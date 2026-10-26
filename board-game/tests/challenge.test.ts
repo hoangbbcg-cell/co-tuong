@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChallengeRepository } from '../server/repositories/challengeRepository'
 import { RoomRepository } from '../server/repositories/roomRepository'
 import { ChallengeService } from '../server/services/challengeService'
@@ -16,6 +16,28 @@ describe('accepted play invitations', () => {
   })
   const invite = () => challenges.send('a', { id: 'b', name: 'Binh' }).invite
   const accept = () => challenges.reply('b', { id: invite().id, accepted: true })
+
+  it('requires five seconds between invitations even after an early rejection', () => {
+    let now = 100000
+    const clock = vi.spyOn(Date, 'now').mockImplementation(() => now)
+    try {
+      const pending = invite()
+      challenges.reply('b', { id: pending.id, accepted: false })
+      now += 4999
+      expect(invite).toThrow('Vui lòng chờ 5 giây')
+      now += 1
+      expect(invite().senderId).toBe('a')
+    } finally { clock.mockRestore() }
+  })
+
+  it('keeps the sender cooldown across connections for the same account', () => {
+    const profile = { name: 'An', avatarIndex: 0, avatarFrameIndex: 0, elo: 0, localBusy: false }
+    challenges.update('a', profile, 'same-account')
+    invite()
+    challenges.remove('a')
+    challenges.update('a2', profile, 'same-account')
+    expect(() => challenges.send('a2', { id: 'b', name: 'Binh' })).toThrow('Vui lòng chờ 5 giây')
+  })
 
   it('creates a new room for both when neither is in a room', () => {
     const { room, previousRooms } = accept()

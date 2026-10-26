@@ -15,11 +15,11 @@ export function ComputerActionButton({ action, children, className = '', ...prop
       <path d="M9 20V9h14M9 15h6V9M431 20V9h-14m14 6h-6V9M9 62v11h14M9 67h6v6m416-11v11h-14m14-6h-6v6" stroke={red ? '#e42b40' : '#d39a53'} strokeWidth="2" />
       {red && <path d="M330 13c55-15 82 10 65 23l-20-7 8 13-21 7 22 5-17 15c47-5 66-28 45-46l12-8-24 1c-18-18-40-12-70-3Z" fill="#fa3144" opacity=".16" />}
     </svg>
-    <span className="flex w-full min-w-0 items-center gap-[5cqw] px-[12cqw] compact:gap-[4cqw] compact:px-[7cqw]">
-    <svg aria-hidden="true" viewBox="0 0 48 48" className="pointer-events-none size-[11cqw] compact:size-[15cqw] shrink-0 text-[#fff0cf]" fill="currentColor">
+    <span className="flex h-full w-full min-w-0 items-center gap-[5cqw] px-[12cqw] compact:gap-[2cqw] compact:px-[4cqw]">
+    <svg aria-hidden="true" viewBox="0 0 48 48" className={`pointer-events-none size-[11cqw] compact:size-[16cqw] shrink-0 text-[#fff0cf] ${action === 'position' ? 'compact:-translate-y-[3px]' : ''}`} fill="currentColor">
       {red ? <><path d="m6 3 6 2 21 24-5 5L7 10Zm36 0-6 2-21 24 5 5 21-24ZM9 27l12 12-4 4L5 31Zm30 0L27 39l4 4 12-12ZM8 35l5 5-6 6-5-5Zm32 0-5 5 6 6 5-5Z" /></> : <path fillRule="evenodd" d="m20 2 8 0 2 6 5 2 6-2 5 8-4 5v6l4 5-5 8-6-2-5 2-2 6h-8l-2-6-5-2-6 2-5-8 4-5v-6l-4-5 5-8 6 2 5-2Zm4 12a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z" />}
     </svg>
-    <span className="min-w-0 flex-1 whitespace-nowrap text-center font-body text-[5.5cqw] compact:text-[6.7cqw] font-bold leading-tight text-[#fff0d1] [text-shadow:0_1px_2px_#251006]">{children}</span>
+    <span className="flex min-w-0 flex-1 items-center justify-center self-stretch whitespace-nowrap text-center font-body text-[5.5cqw] compact:text-[9cqw] font-bold leading-none text-[#fff0d1] [text-shadow:0_1px_2px_#251006]">{children}</span>
     </span>
   </button>
 }

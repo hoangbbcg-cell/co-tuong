@@ -48,6 +48,11 @@ export function validatePosition(value:unknown):GameState {
   return state
 }
 export class PersistenceService {
+  async updateBookmark(id:string,match:unknown,input:Record<string,unknown>) {
+    const title=input.title===''?'':text(input.title,100)
+    const note=input.note===''?'':text(input.note,5000)
+    await this.content.updateBookmark(id,uuid(match),title,note)
+  }
   async friendSuggestions(id:string) { return this.social.suggestions(id) }
   readonly social=new SocialRepository()
   readonly content=new ContentRepository()

@@ -1,6 +1,8 @@
 ﻿import type { GameState } from './game'
 
 export interface RecordedMatch {
+  savedTitle?: string
+  savedNote?: string
   replayKind?: 'position'
   replayRequiresSave?: boolean
   initialMoveCount?: number

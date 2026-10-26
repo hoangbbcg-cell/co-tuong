@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { SmallAvatarPortrait } from '../../../lib/SmallAvatarPortrait'
+import { getShopAvatarArtwork } from '../../../lib/shopCosmeticArtwork'
+import { AVATAR_COUNT } from '../../../lib/shopCosmetics'
 import { useSessionStore } from '../../../store/sessionStore'
 import type { ReactNode } from 'react'
 import avatarSelectionSprite from '../../../assets/profile/avatar-selection-sprite.png'
@@ -44,6 +46,8 @@ function CustomizationTabIcon({ name }: { name: CustomizationTabIconName }) {
 }
 
 export function AvatarPortrait({ avatarIndex, className }: { avatarIndex: number; className: string }) {
+  const artwork = getShopAvatarArtwork(avatarIndex)
+  if (artwork) return <span aria-hidden="true" className={`block ${className}`}><img src={artwork} alt="" className="block size-full rounded-full object-cover" /></span>
   if (avatarIndex >= 15 && avatarIndex <= 17) return <SmallAvatarPortrait avatarIndex={avatarIndex} className={className} />
   const column = avatarIndex % 5
   const row = Math.floor(avatarIndex / 5)
@@ -53,7 +57,7 @@ export function AvatarPortrait({ avatarIndex, className }: { avatarIndex: number
 
 export function AvatarCustomization({ elo = 1000, onCancel, onUse, previewPanel, selectedAvatarIndex, selectedFrameIndex }: { elo?: number; onCancel: () => void; onUse: (avatarIndex: number, frameIndex: number) => void; previewPanel: ReactNode; selectedAvatarIndex: number; selectedFrameIndex: number }) {
   const cosmetics = useSessionStore(state => state.account?.cosmetics)
-  const availableAvatars = [...new Set([...AVATAR_DISPLAY_ORDER, ...(cosmetics ?? []).filter(item => item.kind === 'avatar').map(item => Number(item.code.replace('avatar-', '')))])].filter(index => Number.isInteger(index) && index >= 0 && index < 18 && index !== 15)
+  const availableAvatars = [...new Set([...AVATAR_DISPLAY_ORDER, ...(cosmetics ?? []).filter(item => item.kind === 'avatar').map(item => Number(item.code.replace('avatar-', '')))])].filter(index => Number.isInteger(index) && index >= 0 && index < AVATAR_COUNT && index !== 15)
   const [activeTab, setActiveTab] = useState<CustomizationTabIconName>('avatar')
   const [draftAvatarIndex, setDraftAvatarIndex] = useState(selectedAvatarIndex)
   const [draftFrameIndex, setDraftFrameIndex] = useState(selectedFrameIndex)
@@ -97,14 +101,12 @@ export function AvatarCustomization({ elo = 1000, onCancel, onUse, previewPanel,
         {draftAvatarIndex === avatarIndex && <SelectionCornerGlints />}
         {selectedAvatarIndex === avatarIndex && <span aria-hidden="true" className="absolute right-1 bottom-1 grid size-6 place-items-center rounded-full border-2 border-[#d4f387] bg-[#285a24] text-base font-bold leading-none text-[#eaffb5] shadow-[0_1px_3px_#170c04]">✓</span>}
       </button>)}
-    </div> : activeTab === 'frame' ? <div aria-label="Chọn khung avatar" className="grid min-h-0 flex-1 grid-cols-6 grid-rows-3 gap-2 rounded-[var(--ui-p-10,10px)] border border-[#9f6025] bg-[#1c0d07aa] p-2 shadow-[inset_0_0_12px_#0d0503] compact:grid-cols-4 compact:grid-rows-[repeat(3,calc((100%_-_var(--ui-p-24,24px))/3))] compact:auto-rows-[calc((100%_-_var(--ui-p-24,24px))/3)] compact:gap-3 compact:overflow-y-auto compact:p-3">
-      {Array.from({ length: 18 }, (_, index) => index < AVATAR_FRAMES.length && (index < 4 || (cosmetics ?? []).some(item => item.kind === 'frame' && item.code === `frame-${index}`))
-        ? <button key={`frame-${index}`} type="button" aria-label={AVATAR_FRAMES[index].label} aria-pressed={draftFrameIndex === index} onClick={() => setDraftFrameIndex(index)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] border-2 ${draftFrameIndex === index ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
-          <span className="relative grid h-full max-h-full aspect-square place-items-center compact:h-auto compact:w-full"><span className="relative grid size-[77.1%] place-items-center"><AvatarFrameOverlay src={AVATAR_FRAMES[index].image} /></span></span>
+    </div> : activeTab === 'frame' ? <div aria-label="Chọn khung avatar" className="grid min-h-0 flex-1 grid-cols-4 grid-rows-[repeat(4,calc((100%_-_var(--ui-p-24,24px))/4))] auto-rows-[calc((100%_-_var(--ui-p-24,24px))/4)] gap-2 overflow-y-auto rounded-[var(--ui-p-10,10px)] border border-[#9f6025] bg-[#1c0d07aa] p-2 shadow-[inset_0_0_12px_#0d0503] compact:grid-cols-4 compact:grid-rows-[repeat(4,calc((100%_-_var(--ui-p-36,36px))/4))] compact:auto-rows-[calc((100%_-_var(--ui-p-36,36px))/4)] compact:gap-3 compact:overflow-y-auto compact:p-3">
+      {AVATAR_FRAMES.map((frame, index) => ({ frame, index })).filter(({ index }) => index < 4 || (cosmetics ?? []).some(item => item.kind === 'frame' && item.code === `frame-${index}`)).map(({ index }) => <button key={`frame-${index}`} type="button" aria-label={AVATAR_FRAMES[index].label} aria-pressed={draftFrameIndex === index} onClick={() => setDraftFrameIndex(index)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] border-2 ${draftFrameIndex === index ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
+          <span className="absolute inset-0 grid place-items-center [container-type:size]"><span className="relative aspect-square w-[min(77.1cqw,77.1cqh)]"><AvatarFrameOverlay src={AVATAR_FRAMES[index].image} /></span></span>
           {draftFrameIndex === index && <SelectionCornerGlints />}
           {selectedFrameIndex === index && <span aria-hidden="true" className="absolute right-1 bottom-1 grid size-6 place-items-center rounded-full border-2 border-[#d4f387] bg-[#285a24] text-base font-bold leading-none text-[#eaffb5] shadow-[0_1px_3px_#170c04]">✓</span>}
-        </button>
-        : <div key={`locked-frame-${index}`} role="img" aria-label={`Ô khung mẫu ${index + 1} đang khóa`} className={`relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] border ${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}><LockIcon /></div>)}
+        </button> )}
     </div> : <div className="grid min-h-0 flex-1 place-items-center compact:rounded-[var(--ui-p-10,10px)] compact:border compact:border-[#9f6025] compact:bg-[#1c0d07aa] compact:p-3">
       <p className="hidden text-center font-cormorant text-[length:var(--ui-p-30,30px)] text-[#dcb777] compact:block">{activeTab === 'skin' ? 'Chưa có skin' : 'Chưa có hiệu ứng'}</p>
     </div>}

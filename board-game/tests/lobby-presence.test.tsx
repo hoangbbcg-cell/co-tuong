@@ -33,7 +33,7 @@ it('requires profile location only when opening the province picker', () => {
   const hook = renderHook(() => useRoomSelection(lobby))
   act(() => hook.result.current.openProvincePicker())
   expect(hook.result.current.provincePickerOpen).toBe(false)
-  expect(hook.result.current.message).toContain('chọn địa chỉ')
+  expect(hook.result.current.addressNoticeOpen).toBe(true)
   expect(useSessionStore.getState().screen).toBe('rooms')
   act(() => { useSessionStore.setState({ countryCode: 'VN' }); hook.result.current.openProvincePicker() })
   expect(hook.result.current.provincePickerOpen).toBe(true)

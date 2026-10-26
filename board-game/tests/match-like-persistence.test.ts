@@ -45,3 +45,12 @@ it('rejects nonexistent or unsupported matches before writing a like', async () 
   await expect(new ContentRepository().like('7', 'match', 'red', true)).rejects.toThrow('Ván đấu không hợp lệ.')
   expect(db.change).not.toHaveBeenCalled()
 })
+
+it('keeps the first target on repeated likes instead of moving the count', async () => {
+  await new ContentRepository().like('7', 'match', 'red', true)
+  expect(db.change).toHaveBeenCalledWith(expect.stringContaining('ON DUPLICATE KEY UPDATE target_side=match_likes.target_side'), ['match', '7', 'red'])
+})
+it('does not allow removing a counted like to reuse it', async () => {
+  await expect(new ContentRepository().like('7', 'match', 'red', false)).rejects.toThrow('Không thể hủy lượt thích')
+  expect(db.change).not.toHaveBeenCalled()
+})

@@ -33,7 +33,7 @@ export function ComputerSetupDesktop({ setup }: { setup: ReturnType<typeof useCo
 
           <CrispUiImage src={computerAvatar} alt="Ông Hoàng" className="pointer-events-none absolute top-[13px] left-1/2 block h-[148px] w-[183px] max-w-none -translate-x-1/2 object-contain" />
           <div className="absolute top-[171px] left-1/2 grid h-[53px] w-[330px] -translate-x-1/2 place-items-center">
-            <PlayerNameplate name={setup.engine === 'hovang' ? 'HOVANG v0.4' : 'Ông Hoàng'} className="[--nameplate-width:250px]" />
+            <PlayerNameplate name="Ông Hoàng" className="[--nameplate-width:250px]" />
           </div>
 
           <div className="absolute top-[261px] right-[28px] left-[28px] grid grid-cols-5 gap-x-[16px] gap-y-[33px]">

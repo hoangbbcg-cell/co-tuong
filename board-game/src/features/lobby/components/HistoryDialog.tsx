@@ -1,9 +1,11 @@
+import { historyPlayerFrame } from './HistoryPlayerFrame'
 import mobileHistoryTabs from '../../../assets/b52ef10c-bb5a-4de9-800e-24e6a8d904eb.png'
 import { socialListScrollbarClass } from '../../../lib/uiClasses'
 import { MessageAccountAvatar } from './MessageAccountAvatar'
 import { usePlayedMatches } from '../../../store/playedMatchesStore'
 import { savedMatchSide } from '../../../lib/savedMatchPerspective'
-import { SavedPositionsList } from './SavedPositionsList'
+
+import { SavedMatchesList } from './SavedMatchesList'
 import { useSavedMatches } from '../../../store/savedMatchesStore'
 import { useSessionStore } from '../../../store/sessionStore'
 import { CrispUiImage } from '../../../lib/CrispUiImage'
@@ -21,7 +23,7 @@ import savedTabSelected from '../../../assets/history/history-tab-saved-selected
 import replayButtonFrame from '../../../assets/history/history-replay-button-frame.png'
 import { MatchResultBadge } from './MatchResultBadge'
 import socialHeaderLandscape from '../../../assets/rankings/social-header-landscape.png'
-import { buttonInteraction, historyEmptyTextClass, selectionPalette } from '../../../lib/uiClasses'
+import { buttonInteraction, historyEmptyTextClass } from '../../../lib/uiClasses'
 import type { useHistoryLayout } from '../hooks/useHistoryLayout'
 import { socialPanelClass } from './SocialUi'
 import { socialPlayerRowClass, getSocialRowStyle } from './SocialDialogFrame'
@@ -30,8 +32,6 @@ import { DialogCloseButton } from './DialogCloseButton'
 type HistoryTab = 'played' | 'watched'
 type MatchResult = 'Thắng' | 'Thua'
 
-// Temporarily hide mobile saved categories; retain positions and controls for restoration.
-const SHOW_MOBILE_SAVED_CATEGORIES = false
 
 function HistoryTabButton({ label, selected, image, onClick }: { label: string; selected: boolean; image: string; onClick: () => void }) {
   // Fixed artwork bounds from the four-state sprite keep both states the same size.
@@ -52,7 +52,7 @@ function Player({ name, result, onOpenProfile, className = '', mirrored = false 
   const win = result === 'Thắng'
   return <div className={`flex min-w-0 items-center ${mirrored ? 'compact:flex-row-reverse' : ''} ${className}`}>
     <button type="button" onClick={() => onOpenProfile(name)} className={`${buttonInteraction} relative z-10 grid size-[var(--ui-p-51,51px)] shrink-0 place-items-center rounded-full border-0 bg-transparent p-0 compact:size-[var(--ui-p-96,96px)] [&>span]:size-[var(--ui-p-51,51px)] compact:[&>span]:size-[var(--ui-p-96,96px)]`} aria-label={`Mở hồ sơ của ${name}`}><MessageAccountAvatar name={name} /></button>
-    <span className={`-ml-2 flex h-[var(--ui-p-43,43px)] min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-r-[var(--ui-p-8,8px)] border-y border-r pl-4 compact:h-auto compact:min-h-[var(--ui-p-96,96px)] compact:py-[var(--ui-p-4,4px)] compact:gap-[var(--ui-p-3,3px)] ${mirrored ? '' : 'compact:-ml-[var(--ui-p-48,48px)] compact:pl-[var(--ui-p-60,60px)]'} ${mirrored ? 'compact:ml-0 compact:-mr-[var(--ui-p-48,48px)] compact:flex-row-reverse compact:rounded-r-none compact:rounded-l-[var(--ui-p-8,8px)] compact:border-r-0 compact:border-l compact:pl-[var(--ui-p-4,4px)] compact:pr-[var(--ui-p-60,60px)] compact:text-right compact:[background-position:right]' : ''} ${win ? 'border-[#c9a46b] bg-[linear-gradient(90deg,#efc45c_0%,#f5d273_34%,#f8df99_56%,#f7e8bf_76%,#f4e5c8_100%)] shadow-[inset_0_1px_0_#fff1c8]' : 'border-[#9fbac5] bg-[linear-gradient(90deg,#b9dce7_0%,#cde6ed_28%,#e4eef0_46%,#f1e9d5_64%,#f4e5c8_100%)] shadow-[inset_0_1px_0_#f4fcff]'}`}>
+    <span className={`-ml-2 flex h-[var(--ui-p-43,43px)] min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-r-[var(--ui-p-8,8px)] border-y border-r pl-4 compact:h-auto compact:min-h-[var(--ui-p-96,96px)] compact:py-[var(--ui-p-4,4px)] compact:gap-[var(--ui-p-3,3px)] ${mirrored ? '' : 'compact:-ml-[var(--ui-p-48,48px)] compact:pl-[var(--ui-p-60,60px)]'} ${mirrored ? 'compact:ml-0 compact:-mr-[var(--ui-p-48,48px)] compact:flex-row-reverse compact:rounded-r-none compact:rounded-l-[var(--ui-p-8,8px)] compact:border-r-0 compact:border-l compact:pl-[var(--ui-p-4,4px)] compact:pr-[var(--ui-p-60,60px)] compact:text-right compact:[background-position:right]' : ''} ${historyPlayerFrame(win)}`}>
       <strong className="min-w-0 flex-1 truncate font-heading text-[length:var(--ui-p-21,21px)] font-medium text-[#271608] compact:text-[length:var(--ui-p-48,48px)] compact:font-extrabold compact:lining-nums compact:[-webkit-text-stroke:0.2px_currentColor] compact:whitespace-nowrap compact:overflow-visible compact:text-clip compact:[overflow-wrap:anywhere] compact:leading-[1.4]"><span className="compact:hidden">{name.split(/(\d+)/).map((part, index) => index % 2 === 1 ? <span key={index} className="font-number text-[0.9em] lining-nums">{part}</span> : part)}</span><span className="hidden compact:inline">{name}</span></strong>
       {result === 'Hòa' ? <span className="font-heading">Hòa</span> : <span className="contents compact:inline-flex compact:shrink-0 compact:[&>span]:h-[var(--ui-p-63,63px)] compact:[&>span]:w-[var(--ui-p-132,132px)]"><MatchResultBadge result={result} /></span>}
     </span>
@@ -68,14 +68,8 @@ export function HistoryDialog({ dialogRef, layout, name, onClose, onOpenProfile 
   onOpenProfile: (name: string) => void
 }) {
   const [tab, setTab] = useState<HistoryTab>('played')
-  const [selectedSavedType, setSavedType] = useState<'matches' | 'positions'>('matches')
-  const showSavedCategories = !layout.compact || SHOW_MOBILE_SAVED_CATEGORIES
-  const savedType = showSavedCategories ? selectedSavedType : 'matches'
   const playedEntries = usePlayedMatches(state => state.entries)
-  const entries = useSavedMatches(state => state.entries)
-  const savedMatches = entries.filter(item => item.owner === name)
-  const [saveNotice, setSaveNotice] = useState('')
-  const displayedRecords = tab === 'played' ? playedEntries.filter(item => item.owner === name) : savedMatches
+  const displayedRecords = playedEntries.filter(item => item.owner === name)
   const frameStyle: CSSProperties = {
     ...getCrispUiLayout(layout.scale, layout.width, layout.height),
     ...(layout.compact ? {
@@ -103,16 +97,12 @@ export function HistoryDialog({ dialogRef, layout, name, onClose, onOpenProfile 
           <HistoryTabButton label="Đã lưu" selected={tab === 'watched'} image={tab === 'watched' ? savedTabSelected : savedTab} onClick={() => setTab('watched')} />
         </nav>
 
-        <nav aria-label="Loại đã lưu" aria-hidden={tab !== 'watched' || !showSavedCategories} className={`relative z-10 mb-2 shrink-0 justify-center gap-3 ${tab === 'watched' && showSavedCategories ? 'flex' : 'hidden'}`}>
-          {([{ value: 'matches', label: 'Ván đấu' }, { value: 'positions', label: 'Thế cờ' }] as const).map(item => <button key={item.value} type="button" disabled={tab !== 'watched' || !showSavedCategories} aria-pressed={savedType === item.value} onClick={() => setSavedType(item.value)} className={`${buttonInteraction} rounded border px-6 py-1 font-heading text-[length:var(--ui-p-21,21px)] compact:min-h-[var(--ui-p-90,90px)] compact:min-w-[var(--ui-p-270,270px)] compact:px-[var(--ui-p-36,36px)] compact:py-[var(--ui-p-12,12px)] compact:text-[length:var(--ui-p-43,43px)] ${savedType === item.value ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.text}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface} ${selectionPalette.unselected.text}`}`}>{item.label}</button>)}
-        </nav>
-        <section className={`${socialPanelClass} z-10 flex flex-col p-[var(--ui-p-10,10px)]`} style={{ backgroundImage: `linear-gradient(#fff4dc52,#fff4dc52), url(${historyParchmentBackground})`, backgroundPosition: 'center', backgroundSize: 'cover' }} aria-label={tab === 'played' ? 'Các ván đã chơi' : savedType === 'matches' ? 'Các ván đã lưu' : 'Các thế cờ đã lưu'}>
-          {tab === 'watched' && savedType === 'positions' && <SavedPositionsList owner={name} scale={layout.scale} compact={layout.compact ?? false} onClose={onClose} />}
-          {saveNotice && <p role="status" className="text-center">{saveNotice}</p>}
-          <ol style={layout.compact ? { rowGap: Math.round(8 * layout.scale) } : undefined} hidden={tab === 'watched' && savedType === 'positions'} className={`${layout.compact ? socialListScrollbarClass : ''} ${tab === 'watched' && savedType === 'positions' ? 'hidden' : 'grid'} min-h-0 flex-1 gap-[var(--ui-p-5,5px)] ${displayedRecords.length === 0 ? 'grid-rows-1 place-items-center' : tab === 'watched' ? 'auto-rows-[var(--ui-p-72,72px)] content-start overflow-y-auto' : 'auto-rows-[calc((100%_-_var(--ui-p-35,35px))/_8)] content-start overflow-y-auto'} compact:overflow-y-auto compact:auto-rows-[minmax(var(--ui-p-380,380px),auto)]`}>
+
+        <section className={`${socialPanelClass} z-10 flex flex-col p-[var(--ui-p-10,10px)]`} style={{ backgroundImage: `linear-gradient(#fff4dc52,#fff4dc52), url(${historyParchmentBackground})`, backgroundPosition: 'center', backgroundSize: 'cover' }} aria-label={tab === 'played' ? 'Các ván đã chơi' : 'Các ván đã lưu'}>
+          {tab === 'watched' && <SavedMatchesList owner={name} scale={layout.scale} compact={layout.compact ?? false} onClose={onClose} onOpenProfile={onOpenProfile} />}
+          <ol style={layout.compact ? { rowGap: Math.round(8 * layout.scale) } : undefined} hidden={tab === 'watched'} className={`${layout.compact ? socialListScrollbarClass : ''} ${tab === 'watched' ? 'hidden' : 'grid'} min-h-0 flex-1 gap-[var(--ui-p-5,5px)] ${displayedRecords.length === 0 ? 'grid-rows-1 place-items-center' : tab === 'watched' ? 'auto-rows-[var(--ui-p-72,72px)] content-start overflow-y-auto' : 'auto-rows-[calc((100%_-_var(--ui-p-35,35px))/_8)] content-start overflow-y-auto'} compact:overflow-y-auto compact:auto-rows-[minmax(var(--ui-p-380,380px),auto)]`}>
             {tab === 'played' && displayedRecords.length === 0 && <li className={historyEmptyTextClass}>Chưa có ván đấu đã chơi.</li>}
-            {tab === 'watched' && savedType === 'matches' && savedMatches.length === 0 && <li className={historyEmptyTextClass}>Chưa có ván đấu đã lưu.</li>}
-            {(tab === 'played' || savedType === 'matches') && [...displayedRecords].reverse().map(record => {
+            {tab === 'played' && [...displayedRecords].reverse().map(record => {
  const leftSide = savedMatchSide(record, record.owner)
  const rightSide = leftSide === 'red' ? 'black' : 'red'
  const result = (side: 'red' | 'black') => record.states.at(-1)?.result?.winner === side ? 'Thắng' as const : record.states.at(-1)?.result?.winner ? 'Thua' as const : 'Hòa' as const
@@ -123,7 +113,6 @@ export function HistoryDialog({ dialogRef, layout, name, onClose, onOpenProfile 
               <div className="flex min-w-0 items-center justify-center gap-1.5 compact:col-start-2 compact:row-start-2 compact:gap-0"><CrispUiImage src={redGeneral} alt="Quân đỏ" className="size-[var(--ui-p-47,47px)] object-contain compact:size-[var(--ui-p-90,90px)]" />{record.states[0].variant === 'jieqi' ? <ConcealedPiece className="size-[var(--ui-p-47,47px)] compact:size-[var(--ui-p-90,90px)]" /> : <CrispUiImage src={blackGeneral} alt="Quân đen" className="size-[var(--ui-p-47,47px)] object-contain compact:size-[var(--ui-p-90,90px)]" />}</div>
               <Player mirrored className="compact:col-start-1 compact:col-span-3 compact:row-start-3 compact:w-[75%] compact:justify-self-end compact:mr-[var(--ui-p-12,12px)]" name={rightSide === 'red' ? record.redName : record.blackName} result={result(rightSide)} onOpenProfile={onOpenProfile} />
               <button type="button" className={`${buttonInteraction} relative h-[var(--ui-p-52,52px)] w-[var(--ui-p-151,151px)] compact:col-start-3 compact:row-start-2 compact:grid compact:h-[var(--ui-p-100,100px)] compact:w-full compact:place-items-center`} onClick={() => { useSavedMatches.setState({ replay: { ...record, replayRequiresSave: true } }); onClose(); useSessionStore.setState({ screen: 'replay' }) }}><CrispUiImage src={replayButtonFrame} alt="" className="absolute inset-0 size-full object-contain" /><span className="relative font-arial text-[length:var(--ui-p-19,19px)] text-[#f4dcc0] compact:text-[length:var(--ui-p-38,38px)]">▶ Xem lại</span></button>
-              {tab === 'watched' && <button data-history-delete type="button" aria-label={`Xóa ván ${record.redName} với ${record.blackName}`} className={`${buttonInteraction} grid h-[var(--ui-p-36,36px)] w-[var(--ui-p-28,28px)] place-items-center compact:col-start-3 compact:row-start-1 compact:justify-self-end compact:size-[var(--ui-p-72,72px)] compact:mr-[var(--ui-p-12,12px)] rounded-md border border-[#696761] bg-[linear-gradient(180deg,#777672,#5b5a56)] text-[#e5e7eb]`} onClick={async () => { try { await useSavedMatches.getState().remove(name, record.id); setSaveNotice('') } catch { setSaveNotice('Không thể xóa ván đã lưu. Hãy thử lại.') } }}><svg aria-hidden="true" viewBox="0 0 24 24" className="h-[var(--ui-p-24,24px)] w-[var(--ui-p-19,19px)] compact:size-[var(--ui-p-43,43px)]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M10 10v8m4-8v8M6 6l1 15h10l1-15M9 6V3h6v3" /></svg></button>}
             </li>})}
 
           </ol>
@@ -133,6 +122,5 @@ export function HistoryDialog({ dialogRef, layout, name, onClose, onOpenProfile 
     </div>
   </dialog>
 }
-
 
 

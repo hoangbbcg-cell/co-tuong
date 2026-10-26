@@ -1,4 +1,6 @@
 import type { RoomSnapshot } from './room'
+export const CHALLENGE_BLOCKED_MESSAGE = 'Đã bị chặn'
+export const CHALLENGE_SEND_COOLDOWN_MS = 5000
 
 export interface ChallengeProfile {
   name: string

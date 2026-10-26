@@ -73,7 +73,6 @@ export function useHome() {
   const openRooms = () => useSessionStore.setState({ screen: 'rooms', lobbyOpen: true })
   const openShop = () => useSessionStore.setState({ screen: 'shop', lobbyOpen: false })
   const openComputer = () => useSessionStore.setState({ screen: 'computer', lobbyOpen: false, selectedComputerEngine: 'pikafish' })
-  const openHovang = () => useSessionStore.setState({ screen: 'computer', lobbyOpen: false, selectedComputerEngine: 'hovang' })
   const closeRooms = () => useSessionStore.setState({ lobbyOpen: false })
   const playLocal = () => {
     useGameStore.getState().reset(performance.now())
@@ -96,5 +95,5 @@ export function useHome() {
       setMessage('Bạn có thể đóng tab trình duyệt để thoát trò chơi.')
     }
   }
-  return { openShop, energyCountdown: energyUnlimited ? 'Năng lượng vô hạn' : energyCountdown, energy, energyUnlimited, gold, openHovang, openComputer, playHidden, quickPlay, joining: quick.isPending, name, setName, notice, message, messageRef, profileRef, rankingRef, friendsRef, historyRef, openProfile, closeProfile, openRanking, closeRanking, openFriends, closeFriends, openHistory, closeHistory, setMessage, openRooms, closeRooms, playLocal, fullscreen, exit }
+  return { openShop, energyCountdown: energyUnlimited ? 'Năng lượng vô hạn' : energyCountdown, energy, energyUnlimited, gold, openComputer, playHidden, quickPlay, joining: quick.isPending, name, setName, notice, message, messageRef, profileRef, rankingRef, friendsRef, historyRef, openProfile, closeProfile, openRanking, closeRanking, openFriends, closeFriends, openHistory, closeHistory, setMessage, openRooms, closeRooms, playLocal, fullscreen, exit }
 }

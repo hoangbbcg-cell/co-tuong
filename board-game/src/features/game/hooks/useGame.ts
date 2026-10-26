@@ -227,7 +227,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
     game, moveCount, online, computer, humanSide: session.humanSide, computerEngine: session.computerEngine, computerState, room: replay ? null : session.room, player: replay ? undefined : player, viewer: replay ? undefined : viewer, toggleQueue, selected, legalMoves, forbiddenMoves, repetitionNotice: replay ? '' : repetitionNotice?.message ?? '', repetitionAttemptNotice, dismissRepetitionNotice,
     animation, select, checkmateAudioComplete,
     animationVersion: local.animationVersion, canTakeback, takebacksLeft, takebackDeclineVersion: local.takebackDeclineVersion,
-    status: testBot.error || computerState.error || session.notice || (testBot.pending ? 'Máy giả đang xử lý…' : session.testBotId && game.phase === 'playing' ? 'Máy giả: đi 2 nước hợp lệ để thử bảng thất bại.' : computerState.thinking ? `${session.computerEngine === 'pikafish' ? 'Ông Hoàng' : session.computerEngine === 'hovang' ? 'HOVANG' : 'Máy'} đang suy nghĩ…` : game.phase === 'playing' ? '' : gameStatus(game)), pending: pending || testBot.pending,
+    status: testBot.error || computerState.error || session.notice || (testBot.pending ? 'Máy giả đang xử lý…' : session.testBotId && game.phase === 'playing' ? 'Máy giả: đi 2 nước hợp lệ để thử bảng thất bại.' : computerState.thinking ? `${session.computerEngine === 'pikafish' ? 'Ông Hoàng' : 'Máy'} đang suy nghĩ…` : game.phase === 'playing' ? '' : gameStatus(game)), pending: pending || testBot.pending,
     start,
     reset: () => replay ? undefined : session.testBotId ? void testBot.start(game.variant ?? 'xiangqi') : online ? void command({ type: 'reset' }) : local.reset(performance.now(), game.variant),
     requestTakeback: () => {

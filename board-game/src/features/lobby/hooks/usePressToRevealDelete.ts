@@ -33,7 +33,7 @@ export function usePressToRevealDelete(enabled: boolean, scope: string) {
     return {
       onPointerDown(event) {
         if (!event.isPrimary || event.button !== 0) return
-        if (event.target instanceof Element && event.target.closest('input,textarea,select,[data-history-delete]')) {
+        if (event.target instanceof Element && event.target.closest('input,textarea,select,[data-history-delete],[data-history-edit]')) {
           held.current = false
           return
         }

@@ -9,6 +9,13 @@ describe('Service phòng và server là nguồn sự thật', () => {
     id = service.create('Phòng test').id
     service.join(id, 'a', 'Đỏ'); service.join(id, 'b', 'Đen')
   })
+  it('biểu cảm chỉ nhận từ thành viên tới đúng ghế và emoji cho phép', () => {
+    service.join(id, 'viewer', 'Khán giả')
+    expect(service.reaction('viewer', { targetSide: 'red', targetId: 'a', reaction: '❤️' })).toMatchObject({ roomId: id, actorId: 'viewer', targetId: 'a', reaction: '❤️', players: ['a', 'b'] })
+    expect(() => service.reaction('outsider', { targetSide: 'red', targetId: 'a', reaction: '👍' })).toThrow()
+    expect(() => service.reaction('viewer', { targetSide: 'red', targetId: 'b', reaction: '👍' })).toThrow()
+    expect(() => service.reaction('viewer', { targetSide: 'red', targetId: 'a', reaction: '<script>' })).toThrow()
+  })
   const move = { type: 'move', move: { from: { row: 6, col: 0 }, to: { row: 5, col: 0 } } }
   const start = () => { service.command('a', { type: 'ready' }); service.command('b', { type: 'ready' }) }
   it('cấp mã phòng thật riêng và giữ cùng mã qua danh sách, người tham gia và reset', () => {

@@ -74,6 +74,10 @@ export class SocialRepository {
       const conv=await rows('SELECT * FROM conversations WHERE id=? FOR UPDATE',[conversation],c)
       const member=await rows('SELECT user_id FROM conversation_members WHERE conversation_id=? AND user_id=? AND left_at IS NULL',[conversation,id],c)
       if(!conv[0]||!member.length)throw new AccountError('Không thuộc cuộc trò chuyện.',403)
+      if(conv[0].type==='group') {
+        const blocked=await rows('SELECT user_id FROM conversation_member_blocks WHERE conversation_id=? AND user_id=?',[conversation,id],c)
+        if(blocked.length)throw new AccountError('Bạn đã bị chặn chat trong nhóm.',403)
+      }
       if(conv[0].type==='direct') {
         const target=String(conv[0].direct_user_low_id)===id?String(conv[0].direct_user_high_id):String(conv[0].direct_user_low_id)
         // Lock the target user: message-block mutations take the same lock.
@@ -92,16 +96,59 @@ export class SocialRepository {
       return String(r[0].id)
     })
   }
-  async member(id:string,conversation:string,action:'clear'|'nickname'|'leave'|'add'|'remove',value:string|null) {
+  async member(id:string,conversation:string,action:'clear'|'nickname'|'leave'|'add'|'remove'|'transfer-owner'|'dissolve'|'approve'|'reject'|'block-member'|'unblock-member'|'promote-deputy'|'demote-deputy',value:string|null) {
     return transaction(async c=>{
-      const conv=await rows('SELECT type FROM conversations WHERE id=? FOR UPDATE',[conversation],c)
+      const conv=await rows('SELECT type,member_approval_required FROM conversations WHERE id=? FOR UPDATE',[conversation],c)
       const member=await rows('SELECT role FROM conversation_members WHERE conversation_id=? AND user_id=? AND left_at IS NULL',[conversation,id],c)
       if(!conv[0]||!member.length)throw new AccountError('Không thuộc cuộc trò chuyện.',403)
       if(action==='clear') await change('UPDATE conversation_members SET cleared_through_message_id=(SELECT MAX(id) FROM messages WHERE conversation_id=?) WHERE conversation_id=? AND user_id=?',[conversation,conversation,id],c)
       else if(action==='nickname') await change('UPDATE conversation_members SET title_override=? WHERE conversation_id=? AND user_id=?',[value,conversation,id],c)
       else if(conv[0].type!=='group')throw new AccountError('Chỉ áp dụng cho nhóm.')
-      else if(action==='leave') await change('UPDATE conversation_members SET left_at=UTC_TIMESTAMP(3) WHERE conversation_id=? AND user_id=?',[conversation,id],c)
+      else if(action==='leave') {
+        if(member[0].role==='owner')throw new AccountError('Vui lòng chuyển khóa vàng cho người khác trước khi rời nhóm.',409)
+        await change('UPDATE conversation_members SET left_at=UTC_TIMESTAMP(3) WHERE conversation_id=? AND user_id=?',[conversation,id],c)
+      }
+      else if(action==='add') {
+        const blocked=await rows('SELECT user_id FROM conversation_member_blocks WHERE conversation_id=? AND user_id=?',[conversation,id],c)
+        if(blocked.length)throw new AccountError('Bạn đã bị chặn mời thành viên trong nhóm.',403)
+        const target=await rows("SELECT id FROM users WHERE id=? AND status='active'",[value],c)
+        if(!target.length)throw new AccountError('Không tìm thấy người chơi.',404)
+        const active=await rows('SELECT user_id FROM conversation_members WHERE conversation_id=? AND user_id=? AND left_at IS NULL',[conversation,value],c)
+        if(active.length)return {pendingApproval:false}
+        if(Number(conv[0].member_approval_required)===1 && member[0].role!=='owner') {
+          await change('INSERT INTO conversation_join_requests(conversation_id,user_id,invited_by) VALUES (?,?,?) ON DUPLICATE KEY UPDATE user_id=conversation_join_requests.user_id',[conversation,value,id],c)
+          return {pendingApproval:true}
+        }
+        await change("INSERT INTO conversation_members(conversation_id,user_id,role) VALUES (?,?,'member') ON DUPLICATE KEY UPDATE left_at=NULL,role='member'",[conversation,value],c)
+        await change('DELETE FROM conversation_join_requests WHERE conversation_id=? AND user_id=?',[conversation,value],c)
+        return {pendingApproval:false}
+      }
       else if(member[0].role!=='owner')throw new AccountError('Chỉ chủ nhóm được quản lý thành viên.',403)
+      else if(action==='unblock-member') await change('DELETE FROM conversation_member_blocks WHERE conversation_id=? AND user_id=?',[conversation,value],c)
+      else if(action==='block-member'||action==='promote-deputy'||action==='demote-deputy') {
+        const target=await rows('SELECT role FROM conversation_members WHERE conversation_id=? AND user_id=? AND left_at IS NULL',[conversation,value],c)
+        if(!target.length)throw new AccountError('Người chơi không còn trong nhóm.',404)
+        if(value===id||target[0].role==='owner')throw new AccountError('Không thể thay đổi quyền của trưởng nhóm.',403)
+        if(action==='block-member') await change('INSERT INTO conversation_member_blocks(conversation_id,user_id,blocked_by) VALUES (?,?,?) ON DUPLICATE KEY UPDATE user_id=conversation_member_blocks.user_id',[conversation,value,id],c)
+        else await change('UPDATE conversation_members SET role=? WHERE conversation_id=? AND user_id=?',[action==='promote-deputy'?'deputy':'member',conversation,value],c)
+      }
+      else if(action==='transfer-owner') {
+        if(value===id)throw new AccountError('Hãy chọn thành viên khác.')
+        const target=await rows('SELECT role FROM conversation_members WHERE conversation_id=? AND user_id=? AND left_at IS NULL',[conversation,value],c)
+        if(!target.length)throw new AccountError('Người chơi không còn trong nhóm.',404)
+        await change("UPDATE conversation_members SET role='member' WHERE conversation_id=? AND user_id=?",[conversation,id],c)
+        await change("UPDATE conversation_members SET role='owner' WHERE conversation_id=? AND user_id=?",[conversation,value],c)
+      }
+      else if(action==='dissolve') {
+        await change('UPDATE conversation_members SET left_at=UTC_TIMESTAMP(3) WHERE conversation_id=? AND left_at IS NULL',[conversation],c)
+        await change('DELETE FROM conversation_join_requests WHERE conversation_id=?',[conversation],c)
+      }
+      else if(action==='approve'||action==='reject') {
+        const request=await rows('SELECT user_id FROM conversation_join_requests WHERE conversation_id=? AND user_id=?',[conversation,value],c)
+        if(!request.length)throw new AccountError('Yêu cầu không còn chờ duyệt.',404)
+        if(action==='approve')await change("INSERT INTO conversation_members(conversation_id,user_id,role) VALUES (?,?,'member') ON DUPLICATE KEY UPDATE left_at=NULL,role='member'",[conversation,value],c)
+        await change('DELETE FROM conversation_join_requests WHERE conversation_id=? AND user_id=?',[conversation,value],c)
+      }
       else if(action==='remove') {
         const target=await rows('SELECT role FROM conversation_members WHERE conversation_id=? AND user_id=? AND left_at IS NULL',[conversation,value],c)
         if(!target.length)throw new AccountError('Người chơi không còn trong nhóm.',404)
@@ -110,6 +157,29 @@ export class SocialRepository {
       }
       else await change("INSERT INTO conversation_members(conversation_id,user_id,role) VALUES (?,?,'member') ON DUPLICATE KEY UPDATE left_at=NULL",[conversation,value],c)
     })
+  }
+  async blockedMembers(id:string,conversation:string) {
+    const membership=await rows('SELECT user_id FROM conversation_members WHERE conversation_id=? AND user_id=? AND left_at IS NULL',[conversation,id])
+    if(!membership.length)throw new AccountError('Không thuộc nhóm.',403)
+    return rows('SELECT CAST(b.user_id AS CHAR) id,u.display_name name FROM conversation_member_blocks b JOIN users u ON u.id=b.user_id WHERE b.conversation_id=? ORDER BY b.created_at,b.user_id',[conversation])
+  }
+  async groupSettings(id:string,conversation:string) {
+    const result=await rows("SELECT c.member_approval_required FROM conversations c JOIN conversation_members cm ON cm.conversation_id=c.id WHERE c.id=? AND c.type='group' AND cm.user_id=? AND cm.left_at IS NULL",[conversation,id])
+    if(!result.length)throw new AccountError('Không thuộc nhóm.',403)
+    return {approvalRequired:Number(result[0].member_approval_required)===1}
+  }
+  async setGroupApproval(id:string,conversation:string,enabled:boolean) {
+    return transaction(async c=>{
+      await rows('SELECT id FROM conversations WHERE id=? FOR UPDATE',[conversation],c)
+      const owner=await rows("SELECT role FROM conversation_members WHERE conversation_id=? AND user_id=? AND role='owner' AND left_at IS NULL",[conversation,id],c)
+      if(!owner.length)throw new AccountError('Chỉ chủ nhóm được đổi cài đặt.',403)
+      await change("UPDATE conversations SET member_approval_required=? WHERE id=? AND type='group'",[enabled?1:0,conversation],c)
+    })
+  }
+  async pendingMembers(id:string,conversation:string) {
+    const owner=await rows("SELECT role FROM conversation_members WHERE conversation_id=? AND user_id=? AND role='owner' AND left_at IS NULL",[conversation,id])
+    if(!owner.length)throw new AccountError('Chỉ chủ nhóm được xem yêu cầu chờ duyệt.',403)
+    return rows('SELECT CAST(r.user_id AS CHAR) id,u.display_name name,i.display_name inviterName FROM conversation_join_requests r JOIN users u ON u.id=r.user_id JOIN users i ON i.id=r.invited_by WHERE r.conversation_id=? ORDER BY r.created_at,r.user_id',[conversation])
   }
   async block(id:string,target:string,enabled:boolean) {
     await transaction(async c=>{

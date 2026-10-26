@@ -1,3 +1,6 @@
+import { useInviteSentNotice } from './InviteSentNotice'
+import { useSessionStore } from '../../../store/sessionStore'
+import { useFriendChallenge } from '../hooks/useFriendChallenge'
 import { socialListScrollbarClass } from '../../../lib/uiClasses'
 import { SocialDialogFrame, socialModeTabsClass, socialPlayerRowClass, socialPlayerListClass, getSocialRowStyle } from './SocialDialogFrame'
 import { useRankingListInset } from '../hooks/useRankingListInset'
@@ -108,6 +111,9 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
   const [mode, setMode] = useState<Mode>('xiangqi')
   const players = useDatabaseRanking(mode)
   const [previewNotice, setPreviewNotice] = useState('')
+  const ownId = useSessionStore(state => state.account?.id)
+  const sentFeedback = useInviteSentNotice()
+  const challenge = useFriendChallenge(() => {}, sentFeedback.show)
   const watch = useRankingWatch(dialogRef, onClose, mode)
   const renderingStyle = {
     width: Math.round(layout.width * layout.scale),
@@ -121,7 +127,7 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
   const { listRef, inset: headerInset } = useRankingListInset(Boolean(layout.compact))
   const rowScale = layout.scale * (layout.compact ? 1.5 : 1)
   const headerScale = layout.scale * (layout.compact ? 1.5 : 1)
-  const eloScale = layout.scale * (layout.compact ? 1.35 : 1)
+  const eloScale = layout.scale * (layout.compact ? 1.42 : 1)
   const eloOffset = Math.round(24 * layout.scale)
   const eloWidthExtension = Math.round(34 * layout.scale)
   const columnStyle: CSSProperties | undefined = layout.compact ? {
@@ -141,9 +147,9 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
           {modes.map(item => <button key={item.key} type="button" role="tab" aria-selected={mode === item.key} onClick={() => setMode(item.key)} className={`${buttonInteraction} relative block h-[var(--ranking-tab-height)] w-[var(--ranking-tab-width)] shrink-0 isolate overflow-visible border-0 bg-transparent p-0 leading-none`}><img src={item.image} alt="" className={`pointer-events-none block h-full w-full object-contain transition-[filter] duration-200 motion-reduce:transition-none ${mode === item.key ? selectedImageTabGlow : ''}`} /><span className="sr-only">{item.label}</span></button>)}
         </div>
         <section aria-label={`Bảng xếp hạng ${mode === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}`} className={`${socialPanelClass} ranking-panel flex flex-col gap-[var(--ranking-6)]`} style={{ paddingInline: Math.round(20 * layout.scale), borderWidth: Math.round(3 * layout.scale), borderRadius: Math.round(14 * layout.scale), backgroundImage: `linear-gradient(#fff4dc52,#fff4dc52), url(${historyParchmentBackground})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
-          <div style={layout.compact ? { ...getRankingScaleStyle(headerScale), ...columnStyle, marginRight: headerInset } : undefined} className="relative z-10 isolate grid h-[var(--ranking-38)] shrink-0 grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)] items-center gap-3 overflow-hidden rounded-[var(--ranking-9)] border border-[#c3a371] bg-[#b68c53]/30 px-3 font-heading text-[length:var(--ranking-21)] font-extrabold italic text-[#43240f] [-webkit-text-stroke:0.35px_currentColor]">
+          <div style={layout.compact ? { ...getRankingScaleStyle(headerScale), ...columnStyle, marginRight: headerInset, height: Math.round(46 * headerScale), fontSize: Math.round(24 * headerScale) } : undefined} className="relative z-10 isolate grid h-[var(--ranking-38)] shrink-0 grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)] items-center gap-3 overflow-hidden rounded-[var(--ranking-9)] border border-[#c3a371] bg-[#b68c53]/30 px-3 font-heading text-[length:var(--ranking-21)] font-extrabold italic text-[#43240f] [-webkit-text-stroke:0.35px_currentColor]">
             <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-0 w-[var(--ranking-125)] bg-[linear-gradient(90deg,#4b271326_0%,#75451d1b_54%,transparent_100%)] shadow-[inset_8px_0_12px_-10px_#24100635]" />
-            <span className="relative z-10 text-center">Hạng</span><span className="pl-[var(--ranking-100)]" style={layout.compact ? { paddingLeft: Math.round(84 * rowScale) + Math.round(20 * rowScale) + 8 * rowScale } : undefined}>Người chơi</span><span className="text-center" style={layout.compact ? { transform: `translateX(${eloOffset + eloWidthExtension / 2}px)` } : undefined}>Elo</span><span className="text-center">Thao tác</span>
+            <span className="relative z-10 text-center">Hạng</span><span className="text-center">Người chơi</span><span className="text-center" style={layout.compact ? { transform: `translateX(${eloOffset + eloWidthExtension / 2}px)` } : undefined}>Elo</span><span className="text-center">Thao tác</span>
           </div>
           <ol ref={listRef} className={`${socialPlayerListClass} ${socialListScrollbarClass}`}>
             {players.map((player, index) => <li key={player.name} style={{ ...getSocialRowStyle(layout.scale, Boolean(layout.compact)), ...rowStyle }} className={`${socialPlayerRowClass} grid-cols-[var(--ranking-90)_minmax(0,1fr)_var(--ranking-156)_var(--ranking-173)]`}>
@@ -153,7 +159,7 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
                   ? <><img src={rankNumberImages[index]} alt="" className="pointer-events-none absolute top-1/2 left-1/2 size-[var(--ranking-99)] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain brightness-110 drop-shadow-[0_0_5px_#ffe3a080]" /><span aria-hidden="true" className="pointer-events-none absolute top-[12%] left-[10%] text-[length:var(--ranking-20)] leading-none text-[#fff8df] drop-shadow-[0_0_4px_#fff0ad] motion-safe:animate-pulse">✦</span><span aria-hidden="true" className="pointer-events-none absolute right-[5%] bottom-[20%] text-[length:var(--ranking-15)] leading-none text-[#fff8df] drop-shadow-[0_0_4px_#fff0ad] motion-safe:animate-pulse [animation-delay:900ms]">✦</span></>
                   : <><img src={rankPlainFrame} alt="" className="pointer-events-none size-[var(--ranking-76)] object-contain" /><span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-['Times_New_Roman'] text-[length:var(--ranking-46)] leading-none font-bold italic text-[#ffe0a0] [text-shadow:0_2px_2px_#391b0b]">{index + 1}</span></>}
               </span>
-              <div className="flex min-w-0 items-center gap-[var(--ranking-20)]">
+              <div className="flex min-w-0 items-center gap-[var(--ranking-20)] compact:-translate-x-[5px]">
                 <span className="ml-2 relative block w-[var(--ranking-84)] shrink-0" style={{ height: Math.round(124 * rowScale) }}>
                   <span className="relative block size-[var(--ranking-84)] overflow-visible" style={{ top: Math.round(6 * rowScale) }}>
                   {index === 0 && <svg aria-hidden="true" viewBox="0 0 157 119" className="pointer-events-none absolute top-[calc(0px-var(--ranking-5)-3px)] left-1/2 z-20 h-[var(--ranking-19)] w-[var(--ranking-25)] -translate-x-1/2 overflow-visible drop-shadow-[0_1px_1px_#4a250f]"><defs><clipPath id="top-one-crown-curve"><path d="M0 0H157V87Q78.5 126 0 87Z" /></clipPath></defs><image href={topOneCrown} width="157" height="119" clipPath="url(#top-one-crown-curve)" /></svg>}
@@ -165,14 +171,15 @@ export function RankingDialog({ dialogRef, layout, onClose, onOpenProfile }: {
               </div>
               <div style={{ ...(layout.compact ? getRankingScaleStyle(eloScale) : {}), height: layout.compact ? 'calc(100% + 6px)' : `calc(100% - ${Math.round(28 * layout.scale)}px)`, width: `calc(100% + ${(layout.compact ? eloWidthExtension : 0) + Math.round((layout.compact ? 13 : 6) * layout.scale)}px)`, transform: `translateX(${layout.compact ? eloOffset : 0}px)` }} className="relative flex items-center justify-center">
                 <span aria-hidden="true" className="pointer-events-none absolute inset-0 compact:-left-[3.5px] compact:-right-[3.5px] rounded-[var(--ranking-9)] compact:rounded-[var(--ranking-5)] bg-[#b68c53]/20" />
-                <span className="relative flex h-[var(--ranking-46)] w-full min-w-0 items-center justify-center bg-center bg-no-repeat bg-[length:100%_100%] pl-[var(--ranking-34)] pr-[var(--ranking-10)] font-georgia text-[#ffe7ae] whitespace-nowrap [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}><CrispUiImage src={mode === 'hidden' ? concealedPiece : redGeneral} alt={`Elo ${mode === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}`} className="absolute left-[var(--ranking-8)] size-[var(--ranking-25)] shrink-0 object-contain" /><span className="font-number text-[length:var(--ranking-24)] leading-none lining-nums tabular-nums">{player.elo}</span></span>
+                <span className="relative flex h-[var(--ranking-46)] w-full min-w-0 items-center justify-center bg-center bg-no-repeat bg-[length:100%_100%] pl-[var(--ranking-34)] pr-[var(--ranking-10)] font-georgia text-[#ffe7ae] whitespace-nowrap [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}><CrispUiImage src={mode === 'hidden' ? concealedPiece : redGeneral} alt={`Elo ${mode === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}`} className="absolute left-[var(--ranking-8)] size-[var(--ranking-25)] shrink-0 object-contain" style={layout.compact ? { width: Math.round(32 * eloScale), height: Math.round(32 * eloScale) } : undefined} /><span className="font-number text-[length:var(--ranking-24)] leading-none lining-nums tabular-nums">{player.elo}</span></span>
               </div>
-              {watch.matchFor(player.name) && <RankingViewButton name={player.name} scale={rowScale} onView={watch.watch} />}
+              {watch.matchFor(player.name) ? <RankingViewButton name={player.name} scale={rowScale} onView={watch.watch} /> : player.online && player.id !== ownId ? <RankingViewButton invite disabled={challenge.pending} name={player.name} scale={rowScale} onView={() => { void challenge.invite(player.name, player.id) }} /> : null}
             </li>)}
           </ol>
         </section>
     </SocialDialogFrame>
     {(watch.error || previewNotice) && !watch.passwordControls.passwordRoom && <p role={watch.error ? 'alert' : 'status'} onClick={() => setPreviewNotice('')} className="absolute bottom-3 left-1/2 z-30 max-w-[90%] -translate-x-1/2 rounded border border-[#c7a264] bg-[#f7e6c1] px-3 py-2 text-center text-[#43240f]">{watch.error || previewNotice}</p>}
+    {sentFeedback.notice}
     <RoomPasswordDialog lobby={watch.passwordControls}/>
   </dialog>
 }

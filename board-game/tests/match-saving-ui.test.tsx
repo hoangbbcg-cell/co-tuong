@@ -20,11 +20,16 @@ it('late viewers wait for completion and save the latest completed match across 
   expect(result.current.recording).toBeNull()
   await act(async () => {await result.current.save()})
   expect(useSavedMatches.getState().entries).toHaveLength(0)
+  // The archive already present on entry belongs to an earlier match. A newly
+  // completed archive must have a new ID before a late viewer can save it.
   rerender({ game: first.states[1], archive: first })
-  expect(result.current.recording?.id).toBe('first')
+  expect(result.current.recording).toBeNull()
+  const completedFirst = { ...first, id: 'completed-first' }
+  rerender({ game: completedFirst.states[1], archive: completedFirst })
+  expect(result.current.recording?.id).toBe('completed-first')
   rerender({ game: playing, archive: undefined })
   await act(async () => {await result.current.save()})
-  expect(useSavedMatches.getState().entries.at(-1)?.id).toBe('first')
+  expect(useSavedMatches.getState().entries.at(-1)?.id).toBe('completed-first')
   rerender({ game: second.states[1], archive: second })
   expect(result.current.saved).toBe(false)
   await act(async () => {await result.current.save()})

@@ -1,3 +1,5 @@
+import { NoticeOverlay } from './NoticeOverlay'
+import { useInviteSentNotice } from './InviteSentNotice'
 import { SearchButton } from './SearchButton'
 
 import { AccountAvatar } from './AccountAvatar'
@@ -196,7 +198,8 @@ export function DesktopFriendsDialog({ dialogRef, layout, onClose, onOpenProfile
   const sentInvites = outgoing
   const sent = useMemo(() => sentInvites.map(friend => friend.name), [sentInvites])
   const [actionFeedback, setActionFeedback] = useState<{ title: string; message: string } | null>(null)
-  const challenge = useFriendChallenge((name, message) => setActionFeedback({ title: `Mời chơi ${name}`, message }))
+  const challengeNotice = useInviteSentNotice()
+  const challenge = useFriendChallenge((name, message) => setActionFeedback({ title: `Mời chơi ${name}`, message }), challengeNotice.show)
   const [sentToasts, setSentToasts] = useState<Array<{ id: number; phase: 'visible' | 'exiting' }>>([])
   const sentToastId = useRef(0)
   const sentToastTimeout = useRef<number | undefined>(undefined)
@@ -264,7 +267,7 @@ export function DesktopFriendsDialog({ dialogRef, layout, onClose, onOpenProfile
               </div>
             </form>
             <ul className={friendListClass}>
-              {visibleFriends.map(friend => <FriendRow key={friend.name} friend={friend} onOpenProfile={onOpenProfile}>{friend.presence === 'online' && <button type="button" className={friendActionButton} style={friendActionFrame} aria-label={`Mời chơi ${friend.name}`} disabled={challenge.pending} onClick={() => void challenge.invite(friend.name)}><span aria-hidden="true" className="pointer-events-none block size-[var(--ui-p-35,35px)] shrink-0 bg-no-repeat" style={{ backgroundImage: `url(${inviteButtonImage})`, backgroundSize: `${Math.round(183 * layout.scale)}px ${Math.round(54 * layout.scale)}px`, backgroundPosition: `${Math.round(-30 * layout.scale)}px ${Math.round(-9 * layout.scale)}px` }} /><span className="whitespace-nowrap">Mời chơi</span></button>}<button type="button" className={friendButtonInteraction} aria-label={`Nhắn tin ${friend.name}`} onClick={() => onOpenMessages(friend.name, friend.avatar, friend.presence)}><CrispUiImage src={chatButtonImage} alt="Nhắn tin" className="pointer-events-none h-[var(--ui-p-54,54px)] w-[var(--ui-p-63,63px)] object-contain" /></button></FriendRow>)}
+{visibleFriends.map(friend => <FriendRow key={friend.name} friend={friend} onOpenProfile={onOpenProfile}>{friend.presence === 'online' && <button type="button" className={`${friendActionButton} disabled:brightness-75 disabled:opacity-100`} style={friendActionFrame} aria-label={`Mời chơi ${friend.name}`} disabled={challenge.pending} onClick={() => void challenge.invite(friend.name)}><span aria-hidden="true" className="pointer-events-none block size-[var(--ui-p-35,35px)] shrink-0 bg-no-repeat" style={{ backgroundImage: `url(${inviteButtonImage})`, backgroundSize: `${Math.round(183 * layout.scale)}px ${Math.round(54 * layout.scale)}px`, backgroundPosition: `${Math.round(-30 * layout.scale)}px ${Math.round(-9 * layout.scale)}px` }} /><span className="whitespace-nowrap">Mời chơi</span></button>}<button type="button" className={friendButtonInteraction} aria-label={`Nhắn tin ${friend.name}`} onClick={() => onOpenMessages(friend.name, friend.avatar, friend.presence)}><CrispUiImage src={chatButtonImage} alt="Nhắn tin" className="pointer-events-none h-[var(--ui-p-54,54px)] w-[var(--ui-p-63,63px)] object-contain" /></button></FriendRow>)}
             </ul>
           </div>}
           {tab === 'add' && <div className={friendDirectoryClass}>
@@ -285,8 +288,9 @@ export function DesktopFriendsDialog({ dialogRef, layout, onClose, onOpenProfile
       </div>
       {['top-0 left-0', 'top-0 right-0 -scale-x-100', 'bottom-0 left-0 -scale-y-100', 'bottom-0 right-0 -scale-x-100 -scale-y-100'].map(position => <svg key={position} aria-hidden="true" viewBox="0 0 90 90" className={`pointer-events-none absolute size-[var(--ui-p-76,76px)] ${position}`} fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M7 79V20Q7 7 21 7h58M16 66V26q0-10 12-10h37M14 47c40 7 6-48 38-34 14 7-5 25-13 21S44 6 62 9M21 74c-8-24 22-9 19-28" stroke="#64320f" strokeWidth="11"/><path d="M7 79V20Q7 7 21 7h58M16 66V26q0-10 12-10h37M14 47c40 7 6-48 38-34 14 7-5 25-13 21S44 6 62 9M21 74c-8-24 22-9 19-28" stroke="#d8a34e" strokeWidth="6"/><path d="M7 74V20Q7 7 21 7h52M16 42c26 4 10-30 27-29" stroke="#ffe1a0" strokeWidth="2"/></svg>)}
     </div>
-    {actionFeedback && <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/50" onClick={() => setActionFeedback(null)}><section role="alertdialog" aria-modal="true" aria-labelledby="friend-action-title" aria-describedby="friend-action-message" className="mx-5 w-[var(--ui-p-380,380px)] max-w-full rounded-[var(--ui-p-10,10px)] border-2 border-[#d8ac57] bg-[#351d10] p-5 text-center text-[#ffe3a2] shadow-xl" onClick={event => event.stopPropagation()}><h3 id="friend-action-title" className="font-cormorant text-2xl font-bold">{actionFeedback.title}</h3><p id="friend-action-message" className="my-4 text-base">{actionFeedback.message}</p><button type="button" autoFocus className={`${goldButton} mx-auto`} onClick={() => setActionFeedback(null)}>Đóng</button></section></div>}
+    {actionFeedback && <NoticeOverlay onDismiss={() => setActionFeedback(null)} className="absolute inset-0 z-40 flex items-center justify-center bg-black/50" onClick={() => setActionFeedback(null)}><section role="alertdialog" aria-modal="true" aria-labelledby="friend-action-title" aria-describedby="friend-action-message" className="mx-5 w-[var(--ui-p-380,380px)] max-w-full rounded-[var(--ui-p-10,10px)] border-2 border-[#d8ac57] bg-[#351d10] p-5 text-center text-[#ffe3a2] shadow-xl" onClick={event => event.stopPropagation()}><h3 id="friend-action-title" className="font-cormorant text-2xl font-bold">{actionFeedback.title}</h3><p id="friend-action-message" className="my-4 text-base">{actionFeedback.message}</p><button type="button" autoFocus className={`${goldButton} mx-auto`} onClick={() => setActionFeedback(null)}>Đóng</button></section></NoticeOverlay>}
     {sentToasts.map(toast => <div key={toast.id} className="pointer-events-none fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2"><p role="status" onAnimationEnd={() => setSentToasts(current => current.filter(item => item.id !== toast.id))} className={`m-0 min-w-[var(--ui-p-190,190px)] rounded-[var(--ui-p-3,3px)] border border-green-700 bg-green-600 px-5 py-2 text-center font-cormorant text-2xl font-bold tracking-wide text-white shadow-lg ${toast.phase === 'exiting' ? 'friend-request-sent-exit' : ''}`}>Đã gửi</p></div>)}
+    {challengeNotice.notice}
   </dialog>
 }
 

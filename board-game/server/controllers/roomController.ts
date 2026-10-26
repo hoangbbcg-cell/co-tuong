@@ -64,6 +64,11 @@ export function registerRoomSockets(io: Server<ClientEvents, ServerEvents>, serv
       const room=service.roomFor(socket.id)
       if(room)for(const player of room.players)await persistence.canPlay(player.id)
     }:undefined))
+    socket.on('room:reaction', (input, ack) => run(ack, () => {
+      const reaction = service.reaction(socket.id, input)
+      socket.to(reaction.roomId).emit('room:reaction', reaction)
+      return null
+    }))
     socket.on('chat:send', (text, ack) => run(ack, () => {
       const room = service.chat(socket.id, text)
       publish(room)

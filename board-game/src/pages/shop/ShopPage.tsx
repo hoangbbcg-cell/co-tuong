@@ -1,6 +1,10 @@
 import { ShopFilterTab } from './ShopFilterTab'
 import { ShopPurchaseDialog } from './ShopPurchaseDialog'
-import { SHOP_PRODUCTS, ownsCosmetic } from '../../lib/shopCatalog'
+import { ShopAvatarPreview } from './ShopAvatarPreview'
+import { ownsCosmetic } from '../../lib/shopCatalog'
+import { getShopAvatarArtwork } from '../../lib/shopCosmeticArtwork'
+import { getAvatarFrame } from '../../lib/avatarFrames'
+import { useDailyShop } from '../../features/lobby/hooks/useDailyShop'
 import purchasedStamp from '../../assets/shop/purchased.png'
 import { useShopPurchase } from '../../features/lobby/hooks/useShopPurchase'
 import strategistAvatar from '../../assets/shop/avatars/small/lao-quan-su-128.png'
@@ -45,7 +49,6 @@ const shopArtwork: Record<string, string | null> = {
   'frame-5': jadeShopFrame,
   'frame-6': purpleShopFrame,
 }
-const shopProducts = SHOP_PRODUCTS.map(product => ({ ...product, image: shopArtwork[product.id] }))
 
 export function ShopPage() {
   const account = useSessionStore(state => state.account)
@@ -53,7 +56,13 @@ export function ShopPage() {
   const layout = useHomeLayout()
   const resources = layout.compact ? { resourceWidth: 116, resourceHeight: 56, resourceFrameWidth: 116, resourceFrameHeight: 26, resourceIconHeight: 18 } : homeResourceLayout(layout.scale, false)
   const [tab, setTab] = useState('Tất cả')
-  const products = shopProducts.filter(item => tab === 'Tất cả' || item.kind === (tab === 'Avatar' ? 'avatar' : 'frame'))
+  const daily = useDailyShop()
+  const [previewAvatar, setPreviewAvatar] = useState<{ name: string; image: string; kind: 'avatar' | 'frame' } | null>(null)
+  const products = (daily.data?.products ?? []).filter(item => tab === 'Tất cả' || item.kind === (tab === 'Avatar' ? 'avatar' : 'frame')).map(product => ({
+    ...product,
+    image: product.kind === 'frame' ? getAvatarFrame(Number(product.code.replace('frame-', ''))).image : getShopAvatarArtwork(Number(product.code.replace('avatar-', ''))) ?? shopArtwork[product.id],
+    avatarIndex: Number(product.code.replace('avatar-', '')),
+  }))
   const [market, setMarket] = useState(0)
   const dailyCountdown = useShopDailyCountdown(market === 0 || market === 1, market === 1 ? 'weekly' : 'daily')
   const marketNames = ['Phiên Chợ Hàng Ngày', 'Cửa Hàng Cao Cấp', 'Sự Kiện']
@@ -72,7 +81,7 @@ export function ShopPage() {
     <div aria-hidden="true" className="pointer-events-none absolute inset-[var(--ui-p-2,2px)] z-40 border border-[#e3bf78] shadow-[inset_0_0_0_2px_#63472055]" />
     <CrispUiImage src={background} alt="" className="pointer-events-none absolute inset-0 -z-20 size-full object-cover object-center" />
     <header className="relative z-20 flex h-16 shrink-0 items-center gap-3 bg-transparent px-4 compact:h-[72px] compact:min-h-[72px] compact:flex-nowrap compact:items-start compact:gap-1 compact:px-2 compact:py-2">
-      <button type="button" aria-label="Trở về Home" onClick={back} className={`${gameUtilityButton} shrink-0 compact:size-9 compact:[&_svg]:size-5`}><GameBackIcon /></button>
+      <button type="button" aria-label="Trở về Home" onClick={back} className={`${gameUtilityButton} shrink-0 compact:size-(--mobile-utility-size) compact:[&_svg]:size-(--mobile-utility-icon)`}><GameBackIcon /></button>
       <h1 className="grid h-12 w-[var(--ui-p-220,220px)] shrink-0 place-items-center bg-[length:100%_100%] bg-center bg-no-repeat px-6 text-2xl font-bold text-[#fff0ce] [text-shadow:0_2px_2px_#120600] compact:h-9 compact:w-[110px] compact:px-2 compact:text-lg" style={{ backgroundImage: `url(${nameFrame})` }}>Cửa Hàng</h1>
       <div className="relative ml-auto shrink-0" style={{ width: resources.resourceWidth, height: resources.resourceHeight }}>
         {[{ name: 'Năng lượng', value: `${home.energy}/5`, icon: energyIcon, run: () => energyRef.current?.showModal() }, { name: 'Vàng', value: String(home.gold), icon: goldIcon, run: () => setMessage('Tính năng bổ sung vàng chưa được hỗ trợ.') }].map((item, index) => <div key={item.name} className="absolute" style={{ width: resources.resourceFrameWidth, height: resources.resourceFrameHeight, left: layout.compact ? 0 : index === 0 ? 0 : resources.resourceWidth - resources.resourceFrameWidth, top: layout.compact ? index * 30 : Math.round((resources.resourceHeight - resources.resourceFrameHeight) / 2) }}>
@@ -100,16 +109,16 @@ export function ShopPage() {
           {['Tất cả', 'Avatar', 'Khung Viền'].map(label => <ShopFilterTab key={label} label={label} selected={tab === label} onClick={() => setTab(label)} />)}
         </div>
         <div role="tabpanel" aria-label={tab} className="mt-0 flex min-h-0 flex-1 flex-col compact:order-4 overflow-y-auto rounded-lg border border-[#825224] bg-[#1a0c06dc] p-[10px] compact:p-1">
-          {market === 0 ? <div className="grid min-h-0 flex-1 grid-cols-4 grid-rows-2 gap-[10px] compact:grid-cols-3 compact:grid-rows-4 compact:gap-1">
-            {products.map(avatar => <article key={avatar.name} aria-label={avatar.name} className={`${ornatePanel} relative flex min-h-0 flex-col overflow-hidden rounded-lg`}>
+          {market === 0 && daily.isError ? <div role="alert" className="m-auto text-center text-lg"><p>Không tải được phiên chợ.</p><button type="button" className={`${buttonInteraction} mt-3 rounded border border-[#c99044] px-4 py-2`} onClick={() => void daily.refetch()}>Thử lại</button></div> : market === 0 && (daily.isPending || !daily.data || daily.data.refreshAt <= Date.now()) ? <p role="status" className="m-auto text-lg">Đang cập nhật phiên chợ...</p> : market === 0 ? <div className="grid h-full min-h-0 shrink-0 grid-cols-4 grid-rows-[repeat(2,calc((100%-10px)/2))] auto-rows-[calc((100%-10px)/2)] gap-[10px] compact:grid-cols-3 compact:grid-rows-[repeat(3,calc((100%-8px)/3))] compact:auto-rows-[calc((100%-8px)/3)] compact:gap-1">
+            {products.map(avatar => <article key={avatar.id} aria-label={avatar.name} className={`${ornatePanel} relative flex min-h-0 flex-col overflow-hidden rounded-lg`}>
               {ownsCosmetic(account, avatar) && <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/60">
                 <CrispUiImage src={purchasedStamp} alt="Đã mua" className="absolute top-1/2 left-1/2 m-0 block h-auto w-[60%] -translate-x-1/2 -translate-y-1/2 border-0 p-0 object-contain" />
               </div>}
-              <div className="relative flex min-h-0 flex-1 items-center justify-center bg-[radial-gradient(ellipse_at_center,#753518,#241006_75%)] p-1 compact:p-1">
-                <div role={avatar.kind === 'avatar' ? 'img' : undefined} aria-label={avatar.kind === 'avatar' ? avatar.name : undefined} className={avatar.kind === 'frame' ? 'aspect-square h-full max-w-full' : 'aspect-square h-full max-w-full overflow-hidden rounded-full'}>{avatar.kind === 'frame' ? <CrispUiImage src={avatar.image ?? ''} alt={avatar.name} className="block size-full object-contain" /> : <AvatarPortrait avatarIndex={Number(avatar.code.replace('avatar-', ''))} className={`size-full rounded-full ${avatar.image ? '' : 'scale-[1.12]'}`} />}</div>
-              </div>
+              <button type="button" aria-label={`Xem rõ ${avatar.name}`} onClick={() => avatar.image && setPreviewAvatar({ name: avatar.name, image: avatar.image, kind: avatar.kind })} className="relative flex min-h-0 flex-1 cursor-pointer items-center justify-center border-0 bg-[radial-gradient(ellipse_at_center,#753518,#241006_75%)] p-1 compact:p-1">
+                <div role={avatar.kind === 'avatar' ? 'img' : undefined} aria-label={avatar.kind === 'avatar' ? avatar.name : undefined} className={avatar.kind === 'frame' ? 'aspect-square h-full max-w-full' : 'aspect-square h-full max-w-full overflow-hidden rounded-full'}>{avatar.kind === 'frame' ? <CrispUiImage src={avatar.image ?? ''} alt={avatar.name} className="block size-full object-contain" /> : <AvatarPortrait avatarIndex={avatar.avatarIndex} className={`size-full rounded-full ${avatar.image ? '' : 'scale-[1.12]'}`} />}</div>
+              </button>
               <div className="flex h-10 shrink-0 items-center gap-2 border-t border-[#805021] bg-[#130a04] px-3 py-1 text-xl compact:h-8 compact:gap-1 compact:px-1 compact:text-xs">
-                <ResourceArtwork smooth src={goldIcon} alt="Vàng" className="h-7 w-auto compact:h-3.5" /><span className="font-number tabular-nums">{avatar.price}</span>
+                <ResourceArtwork smooth src={goldIcon} alt="Vàng" className="h-7 w-auto compact:h-3.5" /><span className="font-number tabular-nums">{avatar.price.toLocaleString('vi-VN')}</span>
                 <button type="button" aria-label={avatar.kind === 'frame' ? `Mua ${avatar.name}` : `Mua avatar ${avatar.name}`} onClick={() => shop.open(avatar)} className={`${buttonInteraction} ml-auto rounded border border-[#f4cc74] bg-[linear-gradient(#ffe6a0,#d99a31)] px-3 py-1 font-heading text-base font-bold leading-none text-[#3d1d06] hover:brightness-110 compact:px-1 compact:text-xs`}>Mua</button>
               </div>
             </article>)}
@@ -118,6 +127,7 @@ export function ShopPage() {
       </section>
     </div>
     {shop.selected && <ShopPurchaseDialog name={shop.selected.name} price={shop.selected.price} buying={shop.buying} onCancel={shop.cancel} onConfirm={() => void shop.confirm()} />}
+    {previewAvatar && <ShopAvatarPreview name={previewAvatar.name} image={previewAvatar.image} kind={previewAvatar.kind} onClose={() => setPreviewAvatar(null)} />}
     <EnergyDialog dialogRef={energyRef} onUnavailable={() => setMessage('Video và thanh toán chưa được tích hợp.')} />
     {message && <div role="alert" className={`${insufficientFunds ? 'fixed left-1/2 top-1/2 min-h-[96px] w-[min(320px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 px-5 py-6' + ' ' + shopMobileDialogFrameClass : 'absolute inset-x-4 bottom-5 mx-auto max-w-lg rounded-lg border border-[#bc8545] bg-[#231107] p-4'} z-50 flex items-center gap-4 text-lg`}><span className={insufficientFunds ? 'flex-1 px-4 text-center font-body text-xl font-semibold text-[#ffe5ac] [text-shadow:0_1px_2px_#150904]' : undefined}>{insufficientFunds ? 'Không đủ tiền' : message}</span><button type="button" aria-label="Đóng thông báo" className={`${insufficientFunds ? 'absolute right-1 top-1 text-[#f2ce8d] hover:text-[#fff0ca]' : 'ml-auto'} px-2 text-2xl compact:grid compact:size-11 compact:shrink-0 compact:place-items-center compact:p-0 compact:text-[36px] compact:leading-none`} onClick={() => setMessage('')}>×</button></div>}
     </div>

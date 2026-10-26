@@ -45,7 +45,11 @@ export type RoomCommand =
   | { type: 'reset' }
 export type Reply<T> = { ok: true; data: T } | { ok: false; error: string }
 export type Ack<T> = (reply: Reply<T>) => void
+export const ROOM_REACTIONS = ['😛', '😂', '👍', '👏', '🤔', '❤️'] as const
+export interface RoomReactionInput { targetSide: Side; targetId: string; reaction: string }
+export interface RoomReaction extends RoomReactionInput { roomId: string; actorId: string; players: string[]; matchId?: string }
 export interface ServerEvents {
+  'room:reaction': (reaction: RoomReaction) => void
   'lobby:count': (count: number) => void
   'lobby:province-counts': (counts: Record<string, number>) => void
   'room:state': (room: RoomSnapshot) => void
@@ -55,10 +59,11 @@ export interface ServerEvents {
 }
 
 export interface ClientEvents {
+  'room:reaction': (input: RoomReactionInput, ack: Ack<null>) => void
   'lobby:presence': (province: string | null) => void
   'presence:update': (profile: ChallengeProfile, ack: Ack<null>) => void
   'challenge:send': (target: { id?: string; name: string }, ack: Ack<null>) => void
-  'challenge:reply': (reply: { id: string; accepted: boolean }, ack: Ack<null>) => void
+  'challenge:reply': (reply: { id: string; accepted: boolean; blockMinutes?: 5 | 10 }, ack: Ack<null>) => void
   'room:join': (input: { roomId: string; name: string; password?: string; asViewer?: boolean }, ack: Ack<RoomSnapshot>) => void
   'room:leave': (ack: Ack<null>) => void
   'game:command': (command: RoomCommand, ack: Ack<RoomSnapshot>) => void

@@ -6,7 +6,7 @@ export function useDatabaseHonors(name:string) {
   const account=useSessionStore(s=>s.account)
   const [owned,setOwned]=useState<{code:string;selected:number}[]>([])
   const [counts,setCounts]=useState<Record<string,number>>({})
-  useEffect(()=>{if(!account)return;let active=true;const load=async()=>{
+  useEffect(()=>{setOwned([]);setCounts({});if(!account)return;let active=true;const load=async()=>{
     const id=name===account.displayName?account.id:(await accountApi.search(name)).find(u=>u.name===name)?.id
     if(!id)return
     const data=(await accountApi.request.get<{owned:{code:string;selected:number}[];endorsements:{code:string;count:number}[]}>(`/honors/${id}`)).data

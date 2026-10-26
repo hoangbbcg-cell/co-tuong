@@ -8,7 +8,7 @@ import { isInsideBoard } from '../../src/game/rules'
 import { REPETITION_FORBIDDEN_MESSAGE } from '../../src/game/rules/repetition'
 import type { RoomCommand, RoomSnapshot, RoomSummary } from '../../src/types/room'
 import type { GameState, Position } from '../../src/types/game'
-import { ROOM_MINUTES, ROOM_TURN_SECONDS } from '../../src/types/room'
+import { ROOM_MINUTES, ROOM_TURN_SECONDS, ROOM_REACTIONS } from '../../src/types/room'
 import { RoomRepository } from '../repositories/roomRepository'
 
 export class RoomError extends Error {}
@@ -196,6 +196,21 @@ export class RoomService {
     if (joinsAsViewer) {
       room.viewers = [...(room.viewers ?? []), { id: playerId, name: playerName, queued: false }]
     } else {
+      if (room.game.phase === 'finished') {
+        this.queueRotations.delete(room.id)
+        room.game = createRoomGame(this.now(), room.minutes ?? 10, room.turnSeconds ?? 60, room.game.variant)
+        room.repetitionNoticePaused = false
+        room.repetitionNoticeKind = null
+        room.repetitionAttemptNotice = null
+        this.repetitionNoticeDeadlines.delete(room.id)
+        room.players = room.players.map(member => ({ ...member, ready: false }))
+        room.drawOffer = null
+        room.takebackOffer = null
+        room.takebackDecline = null
+        room.takebackRemaining = { red: 2, black: 2 }
+        room.moveCount = 0
+        this.histories.set(room.id, [])
+      }
       const side = room.players.some(player => player.side === 'red') ? 'black' : 'red'
       room.players = [...room.players, { id: playerId, name: playerName, side, ready: false }]
     }
@@ -352,6 +367,7 @@ export class RoomService {
       case 'resign':
         if (room.game.phase !== 'playing') throw new RoomError('Ván chưa diễn ra.')
         room.game = finishGame(room.game, opposite(player.side), 'resign')
+        this.append(room, '', `${player.name} đã đầu hàng.`, true)
         room.drawOffer = null
         break
       case 'offer-draw':
@@ -423,6 +439,13 @@ export class RoomService {
     this.updateReadyWait(room, now)
     this.repository.save(room)
     return room
+  }
+  reaction(playerId: string, input: import('../../src/types/room').RoomReactionInput) {
+    const room = this.memberRoom(playerId)
+    if (!input || !ROOM_REACTIONS.some(reaction => reaction === input.reaction)) throw new RoomError('Biểu cảm không hợp lệ.')
+    const target = room.players.find(player => player.side === input.targetSide && player.id === input.targetId)
+    if (!target) throw new RoomError('Người chơi đã đổi ghế hoặc rời phòng.')
+    return { roomId: room.id, matchId: room.activeMatchId ?? room.lastCompletedMatch?.id, actorId: playerId, targetSide: target.side, targetId: target.id, reaction: input.reaction, players: room.players.map(player => player.id).sort() }
   }
   chat(playerId: string, input: unknown): RoomSnapshot {
     const room = this.memberRoom(playerId)

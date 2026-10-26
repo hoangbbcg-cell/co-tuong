@@ -1,3 +1,5 @@
+import { searchFieldMetrics, searchFieldTextSize } from '../../../lib/searchFieldMetrics'
+import { useInviteSentNotice } from './InviteSentNotice'
 import { MessagesBackButton } from './MessagesBackButton'
 import { messagesFriendsField, messagesFriendsInput } from './messagesInputStyles'
 import historyParchmentBackground from '../../../assets/history/history-parchment-background.png'
@@ -5,7 +7,7 @@ import { socialPlayerRowClass, getSocialRowStyle } from './SocialDialogFrame'
 import { SocialPlayerName, socialPanelClass } from './SocialUi'
 import { MessageAccountAvatar } from './MessageAccountAvatar'
 import { isMessageImage, prepareMessageImage } from '../../../lib/messageImage'
-import { useDatabaseMessages, type DatabaseConversation } from '../hooks/useDatabaseMessages'
+import { useDatabaseMessages, type DatabaseConversation, type PendingGroupMember, type BlockedGroupMember, type GroupMemberRole } from '../hooks/useDatabaseMessages'
 import { errorMessage } from '../../../services/api'
 
 import { createClientId } from '../../../lib/clientId'
@@ -121,7 +123,19 @@ export function MessagesDialog({ dialogRef, layout: incomingLayout, onClose, ope
   const databaseMessages=useDatabaseMessages()
   const databaseConversations=useRef<DatabaseConversation[]>([])
   const databaseIds=useRef<Record<string,string>>({})
+  const [groupApprovalRequired,setGroupApprovalRequired]=useState(false)
+  const [pendingGroupMembers,setPendingGroupMembers]=useState<PendingGroupMember[]>([])
+  const [groupMemberRoles,setGroupMemberRoles]=useState<Record<string,GroupMemberRole>>({})
+  const [blockedGroupMembers,setBlockedGroupMembers]=useState<BlockedGroupMember[]>([])
+  const selectedGroupKey=useRef('')
+  selectedGroupKey.current=(account?.id??'local')+':'+(selectedConversation??'')
+  useEffect(()=>{setGroupApprovalRequired(false);setPendingGroupMembers([]);setGroupMemberRoles({});setBlockedGroupMembers([])},[selectedConversation,account?.id])
   const [databaseError,setDatabaseError]=useState('')
+  useEffect(() => {
+    if (!databaseError) return
+    const timer = window.setTimeout(() => setDatabaseError(''), 3000)
+    return () => window.clearTimeout(timer)
+  }, [databaseError])
   const [messagesLoading,setMessagesLoading]=useState(false)
   const [messageActionPending,setMessageActionPending]=useState(false)
   const currentAvatarIndex = useSessionStore(state => state.avatarIndex)
@@ -181,8 +195,7 @@ export function MessagesDialog({ dialogRef, layout: incomingLayout, onClose, ope
   const messageListRef = useRef<HTMLDivElement>(null)
   const conversationListRef = useRef<HTMLOListElement>(null)
   const [conversationRowHeight, setConversationRowHeight] = useState(0)
-  const [friendRequestToast, setFriendRequestToast] = useState<'visible' | 'exiting' | null>(null)
-  const friendRequestToastTimer = useRef<number | undefined>(undefined)
+  const sentNotice = useInviteSentNotice()
   useEffect(() => {
     const list = conversationListRef.current
     if (!list) return
@@ -194,9 +207,6 @@ export function MessagesDialog({ dialogRef, layout: incomingLayout, onClose, ope
   }, [])
   const friendTriggerRef = useRef<HTMLButtonElement | null>(null)
   const nextGroupId = useRef(0)
-  useEffect(() => () => {
-    if (friendRequestToastTimer.current !== undefined) window.clearTimeout(friendRequestToastTimer.current)
-  }, [])
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 30_000)
     return () => window.clearInterval(timer)
@@ -221,9 +231,10 @@ export function MessagesDialog({ dialogRef, layout: incomingLayout, onClose, ope
   const reloadDatabase=async()=>{
     if(!account)return
     const currentId=selectedConversation?databaseIds.current[selectedConversation]:undefined
-    const [list,social,selectedItems]=await Promise.all([databaseMessages.list(),databaseMessages.social(),currentId?databaseMessages.messages(currentId):Promise.resolve(null)])
+    const [list,social]=await Promise.all([databaseMessages.list(),databaseMessages.social()])
+    const selectedItems=currentId&&list.some(c=>c.id===currentId)?await databaseMessages.messages(currentId).catch(()=>null):null
     databaseConversations.current=list
-    const next:ConversationItem[]=list.map(c=>{const name=c.type==='direct'?c.peerName??c.id:c.id;databaseIds.current[name]=c.id;return {name,title:c.title??undefined,playerId:c.peerId??undefined,image:c.type==='group'?(c.avatarUrl??defaultGroupAvatar):defaultAvatar,status:'offline',text:c.preview&&isMessageImage(c.preview)?'📷 Ảnh':c.preview??'',lastMessageAt:c.lastMessageAt?new Date(c.lastMessageAt).getTime():0,isGroup:c.type==='group'}})
+    const next:ConversationItem[]=list.map(c=>{const name=c.type==='direct'?c.peerName??c.id:c.id;databaseIds.current[name]=c.id;return {name,title:c.title??undefined,playerId:c.peerId??undefined,image:c.type==='group'?(c.avatarUrl??defaultGroupAvatar):defaultAvatar,status:c.online?'online':'offline',text:c.preview&&isMessageImage(c.preview)?'📷 Ảnh':c.preview??'',lastMessageAt:c.lastMessageAt?new Date(c.lastMessageAt).getTime():0,isGroup:c.type==='group'}})
 
 
     setBlockedAtByName(Object.fromEntries(list.filter(c=>c.peerId&&social.blocks.some(b=>b.id===c.peerId)).map(c=>[c.peerName??c.id,0])))
@@ -231,7 +242,7 @@ export function MessagesDialog({ dialogRef, layout: incomingLayout, onClose, ope
       const previous = current.find(item => item.name === conversation.name)
       return conversation.isGroup ? { ...conversation, members: previous?.members, creatorName: previous?.creatorName } : conversation
     }))
-    if(selectedConversation&&!next.some(c=>c.name===selectedConversation)&&!openRequest)setSelectedConversation(null)
+    if(selectedConversation&&!next.some(c=>c.name===selectedConversation)&&!openRequest){setSelectedConversation(null);setOptionsOpen(false)}
     setNotificationMutes(Object.fromEntries(list.filter(c=>Number(c.mutedIndefinitely)===1||c.mutedUntil&&new Date(c.mutedUntil).getTime()>Date.now()).map(c=>{const until=Number(c.mutedIndefinitely)===1?Infinity:new Date(c.mutedUntil!).getTime();const hours=(until-Date.now())/3600000;return [c.type==='direct'?c.peerName??c.id:c.id,{duration:until===Infinity?'forever':hours>4?8:hours>1?4:1,until}] })))
     setNicknames(Object.fromEntries(list.filter(c=>c.nickname).map(c=>[c.type==='direct'?c.peerName??c.id:c.id,c.nickname!])))
     for(const c of next.filter(c=>c.name===selectedConversation)){const items=selectedItems??await databaseMessages.messages(databaseIds.current[c.name]);
@@ -243,7 +254,16 @@ setThreads(current=>{
   return {...current,[c.name]:messages}
 })}
     for(const group of next.filter(c=>c.isGroup&&c.name===selectedConversation)){
-      void databaseMessages.members(databaseIds.current[group.name]).then(members=>setConversationList(current=>current.map(c=>c.name===group.name?{...c,members:members.map(m=>m.name),creatorName:members.find(m=>m.role==='owner')?.name}:c))).catch(()=>{})
+      void Promise.all([databaseMessages.members(databaseIds.current[group.name]),databaseMessages.settings(databaseIds.current[group.name]),databaseMessages.blocked(databaseIds.current[group.name])]).then(async([members,settings,blocked])=>{
+        const owner=members.find(m=>m.role==='owner')
+        const pending=owner?.id===account.id?await databaseMessages.pending(databaseIds.current[group.name]):[]
+        if(selectedGroupKey.current!==account.id+':'+group.name)return
+        setConversationList(current=>current.map(c=>c.name===group.name?{...c,members:members.map(m=>m.name),creatorName:owner?.name}:c))
+        setGroupApprovalRequired(settings.approvalRequired)
+        setPendingGroupMembers(pending)
+        setGroupMemberRoles(Object.fromEntries(members.map(member=>[member.name,member.role as GroupMemberRole])))
+        setBlockedGroupMembers(blocked)
+      }).catch(()=>{})
     }
   }
   useEffect(()=>{
@@ -280,7 +300,7 @@ setThreads(current=>{
   const activeMessages = threads[activeConversation.name] ?? []
   const blockedAt = blockedAtByName[activeConversation.name]
   const isBlocked = blockedAt !== undefined
-  const friendship = useMessageFriendship(activeConversation.name)
+  const friendship = useMessageFriendship(activeConversation.name, sentNotice.show)
   const cancelFriendRemoval = () => {
     friendship.cancelRemoval()
     const focusTarget = friendTriggerRef.current ?? optionsTriggerRef.current
@@ -371,9 +391,9 @@ setThreads(current=>{
           <MessagesSidebar compact={layout.compact} hidden={layout.compact && !!selectedConversation} width={layout.compact ? expandedWidth : leftWidth} height={panelHeight(MESSAGE_PANEL_SIZE.left.height)}>
             <div className="contents compact:mx-auto compact:w-full compact:mb-3 compact:grid compact:grid-cols-[auto_minmax(0,1fr)] compact:items-center compact:gap-3">
             <MessagesCreateGroupButton ref={groupTriggerRef} compact={layout.compact} width={112} iconSize={20} labelSize={15} onClick={() => { if (layout.compact && !searchLayout) setSearchLayout(layout); setCreateGroupOpen(true) }} className="compact:col-start-1 compact:row-start-1" />
-            <label className={layout.compact ? `col-start-2 row-start-1 my-0 flex h-[44px] min-w-0 items-center gap-[6px] px-[10px] ${messagesFriendsField}` : 'my-3 flex h-[var(--ui-p-50)] shrink-0 items-center gap-3 rounded-full border-2 border-[#dca44d] bg-[#241309] px-4'}>
+            <label style={searchFieldMetrics(layout.compact ? '44px' : 'var(--ui-p-50)', layout.compact)} className={layout.compact ? `col-start-2 row-start-1 my-0 flex h-[44px] min-w-0 items-center gap-[6px] px-[10px] ${messagesFriendsField}` : 'my-3 flex h-[var(--ui-p-50)] shrink-0 items-center gap-3 rounded-full border-2 border-[#dca44d] bg-[#241309] px-4'}>
               <svg aria-hidden="true" viewBox="0 0 24 24" className="size-[var(--ui-p-24)] shrink-0" fill="none" stroke="#e5b45d" strokeWidth="2"><circle cx="10" cy="10" r="7"/><path d="m15 15 7 7"/></svg>
-              <span className="relative flex min-w-0 flex-1 items-center"><input aria-label="Tìm tên hoặc ID người chơi" onFocus={() => { if (layout.compact && !searchLayout) setSearchLayout(layout) }} value={searchQuery} onChange={event => setSearchQuery(event.target.value)} placeholder={layout.compact ? 'Nhập tên / ID người chơi...' : 'Tìm tên hoặc ID người chơi'} className={layout.compact ? `w-full ${messagesFriendsInput}` : 'w-full min-w-0 border-0 bg-transparent text-[length:var(--ui-p-20)] text-white outline-none placeholder:text-white'} /></span>
+              <span className="relative flex min-w-0 flex-1 items-center"><input aria-label="Tìm tên hoặc ID người chơi" onFocus={() => { if (layout.compact && !searchLayout) setSearchLayout(layout) }} value={searchQuery} onChange={event => setSearchQuery(event.target.value)} placeholder={layout.compact ? 'Nhập tên / ID người chơi...' : 'Tìm tên hoặc ID người chơi'} className={layout.compact ? `w-full ${messagesFriendsInput} ${searchFieldTextSize}` : `w-full min-w-0 border-0 bg-transparent text-white outline-none placeholder:text-white ${searchFieldTextSize}`} /></span>
             </label>
             </div>
             <div className={layout.compact ? `${socialPanelClass} flex min-h-0 flex-1 flex-col` : 'contents'} style={layout.compact ? { paddingInline: Math.round(20 * layout.scale), borderWidth: Math.round(3 * layout.scale), borderRadius: Math.round(14 * layout.scale), backgroundImage: `linear-gradient(#fff4dc52,#fff4dc52), url(${historyParchmentBackground})`, backgroundPosition: 'center', backgroundSize: 'cover' } : undefined}>
@@ -387,11 +407,10 @@ setThreads(current=>{
                   : <MessageAccountAvatar name={item.name} className="size-[var(--ui-p-50)] compact:size-[72cqh]" />}
                 <div className="min-w-0 flex-1 overflow-hidden text-left compact:ml-[7px] compact:self-center"><div className="flex items-baseline justify-between gap-2"><span className="flex min-w-0 items-center gap-1.5 truncate font-heading text-[length:var(--ui-p-22)] font-bold text-[#fff6df] compact:text-[29.5cqh] compact:leading-[36cqh] compact:text-[#251506]">{item.isGroup && <svg aria-hidden="true" viewBox="0 0 24 24" className="size-[var(--ui-p-22)] shrink-0 text-[#f4c75e]" fill="currentColor"><path d="M12 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM5 5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Zm14 0a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5ZM12 10c-3 0-5 1.5-5 4v6h10v-6c0-2.5-2-4-5-4ZM5 12c-2.5 0-4 1.5-4 3.5V19h4v-5c0-.7.1-1.4.4-2H5Zm14 0h-.4c.3.6.4 1.3.4 2v5h4v-3.5c0-2-1.5-3.5-4-3.5Z" /></svg>}<span className="truncate"><SocialPlayerName name={nicknames[item.name] || item.title || item.name} /></span></span>{layout.compact && item.lastMessageAt > 0 && <span className="shrink-0 whitespace-nowrap font-number text-[23cqh] leading-[36cqh] lining-nums tabular-nums text-[#76552e]">{formatMessageTime(item.lastMessageAt, now)}</span>}{!layout.compact && <>{unreadCounts[item.name] > 0 ? <span aria-label={`${unreadCounts[item.name]} tin nhắn chưa đọc`} className="grid size-[var(--ui-p-28)] shrink-0 place-items-center rounded-full border-2 border-[#ffe2a1] bg-[#d82323] font-number lining-nums tabular-nums text-[length:var(--ui-p-15)] font-semibold leading-none text-white opacity-[0.88] shadow-[0_1px_4px_#321407]">{unreadCounts[item.name] > 99 ? '99+' : unreadCounts[item.name]}</span> : item.lastMessageAt > 0 && <span className="shrink-0 whitespace-nowrap font-number lining-nums tabular-nums text-[length:var(--ui-p-16)] compact:ml-auto compact:text-[14px] text-[#d6b982] compact:text-[#76552e]">{formatMessageTime(item.lastMessageAt, now)}</span>}</>}</div>
 
-                  <p className="mt-1 compact:mt-0 flex min-h-[var(--ui-p-20)] compact:min-h-[33cqh] min-w-0 items-center justify-start gap-2 text-left text-[length:var(--ui-p-17)] compact:text-[26cqh] compact:leading-[33cqh] text-[#e2c79f] compact:text-[#624622]">{!item.isGroup && <span className="shrink-0 compact:[--ui-p-16:26cqh] compact:[--ui-p-6:6cqh]"><Dot status={item.status} /></span>}<span className={`min-w-0 flex-1 truncate ${layout.compact && unreadCounts[item.name] > 0 ? 'font-semibold text-[#36200c]' : ''}`}><NumberText text={isMessageImage(item.text) ? '📷 Ảnh' : item.text || (layout.compact && !item.isGroup ? (item.status === 'online' ? 'Đang online' : 'Offline') : '')} /></span>{layout.compact && unreadCounts[item.name] > 0 && <span aria-label={`${unreadCounts[item.name]} tin nhắn chưa đọc`} className="grid h-[39cqh] min-w-[39cqh] shrink-0 place-items-center rounded-full border border-[#ffe2a1] bg-[#d82323] px-[6.5cqh] font-number text-[22cqh] leading-none text-white">{unreadCounts[item.name] > 99 ? '99+' : unreadCounts[item.name]}</span>}</p>
+                  <p className="mt-1 compact:mt-0 flex min-h-[var(--ui-p-20)] compact:min-h-[33cqh] min-w-0 items-center justify-start gap-2 text-left text-[length:var(--ui-p-17)] compact:text-[26cqh] compact:leading-[33cqh] text-[#e2c79f] compact:text-[#624622]">{!item.isGroup && <span className="shrink-0 compact:[--ui-p-16:20cqh] compact:[--ui-p-6:6cqh]"><Dot status={item.status} /></span>}<span className={`min-w-0 flex-1 truncate ${layout.compact && unreadCounts[item.name] > 0 ? 'font-semibold text-[#36200c]' : ''}`}><NumberText text={isMessageImage(item.text) ? '📷 Ảnh' : item.text || (layout.compact && !item.isGroup ? (item.status === 'online' ? 'Đang online' : 'Offline') : '')} /></span>{layout.compact && unreadCounts[item.name] > 0 && <span aria-label={`${unreadCounts[item.name]} tin nhắn chưa đọc`} className="grid h-[39cqh] min-w-[39cqh] shrink-0 place-items-center rounded-full border border-[#ffe2a1] bg-[#d82323] px-[6.5cqh] font-number text-[22cqh] leading-none text-white">{unreadCounts[item.name] > 99 ? '99+' : unreadCounts[item.name]}</span>}</p>
                 </div>
                 </button>
               </li>)}
-              {visibleConversations.length === 0 && <li role="status" className="px-3 py-5 text-center font-cormorant text-[length:var(--ui-p-20)] text-[#d6b982]">Không tìm thấy người chơi</li>}
             </ol>
             </div>
           </MessagesSidebar>
@@ -402,18 +421,10 @@ setThreads(current=>{
               <button type="button" onClick={openOptions} aria-label={`Mở tùy chọn với ${activeConversation.title || activeConversation.name}`} className="m-0 h-fit w-fit shrink-0 border-0 bg-transparent p-0 leading-none">{activeConversation.isGroup
                 ? <MessagesGroupAvatar src={activeConversation.image} alt={`Avatar ${activeConversation.title || activeConversation.name}`} className="size-[var(--ui-p-66)] compact:size-[34px] shrink-0 cursor-pointer" />
                 : <MessageAccountAvatar name={activeConversation.name} className="size-[var(--ui-p-66)] compact:size-[34px]" />}</button>
-              <div className="min-w-0 flex-1"><p className="font-heading text-[length:var(--ui-p-28)] font-bold text-[#ffe08b]"><SocialPlayerName name={nicknames[activeConversation.name] || activeConversation.title || activeConversation.name} /></p>{!activeConversation.isGroup && <p className="flex items-center gap-2 text-[length:var(--ui-p-18)] text-[#e2c79f]"><Dot status={activeConversation.status} />Đang hoạt động</p>}</div>
+              <div className="min-w-0 flex-1"><p className="font-heading text-[length:var(--ui-p-28)] font-bold text-[#ffe08b]"><SocialPlayerName name={nicknames[activeConversation.name] || activeConversation.title || activeConversation.name} /></p>{!activeConversation.isGroup && <p className="flex items-center gap-2 text-[length:var(--ui-p-18)] text-[#e2c79f]"><span className="shrink-0 compact:[--ui-p-16:12px] compact:[--ui-p-6:2px]"><Dot status={activeConversation.status} /></span>{activeConversation.status === 'online' ? 'Đang hoạt động' : 'Offline'}</p>}</div>
               {!activeConversation.isGroup && <MessagesFriendButton name={activeConversation.name} isFriend={friendship.isFriend} pending={friendship.pending} incoming={friendship.incoming} onClick={event => {
                 friendTriggerRef.current = event.currentTarget
-                const sendsRequest = !friendship.isFriend && !friendship.pending && !friendship.incoming
                 friendship.activate()
-                if (!sendsRequest) return
-                if (friendRequestToastTimer.current !== undefined) window.clearTimeout(friendRequestToastTimer.current)
-                setFriendRequestToast('visible')
-                friendRequestToastTimer.current = window.setTimeout(() => {
-                  setFriendRequestToast('exiting')
-                  friendRequestToastTimer.current = undefined
-                }, 500)
               }} />}
               <button type="button" onClick={openOptions} aria-label="Tùy chọn hội thoại" className={`${buttonInteraction} m-0 h-fit w-fit shrink-0 border-0 bg-transparent p-0 leading-none`}><CrispUiImage src={more} alt="" className="block size-[var(--ui-p-42)] compact:size-[26px] object-contain" /></button>
             </div>
@@ -466,7 +477,7 @@ setThreads(current=>{
             </form>
             </>}
           </MessagesChatPane>
-      {optionsOpen && <MessagesOptionsPanel onRemoveMember={async name => { const id = databaseIds.current[activeConversation.name]; if (!id) throw new Error('Không tìm thấy nhóm.'); await databaseMessages.removeMember(id, name); setConversationList(current => current.map(conversation => conversation.name === activeConversation.name ? { ...conversation, members: conversation.members?.filter(member => member !== name) } : conversation)) }} onMemberInfo={onViewInfo} uiScale={layout.compact ? scale * Math.min(expandedWidth * 0.96, panelHeight(sourceHeight) * 0.94 * 894 / 1008) / Math.min(expandedWidth * 0.8, panelHeight(sourceHeight) * 0.8 * 894 / 1008) : undefined} width={layout.compact ? expandedWidth : Math.min(expandedWidth * 0.8, panelHeight(sourceHeight) * 0.8 * 894 / 1008)} height={layout.compact ? panelHeight(sourceHeight) : Math.min(panelHeight(sourceHeight) * 0.88, expandedWidth * 0.88 * 1008 / 894)} image={activeConversation.image} accountName={account ? activeConversation.name : undefined} name={nicknames[activeConversation.name] || activeConversation.title || activeConversation.name} nicknameValue={nicknames[activeConversation.name] ?? ''} isBlocked={isBlocked} notificationMuteDuration={notificationMutes[activeConversation.name]?.until > now ? notificationMutes[activeConversation.name].duration : 1} onSaveNotificationMute={duration => {if(account)void databaseMessages.mute(databaseIds.current[activeConversation.name],duration==='forever'?null:duration).catch(()=>setDatabaseError('Không lưu được tắt thông báo.'));setNotificationMutes(current => ({ ...current, [activeConversation.name]: { duration, until: duration === 'forever' ? Infinity : Date.now() + duration * 60 * 60 * 1000 } }))}} isGroup={Boolean(activeConversation.isGroup)} members={activeConversation.members ?? []} memberImages={memberImages} creatorName={activeConversation.creatorName ?? activeConversation.members?.[0]} memberRowHeight={conversationRowHeight} memberListWidth={leftWidth} selfName={currentUserName || 'Bạn'} selfAvatarIndex={currentAvatarIndex} onChangeGroupImage={nextImage => {if(account){void databaseMessages.avatar(databaseIds.current[activeConversation.name],nextImage).then(url=>{setConversationList(current=>current.map(conversation=>conversation.name===activeConversation.name?{...conversation,image:url}:conversation))}).catch(error=>setDatabaseError(errorMessage(error)));return}setConversationList(current => current.map(conversation => conversation.name === activeConversation.name ? { ...conversation, image: nextImage } : conversation))}} onToggleBlock={blocked => { if(account){const c=databaseConversations.current.find(c=>c.id===databaseIds.current[activeConversation.name]);if(c?.peerId)void databaseMessages.block(c.peerId,blocked).catch(()=>setDatabaseError('Không cập nhật được chặn tin nhắn.'))}
+      {optionsOpen && <MessagesOptionsPanel onRemoveMember={async name => { const id = databaseIds.current[activeConversation.name]; if (!id) throw new Error('Không tìm thấy nhóm.'); await databaseMessages.removeMember(id, name); setConversationList(current => current.map(conversation => conversation.name === activeConversation.name ? { ...conversation, members: conversation.members?.filter(member => member !== name) } : conversation)) }} memberRoles={groupMemberRoles} blockedMembers={blockedGroupMembers} onBlockMember={async(name,blocked)=>{if(account){const id=databaseIds.current[activeConversation.name];if(!id)throw new Error("Không tìm thấy nhóm.");await databaseMessages.manageMember(id,name,blocked?"block-member":"unblock-member")}setBlockedGroupMembers(current=>blocked?[...current.filter(member=>member.name!==name),{id:name,name}]:current.filter(member=>member.name!==name))}} onSetDeputy={async(name,enabled)=>{if(account){const id=databaseIds.current[activeConversation.name];if(!id)throw new Error("Không tìm thấy nhóm.");await databaseMessages.manageMember(id,name,enabled?"promote-deputy":"demote-deputy")}setGroupMemberRoles(current=>({...current,[name]:enabled?"deputy":"member"}))}} approvalRequired={groupApprovalRequired} pendingMembers={pendingGroupMembers} onSetApproval={async enabled=>{if(account){const id=databaseIds.current[activeConversation.name];if(!id)throw new Error("Không tìm thấy nhóm.");await databaseMessages.setApproval(id,enabled)}setGroupApprovalRequired(enabled)}} onInviteMember={async name=>{const groupName=activeConversation.name;let pendingApproval=groupApprovalRequired&&activeConversation.creatorName!==currentUserName;if(account){const id=databaseIds.current[groupName];if(!id)throw new Error("Không tìm thấy nhóm.");const result=await databaseMessages.invite(id,name);pendingApproval=Boolean(result.pendingApproval)}if(!pendingApproval)setConversationList(current=>current.map(c=>c.name===groupName?{...c,members:[...new Set([...(c.members??[]),name])]}:c));else if(!account)setPendingGroupMembers(current=>[...current.filter(m=>m.name!==name),{id:name,name,inviterName:currentUserName}]);return {pendingApproval}}} onReviewMember={async(id,accepted)=>{const target=pendingGroupMembers.find(m=>m.id===id);const groupName=activeConversation.name;if(account){const groupId=databaseIds.current[groupName];if(!groupId)throw new Error("Không tìm thấy nhóm.");await databaseMessages.member(groupId,accepted?"approve":"reject",id)}setPendingGroupMembers(current=>current.filter(m=>m.id!==id));if(accepted&&target)setConversationList(current=>current.map(c=>c.name===groupName?{...c,members:[...new Set([...(c.members??[]),target.name])]}:c))}} onRenameGroup={async name=>{const groupName=activeConversation.name;if(account){const id=databaseIds.current[groupName];if(!id)throw new Error("Không tìm thấy nhóm.");await databaseMessages.title(id,name)}setConversationList(current=>current.map(c=>c.name===groupName?{...c,title:name}:c))}} onTransferOwner={async name=>{const groupName=activeConversation.name;if(account){const id=databaseIds.current[groupName];if(!id)throw new Error("Không tìm thấy nhóm.");await databaseMessages.transferOwner(id,name)}setGroupMemberRoles(current=>({...current,[currentUserName]:"member",[name]:"owner"}));setConversationList(current=>current.map(c=>c.name===groupName?{...c,creatorName:name}:c))}} onDissolveGroup={async()=>{const groupName=activeConversation.name;if(account){const id=databaseIds.current[groupName];if(!id)throw new Error("Không tìm thấy nhóm.");await databaseMessages.member(id,"dissolve");delete databaseIds.current[groupName]}setConversationList(current=>current.filter(c=>c.name!==groupName));setSelectedConversation(null);setOptionsOpen(false)}} onLeaveGroup={async()=>{const groupName=activeConversation.name;if(account){const id=databaseIds.current[groupName];if(!id)throw new Error("Không tìm thấy nhóm.");await databaseMessages.member(id,"leave");delete databaseIds.current[groupName]}setConversationList(current=>current.filter(conversation=>conversation.name!==groupName));setThreads(current=>{const next={...current};delete next[groupName];return next});setSelectedConversation(null);setSelectedMessage(null);setOptionsOpen(false)}} onMemberInfo={onViewInfo} uiScale={layout.compact ? scale * Math.min(expandedWidth * 0.96, panelHeight(sourceHeight) * 0.94 * 894 / 1008) / Math.min(expandedWidth * 0.8, panelHeight(sourceHeight) * 0.8 * 894 / 1008) : undefined} width={layout.compact ? expandedWidth : Math.min(expandedWidth * 0.8, panelHeight(sourceHeight) * 0.8 * 894 / 1008)} height={layout.compact ? panelHeight(sourceHeight) : Math.min(panelHeight(sourceHeight) * 0.88, expandedWidth * 0.88 * 1008 / 894)} image={activeConversation.image} accountName={account ? activeConversation.name : undefined} name={nicknames[activeConversation.name] || activeConversation.title || activeConversation.name} nicknameValue={nicknames[activeConversation.name] ?? ''} isBlocked={isBlocked} notificationMuteDuration={notificationMutes[activeConversation.name]?.until > now ? notificationMutes[activeConversation.name].duration : 1} onSaveNotificationMute={duration => {if(account)void databaseMessages.mute(databaseIds.current[activeConversation.name],duration==='forever'?null:duration).catch(()=>setDatabaseError('Không lưu được tắt thông báo.'));setNotificationMutes(current => ({ ...current, [activeConversation.name]: { duration, until: duration === 'forever' ? Infinity : Date.now() + duration * 60 * 60 * 1000 } }))}} isGroup={Boolean(activeConversation.isGroup)} members={activeConversation.members ?? []} memberImages={memberImages} creatorName={activeConversation.creatorName ?? activeConversation.members?.[0]} memberRowHeight={conversationRowHeight} memberListWidth={leftWidth} selfName={currentUserName || 'Bạn'} selfAvatarIndex={currentAvatarIndex} onChangeGroupImage={nextImage => {if(account){void databaseMessages.avatar(databaseIds.current[activeConversation.name],nextImage).then(url=>{setConversationList(current=>current.map(conversation=>conversation.name===activeConversation.name?{...conversation,image:url}:conversation))}).catch(error=>setDatabaseError(errorMessage(error)));return}setConversationList(current => current.map(conversation => conversation.name === activeConversation.name ? { ...conversation, image: nextImage } : conversation))}} onToggleBlock={blocked => { if(account){const c=databaseConversations.current.find(c=>c.id===databaseIds.current[activeConversation.name]);if(c?.peerId)void databaseMessages.block(c.peerId,blocked).catch(()=>setDatabaseError('Không cập nhật được chặn tin nhắn.'))}
         setBlockedAtByName(current => {
           if (blocked) return { ...current, [activeConversation.name]: Date.now() }
           const next = { ...current }; delete next[activeConversation.name]; return next
@@ -484,7 +495,7 @@ setThreads(current=>{
         setOptionsOpen(false)
         optionsTriggerRef.current?.focus()
       }} />}
-      {friendRequestToast && <div className="pointer-events-none fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2"><p role="status" onAnimationEnd={() => setFriendRequestToast(null)} className={`m-0 min-w-[var(--ui-p-190,190px)] rounded-[var(--ui-p-3,3px)] border border-green-700 bg-green-600 px-5 py-2 text-center font-cormorant text-2xl font-bold tracking-wide text-white shadow-lg ${friendRequestToast === 'exiting' ? 'friend-request-sent-exit' : ''}`}>Đã gửi</p></div>}
+      {sentNotice.notice}
       {friendship.removalName && <MessagesFriendRemovalConfirmation name={friendship.removalName} skip={friendship.skipConfirmation} onSkipChange={friendship.setSkipConfirmation} onCancel={cancelFriendRemoval} onConfirm={confirmFriendRemoval} />}
     </div>
     </MessagesDialogSurface>}

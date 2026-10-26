@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { GameState } from '../../../types/game'
 import type { RecordedMatch } from '../../../types/recordedMatch'
 import { useGameStore } from '../../../store/gameStore'
@@ -12,13 +12,14 @@ import { accountApi } from '../../../services/accountApi'
 export function useMatchSaving(game: GameState, onlineMatch: RecordedMatch | undefined, online: boolean, owner: string, redName: string, blackName: string, enabled = true) {
   const [lastMatch, setLastMatch] = useState<RecordedMatch | null>(null)
   const [error, setError] = useState('')
+  const entryMatchId = useRef(onlineMatch?.id)
   const entries = useSavedMatches(state => state.entries)
   useEffect(() => {
     if (!enabled) return
     if (online) {
       // Keep a previously observed result during the next game, but do not
       // offer an old room archive to someone arriving in the middle of play.
-      if (game.phase !== 'playing' && onlineMatch?.states.at(-1)?.phase === 'finished') {
+      if (game.phase !== 'playing' && onlineMatch && onlineMatch.id !== entryMatchId.current && onlineMatch.states.at(-1)?.phase === 'finished') {
         setLastMatch(onlineMatch)
         setError('')
       }

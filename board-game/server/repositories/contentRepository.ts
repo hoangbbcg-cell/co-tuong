@@ -13,7 +13,7 @@ export class ContentRepository {
     return { settled:result[0].status==='finished',gold:Number(result[0].gold),eloDelta:Number(result[0].eloDelta) }
   }
   async history(id:string,saved=false):Promise<RecordedMatch[]> {
-    const list=await rows(`SELECT DISTINCT m.id,m.ended_at endedAt,
+    const list=await rows(`SELECT DISTINCT m.id,m.ended_at endedAt, ${saved ? 's.title savedTitle,s.note savedNote,' : ''}
       COALESCE(ru.display_name,r.name_snapshot) redName,COALESCE(bu.display_name,b.name_snapshot) blackName
       FROM matches m JOIN match_players r ON r.match_id=m.id AND r.side='red'
       JOIN match_players b ON b.match_id=m.id AND b.side='black'
@@ -28,7 +28,7 @@ export class ContentRepository {
       const final=m[0].final_state as GameState
       if(JSON.stringify(states.at(-1)?.board)===JSON.stringify(final.board))states[states.length-1]=final
       else states.push(final)
-      result.push({id:String(item.id),endedAt:new Date(item.endedAt as string).getTime(),redName:String(item.redName),blackName:String(item.blackName),states})
+      result.push({id:String(item.id),endedAt:new Date(item.endedAt as string).getTime(),redName:String(item.redName),blackName:String(item.blackName),states,...(saved ? {savedTitle:String(item.savedTitle??''),savedNote:String(item.savedNote??'')} : {})})
     }
     return result
   }
@@ -38,6 +38,11 @@ export class ContentRepository {
       if(!m.length)throw new AccountError('Ván chưa tồn tại hoặc chưa kết thúc.')
     }
     await change(enabled?'INSERT INTO saved_matches(user_id,match_id) VALUES (?,?) ON DUPLICATE KEY UPDATE user_id=saved_matches.user_id':'DELETE FROM saved_matches WHERE user_id=? AND match_id=?',[id,match])
+  }
+  async updateBookmark(id:string,match:string,title:string,note:string) {
+    const existing=await rows('SELECT match_id FROM saved_matches WHERE user_id=? AND match_id=?',[id,match])
+    if(!existing.length)throw new AccountError('Không tìm thấy ván đã lưu.',404)
+    await change('UPDATE saved_matches SET title=?,note=? WHERE user_id=? AND match_id=?',[title,note,id,match])
   }
   async positions(id:string) {
     return rows(`SELECT p.id,CAST(p.owner_id AS CHAR) owner,p.created_at savedAt,p.title,p.note,p.state boardState,p.move_number moveNumber,
@@ -95,9 +100,10 @@ export class ContentRepository {
     })
   }
   async like(id:string,match:string,side:string,enabled:boolean) {
+    if (!enabled) throw new AccountError('Không thể hủy lượt thích của ván đấu.')
     const m=await rows("SELECT id FROM matches WHERE id=? AND status IN ('playing','finished') AND source='server_online'",[match])
     if(!m.length)throw new AccountError('Ván đấu không hợp lệ.')
-    await change(enabled?'INSERT INTO match_likes(match_id,actor_id,target_side) VALUES (?,?,?) ON DUPLICATE KEY UPDATE target_side=VALUES(target_side)':'DELETE FROM match_likes WHERE match_id=? AND actor_id=? AND target_side=?',[match,id,side])
+    await change('INSERT INTO match_likes(match_id,actor_id,target_side) VALUES (?,?,?) ON DUPLICATE KEY UPDATE target_side=match_likes.target_side',[match,id,side])
   }
   async activity(id:string) {
     await transaction(async c=>{

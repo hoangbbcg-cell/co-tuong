@@ -10,7 +10,7 @@ import { COUNTRY_CODES, readProfileLocation, saveProfileLocation } from '../lib/
 import type { AccountProfile } from '../types/account'
 import { accountApi } from '../services/accountApi'
 
-export type ComputerEngine = 'basic' | 'pikafish' | 'hovang'
+export type ComputerEngine = 'basic' | 'pikafish'
 export interface MatchLikeRecord { matchId: string; actorId: string; targetSide: Side }
 
 interface SessionStore {
@@ -51,7 +51,7 @@ interface SessionStore {
   computerDemoQueued: boolean
   customPositionTrial: boolean
   computerEngine: ComputerEngine
-  selectedComputerEngine: 'pikafish' | 'hovang'
+  selectedComputerEngine: 'pikafish'
   computerLevel: number
   humanSide: Side
   name: string
