@@ -24,7 +24,12 @@ def shell_path(path):
 @unittest.skipUnless(BASH, "Bash is required for the deployment shell harness")
 class DeployUserTest(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="cotuong-deploy-test-")
+        # Keep temporary fixtures inside the checked-out project so restricted runners
+        # can create and remove them without relying on an OS temp directory outside
+        # the workspace sandbox.
+        self.temporary = tempfile.TemporaryDirectory(
+            prefix=".cotuong-deploy-test-", dir=Path(__file__).resolve().parents[2]
+        )
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.bin = self.root / "bin"
@@ -37,6 +42,9 @@ class DeployUserTest(unittest.TestCase):
         for path in (self.bin, self.app, self.web, self.state, self.incoming):
             path.mkdir(parents=True, mode=0o700)
             path.chmod(0o700)
+        credential = self.state / "mysql-migrator.json"
+        credential.write_text('{"user":"cotuong_migrator","password":"fixture-only"}')
+        credential.chmod(0o600)
         (self.app / ".env").write_text("FIXTURE_ONLY=1\n")
         self.hook = self.root / "backup-hook"
         self.hook.write_text("#!/bin/sh\nexit 0\n")
@@ -85,7 +93,9 @@ fi
 [[ "$2" == stop || "$2" == start || "$2" == is-active ]] || exit 93''')
         self.command("node", '''if [[ "$1" == -p ]]; then echo 22; else cat >/dev/null; fi''')
         self.command("npm", '''printf 'npm %s\\n' "$*" >> "$CALL_LOG"
+if [[ -n "${DB_MIGRATOR_CREDENTIALS_FILE:-}" ]]; then printf 'migrator-config=%s\\n' "$DB_MIGRATOR_CREDENTIALS_FILE" >> "$CALL_LOG"; fi
 if [[ "$*" == "run db:verify" && "$PWD" == */code/board-game && "${FAKE_SCHEMA_FAIL:-0}" == 1 ]]; then exit 1; fi
+if [[ "$*" == "run db:migrate" && "${FAKE_MIGRATION_FAIL:-0}" == 1 ]]; then exit 23; fi
 if [[ "$*" == "run build" ]]; then mkdir -p dist; printf 'fixture-index\\n' > dist/index.html; fi''')
         self.command("rsync", 'printf "rsync %s\\n" "$*" >> "$CALL_LOG"')
         self.command("flock", 'exit 0')
@@ -134,6 +144,9 @@ else printf '{"status":"ok"}'; fi''')
     def assert_not_activated(self):
         self.assertFalse(any("systemctl stop " in call or "systemctl start " in call for call in self.actual_sudo))
 
+    def assert_no_deploy_release(self):
+        self.assertEqual({path.name for path in self.state.iterdir()}, {"mysql-migrator.json"})
+
     def test_administrator_and_wrong_home_refused_before_commands(self):
         result = self.run_script("--check", FAKE_USER="nhat_hoang")
         self.assertNotEqual(result.returncode, 0)
@@ -149,7 +162,7 @@ else printf '{"status":"ok"}'; fi''')
         self.assertEqual(len(self.actual_sudo), 2)
         self.assertTrue(any("verify-existing" in call for call in self.actual_sudo))
         self.assertFalse(any(call.startswith(("npm ", "rsync ")) for call in self.calls))
-        self.assertEqual(list(self.state.iterdir()), [])
+        self.assert_no_deploy_release()
         self.assert_not_activated()
 
     def test_private_directory_and_app_permissions_fail_closed(self):
@@ -158,7 +171,7 @@ else printf '{"status":"ok"}'; fi''')
                 result = self.run_script("--check", **{setting: "1"})
                 self.assertNotEqual(result.returncode, 0)
                 self.assertEqual(self.actual_sudo, [])
-                self.assertEqual(list(self.state.iterdir()), [])
+                self.assert_no_deploy_release()
 
     def test_root_runtime_and_missing_sudo_rejected_without_restart(self):
         result = self.run_script("--check", FAKE_RUNTIME="root")
@@ -185,8 +198,12 @@ else printf '{"status":"ok"}'; fi''')
         self.assertIn("--exclude=.env", publishes[0])
         self.assertIn("--exclude=uploads", publishes[0])
         create = next(i for i, call in enumerate(self.actual_sudo) if "create-and-verify" in call)
-        stop = next(i for i, call in enumerate(self.actual_sudo) if "systemctl stop " in call)
+        migration = next(i for i, call in enumerate(self.calls) if call.startswith("npm run db:migrate"))
+        stop = next(i for i, call in enumerate(self.calls) if call.startswith("sudo -n /usr/bin/systemctl stop "))
         self.assertLess(create, stop)
+        self.assertLess(create, migration)
+        self.assertLess(migration, stop)
+        self.assertIn(f"migrator-config={shell_path(self.state / 'mysql-migrator.json')}", self.calls)
 
     def test_failed_backup_or_schema_never_activates(self):
         for setting in ("FAKE_BACKUP_FAIL", "FAKE_SCHEMA_FAIL"):
@@ -194,9 +211,22 @@ else printf '{"status":"ok"}'; fi''')
                 self.log.unlink(missing_ok=True)
                 result = self.deploy(**{setting: "1"})
                 self.assertNotEqual(result.returncode, 0)
-                self.assertIn("[backup] FAILED" if setting == "FAKE_BACKUP_FAIL" else "[prepare] FAILED", result.stdout)
-                self.assert_not_activated()
+                self.assertIn("[backup] FAILED" if setting == "FAKE_BACKUP_FAIL" else "[migration] FAILED", result.stdout)
+                if setting == "FAKE_BACKUP_FAIL":
+                    self.assert_not_activated()
+                else:
+                    self.assertFalse(any("systemctl start cotuong.service" in call for call in self.actual_sudo))
+                    self.assertTrue(any("systemctl stop cotuong.service" in call for call in self.actual_sudo))
                 self.assertFalse(any("--delete" in call for call in self.calls if call.startswith("rsync ")))
+
+    def test_failed_migration_stops_service_without_code_or_database_rollback(self):
+        result = self.deploy(rollback="true", FAKE_MIGRATION_FAIL="1")
+        self.assertEqual(result.returncode, 23, result.stdout + result.stderr)
+        self.assertIn("Migration failed; database may be partially migrated", result.stdout)
+        self.assertIn("No code rollback or MySQL restore was attempted", result.stdout)
+        self.assertTrue(any("systemctl stop cotuong.service" in call for call in self.actual_sudo))
+        self.assertFalse(any("systemctl start cotuong.service" in call for call in self.actual_sudo))
+        self.assertFalse(any("--delete" in call for call in self.calls if call.startswith("rsync ")))
 
     def test_compatible_rollback_uses_same_acl_preserving_sync(self):
         result = self.deploy(rollback="true", FAKE_HEALTH_FAIL="1")

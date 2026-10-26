@@ -1,4 +1,5 @@
 import { createPool } from 'mysql2/promise'
+import { readFileSync } from 'node:fs'
 import type { Pool, PoolOptions, RowDataPacket } from 'mysql2/promise'
 
 export function mysqlOptions(env: NodeJS.ProcessEnv = process.env): PoolOptions {
@@ -9,13 +10,29 @@ export function mysqlOptions(env: NodeJS.ProcessEnv = process.env): PoolOptions 
   }
   const host = required('DB_HOST').trim()
   const database = required('DB_NAME').trim()
-  const user = required('DB_USER').trim()
+  const runtimeUser = required('DB_USER').trim()
+  if (runtimeUser.toLowerCase() === 'root') throw new Error('Backend không được dùng MySQL root. Hãy dùng cotuong_app.')
+  let user = runtimeUser
+  let password = required('DB_PASSWORD')
+  const migratorFile = env.DB_MIGRATOR_CREDENTIALS_FILE
+  if (migratorFile) {
+    try {
+      const credentials = JSON.parse(readFileSync(migratorFile, 'utf8')) as { user?: unknown; password?: unknown }
+      if (credentials.user !== 'cotuong_migrator' || typeof credentials.password !== 'string' || !credentials.password) {
+        throw new Error('invalid')
+      }
+      user = credentials.user
+      password = credentials.password
+    } catch {
+      throw new Error('Invalid dedicated MySQL migrator credential file.')
+    }
+  }
   const rawPort = required('DB_PORT')
   if (!host || !database || !user) throw new Error('DB_HOST, DB_NAME và DB_USER không được để trống.')
   if (user.toLowerCase() === 'root') throw new Error('Backend không được dùng MySQL root. Hãy dùng cotuong_app.')
   if (!/^\d+$/.test(rawPort) || Number(rawPort) < 1 || Number(rawPort) > 65535) throw new Error('DB_PORT phải là số nguyên từ 1 đến 65535.')
   return {
-    host, port: Number(rawPort), database, user, password: required('DB_PASSWORD'),
+    host, port: Number(rawPort), database, user, password,
     connectionLimit: 5, waitForConnections: true, queueLimit: 20,
     connectTimeout: 5000, charset: 'utf8mb4', timezone: 'Z',
     supportBigNumbers: true, bigNumberStrings: true, multipleStatements: false,

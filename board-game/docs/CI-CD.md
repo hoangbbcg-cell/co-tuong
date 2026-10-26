@@ -42,13 +42,38 @@ Tạo trong Environment `production`, không repository-wide nếu không cần:
 
 Không lấy `ssh-keyscan` không kiểm chứng rồi coi là tin cậy; workflow bật StrictHostKeyChecking, không tự chấp nhận host key. GitHub token chỉ contents:read/actions:read; không PAT/write token. Các action dùng version major chính thức; quản trị viên có thể pin SHA đã xác minh và bật Dependabot để quản lý cập nhật.
 
-## Migration: chủ động chặn, không tự cấp quyền
+## Migration tự động sau backup
 
-Runner hiện có MySQL DDL implicit commit, journal từng statement `running/applied` và checksum; migration dang dở không thể rollback transaction. Vì chưa kiểm tra danh tính/quyền MySQL và công cụ backup trên VPS, CD giai đoạn này **không tự chạy migration, GRANT/REVOKE hoặc restore MySQL**. Nó chạy `db:verify` trên cả code mới và code cũ **trước khi dừng service**. Pending migration, schema/journal/checksum mismatch hoặc mất DB sẽ dừng an toàn. Gate này bảo thủ: kể cả migration chỉ thêm dữ liệu cũng cần quản trị xử lý riêng.
+Workflow manual giữ nguyên cổng CI đúng SHA/master. Trên VPS, `deploy-vps.sh` kiểm tra schema hiện tại bằng `cotuong_app`, build release, lưu snapshot code/frontend, gọi backup adapter `create-and-verify` và chỉ khi dump mới cùng job cloud được xác minh mới chạy migration. Lệnh migration và post-migration `db:verify` dùng `cotuong_migrator`; backend sau deploy tiếp tục dùng `cotuong_app` chỉ có DML. Runner giữ thứ tự file, chỉ áp dụng bước journal còn thiếu, kiểm tra checksum và từ chối journal sai/đang `running`/không liên tục.
 
-Nếu release cần migration: không bấm deploy lặp để vượt gate. Quản trị viên review SQL và khả năng tương thích cả bản cũ/mới, tạo backup mới, bố trí maintenance và dừng ghi bằng service hiện có. Chạy migration qua tài khoản migration tạm riêng có quyền đúng schema/DDL cần thiết; không nâng quyền lâu dài của runtime, không dùng tài khoản root trong app. Quy trình quản trị phải bọc việc tạo user/quyền → migrate/verify trong `try/finally` hoặc trap EXIT/ERR/INT/TERM, **thu hồi quyền/drop user kể cả migrate thất bại**, kiểm chứng lại grants sau đó; nếu cleanup thất bại phải cảnh báo và xử lý ngay. Không đưa password vào tham số/log/GitHub, dùng cấu hình root-only hiện có. SIGKILL/mất điện không chạy trap, phải có kiểm tra/revoke độc lập sau sự cố. Không cung cấp SQL GRANT mặc định khi chưa biết schema/host/account thực tế.
+Không truyền mật khẩu MySQL qua GitHub, workflow, SSH arguments hoặc log. Quản trị viên cấu hình credential một lần trên VPS tại `/home/cotuong_deploy/.cotuong-deploy/mysql-migrator.json`, owner `cotuong_deploy`, mode `0600`; thư mục cha phải mode `0700`. File JSON có dạng `{"user":"cotuong_migrator","password":"..."}`. Tạo file bằng prompt ẩn, không đưa password vào câu lệnh hay shell history:
 
-Nếu DDL đã chạy một phần: giữ dừng deploy, đối chiếu journal/backup và sửa thủ công; không sửa journal giả thành công, không tự restore DB. Nếu sau migration bản cũ không còn verify được, pipeline cũng chặn: cần kế hoạch nâng cấp có maintenance/rollback đã review riêng. Đây là giới hạn có chủ đích, không tuyên bố tự động hóa migration production đã hoàn thành.
+```bash
+sudo -iu cotuong_deploy
+read -r -s -p 'MySQL cotuong_migrator password: ' DB_MIGRATOR_PASSWORD; printf '\n'
+export DB_MIGRATOR_PASSWORD
+node --input-type=module -e '
+import { writeFileSync } from "node:fs";
+const path = "/home/cotuong_deploy/.cotuong-deploy/mysql-migrator.json";
+if (process.env.DB_MIGRATOR_PASSWORD === undefined || !process.env.DB_MIGRATOR_PASSWORD) process.exit(2);
+writeFileSync(path, JSON.stringify({user:"cotuong_migrator",password:process.env.DB_MIGRATOR_PASSWORD}), {flag:"wx",mode:0o600});
+'
+unset DB_MIGRATOR_PASSWORD
+```
+
+Nếu cần xoay mật khẩu, quản trị viên thay credential MySQL và file local trong cùng maintenance; không ghi đè file qua deploy. Trước lần deploy đầu, xác minh trạng thái user/host/khóa/mật khẩu hết hạn và grants bằng tài khoản MySQL quản trị tại VPS:
+
+```sql
+SELECT user, host, account_locked, password_expired
+FROM mysql.user WHERE user IN ('cotuong_app','cotuong_migrator') ORDER BY user,host;
+SHOW GRANTS FOR 'cotuong_migrator'@'<host lấy từ kết quả trên>';
+```
+
+Tài khoản migrator phải đăng nhập được vào đúng database `cotuong` và chỉ cần `SELECT, INSERT, UPDATE, CREATE, ALTER, INDEX, REFERENCES` trên `cotuong.*`; không cấp `DROP`, global grants, quyền quản trị hay DDL cho `cotuong_app`. Host account cần khớp host MySQL thực tế, không đoán `'localhost'`. Sau khi lưu file, kiểm tra kết nối từ thư mục app mà không in credential: `DB_MIGRATOR_CREDENTIALS_FILE=/home/cotuong_deploy/.cotuong-deploy/mysql-migrator.json npm run db:check`. Nếu kiểm tra hoặc grants không đúng, chưa deploy.
+
+Migration 006 thêm `gold_reward_eligible NOT NULL DEFAULT TRUE` nên các trận cũ vẫn giữ mặc định đủ điều kiện, không cập nhật lịch sử; 007 thêm title rỗng/note NULL cho bookmark cũ; 008 thêm hai bảng chợ mới; 009 thêm cờ duyệt mặc định `FALSE` và bảng yêu cầu join rỗng; 010 đổi CHECK role để cho phép `deputy` và tạo bảng block rỗng. 010 giả định dữ liệu role cũ chỉ có `owner`/`member` theo CHECK trước đó; nếu schema/data thực tế lệch, migration sẽ dừng ở lỗi DDL/journal. Không có migration nào tự xóa bản ghi hiện hữu.
+
+MySQL DDL có implicit commit. Nếu migration hoặc verify thất bại, deploy dừng service, không publish code, không tự rollback code và không khôi phục MySQL. Journal `running` có thể cần kiểm tra/sửa thủ công theo schema và backup đã xác minh; không đánh dấu `applied` giả. Backup pre-migration giữ nguyên làm điểm khôi phục, không restore tự động. Sau migration thành công mới bắt đầu publish. Lỗi activation/health chỉ tự rollback code/frontend khi input `rollback_compatible=true`; mặc định false thì service dừng để review. Tích chọn chỉ sau khi đã xác nhận semantics ghi dữ liệu mới tương thích với backend trước; rollback code không rollback schema/dữ liệu.
 
 ## Luồng deploy và rollback
 
