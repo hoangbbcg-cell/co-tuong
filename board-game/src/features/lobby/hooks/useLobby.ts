@@ -14,6 +14,8 @@ export function useLobby() {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [name, setName] = useState(session.name)
   const [nameError, setNameError] = useState('')
+  const [roomSearchNotice, setRoomSearchNotice] = useState(0)
+  useEffect(() => { if (!roomSearchNotice) return; const timer = setTimeout(() => setRoomSearchNotice(0), 2000); return () => clearTimeout(timer) }, [roomSearchNotice])
   const validateName = () => {
     const error = playerNameError(name)
     setNameError(error)
@@ -53,6 +55,21 @@ export function useLobby() {
       void client.invalidateQueries({ queryKey: ['rooms'] })
     },
   })
+  const findRoom = useMutation({
+    mutationFn: async (code: string) => {
+      const latest = await client.fetchQuery({ queryKey: ['rooms'], queryFn: ({ signal }) => roomApi.list(signal), staleTime: 0 })
+      const room = latest.find(candidate => candidate.code === code.trim())
+      if (!room) throw new Error('Không tìm thấy phòng có số này.')
+      return room
+    },
+    onError: () => setRoomSearchNotice(value => value + 1),
+    onSuccess: room => {
+      if (room.phase !== 'playing' && !requireEnergy()) return
+      join.reset()
+      if (room.locked) { setPasswordRoom(room); return }
+      join.mutate({ roomId: room.id })
+    },
+  })
   useEffect(() => {
     const dialog = dialogRef.current
     if (session.lobbyOpen && !dialog?.open) dialog?.showModal()
@@ -65,10 +82,12 @@ export function useLobby() {
     session.joinLocal()
   }
   return { minutes, setMinutes, province: session.province, dialogRef, open: session.lobbyOpen, name, setName, rooms: rooms.data ?? [], loading: rooms.isLoading,
-    pending: join.isPending || create.isPending || quick.isPending, error: session.notice || (join.error || create.error || quick.error || rooms.error ? errorMessage(join.error || create.error || quick.error || rooms.error) : ''),
+    pending: join.isPending || create.isPending || quick.isPending || findRoom.isPending, error: session.notice || ((!passwordRoom && join.error) || create.error || quick.error || rooms.error ? errorMessage((!passwordRoom && join.error) || create.error || quick.error || rooms.error) : ''),
     quickPlay: (onNoRoom: () => void, minutes: number | null = null) => {
       if (validateName() && requireEnergy()) quick.mutate(minutes, { onSuccess: room => { if (!room) onNoRoom() } })
     },
+    roomSearchNotice: Boolean(roomSearchNotice),
+    joinByCode: (code: string) => { if (!/^\d{6}$/.test(code.trim())) { setRoomSearchNotice(value => value + 1); return } if (validateName()) { setRoomSearchNotice(0); join.reset(); findRoom.mutate(code.trim()) } },
     nameError, dismissNameError: () => setNameError(''), validateName,
     passwordRoom, passwordError: join.error ? errorMessage(join.error) : '', dismissPasswordRoom: () => { if (!join.isPending) { setPasswordRoom(null); join.reset() } },
     joinLocal, join: (id: string, password?: string) => {

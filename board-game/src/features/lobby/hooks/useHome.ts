@@ -72,7 +72,7 @@ export function useHome() {
   }, [message])
   const openRooms = () => useSessionStore.setState({ screen: 'rooms', lobbyOpen: true })
   const openShop = () => useSessionStore.setState({ screen: 'shop', lobbyOpen: false })
-  const openComputer = () => useSessionStore.setState({ screen: 'computer', lobbyOpen: false })
+  const openComputer = () => useSessionStore.setState({ screen: 'computer', lobbyOpen: false, selectedComputerEngine: 'pikafish' })
   const closeRooms = () => useSessionStore.setState({ lobbyOpen: false })
   const playLocal = () => {
     useGameStore.getState().reset(performance.now())

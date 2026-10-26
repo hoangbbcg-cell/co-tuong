@@ -1,5 +1,7 @@
 # Tiến độ
 
+- 2026-10-22: Đã xác minh lại bằng Gitleaks thật 8.30.1 từ WinGet (chạy ngoài sandbox, thêm thư mục binary vào PATH của riêng tiến trình thử). `.gitleaks.toml` kế thừa luật mặc định; JSON report xác nhận rule test-secret-do-not-upload bắt marker giả trong sample.ts. Bản sao nguyên vẹn hook pre-push chạy qua git push trong ba repo/bare remote tạm: .env.production bị chặn, marker TypeScript bị chặn, TypeScript sạch push thành công. Hai remote bị chặn giữ nguyên refs và số file objects; mỗi push bổ sung chỉ quét một commit mới. Không push GitHub hoặc sửa HEAD/lịch sử repo chính. Shell dùng để push phải tìm thấy gitleaks trong PATH; thiếu binary/config thì hook chặn an toàn.
+
 - 2026-10-03: Chuẩn hóa hàng người chơi ở các tab bạn bè theo hàng gợi ý cao 85px; tab Danh sách bỏ chia khung thành 5 hàng kéo giãn, hiển thị toàn bộ kết quả với cuộn dọc trong khung cố định. Các tab đã dùng chung FriendRow. Build/typecheck PASS, dist cập nhật; chưa browser QA.
 - 2026-10-03: Theo làm rõ của người dùng, ba ảnh 91d7…, a6bb…, e96b… dùng cho trạng thái inactive của Danh sách/Thêm bạn/Lời mời; khôi phục bộ active trước đó. Ảnh nguồn lưu trong `src/assets/references/uploads/`; giữ kích thước asset hiện tại. `npm.cmd run build` PASS, dist cập nhật; chưa browser QA.
 - 2026-10-03: Đồng bộ dải nâu tab Danh sách theo đúng chiều dài 600px của mẫu tab Thêm bạn; bỏ chiều dài riêng 671px. Build/typecheck PASS, dist cập nhật; chưa browser QA.

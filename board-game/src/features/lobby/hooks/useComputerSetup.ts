@@ -8,6 +8,7 @@ export function useComputerSetup() {
   const name = useSessionStore(state => state.name)
   const [side, setSide] = useState<'red' | 'black' | 'random'>('red')
   const level = useSessionStore(state => state.computerLevel)
+  const engine = 'pikafish' as const
   const setLevel = (next: number) => {
     if (Number.isInteger(next) && next >= 1 && next <= 10) useSessionStore.setState({ computerLevel: next })
   }
@@ -21,7 +22,7 @@ export function useComputerSetup() {
     if (!message && messageRef.current?.open) messageRef.current.close()
   }, [message])
   return {
-    name, side, setSide, level, setLevel, starting, message, setMessage, messageRef,
+    name, side, setSide, level, setLevel, engine, starting, message, setMessage, messageRef,
     back: () => useSessionStore.setState({ screen: 'home' }),
     customPosition: () => useSessionStore.setState({ screen: 'position', humanSide: side === 'random' ? 'red' : side }),
     start: async () => {
@@ -30,9 +31,9 @@ export function useComputerSetup() {
       request.current = controller
       setStarting(true)
       const humanSide = side === 'random' ? (Math.random() < .5 ? 'red' : 'black') : side
-      const computerEngine = 'pikafish'
+      const computerEngine = engine
       try {
-        if (computerEngine === 'pikafish') await pikafishApi.ready(controller.signal)
+        await pikafishApi.ready(controller.signal)
         if (controller.signal.aborted || useSessionStore.getState().screen !== 'computer') return
         useGameStore.getState().reset(performance.now())
         useSessionStore.getState().joinLocal()

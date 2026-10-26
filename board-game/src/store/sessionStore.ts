@@ -51,6 +51,7 @@ interface SessionStore {
   computerDemoQueued: boolean
   customPositionTrial: boolean
   computerEngine: ComputerEngine
+  selectedComputerEngine: 'pikafish'
   computerLevel: number
   humanSide: Side
   name: string
@@ -105,7 +106,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     const recovered = recoverEnergy(state.energy, state.energyRecoveryAt, now)
     return { energy: Math.max(0, recovered.energy - 1), energyRecoveryAt: recovered.energyRecoveryAt ?? now + ENERGY_RECOVERY_MS }
   }),
-  screen: 'home', mode: 'local', computerDemo: false, computerDemoQueued: false, customPositionTrial: false, computerEngine: 'basic', computerLevel: 2, humanSide: 'red', name: readGuestEntry()?.name ?? 'Picolozz', lobbyOpen: false, room: null, friendshipOverrides: {}, pendingFriendRequests: {}, friendRemovalConfirmationMutedUntil: null, matchLikeRecords: [],
+  screen: 'home', mode: 'local', computerDemo: false, computerDemoQueued: false, customPositionTrial: false, computerEngine: 'basic', selectedComputerEngine: 'pikafish', computerLevel: 2, humanSide: 'red', name: readGuestEntry()?.name ?? 'Picolozz', lobbyOpen: false, room: null, friendshipOverrides: {}, pendingFriendRequests: {}, friendRemovalConfirmationMutedUntil: null, matchLikeRecords: [],
   messages: [{ id: 'welcome', name: '', text: 'Picolozz đã vào phòng.', system: true }], notice: '',
   setName: name => { if (!playerNameError(name)) set({ name: name.trim().normalize('NFC') }) },
   setFriendship: (name, isFriend) => set(state => ({ friendshipOverrides: { ...state.friendshipOverrides, [name]: isFriend }, pendingFriendRequests: isFriend ? { ...state.pendingFriendRequests, [name]: false } : state.pendingFriendRequests })),

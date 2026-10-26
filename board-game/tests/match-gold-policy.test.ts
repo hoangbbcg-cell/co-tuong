@@ -36,6 +36,10 @@ const finish = async (repo: MatchRepository, snapshot: RoomSnapshot) => {
   const final = { ...snapshot.game, phase: 'finished' as const, result: { winner: 'red' as const, reason: 'resign' as const } }
   await repo.complete('match', snapshot, [snapshot.game, final])
 }
+const finishDraw = async (repo: MatchRepository, snapshot: RoomSnapshot) => {
+  const final = { ...snapshot.game, phase: 'finished' as const, result: { winner: null, reason: 'draw' as const } }
+  await repo.complete('match', snapshot, [snapshot.game, final])
+}
 const goldWrites = () => db.change.mock.calls.filter(([sql]) => sql.includes('gold=gold+'))
 
 it('friends at start cannot regain gold by unfriending before the result', async () => {
@@ -48,6 +52,8 @@ it('friends at start cannot regain gold by unfriending before the result', async
   expect(goldWrites()).toHaveLength(0)
   expect(db.ledger.mock.calls.some(call => call[2] === 'gold')).toBe(false)
   expect(db.change.mock.calls.some(([sql]) => sql.startsWith('UPDATE user_game_stats'))).toBe(true)
+  await repo.start('next-match', snapshot, { red: '2', black: '10' })
+  expect(db.eligible).toBe(1)
 })
 it('an invited pair receives no gold, while a different pair in that room remains eligible', async () => {
   const snapshot = room(), repo = new MatchRepository()
@@ -75,4 +81,16 @@ it('a normal opponent still receives 125–150 gold exactly once', async () => {
   const amount = Number(goldWrites()[0][1][0])
   expect(amount).toBeGreaterThanOrEqual(125)
   expect(amount).toBeLessThanOrEqual(150)
+})
+
+it('an agreed draw does not change gold, Elo, stats, or honors', async () => {
+  const snapshot = room(), repo = new MatchRepository()
+  await repo.start('match', snapshot, { red: '2', black: '10' })
+  db.change.mockClear()
+  db.ledger.mockClear()
+  await finishDraw(repo, snapshot)
+  expect(goldWrites()).toHaveLength(0)
+  expect(db.ledger).not.toHaveBeenCalled()
+  expect(db.change.mock.calls.some(([sql]) => sql.startsWith('UPDATE user_game_stats'))).toBe(false)
+  expect(db.change.mock.calls.some(([sql]) => sql.startsWith('INSERT INTO user_honors'))).toBe(false)
 })

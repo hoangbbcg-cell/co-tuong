@@ -24,3 +24,21 @@ it('archives for late spectators and retains players through queue rotation', ()
   service.command('red', { type: 'ready' }); service.command('viewer', { type: 'ready' })
   expect(room.lastCompletedMatch).toBeUndefined()
 })
+
+it('keeps the real clock balances at recorded move boundaries', () => {
+  let now = 0
+  const service = new RoomService(new RoomRepository(), () => now, () => 'red')
+  const room = service.create('Recorded clocks')
+  service.join(room.id, 'red', 'Red'); service.join(room.id, 'black', 'Black')
+  service.command('red', { type: 'ready' }); service.command('black', { type: 'ready' })
+  now = 2300
+  service.command('red', { type: 'move', move: { from: { row: 6, col: 0 }, to: { row: 5, col: 0 } } })
+  now = 4300
+  service.command('black', { type: 'move', move: { from: { row: 3, col: 0 }, to: { row: 4, col: 0 } } })
+  now = 5300
+  const finished = service.command('red', { type: 'resign' })
+  const states = finished.lastCompletedMatch!.states
+  expect(states[0].remainingTime).toEqual({ red: 600000, black: 600000 })
+  expect(states[1].remainingTime).toEqual({ red: 599000, black: 600000 })
+  expect(states[2].remainingTime).toEqual({ red: 598000, black: 598000 })
+})

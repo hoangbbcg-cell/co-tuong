@@ -1,3 +1,4 @@
+import { useUnreadMessageCount } from '../../features/lobby/hooks/useDatabaseMessages'
 import { homeResourceLayout } from '../../features/lobby/components/homeResourceLayout'
 import { ResourceAddButton } from '../../features/lobby/components/ResourceAddButton'
 import { ResourceArtwork } from '../../features/lobby/components/ResourceArtwork'
@@ -49,6 +50,7 @@ const modes = [
 
 export function HomePage() {
   const home = useHome()
+  const unreadMessageCount = useUnreadMessageCount()
   const elo = useSessionStore(state => state.elo)
   const account=useSessionStore(state=>state.account)
   const selectedAvatarIndex = useSessionStore(state => state.avatarIndex)
@@ -81,7 +83,7 @@ export function HomePage() {
   }
 
   return <main className="relative isolate h-dvh w-full overflow-hidden bg-[#263a35] text-[#f7e6c1]" aria-label="Màn hình chính">
-    <MobileHome home={home} music={music} onEnergy={openEnergy} onMessages={() => openMessages()} />
+    <MobileHome unreadMessageCount={unreadMessageCount} home={home} music={music} onEnergy={openEnergy} onMessages={() => openMessages()} />
     <div className="absolute top-1/2 left-1/2 isolate flex compact:hidden origin-center flex-col overflow-hidden border-[length:var(--ui-p-5,5px)] border-[#80582c] bg-[#d9d4bf] px-8 py-5 shadow-[inset_0_0_0_2px_#efd397,0_0_0_1px_#e1c993,0_8px_30px_#101d18aa] compact:px-4 compact:py-3" style={{ ...getCrispUiLayout(layout.scale, layout.width, layout.height), transform: 'translate(-50%, -50%)' }}>
       <CrispUiImage src={background} alt="" className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover object-center" />
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,#f4e8cd11,transparent_50%,#344b4233)]" />
@@ -121,7 +123,7 @@ export function HomePage() {
             ['history', 'Lịch sử', 'Lịch sử ván đấu chưa được lưu.'],
             ['friends', 'Bạn bè', 'Tính năng bạn bè sắp ra mắt.'],
             ['messages', 'Tin nhắn', ''],
-          ].map(([icon, label, message]) => <button key={label} className={utility} aria-label={label} onClick={() => icon === 'trophy' ? home.openRanking() : icon === 'history' ? home.openHistory() : icon === 'friends' ? home.openFriends() : icon === 'messages' ? openMessages() : home.setMessage(message)}><HomeIcon name={icon as HomeIconName} /></button>)}
+          ].map(([icon, label, message]) => <button key={label} className={`${utility} relative`} aria-label={icon === 'messages' && unreadMessageCount > 0 ? `${label}, ${unreadMessageCount} tin nhắn chưa đọc` : label} onClick={() => icon === 'trophy' ? home.openRanking() : icon === 'history' ? home.openHistory() : icon === 'friends' ? home.openFriends() : icon === 'messages' ? openMessages() : home.setMessage(message)}><HomeIcon name={icon as HomeIconName} />{icon === 'messages' && unreadMessageCount > 0 && <span aria-hidden="true" className="pointer-events-none absolute -top-2 -right-2 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-[#ffe2a1] bg-[#d82323] px-1 font-number text-sm font-semibold leading-none text-white shadow-[0_1px_4px_#321407]">{unreadMessageCount > 99 ? '99+' : unreadMessageCount}</span>}</button>)}
           <button className={utility} aria-label="Shop" title="Shop" onClick={home.openShop}><HomeIcon name="shop" /></button>
           <HomeSettings music={music} onError={() => home.setMessage('Không thể phát nhạc trên trình duyệt này.')} />
           <button className={utility} aria-label="Toàn màn hình" onClick={() => void home.fullscreen()}><HomeIcon name="fullscreen" /></button>

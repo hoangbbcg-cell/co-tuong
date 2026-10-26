@@ -1,0 +1,5 @@
+import { mobileNoticePanelStyle } from '../../../lib/uiClasses'
+export const messagesConfirmationSize = `${mobileNoticePanelStyle} compact:w-[min(360px,calc(100vw-48px))] compact:max-w-none compact:shrink-0 compact:min-h-[200px] compact:[&[role=alertdialog]]:h-[240px] compact:flex compact:flex-col compact:p-[20px] compact:[&>p]:text-[18px] compact:[&>p]:leading-relaxed compact:[&_button]:min-h-[46px] compact:[&_button]:min-w-[100px] compact:[&_button]:rounded-[12px] compact:[&_button]:px-[12px] compact:[&_button]:py-[10px] compact:[&_button]:text-[18px] compact:[&_label]:text-[18px] compact:[&_h2]:text-[18px]`
+
+export const messagesConfirmationBody = 'compact:flex compact:min-h-0 compact:flex-1 compact:flex-col compact:items-center compact:justify-center compact:gap-[8px] compact:overflow-y-auto compact:text-center compact:[&>p]:m-0 compact:[&>p]:text-[18px] compact:[&>p]:leading-relaxed'
+export const messagesConfirmationActions = 'compact:mt-[16px] compact:grid compact:w-full compact:shrink-0 compact:grid-cols-2 compact:gap-[12px] compact:[&_button]:grid compact:[&_button]:w-full compact:[&_button]:min-w-0 compact:[&_button]:place-items-center'

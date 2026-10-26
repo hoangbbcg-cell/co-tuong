@@ -215,12 +215,13 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
     if (testComputerEnergy && (phase === 'ready' || phase === 'finished')) useSessionStore.getState().consumeEnergy()
   }, [!!replay, session.testBotId, testBot.start, online, session.room, player, game.phase, playMatchIntro, command, phase, variant, computer, session.computerEngine, local.reset, local.start, local.initialFen, local.loadPosition])
   useEffect(() => {
-    if (computer && session.computerEngine === 'pikafish' && phase === 'ready') start()
+    if (computer && session.computerEngine !== 'basic' && phase === 'ready') start()
   }, [computer, session.computerEngine, phase, start])
   const requestedTakebackPlies: 1 | 2 = game.currentTurn === (online ? player?.side : session.humanSide) ? 2 : 1
   const takebackPlies: 1 | 2 = requestedTakebackPlies === 2 && moveCount === 1 ? 1 : requestedTakebackPlies
   const computerHasMoved = computer && local.history.some(snapshot => snapshot.currentTurn === session.humanSide)
-  const canTakeback = !replay && game.phase === 'playing' && moveCount >= 1 && (!computer || computerHasMoved)
+  const onlineHasMoved = !online || !!player && !session.room?.takebackBlocked?.[player.side] && (moveCount >= 2 || moveCount === 1 && game.currentTurn !== player.side)
+  const canTakeback = !replay && game.phase === 'playing' && moveCount >= 1 && onlineHasMoved && (!computer || computerHasMoved)
   const takebacksLeft = online ? player ? session.room?.takebackRemaining?.[player.side] ?? 2 : 0 : computer ? local.takebacksRemaining : 0
   return {
     game, moveCount, online, computer, humanSide: session.humanSide, computerEngine: session.computerEngine, computerState, room: replay ? null : session.room, player: replay ? undefined : player, viewer: replay ? undefined : viewer, toggleQueue, selected, legalMoves, forbiddenMoves, repetitionNotice: replay ? '' : repetitionNotice?.message ?? '', repetitionAttemptNotice, dismissRepetitionNotice,
@@ -230,7 +231,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
     start,
     reset: () => replay ? undefined : session.testBotId ? void testBot.start(game.variant ?? 'xiangqi') : online ? void command({ type: 'reset' }) : local.reset(performance.now(), game.variant),
     requestTakeback: () => {
-      if (online) void command({ type: 'request-takeback' })
+      if (online && canTakeback) void command({ type: 'request-takeback' })
       else if (computer && canTakeback && local.takebacksRemaining > 0) local.declineTakeback()
     },
     replyTakeback: (accepted: boolean) => {

@@ -1,8 +1,8 @@
-import { useLayoutEffect, useRef, useState, type ImgHTMLAttributes } from 'react'
-import { CrispUiImage } from './CrispUiImage'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { CrispUiImage, type CrispUiImageProps } from './CrispUiImage'
 
 /** Preserve an approved contained crop/stretch using real pixels, not a scaled layer. */
-export function FittedUiArtwork({ scaleX = 1, scaleY = 1, style, onLoad, ...props }: ImgHTMLAttributes<HTMLImageElement> & { scaleX?: number; scaleY?: number }) {
+export function FittedUiArtwork({ scaleX = 1, scaleY = 1, style, onLoad, ...props }: CrispUiImageProps & { scaleX?: number; scaleY?: number }) {
   const hostRef = useRef<HTMLSpanElement>(null)
   const [source, setSource] = useState({ width: 0, height: 0 })
   const [box, setBox] = useState({ width: 0, height: 0 })

@@ -1,4 +1,6 @@
-﻿import { MessageAccountAvatar } from './MessageAccountAvatar'
+import { HistoryBoardIcon } from './HistoryBoardIcon'
+import { socialListScrollbarClass } from '../../../lib/uiClasses'
+import { MessageAccountAvatar } from './MessageAccountAvatar'
 import { getComputerAvatar } from '../../../lib/computerAvatar'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { Board } from '../../game/components/Board'
@@ -10,15 +12,17 @@ import { CrispUiImage } from '../../../lib/CrispUiImage'
 import replayButtonFrame from '../../../assets/history/history-replay-button-frame.png'
 import { savedMatchSide } from '../../../lib/savedMatchPerspective'
 import { NumberText } from '../../../lib/NumberText'
+import { usePressToRevealDelete } from '../hooks/usePressToRevealDelete'
 
 const noop = () => {}
 function NewspaperIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24" className="inline-block size-[var(--ui-p-24,24px)] shrink-0 align-middle" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4h16v15a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8h2Zm0 4v11a2 2 0 0 0 2 2" /><path d="M9 8h8v4H9Zm0 8h3m3 0h2M9 18h8" /></svg>
 }
-export function SavedPositionsList({ owner, scale, onClose }: { owner: string; scale: number; onClose: () => void }) {
+export function SavedPositionsList({ owner, scale, compact = false, onClose }: { owner: string; scale: number; compact?: boolean; onClose: () => void }) {
   const positions = useSavedPositions(state => state.entries).filter(item => item.owner === owner).slice().reverse()
   const [error, setError] = useState('')
   const [editing, setEditing] = useState<string | null>(null)
+  const deletePress = usePressToRevealDelete(compact && !editing, owner)
   const [editField, setEditField] = useState<'title' | 'note'>('title')
   const [title, setTitle] = useState('')
   const [note, setNote] = useState('')
@@ -29,19 +33,18 @@ export function SavedPositionsList({ owner, scale, onClose }: { owner: string; s
     if (!list) return
     const measure = () => {
       const row = list.firstElementChild as HTMLElement | null
-      if (row) setWidth(Math.max(1, (row.clientHeight - 10) * 1134 / 1296))
+      if (row) setWidth(Math.max(1, Math.min((row.clientHeight - 10) * 1134 / 1296, list.clientWidth * (compact ? 0.3 : 0.35))))
     }
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(list)
     return () => observer.disconnect()
-  }, [positions.length, scale])
+  }, [positions.length, scale, compact])
   return <div className="flex min-h-0 flex-1 flex-col">
     {error && <p role="alert">{error}</p>}
-    {positions.length === 0 ? <p className={`grid min-h-0 flex-1 place-items-center ${historyEmptyTextClass}`}>Chưa có thế cờ đã lưu.</p> : <ol ref={listRef} className="-mr-[10px] grid min-h-0 flex-1 auto-rows-[calc((100%_-_var(--ui-p-5,5px))/_2)] grid-cols-1 content-start gap-[var(--ui-p-5,5px)] overflow-y-auto pr-[4px] [scrollbar-color:#613014_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#613014] [&::-webkit-scrollbar-corner]:bg-transparent">
-      {positions.map(position => <li key={position.id} className="relative grid min-h-0 items-center gap-x-[10px] overflow-hidden bg-[linear-gradient(90deg,#f3dfb8,#f7e8bf_45%,#ecd09d)] px-3 py-[5px]" style={{ gridTemplateColumns: `var(--ui-p-118,118px) ${width}px minmax(0,1fr) var(--ui-p-151,151px)` }}>
-        <time className="text-center font-arial text-[length:var(--ui-p-17,17px)]" dateTime={new Date(position.savedAt).toISOString()}>{new Date(position.savedAt).toLocaleDateString('vi-VN')}<br />{new Date(position.savedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</time>
-        <div inert className="pointer-events-none" aria-label={`Bàn cờ: ${position.title}`}>
+    {positions.length === 0 ? <p className={`grid min-h-0 flex-1 place-items-center ${historyEmptyTextClass}`}>Chưa có thế cờ đã lưu.</p> : <ol ref={listRef} onScroll={compact ? deletePress.clear : undefined} className={`-mr-[10px] grid min-h-0 flex-1 auto-rows-[calc((100%_-_var(--ui-p-5,5px))/_2)] grid-cols-1 content-start gap-[var(--ui-p-5,5px)] overflow-y-auto pr-[4px] ${compact ? socialListScrollbarClass : '      '}`}> 
+      {positions.map(position => <li key={position.id} {...deletePress.handlersFor(position.id)} className="relative grid min-h-0 items-center gap-x-[10px] overflow-hidden bg-[linear-gradient(90deg,#f3dfb8,#f7e8bf_45%,#ecd09d)] px-3 py-[5px]" style={{ gridTemplateColumns: compact ? `${width}px minmax(0,1fr)` : `${width}px minmax(0,1fr) var(--ui-p-151,151px)` }}>
+        <div inert className="pointer-events-none compact:row-span-2" aria-label={`Bàn cờ: ${position.title}`}>
           <Board shadow={false} board={position.boardState.board} hiddenChess={position.boardState.variant === 'jieqi'} flipped={position.blackName === owner && position.redName !== owner} selected={null} legalMoves={[]} animation={null} frameWidth={width} scale={width / 1134} disabled showStart={false} startDisabled startLabel="" onSelect={noop} onStart={noop} />
         </div>
         <div className="flex h-full min-h-0 min-w-0 flex-col gap-2 py-1 text-[#271608]">
@@ -64,7 +67,7 @@ export function SavedPositionsList({ owner, scale, onClose }: { owner: string; s
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-arial text-[length:var(--ui-p-17,17px)]">
             <span><NewspaperIcon /> &nbsp;Nước {position.moveNumber}</span>
             <span className="flex items-center gap-2"><span aria-hidden="true" className={`size-[var(--ui-p-18,18px)] rounded-full ${position.boardState.currentTurn === 'red' ? 'bg-[#ef3030]' : 'bg-[#271608]'}`} />{position.boardState.currentTurn === 'red' ? 'Đỏ' : 'Đen'} tới lượt</span>
-            <span className="flex items-center gap-2"><span aria-hidden="true" className="text-[length:var(--ui-p-24,24px)] leading-none">⚒</span>{position.boardState.variant === 'jieqi' ? 'Cờ úp' : 'Cờ tướng'}</span>
+            <span className="flex items-center gap-2"><HistoryBoardIcon className="size-[var(--ui-p-24,24px)] shrink-0" />{position.boardState.variant === 'jieqi' ? 'Cờ úp' : 'Cờ tướng'}</span>
           </div>
           <div className="relative flex min-h-0 flex-1 rounded bg-[#c7a370]/25 font-arial text-[length:var(--ui-p-17,17px)] text-[#613014]">
             <span className="absolute left-2 top-1"><NewspaperIcon /></span>
@@ -75,9 +78,9 @@ export function SavedPositionsList({ owner, scale, onClose }: { owner: string; s
             }}><svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{editing === position.id && editField === 'note' ? <path d="m5 12 4 4L19 6" /> : <><path d="m15 4 5 5M4 20l5-1L20 8a2 2 0 0 0-5-5L4 14Z" /><path d="M4 20h16" /></>}</svg></button>
           </div>
         </div>
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end compact:col-start-2 compact:justify-start">
           <button type="button" className={`${buttonInteraction} relative h-[var(--ui-p-52,52px)] w-[var(--ui-p-151,151px)] shrink-0`} onClick={() => { useSavedMatches.setState({ replay: { replayKind: 'position', initialMoveCount: position.moveNumber, id: position.id, endedAt: position.savedAt, redName: position.redName, blackName: position.blackName, states: [position.boardState] } }); onClose(); useSessionStore.setState({ screen: 'replay' }) }}><CrispUiImage src={replayButtonFrame} alt="" className="absolute inset-0 size-full object-contain" /><span className="relative font-arial text-[length:var(--ui-p-19,19px)] text-[#f4dcc0]">▶ Mở thế</span></button>
-          <button type="button" className={`${buttonInteraction} absolute right-3 top-[5px] grid h-[var(--ui-p-36,36px)] w-[var(--ui-p-28,28px)] shrink-0 place-items-center rounded-md border border-[#696761] bg-[linear-gradient(180deg,#777672,#5b5a56)] text-[#e5e7eb]`} aria-label={`Xóa thế ${position.title}`} onClick={async () => { try { await useSavedPositions.getState().remove(owner, position.id); setError('') } catch { setError('Không thể xóa thế cờ. Hãy thử lại.') } }}><svg aria-hidden="true" viewBox="0 0 24 24" className="h-[var(--ui-p-24,24px)] w-[var(--ui-p-19,19px)]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M10 10v8m4-8v8M6 6l1 15h10l1-15M9 6V3h6v3" /></svg></button>
+          {(!compact || deletePress.revealedId === position.id) && <button data-history-delete type="button" className={`${buttonInteraction} absolute right-3 top-[5px] grid h-[var(--ui-p-36,36px)] w-[var(--ui-p-28,28px)] shrink-0 place-items-center rounded-md border border-[#696761] bg-[linear-gradient(180deg,#777672,#5b5a56)] text-[#e5e7eb]`} aria-label={`Xóa thế ${position.title}`} onClick={async () => { try { await useSavedPositions.getState().remove(owner, position.id); deletePress.clear(); setError('') } catch { setError('Không thể xóa thế cờ. Hãy thử lại.') } }}><svg aria-hidden="true" viewBox="0 0 24 24" className="h-[var(--ui-p-24,24px)] w-[var(--ui-p-19,19px)]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M10 10v8m4-8v8M6 6l1 15h10l1-15M9 6V3h6v3" /></svg></button>}
         </div>
       </li>)}
     </ol>}

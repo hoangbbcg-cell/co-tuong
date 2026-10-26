@@ -32,3 +32,38 @@ Dọn ngày 2026-10-03: xóa 129 ảnh không được tham chiếu; gom 8 ảnh
 - 2026-10-13: Mặt sau quân trong ván Cờ Úp dùng một quân cắt sát từ ảnh người dùng cung cấp `references/uploads/63d54150-142b-46fb-82ba-3b855bf0da68.png` (tấm 3×2, lấy quân trên trái), xuất `pieces/concealed-back.png`; ô chế độ Cờ Úp ở Home giữ nguyên. Crop vùng (33,89) 444×444, giới hạn ellipse để loại nhiễu ngoài quân rồi trim alpha còn 441×435.
 
 
+
+## Sắp xếp 2026-10-24
+
+| File nguồn | Đường dẫn mới |
+| --- | --- |
+| 07100236-8b2c-46b7-a762-41aa66c18726.png | references/uploads/room-selection/07100236-8b2c-46b7-a762-41aa66c18726.png |
+| 0963fdaa-fd2f-4c9d-bcce-0cd1500ccfd8.png | messages/create-group-frame.png |
+| 0a700f7c-2c0d-40c8-a397-49d1229dbd64.png | references/uploads/history/0a700f7c-2c0d-40c8-a397-49d1229dbd64.png |
+| 0fed4f87-153a-4338-ad9b-a3a0e2e1ff1c.png | references/uploads/history/0fed4f87-153a-4338-ad9b-a3a0e2e1ff1c.png |
+| 17dba0c6-ed86-4828-af8d-601de53cf19d.png | references/uploads/game-result/17dba0c6-ed86-4828-af8d-601de53cf19d.png |
+| 1e7b8a6f-7458-4710-a3d2-d139141d8cfc.png | references/uploads/unclassified/1e7b8a6f-7458-4710-a3d2-d139141d8cfc.png |
+| 21090d85-e647-4210-8a57-0a9e779a67ea.png | references/uploads/energy-shop/21090d85-e647-4210-8a57-0a9e779a67ea.png |
+| 2a1666ac-81f6-4519-ad6f-d39df43e1280.png | references/uploads/unclassified/2a1666ac-81f6-4519-ad6f-d39df43e1280.png |
+| 4470bd4d-e86e-44ae-b57e-7f0f4af78a2f.png | references/uploads/history/4470bd4d-e86e-44ae-b57e-7f0f4af78a2f.png |
+| 49740109-5a33-4729-890d-c965b532934c.png | references/uploads/shop/49740109-5a33-4729-890d-c965b532934c.png |
+| 49ad812e-f5a3-4f08-a96f-27dcf19142c1.png | references/uploads/unclassified/49ad812e-f5a3-4f08-a96f-27dcf19142c1.png |
+| 5838272b-e801-4114-8e4b-2f665dde7348.png | references/uploads/unclassified/5838272b-e801-4114-8e4b-2f665dde7348.png |
+| 5fc33724-02ea-4d9c-b66c-e3f96b9fcbf5.png | references/uploads/shop/5fc33724-02ea-4d9c-b66c-e3f96b9fcbf5.png |
+| 63e5f151-292a-42f2-aaf6-87a98eb66220.png | references/uploads/computer-setup/63e5f151-292a-42f2-aaf6-87a98eb66220.png |
+| 6c0cdab5-e284-4ae6-ac70-c3119205ed80.png | references/uploads/history/6c0cdab5-e284-4ae6-ac70-c3119205ed80.png |
+| 72f80581-6af2-490e-b9fa-fcdf2f104da8.png | references/uploads/room-selection/72f80581-6af2-490e-b9fa-fcdf2f104da8.png |
+| 7c55d422-22c0-40f3-9c29-ee23f4b57d58.png | references/uploads/messages/7c55d422-22c0-40f3-9c29-ee23f4b57d58.png |
+| 95959a5a-61d2-4816-a2d7-0f5de8a2b0e8.png | references/uploads/unclassified/95959a5a-61d2-4816-a2d7-0f5de8a2b0e8.png |
+| 971d28dd-8350-46e9-a9d0-0b0ac67e38fd.png | references/uploads/room-selection/971d28dd-8350-46e9-a9d0-0b0ac67e38fd.png |
+| 998873f2-4e94-4eb1-807e-40dcbd926489.png | references/uploads/room-selection/998873f2-4e94-4eb1-807e-40dcbd926489.png |
+| e05c67be-c3da-4cdb-bece-77e6fdd38dae.png | references/uploads/room-selection/e05c67be-c3da-4cdb-bece-77e6fdd38dae.png |
+| e7544f25-2cc2-4bfb-8fcd-c3f3ff3dd520.png | references/uploads/home-actions/e7544f25-2cc2-4bfb-8fcd-c3f3ff3dd520.png |
+| ff38225e-a7c3-4f17-97dd-14a883c0cef9.png | references/uploads/game-result/ff38225e-a7c3-4f17-97dd-14a883c0cef9.png |
+
+
+- 2026-10-24: Nút Tìm dùng chung: buttons/search-button.png, nguồn references/uploads/cdd2fd06-7878-4694-8d67-d2ee730ad76c.png, trim vùng alpha >16, giữ artwork.
+
+- 2026-10-24: Hoàn tác dùng nút Tìm cdd2fd06 theo user; gỡ buttons/search-button.png, chỉ giữ nguồn reference.
+
+- 2026-10-24: buttons/search-frame.png từ references/uploads/4cdefa67-6cf6-49bc-9553-c6b97c1fe0e9.png, crop(467,158,1240,392), giữ chữ/icon HTML.

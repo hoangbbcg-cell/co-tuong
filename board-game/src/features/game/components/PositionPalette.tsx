@@ -7,6 +7,14 @@ import { selectionPalette, buttonInteraction, gameUtilityButton } from '../../..
 
 const labels: Record<PieceType, string> = { rook: 'Xe', horse: 'Mã', elephant: 'Tượng', advisor: 'Sĩ', general: 'Tướng', cannon: 'Pháo', soldier: 'Tốt' }
 const shortcuts = ['1', '2', '3', '4', '5', 'Q', 'W']
+export function MobilePositionPalette({ piece, board, onChoose }: Pick<Props, 'piece' | 'board' | 'onChoose'>) {
+  return <section aria-label="Khay quân điện thoại" className="mx-auto grid w-[86%] gap-0.5 rounded-lg border-2 border-[#d39a43] bg-[#170d07e6] p-1 shadow-[inset_0_0_0_1px_#ffe2a0] desktop:hidden">
+    {(['red', 'black'] as const).map(side => <div key={side} aria-label={`Quân ${side === 'red' ? 'Đỏ' : 'Đen'}`} className="mx-auto grid w-full grid-cols-7 gap-0.5">{POSITION_PIECES.map(type => {
+      const exhausted = positionPieceCount(board, side, type) >= POSITION_PIECE_LIMITS[type]
+      return <button key={type} type="button" data-position-side={side} data-position-type={type} aria-label={`Đặt ${labels[type]} ${side === 'red' ? 'đỏ' : 'đen'}`} aria-pressed={piece?.side === side && piece.type === type} disabled={exhausted} onClick={() => onChoose(side, type)} className={`${buttonInteraction} mx-auto aspect-[108/112] w-[74%] min-w-0 rounded border p-0 disabled:opacity-35 ${piece?.side === side && piece.type === type ? 'border-[#ffe08b] bg-[#ffe08b]/15' : 'border-transparent'}`}><ChessPiece side={side} type={type} character="" scale={0.4} shadow={false} /></button>
+    })}</div>)}
+  </section>
+}
 export const positionPanelClass = 'border-2 border-[#d39a43] bg-[#170d07e6] shadow-[inset_0_0_0_1px_#ffe2a0,inset_0_0_0_4px_#57300f,0_4px_12px_#080401b3]'
 interface Props {
   piece: { side: Side; type: PieceType } | null

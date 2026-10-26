@@ -1,5 +1,37 @@
 # Lưu và xem lại ván đấu
 
+- 2026-10-25: Theo user, tên user Đã lưu laptop/mobile dùng khung vàng/xanh của Đã chơi: historyPlayerFrame chung gradient/viền/bóng theo winner snapshot (vàng thắng, xanh còn lại như cũ), nối dưới avatar bằng negative margin/z10, giữ font/cỡ/avatar. Đã chơi chỉ tách token màu không đổi hình học. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, chỉ tên ván Đã lưu đổi font-body như ghi chú, cả mobile/laptop; input tên mobile đồng font, bỏ NumberText ở title để số/chữ cùng font. Giữ cỡ/đậm/nền/tên người chơi. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: User đính chính chỉnh font TÊN NGƯỜI CHƠI trong Đã lưu, không phải tên ván. Hoàn tác font tên ván/ô nhập về trước; tên user laptop/mobile dùng font-heading/extrabold/stroke0.2 như name Xếp hạng, chữ/số cùng font. Giữ cỡ/vị trí. Build/typecheck PASS; dist cập nhật; chưa browser QA. Thay ghi chú Arial tên ván ở lượt ngay trước.
+
+- 2026-10-25: Theo user, tên ván tab Đã lưu dùng font-arial cùng tên user cả laptop/mobile; ô nhập tên mobile cũng Arial, bỏ NumberText riêng để chữ/số cùng font. Giữ cỡ/đậm/nền và bố cục. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Đã lưu cả laptop/mobile thay vs bằng HistoryMatchPieces (cùng asset Quân đỏ+Quân đen/quân úp và kích cỡ47/90token như Đã chơi), thứ tự đỏ trước giữ độc lập owner. Không đổi avatar/tên/replay/dữ liệu. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, nhập tên/ghi chú MOBILE nâng/cuộn tức thì: bỏ timer100ms và smooth, dùng instant, xử lý thêm focusin trước keyboard resize, giữ scale. Lịch sử cả laptop/mobile bỏ nav Ván đấu/Thế cờ; tab Đã lưu render trực tiếp SavedMatchesList. Chỉ gỡ UI truy cập Thế cờ, không xóa dữ liệu saved_positions hoặc chức năng ghim hiện có. Build/typecheck PASS; dist index-D1mshzuN.js cập nhật; chưa browser/keyboard thật QA.
+
+- 2026-10-25: Theo user, nhập tên/ghi chú Đã lưu MOBILE giữ scale/kích thước HistoryDialog khi visualViewport resize do bàn phím. data-history-input focus auto/cuộn giữa; useHistoryLayout bỏ đo scale khi đang focus, sau100ms cuộn ô nhập và translate dialog lên theo phần ô nhập bị viewport che (chừa16px), dọn timer/translate khi resize không nhập/unmount. Desktop giữ nguyên. Build/typecheck PASS; dist có data-history-input; chưa QA bàn phím điện thoại thật.
+
+- 2026-10-25: Theo user, bút sửa ghi chú Đã lưu/Ván đấu MOBILE mở expanded=true và textarea autoFocus/con trỏ cuối. useLayoutEffect theo editing/draft đo scrollHeight+2 tự cao đầy đủ nội dung khi mở/gõ, không cuộn nội bộ/cắt3dòng lúc sửa. Build/typecheck PASS; dist cập nhật; chưa browser QA bàn phím thật.
+
+- 2026-10-25: Theo user, ghi chú Đã lưu/Ván đấu MOBILE mặc định line-clamp-3 (3dòng/ellipsis), bấm nội dung toggle mở đầy đủ/thu lại; button có aria-expanded và data-history-edit tránh holdXóa. Bút sửa/giá trị lưu và desktop giữ nguyên. Build/typecheck PASS; dist xác nhận toggle; chưa browser QA.
+
+- 2026-10-25: Theo user, metadata Đã lưu/Ván đấu MOBILE tăng chữ clamp12–14px (trước10–12), icon16px, giữ1hàng; gap dọc user/vs7→3px. HistoryBoardIcon dùng chung thay icon⚒ Thế cờ laptop và thêm cho Ván đấu laptop, đồng bộ SVG bàn cờ mobile. Giữ các phần khác. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Đã lưu/Ván đấu MOBILE tên ván15→18px/font-black+stroke0.2px; metadata chuyển hàng fullwidth không wrap, icon tờ báo/Nước, chấm màu/bên tới lượt, bàn cờ/variant. Thùng rác luôn hiện góc phải trên7px/vùng24px/icon16px (thay ẩn chờ giữ riêng mục này). Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Đã lưu/Ván đấu MOBILE tên ván dùng font-heading/font-black/nền vàng highlight+NumberText như Thế cờ laptop; input cùng font-position-title-input. Tên user Arial thường/nền kem-xanh như laptop, giữ avatar/cỡ và cho đầy đủ xuống dòng. Bỏ phe/thắng-thua dưới từng user, thêm vs giữa hai người; metadata Nước N/chấm màu Đỏ hoặc Đen tới lượt/variant lấy snapshot cuối thật, không fake Nước1. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, riêng Đã lưu/Ván đấu MOBILE dùng socialPlayerRowClass như Đã chơi, cao theo nội dung/đệm và gap7px; mini Board rộng36%list thay30%, avatar96token/tên43token đầy đủ xuống dòng, phe/kết quả/variant/số nước dưới tên. Nút chỉ chữ Xem rộng48px ở phải giữa dọc. Thêm bút sửa TÊN VÁN (không đổi tên tài khoản) và ghi chú cuối dòng. Metadata savedTitle/savedNote theo bookmark riêng owner; store update→PATCH saved-matches/:id→PersistenceService validate100/5000→Repository owner-filter. Migration007 thêm saved_matches.title/note, giữ001–006; chưa apply DB/restart backend. Build/typecheck PASS; dist index-igZBPYB6.js có form mới; chưa browser/MySQL QA. Desktop UI giữ nguyên, mobile giữ500ms hiện Xóa; pen/input không kích hoạt hold.
+
+- 2026-10-25: User mở Lịch sử cả laptop/mobile: Đã lưu/Ván đấu dùng SavedMatchesList mới theo bố cục Thế cờ laptop (mini Board thật thế cuối, hai người, kết quả, số nước/variant, Xem lại/Xóa), hai hàng trong vùng nhìn và cuộn. Thế cờ giữ chỉnh tên/ghi chú/Mở thế/Xóa; bỏ cột ngày/giờ ở cả2loại đã lưu, không xóa timestamp dữ liệu. Mở Ván đấu/Thế cờ trên mobile như desktop; chung store/API/replay/ownership, mobile giữ500ms hiện Xóa, desktop nút Xóa sẵn. Đã chơi laptop giữ UI/hành vi cũ; chỉ Đã lưu đổi UI được user yêu cầu. Build/typecheck PASS; dist index-CgUN8pBV.js có bố cục mới; chưa browser QA/kiểm tra thao tác trên thiết bị thật.
+
+- 2026-10-25: User đính chính xác nhận reset CHỈ áp dụng nút reset vàng trong bảng ReplayControls đánh thử (ảnh). Hoàn tác xác nhận ở Cài lại màn xếp thế; ReplayControls mở alertdialog portal body giữa viewport tránh scale parent, Hủy giữ trạng thái/Đồng ý practice.reset. Keyboard reset giữ hiện hành. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-22: Theo user, Lịch sử mobile bỏ viền/nền nâu của tab con Ván đấu/Thế cờ, giữ chữ và vùng bấm. Nền phong cảnh header hạ top từ-8 lên8px thiết kế, kéo cao270px và mask mờ dần mép dưới. Ván đấu/Thế cờ đã lưu dùng chung usePressToRevealDelete: mặc định ẩn thùng rác, giữ500ms hiện icon; di chuyển hơn8px/cuộn/đổi tab/đóng dialog hủy, không mở profile/replay khi thả sau giữ. Bấm thùng rác mới gọi API xóa cũ, lỗi vẫn báo; desktop giữ hành vi cũ. Khóa lại phạm vi sau task.
+
 - 2026-10-14: Trial.back xác định người đi từ snapshot trước: cuối là mình thì lùi1, cuối là máy và ngay trước là mình thì lùi2. Cả nút Lùi và ArrowLeft dùng back. Replay Phát/Tua giữ mỗi lần1 nước.
 
 - 2026-10-14: Máy đánh thử cấp10 dùng thinkMs1000 (1 giây search), không hiện dòng đang tính. Pikafish API cho override thời gian có validation, không đổi cấp10 ở màn Chơi với máy.
@@ -122,3 +154,81 @@
 - 2026-10-16: Bàn online chưa đủ2 ghế có người thì ẩn nút Sẵn sàng. Lưu thế cờ chỉ khả dụng sau ít nhất1 nửa-nước (match.moveCount>0), disabled nút và guard callback khi0; áp dụng GamePage chung online/local/replay/trial. Không đổi đồng hồ/ready server.
 - 2026-10-16: Theo yêu cầu căn giữa thông báo rỗng trong Lịch sử: Đã chơi/Đã lưu ván dùng1 hàng chiếm vùng còn lại và place-items-center khi không có record; Thế cờ rỗng flex1/grid center. Giữ layout có dữ liệu và typography.
 - 2026-10-16: Tăng chữ thông báo danh sách rỗng Lịch sử và đồng bộ Đã chơi/Đã lưu ván/Thế cờ bằng historyEmptyTextClass chung28px theo scale; giữ căn giữa2 chiều. Không đổi ghi chú hay nội dung hàng có dữ liệu.
+
+- 2026-10-23: Theo user, mỗi dòng Lịch sử điện thoại (Đã chơi và Đã lưu/Ván đấu) xếp hai người trên–dưới, hai quân cờ ở giữa; ngày giờ bên trái, nút Xem lại cuối dòng bên phải. Grid compact 3 cột/3 hàng, chiều cao tối thiểu220 theo dialog scale để đủ nội dung. Giữ kích thước avatar, desktop, dữ liệu và hành vi xem lại/xóa. Khóa lại phạm vi sau task. Kiểm chứng: npm.cmd run build/typecheck PASS; dist index-BP2J5pC0.js/index-CL70y7zz.css xác nhận class bố cục mới. Chưa browser QA.
+
+- 2026-10-23: Theo user, tăng nút đóng chung Xếp hạng/Bạn bè/Lịch sử mobile: vùng bấm72→84 và dấu×56→64 theo dialog scale. Giữ góc12px, vị trí/buttonInteraction, desktop56/42. Áp dụng qua DialogCloseButton dùng chung; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, nâng nút× chung Xếp hạng/Bạn bè/Lịch sử mobile lên3px hiển thị qua DialogCloseButton. Giữ kích thước84/64, neo ngang/góc và desktop. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, phóng nội dung hàng Lịch sử điện thoại: avatar76→96, tên/nút Xem lại24→32, badge Thắng/Thua66×32→90×43, quân50→72, ngày giờ22→28, nút cao63→84 theo dialog scale. Người trên căn trái/người dưới căn phải trong cột giữa (rộng90%); hàng tối thiểu300 để đủ chỗ. Dùng chung Đã chơi/Đã lưu ván; desktop và Thế cờ giữ nguyên. User mở riêng avatar/bố cục mobile cho task này, khóa lại sau task. Build/typecheck PASS; dist hiện hành xác nhận class căn trái/phải và avatar96. Chưa browser QA.
+
+- 2026-10-23: Theo user, nâng nút× mobile thêm5px, tổng offset lên8px; đồng bộ Xếp hạng/Bạn bè/Lịch sử qua DialogCloseButton. Giữ kích thước và desktop; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, dịch nút× mobile sang phải5px, giữ offset lên8px; đồng bộ Xếp hạng/Bạn bè/Lịch sử qua DialogCloseButton. Desktop giữ nguyên; khóa lại phạm vi.
+
+- 2026-10-23: Theo user chỉnh tiếp Lịch sử điện thoại: người trên sát mép trái toàn dòng, phía trên ngày giờ; người dưới sát mép phải, đảo avatar/tên/kết quả và viền/padding để đối xứng. Hai cụm cùng rộng75%; ngày giờ/quân/nút Xem lại cùng hàng giữa. Phóng thêm avatar118, tên/nút38, badge108×52, quân90, ngày giờ34, nút cao100; hàng tối thiểu380 theo dialog scale. Áp dụng Đã chơi và Đã lưu/Ván đấu, desktop giữ nguyên; khóa lại phạm vi sau task. Build/typecheck PASS, dist đã xác nhận class bố cục đối xứng/avatar118; chưa browser QA.
+
+- 2026-10-23: Theo user, dịch nút× mobile thêm lên10px/trái15px so vị trí trước; tổng offset trái10/lên18px. Đồng bộ Xếp hạng/Bạn bè/Lịch sử qua DialogCloseButton; khóa lại phạm vi.
+
+- 2026-10-23: User đính chính hướng dịch nút× lượt trước: phải15px thay trái15px, giữ nâng thêm10px. Tổng offset hiện tại phải20/lên18px cho Xếp hạng/Bạn bè/Lịch sử mobile; desktop giữ nguyên. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, Lịch sử mobile thu nhẹ avatar118→106, tăng tên38→44 và badge Thắng/Thua108×52→132×63 theo dialog scale. Giữ bố cục đối xứng và các thành phần khác/desktop. Áp dụng chung Đã chơi/Đã lưu ván; khóa lại phạm vi. Build/typecheck PASS; dist xác nhận đủ3 kích thước mới; chưa browser QA.
+
+- 2026-10-23: Theo user, Lịch sử điện thoại thu avatar106→96; khung tên kéo chồng48 vào dưới avatar với padding60 đối xứng trái/phải, cao tối thiểu96 cùng avatar để liền khối thay vì chỉ chạm mép tròn. Giữ tên44/badge132×63 và bố cục, desktop nguyên trạng. Áp dụng Đã chơi/Đã lưu ván; khóa lại phạm vi. Build/typecheck PASS; dist xác nhận avatar96 và overlap hai hướng. Chưa browser QA.
+
+- 2026-10-23: Theo user, tên người chơi Lịch sử điện thoại tăng nhẹ44→48 theo dialog scale và font-bold thay font-medium trên compact. Áp dụng cả2 người/Đã chơi/Đã lưu ván; desktop và bố cục giữ nguyên; khóa lại phạm vi. Build/typecheck PASS; dist xác nhận tên48/font-bold; chưa browser QA.
+
+- 2026-10-23: Theo user, tên Lịch sử mobile cùng kiểu Xếp hạng: font-heading/extrabold, stroke0.2px, chữ/số cùng font và cỡ, một hàng/line1.4; giữ cỡ48 hiện tại. Đã lưu/Ván đấu luôn hiện thùng rác ở hàng đầu bên phải, trên Xem lại (vùng bấm72/icon43 theo scale), bỏ giữ lâu mới hiện riêng danh sách ván; Thế cờ giữ hành vi cũ. Desktop giữ font/layout và nút xóa hiện có. Build/typecheck PASS; dist xác nhận style tên/vị trí nút; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, dòng ván Lịch sử mobile dùng chung socialPlayerRowClass của Xếp hạng (nền giấy gradient/viền/bo góc/bóng inset/overflow); radius lấy getSocialRowStyle cùng scale. Giữ chiều cao và bố cục3hàng/tên/avatar/nút vừa chốt, áp dụng Đã chơi và Đã lưu/Ván đấu; desktop/Thế cờ giữ nguyên. Build/typecheck PASS; dist xác nhận shared row style. Chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: User làm rõ là ô lớn bao mỗi ván Lịch sử, không phải thanh tên. Mobile giữ socialPlayerRowClass/radius chung Xếp hạng, bổ sung gap8×dialogScale và lớp bóng gradient trái132×rowScale như dòng Xếp hạng. Giữ bố cục bên trong/thanh tên, desktop nguyên trạng. Build/typecheck PASS; dist xác nhận lớp bóng chung; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, danh sách Đã chơi mobile kéo lên sát2tab chính: bỏ hàng tab con ẩn nhưng vẫn chiếm chỗ (compact:invisible/compact:flex), dùng hidden thật khi không ở Đã lưu. Đã lưu vẫn hiện2tab con và giữ khoảng chừa; desktop giữ hành vi cũ. Build/typecheck PASS; dist xác nhận bỏ hàng chừa ẩn; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, phóng2tab con Ván đấu/Thế cờ trong Đã lưu mobile khoảng25%: chữ34→43, min-height72→90, min-width210→270, padding ngang28→36/dọc10→12 theo dialog scale. Desktop/Đã chơi giữ nguyên; khóa lại phạm vi. Build/typecheck PASS; dist xác nhận kích thước tab mới; chưa browser QA.
+
+- 2026-10-23: User đính chính chữ trống cần tăng là Lịch sử, không phải Tin nhắn. Hoàn tác chữ trống Tin nhắn; historyEmptyTextClass chung Đã chơi/Đã lưu ván/Thế cờ thêm compact22px/semibold, desktop giữ28 theo scale. Build bị chặn bởi lỗi TS2559 tại FriendsDialog.tsx:236 (contentStyle custom property --ranking-tab-width ngoài phạm vi task); chưa cập nhật dist/chưa browser QA.
+
+- 2026-10-23: Theo user,2tab chính Lịch sử mobile Đã chơi/Đã lưu tăng từ264×70×1.4 lên264×70×1.6 theo dialog scale, cùng công thức tab Xếp hạng. Desktop giữ nguyên. Build/typecheck PASS; dist xác nhận tab mới và bao gồm chữ trống Lịch sử22px từ lượt trước (lỗi build Bạn bè đã hết ở workspace hiện tại). Chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-23: Theo user, tạm ẩn2tab con Ván đấu/Thế cờ trong Lịch sử MOBILE. SHOW_MOBILE_SAVED_CATEGORIES=false giữ markup/state/tính năng Thế cờ để phục hồi; compact luôn chọn matches khi ẩn, Đã lưu mở trực tiếp danh sách ván và không chừa chiều cao tab con nên khung lên ngang Đã chơi. Không xóa dữ liệu, desktop giữ2tab con. Build/typecheck PASS; dist đã cập nhật; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, nhích2cụm avatar/tên Lịch sử mobile vào trong12 logical theo dialog scale (trên margin-left, dưới margin-right đối xứng) để khung avatar không khuất mép ô. Giữ kích thước/khung tên dính avatar và desktop. Build/typecheck PASS; dist xác nhận inset2hướng; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, dùng thanh cuộn Xếp hạng laptop cho danh sách Bạn bè/Xếp hạng/Lịch sử mobile: socialListScrollbarClass chung ở uiClasses, thumb trắng/bo tròn, track trong suốt, thin/6px, gutter stable, ẩn nút mũi tên. Friends áp dụng mọi tab/danh sách lời mời; History cả Đã chơi/Đã lưu và Thế cờ đang ẩn để phục hồi đồng bộ. Desktop giữ style cũ (Ranking tái dùng token cùng nội dung). Build/typecheck PASS; dist xác nhận thanh cuộn trắng; chưa QA trình duyệt điện thoại thật (thanh cuộn overlay do trình duyệt điều khiển). Khóa lại phạm vi.
+
+- 2026-10-23: Theo user, đồng bộ nút× MOBILE qua DialogCloseButton chung cho Hồ sơ/Xếp hạng/Bạn bè/Lịch sử (và nơi tái dùng): dịch trái4px (translateX20→16), tăng nhẹ vùng bấm84→90 và dấu64→68 theo scale. Hồ sơ giữ scale Xếp hạng đã chốt; mọi chỉnh tiếp dùng component chung, không offset riêng. Desktop giữ56/42 và không transform. Build/typecheck PASS; dist xác nhận offset chung mới; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-24: User xác nhận thiết kế nút tab Đã lưu giống Đã chơi. HistoryTabButton MOBILE dùng chung dáng alpha nét cọ của playedTab, nền đỏ khi chọn/nâu khi chưa chọn và chữ HTML font-heading50/extrabold/italic vàng, đồng nhất cả2tab. Giữ kích thước/vị trí và desktop dùng ảnh gốc; dữ liệu/nội dung không đổi. Yêu cầu mới thay lần hoàn tác mask trước đây. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, hoàn tác riêng lượt đồng bộ thiết kế2nút Đã chơi/Đã lưu vừa thử: bỏ mask/chữ HTML, trả HistoryTabButton dùng ảnh tab gốc có chữ (compact:size-full). Giữ kích thước/tab/data/bố cục đã chốt trước lượt thử. Build/typecheck PASS; dist xác nhận ảnh tab gốc; chưa browser QA.
+
+- 2026-10-24: Theo user, thay2tab Lịch sử MOBILE bằng4PNG mới ở assets: 0c6e579c active Đã chơi,527ca72d idle Đã chơi,c29af6e7 active Đã lưu,d30c4e9b idle Đã lưu. Giữ nguyên pixel nguồn2172×724; SVG viewBox0/90/2172/550 giảm lề trống dọc, không redraw chữ/nền. Desktop tiếp tục4ảnh cũ; giữ kích thước/vị trí tab. Đã xem đủ4ảnh, build/typecheck PASS; dist có đủ4asset mới; chưa browser QA.
+
+- 2026-10-24: Sửa tab Lịch sử mobile phóng khi chọn do4PNG có lề alpha khác nhau. Đo bounds alpha>32 từ nguồn, dùng viewBox riêng từng ảnh để artwork active/idle cùng chiếm hộp nút cố định; không thay width/height khi chọn. Desktop giữ nguyên. Build/typecheck PASS; dist xác nhận bounds riêng; chưa browser QA.
+
+- 2026-10-24: Theo user,2tab Lịch sử mobile thay bằng sprite b52ef10c-bb5a-4de9-800e-24e6a8d904eb.png chứa4trạng thái: trái idle/phải active, trên Đã chơi/dưới Đã lưu. SVG crop mỗi ô cùng1050×220 (x20/1100,y110/374) trên nguồn2173×724, giữ kích thước hộp cố định; không sửa pixel asset. Bỏ import4ảnh mobile trước, desktop giữảnh cũ. Build/typecheck PASS; dist có sprite mới; chưa browser QA.
+
+- 2026-10-24: User chuyển từ Chat sang Lịch sử, mở riêng lớp hiển thị2tab MOBILE: nav Đã chơi/Đã lưu z25 thay10, cao hơn banner/họa tiết z20 để không bị che; nút× z30 vẫn trên. Không sửa vị trí/kích thước/assets/tab data, desktop giữ z10. Khóa lại phạm vi sau task. Build/typecheck PASS; dist xác nhận compact:z25; chưa browser QA.
+
+- 2026-10-25: Theo user, vào lại phòng là phiên lưu mới: useMatchSaving ghi nhớ ID archive lúc mount và không nhận lại ván cũ đó; vẫn giữ bản ván kết thúc mới trong phiên hiện tại. RoomService.join khi người mới vào ghế bàn finished đưa game về ready/thế đầu, reset ready/offer/undo/history/repetition và cửa sổ rotation; giữ archive/thưởng/lịch sử đã chốt. Sẵn sàng hiện khi người ngồi vừa vào kể cả chỉ1người, khóa bấm tới entrance hoàn tất. Chat mobile disabled trong entrance nhưng opacity100 để không tối. Tests liên quan39/39 PASS; build/typecheck PASS, dist xác nhận cập nhật; chưa browser QA.
+
+- 2026-10-25: User chốt lại Sẵn sàng online chỉ hiện khi đủ2người ngồi trên bàn; một mình không hiện, khán giả không tính. GamePage khôi phục gate players.length===2, vẫn khóa bấm trong entrance; local/máy giữ nguyên. Quy tắc này thay lượt cho hiện khi1người trước đó. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user mở riêng Lịch sử/Đã chơi MOBILE: Xem lại chuyển từ cột phải sang cột giữa hàng2 nằm giữa2user; icon Đỏ/Đen chuyển sang cột phải hàng2 để không chồng. Ngày giờ/cỡ/2user/desktop/Đã lưu/chức năng replay giữ nguyên. Khóa lại phạm vi sau task. Build/typecheck PASS; dist xác nhận vị trí mới; chưa browser QA.
+
+- 2026-10-25: User đính chính yêu cầu khung giữa2user nằm TRONG màn Xem lại, không phải danh sách Đã chơi. Hoàn tác đúng lượt vừa sửa HistoryDialog: Xem lại về cột phải hàng2, icon2phe về cột giữa; không chạm thay đổi khác. Chờ xác định khung điều khiển cần chuyển trong màn replay.
+
+- 2026-10-25: User xác nhận khung cần chuyển là Phát/Lùi/Tiến TRONG màn Xem lại MOBILE. GamePage render ReplayControls riêng giữa2user ở top8px/width220/scale.72 như positionTrial; chỉ1instance, desktop giữ trong user phải. Ẩn MobileMatchSummary nhánh replay tránh chữ Bàn cờ đè controls. Đã hoàn tác lượt sửa nhầm danh sách Đã chơi (Xem lại cột phải/icon2phe giữa). Giữ callback/luật/replay state. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, màn Xem lại ván hiển thị đồng hồ tĩnh của2user dưới Elo qua PlayerCard.recordedClock, đọc remainingTime đúng snapshot playback đang chọn. Tiến/lùi/phát đổi theo snapshot thật, không tick theo thời gian xem; không hiện trong đánh thử hoặc replay1thế, không sửa clock gameplay/DB. Bản lưu cũ chỉ hiển thị dữ liệu đã có, không suy đoán thời gian thiếu. Tests7/7 PASS gồm số dư clock snapshot thật và cập nhật khi tua; build/typecheck PASS, dist xác nhận clock; chưa browser QA.
+
+- 2026-10-25: Theo user, clock Xem lại MOBILE chuyển về cụm giữa cùng vị trí/Elo anchor như trận thật, tái dùng MobileMatchSummary clockOnly (ẩn biển/Bàn cờ) kèm đồng hồ cát. Bỏ clock dưới từnguser mobile; desktop giữ recordedClock. Thu margin nút chuyển đánh thử dưới controls50→4px riêng compact/replay để nhường hàng clock, giữ controls giữa2user. Thời gian vẫn snapshot thật, không tick. Build/typecheck PASS; dist xác nhận clockOnly; chưa browser QA.
+
+- 2026-10-25: Theo user, nút chuyển đánh thử/máy trong Xem lại MOBILE luôn hiển thị dưới Board/căn giữa (mép Board+10px), dùng ReplayModeButton artwork cũ. Bỏ nút lặp trong controls/user phải mobile. Bấm nút hoặc Space mobile chỉ mở dialog Chức năng đang được cải tiến, không đổi trial; desktop giữ toggle thật và vị trí cũ. Build/typecheck PASS; dist xác nhận nút/thông báo; chưa browser QA.
+
+- 2026-10-25: Theo user, nút chuyển máy Xem lại MOBILE căn giữa dọc khoảng đáyBoard→mép dưới viewport, ngang giữa; useBoardLayout đo rect ghi --mobile-replay-mode-center, wrapper translateY-50%. Thông báo Chức năng đang được cải tiến giữ khung modal như Giải đấu và đổi nút Đã hiểu sang homeUtilityButton đúng Home; thông báo khác giữ cũ. Build/typecheck PASS; dist xác nhận vị trí mới; chưa browser QA.
+
+- 2026-10-25: User báo nút chuyển máy replay mobile bay lên trên. Bỏ tọa độ midpoint đo JS, wrapper absolute insetx0/top164px+board-height/bottom0 flex items-center justify-center để tâm nút nằm giữa vùng dưới Board và đáy arena theo CSS. Chỉ nút nhận pointer, không che bàn; giữ thông báo. Build/typecheck PASS; dist xác nhận vùng căn giữa mới; chưa browser QA.

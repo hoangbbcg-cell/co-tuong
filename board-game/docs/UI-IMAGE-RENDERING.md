@@ -1,5 +1,21 @@
 # Rendering ảnh UI nhỏ
 
+- 2026-10-24: Theo user, máy MOBILE nâng riêng icon bánh răng3px; radio Chọn bên dùng màu/viền/checked như desktop (Đỏ red, còn lại vàng), tiêu đề căn trái,3lựa chọn justify-between/gap20. Khoảng giữa các cụm setup20px (gap5), Luyện cờ giữ mt-auto/artwork/vị trí cuối. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, hai nút máy MOBILE thu icon18→16cqw, tăng chữ8.5→9cqw; giữ khung/căn giữa/desktop. Build bị chặn TS7053 ở MobileMatchSummary đang thay đổi: khai báo rightSide:Side để index clock đúng kiểu, không đổi hành vi. Build/typecheck sau sửa PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, hai nút máy MOBILE thu icon20→18cqw, tăng riêng chữ8→8.5cqw. Wrapper h-full/items-center, nhãn flex/self-stretch/items-center/leading-none để chữ+icon giữa dọc. Giữ khung và desktop fontsize/icon. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, tăng tiếp chữ/icon2nút máy MOBILE: chữ7.5→8cqw, icon18→20cqw; padding5→4cqw/gap3→2cqw. Laptop/khung giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, tăng tiếp chữ/icon2nút máy MOBILE: chữ6.7→7.5cqw, icon15→18cqw; padding7→5cqw/gap4→3cqw. Laptop/khung giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, tăng chữ/icon2nút máy MOBILE: chữ5.5→6.7cqw, icon11→15cqw; padding12→7cqw/gap5→4cqw để vừa nội dung. Laptop/cỡ khung giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, áp dụng ComputerActionButton chung cho2nút Vị trí tùy chỉnh/Đấu ngay MOBILE; thay ảnh chữ gộp bằng SVG/icon vector/chữ HTML co theo container như laptop. Giữ hàng cao48px/2cột/gap12, callback/disabled/busy. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-24: Theo user, dựng lại2nút Vị trí tùy chỉnh/Đấu ngay LAPTOP bằng ComputerActionButton: khung SVG gradient/viền/góc, icon vector bánh răng/kiếm, nhãn HTML Arial bold. Nội dung cqw theo container nút để đổi kích thước đồng tỷ lệ, giữ ô/vị trí82px và callback/disabled/busy. Mobile giữ ảnh cũ vì user chỉ yêu cầu laptop. Không thay luật/engine. Build/typecheck PASS; dist cập nhật; chưa browser QA trực quan.
+
 Cập nhật 2026-10-05. Đọc cùng PROJECT-MEMORY.md và tài liệu của màn đang sửa.
 
 ## Nguyên nhân đã kiểm tra

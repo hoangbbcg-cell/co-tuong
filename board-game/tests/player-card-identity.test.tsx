@@ -26,3 +26,10 @@ it.each(['top','bottom'] as const)('keeps the %s player clock with the name besi
   expect(view.container.querySelector('[data-player-identity]')?.contains(clock)).toBe(true)
   expect(view.container.querySelector('[data-player-identity] p')?.hasAttribute('hidden')).toBe(true)
 })
+
+it('shows the recorded clock even at the initial replay position and updates when seeking', () => {
+  const view = render(<PlayerCard {...props} mobileHeader recordedClock remaining={600000} />)
+  expect(screen.getByLabelText('Thời gian đã lưu quân đen').textContent).toBe('10:00')
+  view.rerender(<PlayerCard {...props} mobileHeader recordedClock remaining={598000} />)
+  expect(screen.getByLabelText('Thời gian đã lưu quân đen').textContent).toBe('09:58')
+})

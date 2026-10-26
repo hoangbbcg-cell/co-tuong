@@ -74,3 +74,17 @@ Kiểm chứng:3/3 test preview/route/Home compact PASS, typecheck/build PASS; l
 
 - 2026-10-20: User bỏ Toàn màn hình riêng điện thoại; Home mobile còn 6 nút Xếp hạng → Lịch sử → Bạn bè → Chat → Cửa hàng → Cài đặt, chia đều 6 cột. Từ đây các yêu cầu UI hiện tại chỉ sửa mobile, giữ nguyên laptop. Không sửa component/hành vi desktop. Mobile-home 1/1 PASS; typecheck/build PASS, dist index-cbOcM9Cr.js cập nhật; chưa browser QA.
 
+
+- 2026-10-24: Theo user, nút Chat ngoài Home hiển thị tổng unreadCount mọi hội thoại từ server, Query theo accountID/poll4giây; đọc tin invalidate query để giảm số. Mobile tái dùng chính markup/style huy hiệu lời mời Bạn bè (đỏ/viền kem, max99+), desktop cùng kiểu; số0 ẩn. MobileHome prop optional mặc định0 cho consumer cũ. Build/typecheck PASS sau sửa hợp đồng props; dist cập nhật; chưa browser/API live QA. Không đổi read API hoặc cơ sở dữ liệu.
+
+- 2026-10-24: Theo user, Home MOBILE dấu∞ năng lượng tăng3.2→4cqw (25%), giữ tâm; sốnănglượng thường/vàng/laptop/chínhsách2ID vôhạn giữ nguyên. Build/typecheck PASS; dist xác nhận4cqw; chưa browser QA.
+
+- 2026-10-24: User tăng tiếp dấu∞ Home MOBILE4→4.8cqw (thêm20%), giữ tâm/các giátrịkhác/laptop. Build đầu Vite lỗi-1073740791; chạy lại build/typecheck PASS exit0, dist có4.8cqw. Chưa browser QA.
+
+- 2026-10-24 — TODO do user yêu cầu ghi nhớ: sau này thiết kế thêm2mục Nhiệm vụ và Hòm thư ở bên phải ngoài Home. Hiện chỉ ghi backlog, chưa triển khai UI/chức năng, chưa mở khóa bố cục hoặc chốt kích thước; khi thực hiện mặc định mobile theo phạm vi phiên hiện tại, laptop cần yêu cầu riêng.
+
+- 2026-10-25: Theo user, các nút tiện ích MOBILE back/sound/chat/menu/save/friends/reset/trash đồng cỡ dock Home: token mobileUtilityTokens ởuiClasses size min(12.5vw,56px)/icon28px. Game/RoomSelection/ComputerSetup/CustomPosition/Shop áp dụng; Home dock không đổi hình học, laptop chỉ thêm customproperty khôngđổi style. Bỏ override36/icon20, slotchat theo cùngsize/portaloffsetcalc8+size+gap; popupmenu mởtrên size+12, headerroom/computer cao size+12 để khôngtràn. GiữView/MatchActions/avatar/khóaUIkhác. Build/typecheck PASS; dist xác nhận token; chưa browser QA, snapshotA khôngsửa.
+
+- 2026-10-25: User thu lại lượt tăng nút tiện ích MOBILE bằng Home: hiện chỉ tăng nhẹ so với gốc36px/icon20 lên40px/icon22, thay size min(12.5vw,56px)/icon28 của lượt trước. Đồng bộ slotchat/portaloffset/header/popup theo40px; Home/laptop/View/avatar giữ nguyên. Build/typecheck PASS; dist index-BKiDThIc.css có token40px; chưa browser QA. Không sửa checkpointA.
+
+- 2026-10-25: Theo user tăng nhẹ tiếp nút tiện ích MOBILE40→42px/icon22→24px; slotchat/header/offset và menu đồng bộ42px. Home/desktop/View/avatar không đổi. Build/typecheck PASS; dist xác nhận token42px; chưa browser QA.

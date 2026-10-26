@@ -1,5 +1,39 @@
 # Vị trí tùy chỉnh
 
+- 2026-10-25: Theo user, Back từ trận Vị trí tùy chỉnh chạy session.leave cleanup rồi screen computer thay home; màn xếp thế usePositionEditor.back vốn về computer giữ nguyên. Cả mobile/desktop về Chơi Với Máy, không ảnh hưởng Back online/replay thường. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: User đính chính xác nhận reset CHỈ áp dụng nút reset vàng trong bảng ReplayControls đánh thử (ảnh). Hoàn tác xác nhận ở Cài lại màn xếp thế; ReplayControls mở alertdialog portal body giữa viewport tránh scale parent, Hủy giữ trạng thái/Đồng ý practice.reset. Keyboard reset giữ hiện hành. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, bấm Cài lại trong Vị trí tùy chỉnh (mobile/desktop) mở xác nhận giữa màn hình Bạn có muốn cài lại bàn cờ không? Hủy/Escape đóng và giữ thế, Đồng ý mới editor.reset. Không đổi Xóa quân/luật. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, thông báo Vị trí tùy chỉnh/trận đấu căn giữa viewport: editor/tools notice, statusText, positionSaveNotice và saving.error dùng fixed50%/translate-50%/z500 thay top/bottom riêng. Dialog/toast khác đã giữa giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, nhãn đi tiên MOBILE cố định rộng66px theo Đen tiên để nút đổi bên không dịch khi đổi chữ. Bảng điều khiển positionTrial mobile scale.64→.72 (~158px). GamePage truyền machineImmediately=false cho useReplayTrial: vào từ Vị trí tùy chỉnh không tự máy đi, người dùng bật Máy đi nếu muốn; startImmediately vẫn true. Đấu ngay Chơi với máy giữ useComputer cũ. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, cụm đi tiên trong Vị trí tùy chỉnh MOBILE tăng cách âm lượng5px (right51→56). Bảng điều khiển đánh thử sau Đấu ngay từ vị trí tùy chỉnh (positionTrial) đưa lên giữa2user trên mobile, chỉ mount1bảng, desktop giữ trong PlayerCard; scale.64 rộng141px vừa khoảng giữa. Ẩn MobileMatchSummary ở positionTrial tránh chồng bảng. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Vị trí tùy chỉnh MOBILE nút đỏ chỉ hiện kiếm/khung (ẩn nhãn visual, aria-label Đấu ngay), đặt phải20%width/cao40; hai nút vàng căn giữa hàng/nhãn14px. Đổi thứ tự icon đổi bên ra trái công tắc trong cụm phải, tăng32→36px. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Vị trí tùy chỉnh MOBILE tắt overflow cuộn, bỏ Đấu ngay overlay giữa Board. Hàng dưới Board gồm Xóa quân/Cài lại và ComputerActionButton start đỏ/icon kiếm bên phải44%width/cao48px dùng chung màn máy. Giảm margin khay dưới để gọn; desktop giữ nút cũ. Build/typecheck PASS; dist cập nhật; chưa browser QA màn thấp.
+
+- 2026-10-25: Theo user, Xóa quân/Cài lại MOBILE force size36px/icon20 như Back (tránh class size12 ghi đè). Khay rộng86% thay full-16px, padding4/gap2; hàng full khay/quân74% thay64% để lớn nhẹ và gần nhau. Đấu ngay giữa Board44→52%width. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Xóa quân/Cài lại MOBILE36px/icon20 và nâng3px; quân khay70→64% trong hàng rộng86%/gap4px để nhỏ và gần hơn. Switch đi tiên48×24/knob20/chữ16, nhãn ở trái switch; icon đổi bên bỏ fixed trái, nằm cạnh switch trong cụm phải. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Xóa quân/Cài lại MOBILE đổi sang đúng gameUtilityButton + PositionIcon như khay laptop; nhãn font-heading18 nằm riêng dưới nút, gap4/giữa2nút24px. Giữ vị trí dưới Board/callback. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, quân trong khay MOBILE thu82→70%ô; icon Xóa quân/Cài lại16px (override SVG sẵn32px) căn giữa wrapper grid/shrink0, nút items-center/justify-center/chữ14 leading-none. Không đổi quân trên Board/desktop/logic. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, khay quân MOBILE thêm khung nâu/viền vàng, quân82%ô/gap8px; nút Xóa quân/Cài lại dưới Board có icon trash/restore. Switch đi tiên chuyển cạnh âm thanh phải51px, icon đổi bên tròn cạnh Back trái51px. Đấu ngay overlay giữa bàn44%width, nút dưới ẩn compact. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser/drag QA.
+
+- 2026-10-25: Theo user, Vị trí tùy chỉnh MOBILE bỏ khung/chữ chọn phe cũ, cạnh Back có switch nhãn động Đỏ tiên (phải)/Đen tiên (trái) và icon đổi bên riêng. MobilePositionPalette trên Board2hàng×7 (Đỏ trên/Đen dưới), dùng limits/ChessPiece/callback cũ. Khay desktop ẩn compact, giữ keyboard handler cũ; Xóa quân/Cài lại ra dưới Board, Đấu ngay giữ tiếp dưới. Board fullwidth/desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser/drag QA.
+
+- 2026-10-25: Theo user, Vị trí tùy chỉnh MOBILE Board full viewport width qua useBoardLayout(true), cao1296/1134 tương ứng, bỏ lề/viền ngoài và padding ngang. Arena flow scroll, top=max90px,(100dvh-boardHeight)/2 để bàn giữa màn hình khi đủ chỗ; khay/nút đẩy xuống sau Board20px, sửa riêng sau. Header giữ vị trí; desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, Vị trí tùy chỉnh MOBILE đặt Chọn bên180px ở giữa phía trên bàn, Back fixed top/left7px và nav âm thanh fixed top/right7px. Header absolute không đẩy bàn; arena fullheight/căn giữa/cột mobile có paddingtop76px, Board justify-self-center. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-25: Theo user, chỉ Vị trí tùy chỉnh MOBILE tạm ẩn nút Tạo bàn cờ từ ảnh (compact:hidden để mở lại), ẩn fullscreen; back/âm thanh36px/icon20 như tab khác. Cụm chọn bên rộng210px thay full, chữ14/padding gọn, header min36px. Desktop/luật xếp quân/ảnh nền giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
 - 2026-10-15: Click đặt quân vào vị trí không hợp lệ báo lỗi nhưng giữ nguyên lựa chọn quân trong khay, để người dùng chọn điểm khác mà không phải chọn lại.
 
 - 2026-10-15: Chuột phải lên quân trên bàn xóa quân đó và tự chọn khay đúng bên/loại quân vừa lấy để đặt tiếp.

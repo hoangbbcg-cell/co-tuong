@@ -1,4 +1,5 @@
-﻿import { randomUUID } from 'node:crypto'
+import { RANKING_PLAYER_LIMIT } from '../../src/lib/rankingLimits'
+import { randomUUID } from 'node:crypto'
 import type { PoolConnection, RowDataPacket, ResultSetHeader } from 'mysql2/promise'
 import type { AccountProfile } from '../../src/types/account'
 import { recoverEnergy } from '../../src/lib/energy'
@@ -122,7 +123,7 @@ export class AccountRepository {
     const conditions=['s.variant=?',"u.status='active'"]
     const params:string[]=[variant]
     for(const [column,value] of [['country_code',country],['province_code',province],['ward_code',ward]]) if(value){conditions.push(`u.${column}=?`);params.push(value)}
-    return rows(`SELECT CAST(u.id AS CHAR) id,CAST(u.public_id AS CHAR) publicId,u.display_name name,u.avatar_code avatarCode,u.avatar_frame_code avatarFrameCode,s.elo FROM user_game_stats s JOIN users u ON u.id=s.user_id WHERE ${conditions.join(' AND ')} ORDER BY s.elo DESC,u.id LIMIT 100`,params)
+    return rows(`SELECT CAST(u.id AS CHAR) id,CAST(u.public_id AS CHAR) publicId,u.display_name name,u.avatar_code avatarCode,u.avatar_frame_code avatarFrameCode,s.elo FROM user_game_stats s JOIN users u ON u.id=s.user_id WHERE ${conditions.join(' AND ')} ORDER BY s.elo DESC,u.id LIMIT ${RANKING_PLAYER_LIMIT}`,params)
   }
 }
 

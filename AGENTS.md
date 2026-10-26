@@ -1,8 +1,14 @@
 # Hướng dẫn làm việc
 
+- 2026-10-23: Bạn bè laptop giữ nguyên giao diện trước lượt đồng bộ Xếp hạng, đã khôi phục riêng qua FriendsDialogFrame nhánh desktop. User khóa laptop; các chỉnh Bạn bè tiếp theo mặc định chỉ mobile nếu không mở laptop rõ.
+
+- 2026-10-22: Nút đóng Xếp hạng/Bạn bè/Lịch sử dùng chung DialogCloseButton. Trên compact vùng bấm72px, dấu56px theo scale dialog; desktop56/42 theo scale; mobile bo góc12px cố định như Xếp hạng và cùng buttonInteraction.
+
+- Bảo vệ Git: `.git/hooks/pre-push` chặn tên file nhạy cảm và quét commit sắp push bằng Gitleaks với `.gitleaks.toml`; không bỏ qua hook khi push. Marker thử nghiệm `TEST_SECRET_DO_NOT_UPLOAD_` luôn phải bị chặn.
+
 - 2026-10-22: CD chỉ SSH bằng cotuong_deploy, không dùng nhat_hoang/root. APP/WEB giữ đường dẫn production; incoming/state/lock/log ở /home/cotuong_deploy mode0700. Phân quyền qua ACL traverse riêng home quản trị và default ACL code/WEB, không chown cả cây hoặc cấp sudo rộng. Sudoers chỉ2action adapter + stop/start/is-active cotuong.service; --check không restart. User yêu cầu chỉ chuẩn bị Local/lệnh thủ công, không SSH/đổi quyền/restart/deploy ở task này. Xem board-game/docs/DEPLOY-USER.md.
 
-- 2026-10-22: Theo yêu cầu người dùng, riêng Xếp hạng mobile phóng nội dung từng dòng1.5×, gồm huy hiệu top1–4/avatar/tên/điểm/nút; để khoảng6 dòng. Biển tiêu đề tăng12%, hai tab Cờ Tướng/Cờ Úp tăng40%, nhãn cột đồng scale1.5× cho thẳng hàng. Elo trong hàng thu về1.35× và dịch phải24px theo scale dialog. Dock Home mobile dùng nút12.5cqw/nhãn3.6cqw. Laptop giữ nguyên. Bố cục còn khóa lại sau task.
+- 2026-10-22: Theo yêu cầu người dùng, riêng Xếp hạng mobile phóng nội dung từng dòng1.5×, gồm huy hiệu top1–4/avatar/tên/điểm/nút; để khoảng6 dòng. Biển tiêu đề tăng12%, hai tab Cờ Tướng/Cờ Úp tăng40%, nhãn cột đồng scale1.5× cho thẳng hàng. Elo trong hàng thu về1.35× và dịch phải36px theo scale dialog; cột Elo122×eloScale. Tên mobile cho xuống dòng đầy đủ, chữ và số cùng font/cỡ. Dock Home mobile dùng nút12.5cqw/nhãn3.6cqw. Laptop giữ nguyên. Bố cục còn khóa lại sau task.
 
 - 2026-10-22: Đính chính đi tiên: online bốc thăm một trong hai người nhận quân Đỏ, người còn lại quân Đen; Đỏ luôn đi trước. Bốc lại mỗi ván khi đủ Ready hoặc tự bắt đầu; không chọn lượt Đen mở đầu. Giữ cấu hình phe/FEN của máy/đánh thử. Khóa phiên hiệu ứng theo cặp ID người chơi, không theo thứ tự màu để bốc thăm không mở lại giao diện.
 
@@ -415,3 +421,5 @@ design system hiện tại đã có giá trị tương ứng.
 
 - 2026-10-21: User xác nhận có thể bỏ phần So sánh độ nét avatar A/B/C. Giữ UI đã bỏ tính năng; không đưa lại để vượt test. Regression avatar-comparison được giữ file và chuyển sang kiểm tra preview/chọn không tự equip, Hủy không đổi avatar, Sử dụng áp dụng đúng và một lần.
 
+
+- 2026-10-24: User chốt HOVANG mới thêm chỉ giữ LOCAL, không đưa GitHub; bản GitHub chỉ giữ Pikafish. .gitignore bỏ toàn bộ engines/hovang-*, adapter client/server, tests và tài liệu/build HOVANG. Tích hợp HOVANG trong tracked files (app/session/hooks/UI) vẫn là thay đổi local, phải loại từng hunk khi chuẩn bị commit và kiểm tra staged diff/build snapshot Pikafish-only; không commit các file đó nguyên trạng. Không push task này. Giữ toàn bộ file local, không xóa máy.

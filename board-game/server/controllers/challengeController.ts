@@ -24,11 +24,18 @@ export function registerChallengeSockets(io: Server<ClientEvents, ServerEvents>,
       if(!persistence){service.update(socket.id,profile);return}
       const id=persistence.identities.get(socket.id)!.id,p=await new AccountRepository().profile(id)
       if(!p)throw new AccountError('Tài khoản không còn hoạt động.',401)
-      service.update(socket.id,{...profile,name:p.displayName,elo:p.stats.find(s=>s.variant==='xiangqi')?.elo??1000,avatarIndex:Number(p.avatarCode.replace('avatar-','')),avatarFrameIndex:Number(p.avatarFrameCode.replace('frame-',''))})
+      service.update(socket.id,{...profile,name:p.displayName,elo:p.stats.find(s=>s.variant==='xiangqi')?.elo??1000,avatarIndex:Number(p.avatarCode.replace('avatar-','')),avatarFrameIndex:Number(p.avatarFrameCode.replace('frame-',''))}, id)
     }))
     socket.on('challenge:send', (target, ack) => run(ack, () => {
-      const { invite, replaced } = service.send(socket.id, target)
-      for (const previous of replaced) io.to(previous.senderId).emit('challenge:result', {
+      let resolved = target
+      if (persistence && target && typeof target.id === 'string' && /^\d+$/.test(target.id)) {
+        const recipient = [...persistence.identities].find(([connectionId, identity]) =>
+          identity.id === target.id && connectionId !== socket.id && io.sockets.sockets.has(connectionId))
+        if (!recipient) throw new RoomError('Người chơi không còn trực tuyến.')
+        resolved = { ...target, id: recipient[0] }
+      }
+      const { invite, replaced } = service.send(socket.id, resolved)
+      for (const previous of replaced.filter(item => item.senderId !== socket.id)) io.to(previous.senderId).emit('challenge:result', {
         id: previous.id,
         message: 'Lời mời So tài đã được thay thế bởi lời mời mới.'
       })
@@ -37,7 +44,11 @@ export function registerChallengeSockets(io: Server<ClientEvents, ServerEvents>,
     socket.on('challenge:reply', (input, ack) => run(ack, async() => {
       if(input?.accepted)await persistence?.canPlay(socket.id)
       const { invite, room, previousRooms } = service.reply(socket.id, input)
-      if (!room) { finish(invite.id, invite.senderId, invite.targetId, 'Lời mời So tài đã bị từ chối.'); return }
+      if (!room) {
+        io.to(invite.senderId).emit('challenge:result', { id: invite.id, message: input.blockMinutes ? 'Đã bị chặn' : 'Lời mời So tài đã bị từ chối.' })
+        io.to(invite.targetId).emit('challenge:result', { id: invite.id, message: '' })
+        return
+      }
       for (const previous of previousRooms) io.to(previous.id).emit('room:state', publicRoom(previous))
       for (const id of [invite.senderId, invite.targetId]) {
         const member = io.sockets.sockets.get(id)!

@@ -1,4 +1,4 @@
-﻿import { AccountError } from '../errors'
+import { AccountError } from '../errors'
 import { SocialRepository } from '../repositories/socialRepository'
 import { ContentRepository } from '../repositories/contentRepository'
 import type { GameState } from '../../src/types/game'
@@ -48,6 +48,12 @@ export function validatePosition(value:unknown):GameState {
   return state
 }
 export class PersistenceService {
+  async updateBookmark(id:string,match:unknown,input:Record<string,unknown>) {
+    const title=input.title===''?'':text(input.title,100)
+    const note=input.note===''?'':text(input.note,5000)
+    await this.content.updateBookmark(id,uuid(match),title,note)
+  }
+  async friendSuggestions(id:string) { return this.social.suggestions(id) }
   readonly social=new SocialRepository()
   readonly content=new ContentRepository()
   target(actor:string,target:unknown){const id=userId(target);if(id===actor)throw new AccountError('Không thể thực hiện với chính mình.');return id}
@@ -59,7 +65,7 @@ export class PersistenceService {
     else throw new AccountError('Thao tác không hợp lệ.')
   }
   async createConversation(id:string,input:Record<string,unknown>) {
-    if(!Array.isArray(input.members)||input.members.length>50)throw new AccountError('Danh sách thành viên không hợp lệ (tối đa 50 người được thêm).')
+    if(!Array.isArray(input.members))throw new AccountError('Danh sách thành viên không hợp lệ.')
     const members=[...new Set(input.members.map(x=>this.target(id,x)))]
     const title=input.title==null?null:text(input.title,80)
     if(title===null&&members.length!==1)throw new AccountError('Chat trực tiếp cần đúng một người nhận.')

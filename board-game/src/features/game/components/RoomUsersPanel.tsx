@@ -29,7 +29,7 @@ function WairingCard({ player, queueNumber, onAvatarClick }: { player: RoomUser;
       <span className="grid size-9 compact:size-6 shrink-0 place-items-center rounded-full bg-transparent p-0">
         <button type="button" aria-label={`Xem hồ sơ ${player.name}`} onClick={() => onAvatarClick?.(player.name)} className="relative m-0 block size-full cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#ffe2a1]"><MessageAccountAvatar name={player.name} className="size-full [&_*]:[image-rendering:-webkit-optimize-contrast]" /></button>
       </span>
-      <span className="min-w-0 truncate font-heading text-xl/none compact:text-sm text-white [&_*]:[-webkit-text-stroke:0] [&>span>span]:opacity-100 [&>span>span]:[-webkit-text-stroke:0px]! [&>span>span]:font-normal!"><SocialPlayerName name={player.name} /></span>
+      <span className="min-w-0 truncate font-heading text-xl/none compact:text-sm compact:[&_.font-number]:text-[0.85em]! text-white [&_*]:[-webkit-text-stroke:0] [&>span>span]:opacity-100 [&>span>span]:[-webkit-text-stroke:0px]! [&>span>span]:font-normal!"><SocialPlayerName name={player.name} /></span>
     </span>
   </li>
 }
@@ -39,7 +39,7 @@ function ViewerCard({ player, onAvatarClick }: { player: RoomUser; onAvatarClick
     <span className="grid size-9 compact:size-6 shrink-0 place-items-center rounded-full bg-transparent p-0">
       <button type="button" aria-label={`Xem hồ sơ ${player.name}`} onClick={() => onAvatarClick?.(player.name)} className="relative m-0 block size-full cursor-pointer rounded-full border-0 bg-transparent p-0 leading-none shadow-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#ffe2a1]"><MessageAccountAvatar name={player.name} className="size-full [&_*]:[image-rendering:-webkit-optimize-contrast]" /></button>
     </span>
-    <span className="min-w-0 truncate font-heading text-xl/none compact:text-sm text-white [&_*]:[-webkit-text-stroke:0] [&>span>span]:opacity-100 [&>span>span]:[-webkit-text-stroke:0px]! [&>span>span]:font-normal!"><SocialPlayerName name={player.name} /></span>
+    <span className="min-w-0 truncate font-heading text-xl/none compact:text-sm compact:[&_.font-number]:text-[0.85em]! text-white [&_*]:[-webkit-text-stroke:0] [&>span>span]:opacity-100 [&>span>span]:[-webkit-text-stroke:0px]! [&>span>span]:font-normal!"><SocialPlayerName name={player.name} /></span>
   </li>
 }
 

@@ -43,7 +43,7 @@ describe('isolated computer matches', () => {
     expect(screen.queryByRole('button', { name: /Xin thua/ })).toBeNull()
     expect(screen.getByRole('button', { name: /Đi lại/ })).toBeTruthy()
     rerender(<MatchActions {...props} />)
-    expect(screen.getByRole('button', { name: /Cầu hòa/ })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Cầu hòa/ })).toBeNull()
     expect(screen.getByRole('button', { name: /Xin thua/ })).toBeTruthy()
   })
 })

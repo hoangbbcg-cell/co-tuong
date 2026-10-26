@@ -1,4 +1,4 @@
-Source: ../4470bd4d-e86e-44ae-b57e-7f0f4af78a2f.png (user provided).
+Source: ../references/uploads/history/4470bd4d-e86e-44ae-b57e-7f0f4af78a2f.png (user provided).
 Bottom two buttons only: analysis at (275,851,342,317), hint at (681,851,342,317).
 Connected exterior grayscale checkerboard removed to true alpha, then trimmed
 to the remaining nonzero-alpha bounds. Artwork colors and lettering preserved.
@@ -18,7 +18,7 @@ trial-machine.png (73,294,792,182). Exterior bevel corners masked to alpha,
 with visible artwork touching file edges. Used as img elements rather than
 resampled background atlas; disabled navigation dims the rendered img itself.
 
-2026-10-14 current runtime artwork: ../6c0cdab5-e284-4ae6-ac70-c3119205ed80.png.
+2026-10-14 current runtime artwork: ../references/uploads/history/6c0cdab5-e284-4ae6-ac70-c3119205ed80.png.
 Reproducible crop script: ../../../docs/crop-replay-controls.ps1.
 Separate outputs: controls-frame-v2 (692x611), play (668x174), back (184x159),
 count (303x133), forward (190x160), machine (696x180), analysis (293x267), hint (292x267).
@@ -28,4 +28,4 @@ Play icon/label, count and machine state labels are removed with row interpolati
 from the same button artwork; React renders live labels and count. Robot preserved.
 Frame uses border-image; every button is independent and interactive. The count
 frame also houses the existing Reset control in trial mode.
-- Reset: source ../0fed4f87-153a-4338-ad9b-a3a0e2e1ff1c.png, crop (175,190,905,820), exterior checker removed and tight-trimmed to controls-reset-v2.png 879x800; used beside Hint. Middle trial field displays live step/total.
+- Reset: source ../references/uploads/history/0fed4f87-153a-4338-ad9b-a3a0e2e1ff1c.png, crop (175,190,905,820), exterior checker removed and tight-trimmed to controls-reset-v2.png 879x800; used beside Hint. Middle trial field displays live step/total.

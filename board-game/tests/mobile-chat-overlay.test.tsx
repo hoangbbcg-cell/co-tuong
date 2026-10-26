@@ -33,7 +33,7 @@ it('keeps panel height through keyboard resize and message rerenders, restores b
   expect(hook.result.current).toMatchObject({ '--mobile-chat-height': '400px', '--mobile-chat-bottom': '0px' })
 })
 
-it('closes and blurs only on outside taps, ignores chat controls and removes listeners on close', () => {
+it('leaves outside-tap closing to the overlay and removes viewport listeners on close', () => {
   const { hook, input, close } = setup()
   input.focus()
   fireEvent.pointerDown(input)
@@ -41,13 +41,14 @@ it('closes and blurs only on outside taps, ignores chat controls and removes lis
   trigger.setAttribute('aria-controls', 'mobile-room-chat')
   document.body.append(trigger)
   fireEvent.pointerDown(trigger)
+  fireEvent.click(document.body)
   expect(close).not.toHaveBeenCalled()
   fireEvent.pointerDown(document.body)
-  expect(close).toHaveBeenCalledTimes(1)
-  expect(document.activeElement).not.toBe(input)
+  expect(close).not.toHaveBeenCalled()
+  expect(document.activeElement).toBe(input)
   hook.rerender({ open: false, board: 440 })
   fireEvent.pointerDown(document.body)
-  expect(close).toHaveBeenCalledTimes(1)
+  expect(close).not.toHaveBeenCalled()
 })
 
 it('uses the resized layout viewport without double-counting keyboard height', () => {

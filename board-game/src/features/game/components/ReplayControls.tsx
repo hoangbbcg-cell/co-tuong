@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import type { useReplayPlayback } from '../hooks/useReplayPlayback'
 import type { useReplayTrial } from '../hooks/useReplayTrial'
@@ -38,6 +40,7 @@ function ToolArtworkButton({ src, busy = false, className = '', ...props }: Butt
   </button>
 }
 export function ReplayControls({ playback, trial, onToggleMode, onNotice, onHint, hintThinking = false }: { playback: ReturnType<typeof useReplayPlayback>; trial?: ReturnType<typeof useReplayTrial>; onToggleMode?: () => void; onNotice?: (message: string) => void; onHint?: () => void; hintThinking?: boolean }) {
+  const [confirmReset, setConfirmReset] = useState(false)
   const practice = trial?.active ? trial : null
   const history = practice ?? playback
   return <nav aria-label={practice ? 'Điều khiển đánh thử' : 'Điều khiển xem lại'} className="relative z-20 flex w-[220px] shrink-0 flex-col items-center compact:w-full compact:max-w-[220px]">
@@ -60,9 +63,10 @@ export function ReplayControls({ playback, trial, onToggleMode, onNotice, onHint
     </ControlFrame>
     {practice && <div className="mt-[10px] grid w-full grid-cols-3 items-center gap-[10px]">
       {[{ label: 'Phân tích', image: analysisButton }, { label: 'Gợi ý', image: hintButton }].map(item => <ToolArtworkButton key={item.label} src={item.image} busy={item.label === 'Gợi ý' && hintThinking} aria-label={item.label} title={item.label === 'Gợi ý' && onHint ? 'Gợi ý nước đi bằng Ông Hoàng' : 'Đang phát triển'} onClick={() => item.label === 'Gợi ý' && onHint ? onHint() : onNotice?.('Đang phát triển')} className="w-full" />)}
-      <ToolArtworkButton src={resetButton} aria-label="Reset thế thử ban đầu" title="Reset thế thử ban đầu (↑ / ↓)" aria-keyshortcuts="ArrowUp ArrowDown" onClick={practice.reset} className="w-full" />
+      <ToolArtworkButton src={resetButton} aria-label="Reset thế thử ban đầu" title="Reset thế thử ban đầu (↑ / ↓)" aria-keyshortcuts="ArrowUp ArrowDown" onClick={() => setConfirmReset(true)} className="w-full" />
     </div>}
-    {onToggleMode && <ReplayModeButton active={!!practice} onClick={onToggleMode} className={practice ? 'mt-[20px]' : 'mt-[50px]'} />}
+    {confirmReset && practice && createPortal(<div className="fixed inset-0 z-[1200] grid place-items-center bg-black/60 p-4"><section role="alertdialog" aria-modal="true" aria-labelledby="trial-reset-question" className="w-full max-w-sm rounded-2xl border-2 border-[#d5a657] bg-[radial-gradient(ellipse_at_top,#85502466,transparent_70%),linear-gradient(145deg,#482910,#201007)] p-6 text-center text-[#ffe5ac] shadow-[inset_0_0_0_3px_#3b1d0b,0_14px_40px_#0009]" onKeyDown={event => { event.stopPropagation(); if (event.key === 'Escape') setConfirmReset(false) }}><p id="trial-reset-question" className="text-lg">Bạn có muốn hoàn tác về thế cờ ban đầu không?</p><div className="mt-5 flex justify-center gap-4"><button type="button" autoFocus onClick={() => setConfirmReset(false)} className={`${buttonInteraction} rounded border border-[#c99044] bg-[#4a3020] px-5 py-2`}>Hủy</button><button type="button" onClick={() => { setConfirmReset(false); practice.reset() }} className={`${buttonInteraction} rounded border border-[#ffe08b] bg-[linear-gradient(#ffe39b,#dba644)] px-5 py-2 font-bold text-[#39200c]`}>Đồng ý</button></div></section></div>, document.body)}
+    {onToggleMode && <ReplayModeButton active={!!practice} onClick={onToggleMode} className={practice ? 'mt-[20px]' : 'mt-[50px] compact:mt-[4px]'} />}
     {practice?.error && <><span role="alert" className="mt-2 text-center text-xs text-[#ffe5a6]">{practice.error}</span><button type="button" className={`${buttonInteraction} mt-2 h-10 w-full rounded-md border ${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.text}`} onClick={practice.retry}>Thử lại</button></>}
   </nav>
 }

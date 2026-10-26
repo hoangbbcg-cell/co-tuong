@@ -1,5 +1,11 @@
 # Bàn khóa và mật khẩu
 
+- 2026-10-26: Theo user, lấy ô tìm Bạn bè làm chuẩn tỷ lệ sizing/bo góc. searchFieldMetrics chung: compact H60×1.17,placeholder21/input24/radius10; desktopH56/placeholder23/radius10; font nhập min16/placeholder mobilemin14 như Friends. Áp dụng theo chiều cao ô sẵn có tại Chọn Bàn, tìm hội thoại Tin nhắn, tìm bạn Tạo nhóm; giữ vị trí/kích thước ô/chức năng/font/màu, không đổi Bạn bè desktop đang khóa. messagesFriendsField bo10px→44×10/70.2px cho mọi nơi dùng khung nâu này (kể cả nhập chat/biệt danh), cỡ chữ mặc định nonsearch16/14 giữ nguyên; search truyền CSSvars. Ô địa chỉ/quốc gia dùng khung khác không đổi. Build/typecheck PASS; dist có helper CSSvars; chưa browser/keyboard QA.
+
+- 2026-10-24: Theo user, header Chọn Bàn thêm form tìm số phòng6chữ số căn giữa ngang back. useLobby.joinByCode fetch API rooms mới toàn hệ thống, khớp code chính xác không phụ thuộc tỉnh/filter/cap30; phòng mở join, khóa mở RoomPasswordDialog hiện có rồi join theo password. Giữ validate tên/năng lượng/server role, không thấy phòng báo lỗi. Build/typecheck PASS; dist cập nhật; chưa browser/socket QA.
+
+- 2026-10-24: Theo user, gỡ hoàn toàn demoRooms/prop demo trong RoomTableGrid. Bộ đếm bàn chọn tỉnh/Tất cả chỉ tính phòng có ghế hoặc viewer, khớp danh sách; không xóa phòng RAM/không restart backend. useLobby.error không đưa join.error lên Chọn Bàn khi passwordRoom đang mở; passwordError giữ trong dialog. Test lọc tỉnh chọn explicit allProvinces=false theo mặc định mới. locked-room-ui+quickRoom4/4 PASS; build/typecheck PASS; dist cập nhật; chưa browser QA.
+
 Triển khai2026-10-15, thay bản UI xem trước trước đó.
 
 - Chọn Bàn: ba mục Tất cả, Còn trống, Bàn khóa từ trái sang phải. Bàn khóa chỉ lọc phòng có locked=true trong khu vực đang chọn. Tất cả gồm cả bàn mở và khóa; Còn trống giữ quy tắc một người ngồi/chưa đấu. Bàn khóa không tạo bàn mẫu giả khi danh sách trống.
@@ -14,3 +20,9 @@ Triển khai2026-10-15, thay bản UI xem trước trước đó.
 Kiểm chứng: unit service kiểm tra mật khẩu sai/thiếu/đúng ở cả ghế và người xem, giới hạn, không lộ secret qua JSON, giữ khóa sau reset; hook/UI kiểm tra lọc theo khu vực và gửi đúng mật khẩu; HTTP/Socket thật kiểm tra create→sai→đúng. QuickRoom/challenge/server regression liên quan cũng qua. Chưa QA trình duyệt trực tiếp.
 - 2026-10-15: Bàn khóa dùng room-selection/table-board-locked.png từ65c16869, crop107,140,1041,964; bàn mở giữ ảnh cũ. Áp dụng cả Tất cả/Còn trống/Bàn khóa thông qua RoomTableGrid.
 - 2026-10-16: Kết thúc xem thử bàn mẫu Chọn Bàn theo yêu cầu dữ liệu thật. RoomTableGrid chỉ dùng rooms API đã lọc khu vực/trạng thái, bỏ22 previewRooms và đường vào demo. Không có phòng hiện rỗng, không giả người/bàn; Tạo/vào/khóa/ghép nhanh giữ server thật.
+
+- 2026-10-24: Theo user, Chọn Bàn nới ô tìm theo số/nútTìm: form desktopmin440/46% thay360/42%, compactrộng viewport-112px thay58% để chừa back/âmthanh; nút min72desktop/64mobile, gap6mobile, thêm kínhlúpSVG16 bên chữTìm. Giữh36/logic joinByCode/mã6số/pending. Build/typecheck PASS; dist xác nhận440/46%; chưa browser QA.
+
+- 2026-10-24: User yêu cầu thu nhẹ cụm tìm Chọn Bàn: desktop410/44% thay440/46%, mobileviewport-124px thay-112; nútmin66desktop/60mobile thay72/64. Giữ cao/icon/logic. Build/typecheck PASS; dist xác nhận410/44%; chưa browser QA.
+
+- 2026-10-24: User thu thêm cụm tìm Chọn Bàn: desktop390/43%, mobileviewport-134px; nútmin62desktop/56mobile, cao/icon/logic giữ. Build/typecheck PASS; dist xác nhận390/43%; chưa browser QA.
