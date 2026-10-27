@@ -1,0 +1,33 @@
+[Unit]
+Description=Co Tuong Online isolated test backend
+After=network-online.target mysql.service
+Wants=network-online.target
+Requires=mysql.service
+
+[Service]
+Type=simple
+User=cotuong
+Group=cotuong
+WorkingDirectory=/srv/cotuong/current
+EnvironmentFile=/etc/cotuong/cotuong.env
+Environment=HOST=127.0.0.1
+Environment=PORT=3001
+Environment=NODE_ENV=production
+ExecStart=/opt/node-v22.23.3/bin/node --import tsx server/index.ts
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=20
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/srv/cotuong/shared
+
+[Install]
+WantedBy=multi-user.target

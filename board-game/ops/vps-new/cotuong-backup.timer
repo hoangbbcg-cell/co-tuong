@@ -1,0 +1,11 @@
+[Unit]
+Description=Twice-daily local Co Tuong test database backup
+
+[Timer]
+OnCalendar=*-*-* 02,14:15:00
+RandomizedDelaySec=10m
+Persistent=true
+Unit=cotuong-local-backup.service
+
+[Install]
+WantedBy=timers.target

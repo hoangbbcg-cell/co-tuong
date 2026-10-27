@@ -1,0 +1,336 @@
+#!/bin/bash
+# Root-owned, fixed-operation administrator for the isolated test VPS.
+set -Eeuo pipefail
+umask 077
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export DEBIAN_FRONTEND=noninteractive
+
+readonly TARGET_IP='103.153.254.184'
+readonly NODE_VERSION='v22.23.3'
+readonly NODE_PREFIX="/opt/node-${NODE_VERSION}"
+readonly APP_ROOT='/srv/cotuong'
+readonly RUNTIME_USER='cotuong'
+readonly DEPLOY_USER='cotuong_deploy'
+readonly RELEASE_GROUP='cotuong_release'
+NODE_TMP=''
+
+die() { printf 'cotuong-vps-admin: %s\n' "$*" >&2; exit 1; }
+
+check_host() {
+  [[ "$(id -u)" == 0 ]] || die 'run through sudo'
+  command -v ip >/dev/null || die 'iproute2 is required'
+  ip -o -4 addr show scope global | awk '{sub(/\/.*/, "", $4); print $4}' | grep -Fxq "$TARGET_IP" \
+    || die "refusing to run: this host does not own $TARGET_IP"
+}
+
+require_safe_path() {
+  local path="$1"
+  [[ -d "$path" && ! -L "$path" ]] || die "expected real directory: $path"
+  [[ "$(stat -c %U:%G "$path")" == 'root:root' ]] || die "ownership must be root:root: $path"
+  [[ "$(stat -c %a "$path")" =~ ^(755|750|700)$ ]] || die "unsafe directory mode: $path"
+}
+
+ensure_dir() {
+  local path="$1" owner_group="$2" mode="$3"
+  if [[ -e "$path" || -L "$path" ]]; then
+    [[ -d "$path" && ! -L "$path" ]] || die "expected a real directory: $path"
+    [[ "$(stat -c %U:%G "$path")" == "$owner_group" && "$(stat -c %a "$path")" == "$mode" ]] \
+      || die "existing directory has unexpected owner or mode: $path"
+  else
+    install -d -o "${owner_group%%:*}" -g "${owner_group#*:}" -m "$mode" "$path"
+  fi
+}
+
+node_tree_unsafe_path() {
+  local root="$1" expected_uid="${2:-0}"
+  find -P "$root" -xdev \
+    \( ! -uid "$expected_uid" -o \( ! -type l -a -perm /0022 \) \) \
+    -print -quit
+}
+
+apt_install_without_starting_services() (
+  ((${#@} > 0)) || die 'internal error: empty package list'
+  local policy='/usr/sbin/policy-rc.d'
+  [[ ! -e "$policy" && ! -L "$policy" ]] || die 'existing policy-rc.d requires manual review; refusing to replace it'
+  printf '#!/bin/sh\nexit 101\n' > "$policy"
+  chown root:root "$policy"
+  chmod 0755 "$policy"
+  trap 'rm -f -- "$policy"' EXIT
+  trap 'exit 130' HUP INT TERM
+  apt-get install --yes --no-install-recommends -- "$@"
+)
+
+action_preflight() {
+  . /etc/os-release
+  [[ "$ID" == ubuntu && "$VERSION_ID" == 24.04 ]] || die 'expected Ubuntu 24.04'
+  printf 'Target IP: %s\nOS: %s\nKernel: %s\n' "$TARGET_IP" "$PRETTY_NAME" "$(uname -r)"
+  df -hT / /boot
+  printf '\nServices:\n'
+  systemctl --no-pager --type=service --state=running || true
+  printf '\nPackage actions below are intentionally separate commands.\n'
+}
+
+action_upgrade_os() {
+  action_preflight
+  printf '\nThis updates installed Ubuntu packages. Kernel/OpenSSH packages may be updated; this command does not edit sshd_config or firewall rules. Confirm VNC/provider-console recovery works before continuing.\n'
+  read -r -p 'Type VNC-RECOVERY-READY to confirm recovery access: ' recovery </dev/tty
+  [[ "$recovery" == VNC-RECOVERY-READY ]] || die 'cancelled; confirm recovery access first'
+  read -r -p 'Type UPDATE-UBUNTU to continue: ' answer </dev/tty
+  [[ "$answer" == UPDATE-UBUNTU ]] || die 'cancelled'
+  apt-get update
+  apt-get upgrade --yes
+  printf '\nUpgrade finished. Reboot is a separate action and is never automatic.\n'
+}
+
+action_install_node22() {
+  local arch node_arch archive filename expected actual unsafe_path
+  arch="$(dpkg --print-architecture)"
+  case "$arch" in amd64) node_arch=x64 ;; arm64) node_arch=arm64 ;; *) die "unsupported architecture: $arch" ;; esac
+  filename="node-${NODE_VERSION}-linux-${node_arch}.tar.xz"
+  if [[ -e "$NODE_PREFIX" || -L "$NODE_PREFIX" ]]; then
+    [[ -d "$NODE_PREFIX" && ! -L "$NODE_PREFIX" && "$(realpath -e "$NODE_PREFIX")" == "$NODE_PREFIX" ]] || die 'Node target exists and is not a canonical real directory'
+    [[ "$(stat -c %U:%G "$NODE_PREFIX")" == root:root ]] || die 'existing Node installation is not root-owned'
+    if ! unsafe_path="$(node_tree_unsafe_path "$NODE_PREFIX" 0)"; then
+      die 'could not inspect existing Node installation permissions'
+    fi
+    [[ -z "$unsafe_path" ]] || die "existing Node installation has a non-root-owned or group/world-writable path: $unsafe_path"
+    [[ "$("$NODE_PREFIX/bin/node" --version 2>/dev/null || true)" == "$NODE_VERSION" ]] || die 'Node target exists with unexpected contents'
+  else
+    command -v curl >/dev/null || die 'curl is required; install it through install-web-stack first'
+    command -v xz >/dev/null || die 'xz-utils is required; install it through install-web-stack first'
+    NODE_TMP="$(mktemp -d /var/tmp/cotuong-node.XXXXXX)"
+    trap 'rm -rf -- "$NODE_TMP"' EXIT
+    curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+      "https://nodejs.org/dist/${NODE_VERSION}/${filename}" -o "$NODE_TMP/$filename"
+    curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+      "https://nodejs.org/dist/${NODE_VERSION}/SHASUMS256.txt" -o "$NODE_TMP/SHASUMS256.txt"
+    expected="$(awk -v file="$filename" '$2 == file {print $1}' "$NODE_TMP/SHASUMS256.txt")"
+    [[ "$expected" =~ ^[a-fA-F0-9]{64}$ ]] || die 'official checksum manifest did not contain the exact archive'
+    actual="$(sha256sum "$NODE_TMP/$filename" | awk '{print $1}')"
+    [[ "${actual,,}" == "${expected,,}" ]] || die 'Node archive checksum mismatch'
+    tar -xJf "$NODE_TMP/$filename" -C "$NODE_TMP"
+    install -d -o root -g root -m 0755 /opt
+    mv -- "$NODE_TMP/node-${NODE_VERSION}-linux-${node_arch}" "$NODE_PREFIX"
+    chown -R root:root "$NODE_PREFIX"
+    chmod -R go-w "$NODE_PREFIX"
+  fi
+  for bin in node npm npx; do
+    if [[ -e "/usr/local/bin/$bin" && ! -L "/usr/local/bin/$bin" ]]; then
+      die "/usr/local/bin/$bin already exists as a non-symlink; refusing to replace it"
+    fi
+    if [[ -L "/usr/local/bin/$bin" ]]; then
+      case "$(readlink -f "/usr/local/bin/$bin")" in "$NODE_PREFIX"/*) ;; *) die "unexpected existing link: /usr/local/bin/$bin" ;; esac
+    fi
+    [[ -x "$NODE_PREFIX/bin/$bin" ]] || die "missing executable in verified Node installation: $bin"
+  done
+  for bin in node npm npx; do
+    ln -sfn "$NODE_PREFIX/bin/$bin" "/usr/local/bin/$bin"
+  done
+  [[ "$(/usr/local/bin/node --version)" == "$NODE_VERSION" ]] || die 'Node verification failed'
+  /usr/local/bin/npm --version
+}
+
+action_install_web_stack() {
+  if dpkg-query -W -f='${db:Status-Status}' mysql-server 2>/dev/null | grep -qx installed; then
+    die 'MySQL is already installed; review its existing data/config before this fresh-stage installer runs'
+  fi
+  if [[ -L /var/lib/mysql || ( -e /var/lib/mysql && ( ! -d /var/lib/mysql || -n "$(find /var/lib/mysql -mindepth 1 -maxdepth 1 -print -quit)" ) ) ]]; then
+    die 'MySQL data path already exists or contains data; refusing to initialize or alter it'
+  fi
+  if systemctl is-active --quiet mysql.service; then die 'MySQL is already active; refusing to alter an existing database service'; fi
+  apt-get update
+  apt_install_without_starting_services ca-certificates curl xz-utils rsync acl nginx mysql-server
+  if systemctl is-active --quiet nginx.service; then die 'Nginx is unexpectedly active after package installation; manual review required'; fi
+  systemctl enable --now mysql.service
+  systemctl is-active --quiet mysql.service || die 'MySQL did not start successfully'
+  if ! ss -lnt | awk '$4 ~ /:3306$/ {print $4}' | grep -Eq '^(127\.0\.0\.1|\[::1\]):3306$'; then
+    systemctl disable --now mysql.service || true
+    die 'MySQL is not confirmed loopback-only; it was stopped and disabled for review'
+  fi
+}
+
+action_install_netdata() {
+  apt-cache show netdata >/dev/null 2>&1 || die 'Netdata is not available from the configured Ubuntu repositories; no third-party installer will be run automatically'
+  local config='/etc/netdata/netdata.conf'
+  [[ ! -e "$config" && ! -L "$config" ]] || die 'Netdata already has a config; review it instead of replacing it'
+  apt_install_without_starting_services netdata
+  [[ ! -e "$config" && ! -L "$config" ]] || die 'Netdata package created a config; refusing to overwrite it'
+  [[ -d /etc/netdata && ! -L /etc/netdata && "$(stat -c %U:%G /etc/netdata)" == root:root ]] || die 'Netdata config directory is not a root-owned real directory'
+  local config_tmp
+  config_tmp="$(mktemp /etc/netdata/.cotuong-netdata.XXXXXX)"
+  if ! cat > "$config_tmp" <<'NETDATA_CONFIG'
+[web]
+    bind to = 127.0.0.1
+NETDATA_CONFIG
+  then
+    rm -f -- "$config_tmp"
+    die 'could not write temporary Netdata configuration'
+  fi
+  if ! chown root:root "$config_tmp" || ! chmod 0644 "$config_tmp" || ! mv -T -- "$config_tmp" "$config"; then
+    rm -f -- "$config_tmp"
+    die 'could not install Netdata configuration'
+  fi
+  systemctl enable --now netdata.service
+  if ! ss -lnt | awk '$4 ~ /:19999$/ {print $4}' | grep -Eq '^127\.0\.0\.1:19999$'; then
+    systemctl disable --now netdata.service || true
+    rm -f -- "$config"
+    die 'Netdata listener is not confirmed loopback-only; service was stopped and disabled'
+  fi
+}
+
+action_install_fairy() {
+  die 'Fairy-Stockfish is deliberately blocked: this project has not yet verified a Linux XQ binary, license notice, and pinned release checksum for this VPS. Do not install an unverified asset.'
+}
+
+action_install_app_unit() {
+  local source='/usr/local/share/cotuong-vps/cotuong.service'
+  [[ -f "$source" && ! -L "$source" ]] || die 'root-owned unit template is missing'
+  require_safe_path /srv
+  [[ -d "$APP_ROOT" && ! -L "$APP_ROOT" ]] || die 'app root has not been prepared'
+  [[ -f /etc/cotuong/cotuong.env && ! -L /etc/cotuong/cotuong.env ]] || die 'application environment file must be provisioned separately'
+  [[ "$(stat -c %U:%G /etc/cotuong/cotuong.env)" == "root:$RUNTIME_USER" && "$(stat -c %a /etc/cotuong/cotuong.env)" == 640 ]] || die 'environment file must be root-owned, runtime-group-readable, and mode 0640'
+  local current
+  current="$(realpath -e "$APP_ROOT/current" 2>/dev/null || true)"
+  [[ "$current" == "$APP_ROOT/releases/"* && -f "$current/server/index.ts" && -f "$current/node_modules/tsx/package.json" ]] || die 'current must resolve to a complete release under the fixed releases directory'
+  [[ ! -e /etc/systemd/system/cotuong-test.service && ! -L /etc/systemd/system/cotuong-test.service ]] || die 'unit already exists; review instead of overwriting'
+  [[ ! -e /etc/systemd/system/multi-user.target.wants/cotuong-test.service && ! -L /etc/systemd/system/multi-user.target.wants/cotuong-test.service ]] || die 'unexpected stale unit enablement link; manual review required'
+  systemd-analyze verify "$source" || die 'systemd rejected the reviewed unit template'
+  install -o root -g root -m 0644 "$source" /etc/systemd/system/cotuong-test.service
+  if ! systemctl daemon-reload || ! systemctl enable cotuong-test.service; then
+    rm -f /etc/systemd/system/cotuong-test.service
+    if [[ -L /etc/systemd/system/multi-user.target.wants/cotuong-test.service ]] && [[ "$(readlink -f /etc/systemd/system/multi-user.target.wants/cotuong-test.service)" == /etc/systemd/system/cotuong-test.service ]]; then rm -f /etc/systemd/system/multi-user.target.wants/cotuong-test.service; fi
+    systemctl daemon-reload || true
+    die 'unit setup failed; the new unit file was removed'
+  fi
+  printf 'Unit installed and enabled for boot, but not started.\n'
+}
+
+action_install_nginx_site() {
+  local source='/usr/local/share/cotuong-vps/cotuong-test.conf'
+  local default_target=''
+  local answer
+  read -r -p 'This enables HTTP on port 80. Confirm provider firewall exposure is intended by typing ENABLE-TEST-HTTP: ' answer </dev/tty
+  [[ "$answer" == ENABLE-TEST-HTTP ]] || die 'cancelled'
+  [[ -f "$source" && ! -L "$source" ]] || die 'root-owned Nginx template is missing'
+  [[ -f "$APP_ROOT/current/dist/index.html" ]] || die 'test release is not present; refusing to publish a placeholder site'
+  [[ ! -e /etc/nginx/sites-available/cotuong-test && ! -L /etc/nginx/sites-available/cotuong-test ]] || die 'Nginx site file already exists; review instead of overwriting'
+  [[ ! -e /etc/nginx/sites-enabled/cotuong-test && ! -L /etc/nginx/sites-enabled/cotuong-test ]] || die 'Nginx site link already exists; review instead of replacing'
+  if [[ -e /etc/nginx/sites-enabled/default || -L /etc/nginx/sites-enabled/default ]]; then
+    [[ -L /etc/nginx/sites-enabled/default ]] || die 'unexpected regular file at Nginx default-site path'
+    default_target="$(readlink -- /etc/nginx/sites-enabled/default)"
+    [[ "$(readlink -f /etc/nginx/sites-enabled/default)" == /etc/nginx/sites-available/default ]] || die 'unexpected Nginx default-site target'
+    [[ ! -e /etc/nginx/sites-enabled/cotuong-default-disabled && ! -L /etc/nginx/sites-enabled/cotuong-default-disabled ]] || die 'default-site recovery path already exists'
+    mv -- /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/cotuong-default-disabled
+  fi
+  if ! install -o root -g root -m 0644 "$source" /etc/nginx/sites-available/cotuong-test \
+    || ! ln -s /etc/nginx/sites-available/cotuong-test /etc/nginx/sites-enabled/cotuong-test \
+    || ! nginx -t || ! systemctl enable --now nginx.service || ! systemctl reload nginx.service; then
+    rm -f /etc/nginx/sites-enabled/cotuong-test /etc/nginx/sites-available/cotuong-test
+    if [[ -n "$default_target" ]]; then mv -- /etc/nginx/sites-enabled/cotuong-default-disabled /etc/nginx/sites-enabled/default; fi
+    nginx -t || true
+    systemctl reload nginx.service 2>/dev/null || true
+    die 'Nginx test site failed; its new site config was removed'
+  fi
+  if [[ -n "$default_target" ]]; then rm -f -- /etc/nginx/sites-enabled/cotuong-default-disabled; fi
+}
+
+action_create_deploy_user() {
+  read -r -p 'Type CREATE-DEPLOY-IDENTITY to create the isolated service/deploy accounts and a random credential hash: ' answer </dev/tty
+  [[ "$answer" == CREATE-DEPLOY-IDENTITY ]] || die 'cancelled'
+  if ! getent passwd "$RUNTIME_USER" >/dev/null; then
+    useradd --system --home-dir /nonexistent --no-create-home --shell /usr/sbin/nologin "$RUNTIME_USER"
+  fi
+  local runtime_uid runtime_gid runtime_shell
+  IFS=: read -r _ _ runtime_uid runtime_gid _ _ runtime_shell < <(getent passwd "$RUNTIME_USER")
+  [[ "$runtime_uid" != 0 && "$runtime_shell" == /usr/sbin/nologin ]] || die 'runtime account must be non-root with nologin shell'
+  [[ "$(getent group "$RUNTIME_USER" | cut -d: -f3)" == "$runtime_gid" ]] || die 'runtime account must use its private primary group'
+  if ! getent group "$RELEASE_GROUP" >/dev/null; then groupadd --system "$RELEASE_GROUP"; fi
+  [[ "$(getent group "$RELEASE_GROUP" | cut -d: -f1)" == "$RELEASE_GROUP" ]] || die 'release group name mismatch'
+  if ! getent passwd "$DEPLOY_USER" >/dev/null; then
+    useradd --create-home --home-dir "/home/$DEPLOY_USER" --shell /bin/bash "$DEPLOY_USER"
+    local random_password password_hash
+    random_password="$(openssl rand -hex 48)"
+    password_hash="$(printf '%s' "$random_password" | openssl passwd -6 -stdin)"
+    [[ "$password_hash" == '$6$'* ]] || die 'could not generate an opaque deploy account password hash'
+    usermod --password "$password_hash" "$DEPLOY_USER"
+    unset random_password password_hash
+    chmod 0700 "/home/$DEPLOY_USER"
+  fi
+  local deploy_uid deploy_gid deploy_home deploy_shell forbidden_group
+  IFS=: read -r _ _ deploy_uid deploy_gid _ deploy_home deploy_shell < <(getent passwd "$DEPLOY_USER")
+  [[ "$deploy_uid" != 0 && "$deploy_shell" == /bin/bash && "$deploy_home" == "/home/$DEPLOY_USER" ]] || die 'deploy account has unexpected UID, shell, or home'
+  [[ "$(passwd -S "$DEPLOY_USER" | awk '{print $2}')" == P ]] || die 'deploy account must have a valid non-locked password hash so public-key SSH can authenticate'
+  for forbidden_group in sudo admin root "$RUNTIME_USER"; do
+    if id -nG "$DEPLOY_USER" | tr ' ' '\n' | grep -Fxq "$forbidden_group"; then die "deploy account must not belong to $forbidden_group"; fi
+  done
+  if ! id -nG "$DEPLOY_USER" | tr ' ' '\n' | grep -Fxq "$RELEASE_GROUP"; then usermod -aG "$RELEASE_GROUP" "$DEPLOY_USER"; fi
+  if ! id -nG "$RUNTIME_USER" | tr ' ' '\n' | grep -Fxq "$RELEASE_GROUP"; then usermod -aG "$RELEASE_GROUP" "$RUNTIME_USER"; fi
+  if [[ -e "$APP_ROOT" || -L "$APP_ROOT" ]]; then
+    [[ -d "$APP_ROOT" && ! -L "$APP_ROOT" && "$(stat -c %U:%G "$APP_ROOT")" == 'root:root' ]] || die 'existing app root is unsafe; refusing to alter it'
+  else
+    install -d -o root -g root -m 0755 "$APP_ROOT"
+  fi
+  ensure_dir "$APP_ROOT/releases" "$DEPLOY_USER:$RELEASE_GROUP" 2750
+  ensure_dir "$APP_ROOT/deploy" "$DEPLOY_USER:$DEPLOY_USER" 700
+  ensure_dir "$APP_ROOT/shared" "$RUNTIME_USER:$RUNTIME_USER" 2750
+  ensure_dir "$APP_ROOT/shared/uploads" "$RUNTIME_USER:$RUNTIME_USER" 2750
+  ensure_dir "$APP_ROOT/shared/storage" "$RUNTIME_USER:$RUNTIME_USER" 2750
+  ensure_dir /etc/cotuong "root:$RUNTIME_USER" 750
+  if [[ -e "/home/$DEPLOY_USER" || -L "/home/$DEPLOY_USER" ]]; then
+    [[ -d "/home/$DEPLOY_USER" && ! -L "/home/$DEPLOY_USER" && "$(stat -c %U:%G "/home/$DEPLOY_USER")" == "$DEPLOY_USER:$DEPLOY_USER" && "$(stat -c %a "/home/$DEPLOY_USER")" == 700 ]] || die 'deploy home already exists with unexpected permissions'
+  fi
+  printf 'Created/verified service and deployment accounts. Deploy has release-code access only; it is not a member of the runtime data group. No SSH key was installed.\n'
+}
+
+action_install_backup() {
+  local script='/usr/local/share/cotuong-vps/cotuong-local-backup'
+  local backup_dir_created=0
+  [[ -f "$script" && ! -L "$script" ]] || die 'root-owned backup script is missing'
+  command -v mysql >/dev/null && mysql --protocol=socket --user=root -NBe 'SELECT 1' >/dev/null \
+    || die 'local MySQL root socket access is not verified'
+  mysql --protocol=socket --user=root -NBe "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='cotuong_stage'" | grep -Fxq cotuong_stage \
+    || die 'fresh test database cotuong_stage does not exist; no backup timer installed'
+  [[ ! -e /var/backups/cotuong-stage && ! -L /var/backups/cotuong-stage ]] || die 'backup directory already exists; review instead of changing it'
+  for path in /usr/local/sbin/cotuong-local-backup /etc/systemd/system/cotuong-local-backup.service /etc/systemd/system/cotuong-local-backup.timer; do
+    [[ ! -e "$path" && ! -L "$path" ]] || die "backup path already exists; review instead of overwriting: $path"
+  done
+  [[ ! -e /etc/systemd/system/timers.target.wants/cotuong-local-backup.timer && ! -L /etc/systemd/system/timers.target.wants/cotuong-local-backup.timer ]] || die 'unexpected stale backup timer link; manual review required'
+  systemd-analyze verify /usr/local/share/cotuong-vps/cotuong-backup.service /usr/local/share/cotuong-vps/cotuong-backup.timer || die 'systemd rejected backup unit templates'
+  if ! install -o root -g root -m 0700 "$script" /usr/local/sbin/cotuong-local-backup \
+    || ! install -o root -g root -m 0644 /usr/local/share/cotuong-vps/cotuong-backup.service /etc/systemd/system/cotuong-local-backup.service \
+    || ! install -o root -g root -m 0644 /usr/local/share/cotuong-vps/cotuong-backup.timer /etc/systemd/system/cotuong-local-backup.timer; then
+    rm -f /etc/systemd/system/cotuong-local-backup.timer /etc/systemd/system/cotuong-local-backup.service /usr/local/sbin/cotuong-local-backup
+    die 'backup unit file installation failed; newly installed files were removed'
+  fi
+  if ! install -d -o root -g root -m 0700 /var/backups/cotuong-stage; then
+    rm -f /etc/systemd/system/cotuong-local-backup.timer /etc/systemd/system/cotuong-local-backup.service /usr/local/sbin/cotuong-local-backup
+    die 'backup directory setup failed; newly installed files were removed'
+  fi
+  backup_dir_created=1
+  if ! systemctl daemon-reload || ! systemctl enable --now cotuong-local-backup.timer; then
+    systemctl disable --now cotuong-local-backup.timer 2>/dev/null || true
+    rm -f /etc/systemd/system/cotuong-local-backup.timer /etc/systemd/system/cotuong-local-backup.service /usr/local/sbin/cotuong-local-backup
+    if [[ -L /etc/systemd/system/timers.target.wants/cotuong-local-backup.timer ]] && [[ "$(readlink -f /etc/systemd/system/timers.target.wants/cotuong-local-backup.timer)" == /etc/systemd/system/cotuong-local-backup.timer ]]; then rm -f /etc/systemd/system/timers.target.wants/cotuong-local-backup.timer; fi
+    if ((backup_dir_created)); then rmdir /var/backups/cotuong-stage 2>/dev/null || true; fi
+    systemctl daemon-reload || true
+    die 'backup timer setup failed; its new service files were removed'
+  fi
+}
+
+check_host
+[[ $# == 1 ]] || die 'one fixed action is required'
+exec 9>/run/lock/cotuong-vps-admin.lock
+flock -n 9 || die 'another VPS administration action is already running'
+case "$1" in
+  preflight) action_preflight ;;
+  upgrade-os) action_upgrade_os ;;
+  install-node22) action_install_node22 ;;
+  install-web-stack) action_install_web_stack ;;
+  install-netdata) action_install_netdata ;;
+  install-fairy-stockfish) action_install_fairy ;;
+  create-deploy-user) action_create_deploy_user ;;
+  install-app-unit) action_install_app_unit ;;
+  install-nginx-site) action_install_nginx_site ;;
+  install-local-backup) action_install_backup ;;
+  *) die 'unknown action' ;;
+esac
