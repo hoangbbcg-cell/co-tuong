@@ -11,7 +11,7 @@ on:
         description: Stage an inactive first release, activate the staged release, or deploy normally
         required: true
         type: choice
-        default: deploy
+        default: stage
         options:
           - stage
           - activate
