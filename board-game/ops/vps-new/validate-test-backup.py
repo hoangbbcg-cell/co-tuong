@@ -17,6 +17,14 @@ SOURCE_SCHEMA = "cotuong_stage"
 MYSQL = ["mysql", "--protocol=socket", "--user=root", "--batch", "--skip-column-names"]
 
 
+class ScratchCleanupError(ValueError):
+    """A restore failed and its disposable schema could not be removed."""
+
+    def __init__(self, schema: str) -> None:
+        super().__init__(schema)
+        self.schema = schema
+
+
 def rewrite_dump_for_restore(sql: str, target_schema: str) -> str:
     """Retarget only mysqldump's database header; preserve all row data verbatim."""
     if not re.fullmatch(r"cotuong_restore_check_[0-9]{8}T[0-9]{6}Z_[0-9]+", target_schema):
@@ -28,11 +36,13 @@ def rewrite_dump_for_restore(sql: str, target_schema: str) -> str:
     use_pattern = re.compile(rf"^USE `{re.escape(SOURCE_SCHEMA)}`;$", re.MULTILINE)
     if len(create_pattern.findall(sql)) != 1 or len(use_pattern.findall(sql)) != 1:
         raise ValueError("backup must contain one canonical cotuong_stage mysqldump header")
-    if re.search(r"^\s*(?:DROP DATABASE|CREATE DATABASE|USE)\b", sql, re.MULTILINE):
+    if re.search(r"^\s*(?:DROP|CREATE|ALTER)\s+(?:DATABASE|SCHEMA)\b|^\s*USE\b", sql, re.MULTILINE | re.IGNORECASE):
         without_create = create_pattern.sub("", sql)
         without_use = use_pattern.sub("", without_create)
-        if re.search(r"^\s*(?:DROP DATABASE|CREATE DATABASE|USE)\b", without_use, re.MULTILINE):
+        if re.search(r"^\s*(?:DROP|CREATE|ALTER)\s+(?:DATABASE|SCHEMA)\b|^\s*USE\b", without_use, re.MULTILINE | re.IGNORECASE):
             raise ValueError("backup contains an unexpected database directive")
+    if re.search(r"(?:`cotuong_stage`|\bcotuong_stage\b)\s*\.", sql, re.IGNORECASE):
+        raise ValueError("backup contains a source-schema-qualified object reference")
     sql = create_pattern.sub("", sql)
     return use_pattern.sub(f"USE `{target_schema}`;", sql)
 
@@ -45,6 +55,11 @@ def mysql(*args: str, input_sql: str | None = None) -> str:
 
 
 def validate_backup(path: Path) -> None:
+    if BACKUP_DIR.is_symlink() or not BACKUP_DIR.is_dir():
+        raise ValueError("test backup directory must be a real directory")
+    directory_info = BACKUP_DIR.stat()
+    if directory_info.st_uid != 0 or directory_info.st_mode & 0o777 != 0o700:
+        raise ValueError("test backup directory must be owned by root with mode 0700")
     if path.is_symlink() or not path.is_file() or path.parent != BACKUP_DIR:
         raise ValueError("backup must be a regular file directly inside the test backup directory")
     info = path.stat()
@@ -83,15 +98,24 @@ def validate_backup(path: Path) -> None:
         expected_tables = len(re.findall(r"^CREATE TABLE `", sql, re.MULTILINE))
         if table_count != expected_tables:
             raise ValueError("restored table count does not match the dump")
-        if table_count == 0:
-            return  # A fresh, pre-migration schema is a valid backup baseline.
-        journal = mysql("-e", f"SELECT COUNT(*) FROM `{target}`.schema_migrations WHERE status <> 'applied'")
-        total = mysql("-e", f"SELECT COUNT(*) FROM `{target}`.schema_migrations")
-        if int(total) < 1 or int(journal) != 0:
-            raise ValueError("restored migration journal is empty or incomplete")
-    finally:
+        if table_count > 0:
+            journal = mysql("-e", f"SELECT COUNT(*) FROM `{target}`.schema_migrations WHERE status <> 'applied'")
+            total = mysql("-e", f"SELECT COUNT(*) FROM `{target}`.schema_migrations")
+            if int(total) < 1 or int(journal) != 0:
+                raise ValueError("restored migration journal is empty or incomplete")
+    except Exception:
         if created:
-            mysql("-e", f"DROP DATABASE `{target}`")
+            try:
+                mysql("-e", f"DROP DATABASE `{target}`")
+            except Exception as cleanup_error:
+                raise ScratchCleanupError(target) from cleanup_error
+        raise
+    else:
+        if created:
+            try:
+                mysql("-e", f"DROP DATABASE `{target}`")
+            except Exception as cleanup_error:
+                raise ScratchCleanupError(target) from cleanup_error
 
 
 def main(argv: list[str]) -> int:
@@ -103,6 +127,9 @@ def main(argv: list[str]) -> int:
         validate_backup(path)
     except (OSError, gzip.BadGzipFile, subprocess.CalledProcessError, ValueError) as error:
         # MySQL stderr can contain query details; keep logs to a generic safe result.
+        if isinstance(error, ScratchCleanupError):
+            print(f"Restore validation failed and cleanup did not complete; inspect only disposable schema {error.schema} before retrying.", file=sys.stderr)
+            return 1
         print(f"Test backup restore validation failed ({type(error).__name__}).", file=sys.stderr)
         return 1
     print("Test backup restored into a disposable schema; tables and applied migration journal verified, scratch schema removed.")
