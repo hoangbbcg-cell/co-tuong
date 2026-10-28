@@ -114,6 +114,9 @@ class VpsTestCdContractTests(unittest.TestCase):
         tick = chr(96)
         self.assertIn(f"{tick}{registered[0]}{tick}–{tick}{registered[-1]}{tick}", docs)
         self.assertNotIn(f"{tick}001{tick}–{tick}012{tick}", docs)
+        readme = (OPS / "README.md").read_text(encoding="utf-8")
+        self.assertNotIn(f"{tick}001{tick}–{tick}012{tick}", readme)
+        self.assertIn(f"{tick}{registered[0]}{tick}–{tick}{registered[-1]}{tick}", readme)
 
     def test_r2_offsite_backup_is_encrypted_retained_and_verifies_remote_readback(self) -> None:
         helper = (OPS / "upload-test-backup-r2.py").read_text(encoding="utf-8")
@@ -140,5 +143,7 @@ class VpsTestCdContractTests(unittest.TestCase):
         self.assertIn("/etc/cotuong/r2-read-token", action)
         self.assertIn('"IfNoneMatch"', action)
         self.assertNotIn("rm -f /var/backups/cotuong-stage", action)
+        self.assertGreater(action.index('systemd-analyze verify'), action.index('install -o root -g root -m 0700 "$offsite"'))
+        self.assertLess(action.index('systemd-analyze verify'), action.index('systemctl enable --now'))
 if __name__ == "__main__":
     unittest.main()

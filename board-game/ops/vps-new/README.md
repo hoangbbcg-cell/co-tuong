@@ -1,5 +1,7 @@
 # New VPS automation bundle (review only)
 
+For current evidence and the remaining phases 4–6, use [FIRST-DEPLOY-ROADMAP.md](FIRST-DEPLOY-ROADMAP.md). Older dated checkpoints below describe historical observations; they must not override the confirmed bootstrap, local backup/restore PASS or latest read-only preflight PASS.
+
 Pinned target: `103.153.254.184`, Ubuntu 24.04, test-only app tree `/srv/cotuong`. This separate bundle never connects to the old VPS or the existing domain; the CI/CD plan names them only to warn against reusing production configuration.
 
 The `create-deploy-user` action asks for the exact interactive phrase `CREATE-DEPLOY-IDENTITY` before creating accounts and a discarded random password hash.
@@ -98,6 +100,6 @@ The operator confirms bootstrap completed, creating `cotuong_stage`, app/migrato
 
 The current local checkout from the earlier task was on `test-github-ci` with extensive modified and untracked files from unrelated UI/game work and VPS preparation. It was preserved untouched. The deployment-readiness candidate is being prepared in a separate worktree from fetched `origin/master` at `63055354`; the old checkpoint above remains historical and must not be used as current VPS state.
 
-Before first release, produce a SHA-addressed artifact from a master commit with passing push CI, take a test-only pre-migration backup, verify its SHA-256, and run the repository's disposable-schema restore validator. Only then run migrations `001`–`012` on `cotuong_stage` with `cotuong_migrator`, followed by `db:verify` with `cotuong_app`. The deploy workflow intentionally runs no DDL. The service health endpoint is liveness-only; deployment adds a Socket.IO polling handshake but neither proves DB readiness. The first activation restarts the service; on failure with no prior release it stops service and removes `current`. No DB rollback is automated.
+Before first release, produce a SHA-addressed artifact from a master commit with passing push CI, verify both backup locations and a scratch restore, and compare the live journal/checksums. Apply only pending steps from the migration set currently registered in `migrationRepository.ts` (currently `001`–`010`) to `cotuong_stage` with `cotuong_migrator`, followed by `db:verify` with `cotuong_app`. The deploy workflow intentionally runs no DDL. The service health endpoint is liveness-only; deployment adds a Socket.IO polling handshake but neither proves DB readiness. The first activation restarts the service; on failure with no prior release it stops service and removes `current`. No DB rollback is automated.
 
-No actual backup, restore, migration, or deployment has been reported. The restore validator has only repository regression tests and has not been exercised on VPS/MySQL. Keep Nginx inactive and public ports closed.
+The operator reported local backup/restore PASS and a later read-only preflight PASS. Preserve `/var/backups/cotuong-stage/2026-10-28T09-00-35Z.sql.gz`. No R2 upload/restore, migration or deployment is reported. Keep Nginx inactive and public ports closed.

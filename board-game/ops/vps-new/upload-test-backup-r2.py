@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib
 import configparser
 import json
+import math
 import os
 import re
 import shutil
@@ -107,62 +108,67 @@ def load_config() -> tuple[str, str, str, Path, Path]:
     return bucket, endpoint, account, R2_CREDENTIALS, R2_READ_TOKEN
 
 
-def verify_retention(bucket: str, endpoint: str, account: str, token_path: Path, env: dict[str, str]) -> None:
-    token = token_path.read_text(encoding="ascii").strip()
-    if not token or any(character.isspace() for character in token):
-        raise BackupError("R2 read token is invalid")
+def policy_rules(bucket: str, account: str, token: str, policy: str) -> list[dict]:
     request = urllib.request.Request(
-        f"https://api.cloudflare.com/client/v4/accounts/{account}/r2/buckets/{bucket}/lock",
+        f"https://api.cloudflare.com/client/v4/accounts/{account}/r2/buckets/{bucket}/{policy}",
         headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
     )
     try:
         with urllib.request.urlopen(request, timeout=15) as response:
-            lock_payload = json.loads(response.read())
+            payload = json.loads(response.read())
     except (OSError, urllib.error.URLError, ValueError) as error:
-        raise BackupError("could not verify the R2 retention lock policy") from error
-    if lock_payload.get("success") is not True:
-        raise BackupError("R2 retention lock policy query was unsuccessful")
-    result_payload = lock_payload.get("result")
-    rules = result_payload.get("rules", []) if isinstance(result_payload, dict) else []
-    if not isinstance(rules, list):
-        raise BackupError("R2 retention lock response is invalid")
+        raise BackupError("could not verify the R2 retention policy") from error
+    if not isinstance(payload, dict) or payload.get("success") is not True or not isinstance(payload.get("result"), dict):
+        raise BackupError("R2 retention policy query was unsuccessful")
+    rules = payload["result"].get("rules")
+    if not isinstance(rules, list) or any(not isinstance(rule, dict) for rule in rules):
+        raise BackupError("R2 retention policy response is invalid")
+    return rules
+
+
+def verify_retention(bucket: str, account: str, token_path: Path) -> None:
+    token = token_path.read_text(encoding="ascii").strip()
+    if not token or any(character.isspace() for character in token):
+        raise BackupError("R2 read token is invalid")
+    rules = policy_rules(bucket, account, token, "lock")
     locked = any(
         rule.get("enabled") is True
         and rule.get("prefix") == "cotuong-stage/"
-        and rule.get("condition", {}).get("type") == "Age"
-        and rule.get("condition", {}).get("maxAgeSeconds", 0) >= MIN_LOCK_SECONDS
+        and valid_age(rule.get("condition"), "maxAgeSeconds", MIN_LOCK_SECONDS)
         for rule in rules
         if isinstance(rule, dict)
     )
     if not locked:
         raise BackupError("R2 bucket has no enabled 35-day lock for cotuong-stage objects")
 
-    lifecycle = subprocess.run(
-        ["aws", "s3api", "get-bucket-lifecycle-configuration", "--bucket", bucket, "--endpoint-url", endpoint],
-        capture_output=True,
-        text=True,
-        env=env,
-    )
-    if lifecycle.returncode != 0:
-        raise BackupError("could not verify the R2 lifecycle retention policy")
-    try:
-        lifecycle_payload = json.loads(lifecycle.stdout)
-    except ValueError as error:
-        raise BackupError("R2 lifecycle response is invalid") from error
+    # Object Read & Write credentials cannot inspect bucket configuration.
+    # Use the separate account-level Admin Read only token for both GETs.
+    lifecycle_rules = policy_rules(bucket, account, token, "lifecycle")
     retained = False
-    lifecycle_rules = lifecycle_payload.get("Rules", [])
-    if not isinstance(lifecycle_rules, list):
-        raise BackupError("R2 lifecycle response is invalid")
     for rule in lifecycle_rules:
-        if not isinstance(rule, dict):
+        if rule.get("enabled") is not True or "deleteObjectsTransition" not in rule:
             continue
-        prefix = rule.get("Filter", {}).get("Prefix", rule.get("Prefix", ""))
-        expiration_days = rule.get("Expiration", {}).get("Days", 0)
-        if rule.get("Status") == "Enabled" and prefix == "cotuong-stage/" and expiration_days >= MIN_RETENTION_DAYS:
+        scope = rule.get("conditions")
+        prefix = scope.get("prefix") if isinstance(scope, dict) else None
+        if not isinstance(prefix, str):
+            raise BackupError("R2 lifecycle response is invalid")
+        if not ("cotuong-stage/".startswith(prefix) or prefix.startswith("cotuong-stage/")):
+            continue
+        transition = rule.get("deleteObjectsTransition")
+        condition = transition.get("condition") if isinstance(transition, dict) else None
+        if not valid_age(condition, "maxAge", MIN_RETENTION_DAYS * 86400):
+            raise BackupError("R2 lifecycle has a conflicting deletion rule for test backups")
+        if prefix == "cotuong-stage/":
             retained = True
-            break
     if not retained:
         raise BackupError("R2 bucket has no 90-day lifecycle retention for cotuong-stage objects")
+
+
+def valid_age(condition: object, field: str, minimum: int) -> bool:
+    if not isinstance(condition, dict) or condition.get("type") != "Age":
+        return False
+    seconds = condition.get(field)
+    return type(seconds) in (int, float) and math.isfinite(seconds) and seconds >= minimum
 
 
 def head_exists(bucket: str, key: str, endpoint: str, env: dict[str, str]) -> bool:
@@ -215,7 +221,7 @@ def upload_backup(path: Path) -> str:
         "AWS_EC2_METADATA_DISABLED": "true",
         "AWS_PAGER": "",
     })
-    verify_retention(bucket, endpoint, account, token_path, env)
+    verify_retention(bucket, account, token_path)
     require_root_file(AGE_RECIPIENTS, 0o600)
     with tempfile.TemporaryDirectory(prefix=".r2-upload-", dir=BACKUP_DIR) as work_name:
         work = Path(work_name)
