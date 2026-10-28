@@ -7,6 +7,18 @@ OPS = REPO / "ops" / "vps-new"
 
 
 class VpsTestCdContractTests(unittest.TestCase):
+    def test_test_backup_has_checksum_and_restore_drill_is_scratch_only(self) -> None:
+        backup = (OPS / "cotuong-local-backup").read_text(encoding="utf-8")
+        validator = (OPS / "validate-test-backup.py").read_text(encoding="utf-8")
+        self.assertIn("readonly DB='cotuong_stage'", backup)
+        self.assertIn('sha256sum "$(basename -- "$OUT")"', backup)
+        self.assertIn('chmod 0600 "$SUM_TMP"', backup)
+        self.assertIn('SOURCE_SCHEMA = "cotuong_stage"', validator)
+        self.assertIn('f"cotuong_restore_check_{stamp}_{os.getpid()}"', validator)
+        self.assertIn('DROP DATABASE `{target}`', validator)
+        self.assertNotIn('DROP DATABASE `cotuong_stage`', validator)
+        self.assertIn("restore_validation_uses_unique_scratch_schema_and_drops_it", (REPO / "tests" / "vps_new" / "test_backup_restore.py").read_text(encoding="utf-8"))
+
     def test_deploy_identity_never_traverses_protected_environment_directory(self) -> None:
         deploy_client = (OPS / "deploy-test-release.sh").read_text(encoding="utf-8")
         self.assertNotIn("/etc/cotuong", deploy_client)

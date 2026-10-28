@@ -7,17 +7,22 @@ readonly DB='cotuong_stage'
 readonly STAMP="$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 readonly TMP="$DEST/.${STAMP}.sql.gz.tmp"
 readonly OUT="$DEST/${STAMP}.sql.gz"
-trap 'rm -f -- "$TMP"' EXIT
+readonly SUM_TMP="$DEST/.${STAMP}.sha256.tmp"
+readonly SUM_OUT="$OUT.sha256"
+trap 'rm -f -- "$TMP" "$SUM_TMP"' EXIT
 
 [[ "$(id -u)" == 0 ]] || { echo 'root required' >&2; exit 1; }
 [[ -d "$DEST" && ! -L "$DEST" && "$(stat -c %U:%a "$DEST")" == 'root:700' ]] || { echo 'unsafe backup directory' >&2; exit 1; }
 exec 9>/run/lock/cotuong-local-backup.lock
 flock -n 9 || { echo 'another test database backup is already running' >&2; exit 1; }
-[[ ! -e "$TMP" && ! -L "$TMP" && ! -e "$OUT" && ! -L "$OUT" ]] || { echo 'backup timestamp already exists; refusing to overwrite' >&2; exit 1; }
+[[ ! -e "$TMP" && ! -L "$TMP" && ! -e "$SUM_TMP" && ! -L "$SUM_TMP" && ! -e "$OUT" && ! -L "$OUT" && ! -e "$SUM_OUT" && ! -L "$SUM_OUT" ]] || { echo 'backup timestamp already exists; refusing to overwrite' >&2; exit 1; }
 mysql --protocol=socket --user=root -NBe "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='${DB}'" | grep -Fxq "$DB"
 mysqldump --protocol=socket --user=root --single-transaction --routines --triggers --events --databases "$DB" | gzip -n > "$TMP"
 gzip -t "$TMP"
 [[ -s "$TMP" ]]
 mv -- "$TMP" "$OUT"
 chmod 0600 "$OUT"
-printf 'Created verified local backup: %s\n' "$OUT"
+(cd "$DEST" && sha256sum "$(basename -- "$OUT")") > "$SUM_TMP"
+chmod 0600 "$SUM_TMP"
+mv -- "$SUM_TMP" "$SUM_OUT"
+printf 'Created compressed test database backup and SHA-256 sidecar: %s\n' "$OUT"
