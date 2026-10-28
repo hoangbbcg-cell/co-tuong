@@ -38,7 +38,7 @@ class VpsTestCdContractTests(unittest.TestCase):
         self.assertIn('if [[ "$MODE" == activate ]]; then', deploy_client)
         workflow = (REPO.parent / ".github" / "workflows" / "vps-test-deploy.yml").read_text(encoding="utf-8")
         self.assertIn("operation:", workflow)
-        self.assertIn("default: deploy", workflow)
+        self.assertIn("default: stage", workflow)
         self.assertIn("- stage", workflow)
         self.assertIn("- activate", workflow)
         self.assertIn("- deploy", workflow)
