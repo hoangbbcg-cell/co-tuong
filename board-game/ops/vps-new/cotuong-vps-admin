@@ -286,32 +286,49 @@ action_create_deploy_user() {
 
 action_install_backup() {
   local script='/usr/local/share/cotuong-vps/cotuong-local-backup'
+  local offsite='/usr/local/share/cotuong-vps/upload-test-backup-r2.py'
   local backup_dir_created=0
   [[ -f "$script" && ! -L "$script" ]] || die 'root-owned backup script is missing'
+  [[ -f "$offsite" && ! -L "$offsite" ]] || die 'reviewed R2 backup helper is missing'
+  for path in /etc/cotuong/offsite-backup.conf /etc/cotuong/r2-credentials /etc/cotuong/r2-read-token /etc/cotuong/r2-age-recipients; do
+    [[ -f "$path" && ! -L "$path" && "$(stat -c %U:%G:%a "$path")" == 'root:root:600' ]] \
+      || die "root-protected offsite backup configuration is incomplete or unsafe: $path"
+  done
+  command -v age >/dev/null && command -v aws >/dev/null || die 'age and AWS CLI are required for encrypted R2 backups'
+  aws s3api put-object --generate-cli-skeleton input 2>/dev/null | grep -q '"IfNoneMatch"' \
+    || die 'AWS CLI must support atomic If-None-Match object creation'
   command -v mysql >/dev/null && mysql --protocol=socket --user=root -NBe 'SELECT 1' >/dev/null \
     || die 'local MySQL root socket access is not verified'
   mysql --protocol=socket --user=root -NBe "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='cotuong_stage'" | grep -Fxq cotuong_stage \
     || die 'fresh test database cotuong_stage does not exist; no backup timer installed'
-  [[ ! -e /var/backups/cotuong-stage && ! -L /var/backups/cotuong-stage ]] || die 'backup directory already exists; review instead of changing it'
-  for path in /usr/local/sbin/cotuong-local-backup /etc/systemd/system/cotuong-local-backup.service /etc/systemd/system/cotuong-local-backup.timer; do
+  if [[ -e /var/backups/cotuong-stage || -L /var/backups/cotuong-stage ]]; then
+    [[ -d /var/backups/cotuong-stage && ! -L /var/backups/cotuong-stage && "$(stat -c %U:%G:%a /var/backups/cotuong-stage)" == 'root:root:700' ]] \
+      || die 'existing backup directory must be a real root:root mode-0700 directory; refusing to alter it'
+  else
+    backup_dir_created=1
+  fi
+  for path in /usr/local/sbin/cotuong-local-backup /usr/local/sbin/cotuong-upload-test-backup-r2.py /etc/systemd/system/cotuong-local-backup.service /etc/systemd/system/cotuong-local-backup.timer /etc/systemd/system/cotuong-offsite-backup.service; do
     [[ ! -e "$path" && ! -L "$path" ]] || die "backup path already exists; review instead of overwriting: $path"
   done
   [[ ! -e /etc/systemd/system/timers.target.wants/cotuong-local-backup.timer && ! -L /etc/systemd/system/timers.target.wants/cotuong-local-backup.timer ]] || die 'unexpected stale backup timer link; manual review required'
-  systemd-analyze verify /usr/local/share/cotuong-vps/cotuong-backup.service /usr/local/share/cotuong-vps/cotuong-backup.timer || die 'systemd rejected backup unit templates'
+  systemd-analyze verify /usr/local/share/cotuong-vps/cotuong-backup.service /usr/local/share/cotuong-vps/cotuong-backup.timer /usr/local/share/cotuong-vps/cotuong-offsite-backup.service || die 'systemd rejected backup unit templates'
   if ! install -o root -g root -m 0700 "$script" /usr/local/sbin/cotuong-local-backup \
+    || ! install -o root -g root -m 0700 "$offsite" /usr/local/sbin/cotuong-upload-test-backup-r2.py \
     || ! install -o root -g root -m 0644 /usr/local/share/cotuong-vps/cotuong-backup.service /etc/systemd/system/cotuong-local-backup.service \
-    || ! install -o root -g root -m 0644 /usr/local/share/cotuong-vps/cotuong-backup.timer /etc/systemd/system/cotuong-local-backup.timer; then
-    rm -f /etc/systemd/system/cotuong-local-backup.timer /etc/systemd/system/cotuong-local-backup.service /usr/local/sbin/cotuong-local-backup
+    || ! install -o root -g root -m 0644 /usr/local/share/cotuong-vps/cotuong-backup.timer /etc/systemd/system/cotuong-local-backup.timer \
+    || ! install -o root -g root -m 0644 /usr/local/share/cotuong-vps/cotuong-offsite-backup.service /etc/systemd/system/cotuong-offsite-backup.service; then
+    rm -f /etc/systemd/system/cotuong-offsite-backup.service /etc/systemd/system/cotuong-local-backup.timer /etc/systemd/system/cotuong-local-backup.service /usr/local/sbin/cotuong-upload-test-backup-r2.py /usr/local/sbin/cotuong-local-backup
     die 'backup unit file installation failed; newly installed files were removed'
   fi
-  if ! install -d -o root -g root -m 0700 /var/backups/cotuong-stage; then
-    rm -f /etc/systemd/system/cotuong-local-backup.timer /etc/systemd/system/cotuong-local-backup.service /usr/local/sbin/cotuong-local-backup
-    die 'backup directory setup failed; newly installed files were removed'
+  if ((backup_dir_created)); then
+    if ! install -d -o root -g root -m 0700 /var/backups/cotuong-stage; then
+      rm -f /etc/systemd/system/cotuong-offsite-backup.service /etc/systemd/system/cotuong-local-backup.timer /etc/systemd/system/cotuong-local-backup.service /usr/local/sbin/cotuong-upload-test-backup-r2.py /usr/local/sbin/cotuong-local-backup
+      die 'backup directory setup failed; newly installed files were removed'
+    fi
   fi
-  backup_dir_created=1
   if ! systemctl daemon-reload || ! systemctl enable --now cotuong-local-backup.timer; then
     systemctl disable --now cotuong-local-backup.timer 2>/dev/null || true
-    rm -f /etc/systemd/system/cotuong-local-backup.timer /etc/systemd/system/cotuong-local-backup.service /usr/local/sbin/cotuong-local-backup
+    rm -f /etc/systemd/system/cotuong-offsite-backup.service /etc/systemd/system/cotuong-local-backup.timer /etc/systemd/system/cotuong-local-backup.service /usr/local/sbin/cotuong-upload-test-backup-r2.py /usr/local/sbin/cotuong-local-backup
     if [[ -L /etc/systemd/system/timers.target.wants/cotuong-local-backup.timer ]] && [[ "$(readlink -f /etc/systemd/system/timers.target.wants/cotuong-local-backup.timer)" == /etc/systemd/system/cotuong-local-backup.timer ]]; then rm -f /etc/systemd/system/timers.target.wants/cotuong-local-backup.timer; fi
     if ((backup_dir_created)); then rmdir /var/backups/cotuong-stage 2>/dev/null || true; fi
     systemctl daemon-reload || true

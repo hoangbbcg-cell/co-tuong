@@ -114,5 +114,31 @@ class VpsTestCdContractTests(unittest.TestCase):
         tick = chr(96)
         self.assertIn(f"{tick}{registered[0]}{tick}–{tick}{registered[-1]}{tick}", docs)
         self.assertNotIn(f"{tick}001{tick}–{tick}012{tick}", docs)
+
+    def test_r2_offsite_backup_is_encrypted_retained_and_verifies_remote_readback(self) -> None:
+        helper = (OPS / "upload-test-backup-r2.py").read_text(encoding="utf-8")
+        verifier = (OPS / "verify-offsite-test-backup.py").read_text(encoding="utf-8")
+        local_unit = (OPS / "cotuong-backup.service").read_text(encoding="utf-8")
+        offsite_unit = (OPS / "cotuong-offsite-backup.service").read_text(encoding="utf-8")
+        self.assertIn('"age", "--encrypt"', helper)
+        self.assertIn('"--if-none-match", "*"', helper)
+        self.assertIn("MIN_LOCK_SECONDS = 35", helper)
+        self.assertIn("MIN_RETENTION_DAYS = 90", helper)
+        self.assertIn("sha256_file(downloaded) != expected", helper)
+        self.assertIn("OFFSITE_DECRYPTION_VERIFIED", verifier)
+        self.assertIn("age", verifier)
+        self.assertIn("OnSuccess=cotuong-offsite-backup.service", local_unit)
+        self.assertIn("ConditionPathExists=/etc/cotuong/offsite-backup.conf", offsite_unit)
+        self.assertNotIn("age1", offsite_unit)
+
+    def test_backup_installer_preserves_existing_verified_directory_and_requires_cloud_config(self) -> None:
+        admin = (OPS / "cotuong-vps-admin").read_text(encoding="utf-8")
+        action = admin.split("action_install_backup() {", 1)[1].split("\n}", 1)[0]
+        self.assertIn("existing backup directory must be a real root:root mode-0700 directory", action)
+        self.assertIn("if ((backup_dir_created)); then rmdir /var/backups/cotuong-stage", action)
+        self.assertIn("/etc/cotuong/r2-credentials", action)
+        self.assertIn("/etc/cotuong/r2-read-token", action)
+        self.assertIn('"IfNoneMatch"', action)
+        self.assertNotIn("rm -f /var/backups/cotuong-stage", action)
 if __name__ == "__main__":
     unittest.main()

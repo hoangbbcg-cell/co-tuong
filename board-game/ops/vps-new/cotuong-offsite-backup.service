@@ -1,0 +1,24 @@
+[Unit]
+Description=Encrypt and verify the latest local Co Tuong test backup in Cloudflare R2
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/cotuong/offsite-backup.conf
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+EnvironmentFile=/etc/cotuong/offsite-backup.conf
+Environment=AWS_SHARED_CREDENTIALS_FILE=/etc/cotuong/r2-credentials
+Environment=AWS_CONFIG_FILE=/dev/null
+Environment=AWS_DEFAULT_REGION=auto
+Environment=AWS_EC2_METADATA_DISABLED=true
+Environment=AWS_PAGER=
+ExecStart=/usr/local/sbin/cotuong-upload-test-backup-r2.py --latest
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/backups/cotuong-stage
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

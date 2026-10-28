@@ -57,4 +57,10 @@ if ($source -match '\$\w+\s*=\s*@\(&\s*ssh\.exe[^\r\n]*\$remotePreflight') {
 }
 Assert-Contains $source "@('-tt', '-i', `$PrivateKey) + `$sshOptions + @(`$Target, `$remotePreflight)" 'Interactive SSH PTY invocation'
 Assert-Contains $source '$readOnlyPreflight = $readOnlyPreflight.Replace("`r`n", "`n").Replace("`r", "`n")' 'Windows-to-Unix newline normalization'
+Assert-Contains $source '[switch]$ReadOnlyPreflightOnly' 'Read-only-only operator mode'
+Assert-Contains $source 'if (-not $ReadOnlyPreflightOnly) {' 'Guard around all remote helper uploads'
+Assert-Contains $source 'if ($ReadOnlyPreflightOnly) {' 'Early exit after read-only checks'
+if ($source.IndexOf('if ($ReadOnlyPreflightOnly) {') -gt $source.IndexOf("Write-Host 'Ready to perform these actions")) {
+  throw 'Read-only-only mode does not exit before the backup/restore confirmation block.'
+}
 Write-Host 'PowerShell 5.1 backup restore runner regression: PASS (no SSH/VPS command executed).'

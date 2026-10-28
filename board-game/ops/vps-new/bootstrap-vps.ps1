@@ -15,7 +15,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Could not create the private review directory 
 $Files = @(
   'README.md', 'bootstrap-vps.sh', 'cotuong-vps-admin', 'cotuong-vps-admin.sudoers',
   'cotuong-deploy-activate', 'cotuong-deploy.sudoers', 'cotuong.service', 'cotuong-test.conf',
-  'cotuong-local-backup', 'cotuong-backup.service', 'cotuong-backup.timer'
+  'cotuong-local-backup', 'cotuong-backup.service', 'cotuong-backup.timer',
+  'upload-test-backup-r2.py', 'cotuong-offsite-backup.service'
 )
 $SourceFiles = $Files | ForEach-Object { Join-Path $Bundle $_ }
 scp -i $PrivateKey @SshOptions @SourceFiles "$UserName@${HostAddress}:$RemoteDir/";
