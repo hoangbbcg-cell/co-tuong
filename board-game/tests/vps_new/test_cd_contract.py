@@ -64,6 +64,25 @@ class VpsTestCdContractTests(unittest.TestCase):
         self.assertIn("-perm /022", setup)
         self.assertIn("group/world writable bundle file", setup)
 
+    def test_manual_vps_preflight_is_environment_gated_and_read_only(self) -> None:
+        workflow_path = REPO.parent / ".github" / "workflows" / "vps-test-preflight.yml"
+        workflow = workflow_path.read_text(encoding="utf-8")
+        self.assertIn("workflow_dispatch:", workflow)
+        self.assertIn("environment:\n      name: vps-test", workflow)
+        self.assertIn(".can_admins_bypass == false", workflow)
+        self.assertIn('any(.reviewers[]?; .reviewer.login == "hoangbbcg-cell")', workflow)
+        self.assertIn("[.branch_policies[].name] == [\"master\"]", workflow)
+        self.assertIn("StrictHostKeyChecking=yes", workflow)
+        self.assertIn("SHA256:CJzV7hFpB6mDfGDoBm/ViJvw5D5HlBhR60gmOJGLW74", workflow)
+        self.assertIn("if [[ -r /etc/cotuong/cotuong.env ]]; then", workflow)
+        self.assertIn("stat -c %U:%G:%a /usr/local/sbin/cotuong-deploy-activate", workflow)
+        self.assertIn("sudo -n -l /usr/local/sbin/cotuong-deploy-activate", workflow)
+        self.assertIn("systemctl is-active --quiet cotuong-test.service", workflow)
+        self.assertNotIn("sudo -n /usr/local/sbin/cotuong-deploy-activate ", workflow)
+        self.assertNotIn("scp ", workflow)
+        self.assertNotIn("systemctl start", workflow)
+        self.assertNotIn("systemctl restart", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
