@@ -1,0 +1,159 @@
+name: Deploy VPS test (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Full 40-character master commit SHA with successful push CI
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+  deployments: read
+
+concurrency:
+  group: cotuong-vps-test
+  cancel-in-progress: false
+
+jobs:
+  validate-environment-gate:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require the reviewed vps-test gate before referencing the Environment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          environment_json="$(gh api "repos/${GITHUB_REPOSITORY}/environments/vps-test")"
+          jq -e '
+            .can_admins_bypass == false and
+            .deployment_branch_policy.custom_branch_policies == true and
+            .deployment_branch_policy.protected_branches == false and
+            any(.protection_rules[]?; .type == "required_reviewers" and
+              any(.reviewers[]?; .reviewer.login == "hoangbbcg-cell"))
+          ' <<< "$environment_json" >/dev/null || {
+            echo 'vps-test must exist, require hoangbbcg-cell, restrict deployments to custom branches, and disallow admin bypass.' >&2
+            exit 1
+          }
+          branch_json="$(gh api "repos/${GITHUB_REPOSITORY}/environments/vps-test/deployment-branch-policies")"
+          jq -e '[.branch_policies[].name] == ["master"]' <<< "$branch_json" >/dev/null || {
+            echo 'vps-test must allow only the master branch.' >&2
+            exit 1
+          }
+
+  package:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout master history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate selected master commit and CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          git cat-file -e "${RELEASE_SHA}^{commit}"
+          git merge-base --is-ancestor "$RELEASE_SHA" origin/master
+          git cat-file -e "${RELEASE_SHA}:board-game/ops/vps-new/build-test-release.sh"
+          git cat-file -e "${RELEASE_SHA}:board-game/ops/vps-new/verify-test-release.py"
+          runs_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${RELEASE_SHA}&event=push&per_page=100")"
+          jq -e --arg sha "$RELEASE_SHA" '
+            [.workflow_runs[] | select(
+              .head_sha == $sha and .head_branch == "master" and .name == "CI" and
+              .event == "push" and .status == "completed" and .conclusion == "success"
+            )] | length > 0
+          ' <<< "$runs_json" >/dev/null
+          git checkout --detach "$RELEASE_SHA"
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: board-game/package-lock.json
+
+      - name: Audit dependencies and lint
+        working-directory: board-game
+        run: |
+          npm ci
+          npm audit --audit-level=high
+          npm run lint
+
+      - name: Build and validate release archive
+        working-directory: board-game
+        env:
+          RELEASE_SHA: ${{ inputs.sha }}
+        run: |
+          ./ops/vps-new/build-test-release.sh "$RELEASE_SHA"
+          sha256sum "$RELEASE_SHA.tar.gz" > "$RELEASE_SHA.tar.gz.sha256"
+
+      - name: Upload verified release artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: cotuong-vps-test-${{ inputs.sha }}
+          path: |
+            board-game/${{ inputs.sha }}.tar.gz
+            board-game/${{ inputs.sha }}.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    needs: [validate-environment-gate, package]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    environment:
+      name: vps-test
+    steps:
+      - name: Checkout selected release validator and deploy client
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.sha }}
+          persist-credentials: false
+
+      - name: Download this run's verified release artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: cotuong-vps-test-${{ inputs.sha }}
+          path: ${{ runner.temp }}/cotuong-release
+
+      - name: Prepare pinned deployment SSH identity
+        env:
+          VPS_TEST_SSH_KEY: ${{ secrets.VPS_TEST_SSH_KEY }}
+          VPS_TEST_KNOWN_HOSTS: ${{ secrets.VPS_TEST_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          [[ -n "$VPS_TEST_SSH_KEY" && -n "$VPS_TEST_KNOWN_HOSTS" ]] || {
+            echo 'Configure VPS_TEST_SSH_KEY and VPS_TEST_KNOWN_HOSTS in the vps-test Environment.' >&2
+            exit 1
+          }
+          umask 077
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$VPS_TEST_SSH_KEY" > "$HOME/.ssh/cotuong_deploy"
+          printf '%s\n' "$VPS_TEST_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/cotuong_deploy" "$HOME/.ssh/known_hosts"
+          ssh-keygen -F 103.153.254.184 -f "$HOME/.ssh/known_hosts" >/dev/null || {
+            echo 'Known-hosts secret does not contain the pinned new VPS host key.' >&2
+            exit 1
+          }
+
+      - name: Deploy approved test release
+        env:
+          RELEASE_SHA: ${{ inputs.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          bash board-game/ops/vps-new/deploy-test-release.sh \
+            "$RELEASE_SHA" "$RUNNER_TEMP/cotuong-release" "$RUN_ID" "$RUN_ATTEMPT"
