@@ -1,3 +1,4 @@
+import re
 import unittest
 from pathlib import Path
 
@@ -103,5 +104,15 @@ class VpsTestCdContractTests(unittest.TestCase):
         self.assertNotIn("systemctl restart", workflow)
 
 
+    def test_deploy_migration_instructions_match_registered_set(self) -> None:
+        migration_source = (REPO / "server" / "repositories" / "migrationRepository.ts").read_text(encoding="utf-8")
+        docs = (OPS / "CI-CD.md").read_text(encoding="utf-8")
+        registered = re.findall(r"'([0-9]{3})_[^']+[.]sql'", migration_source.split("export const migrationFiles", 1)[1].split(" as const", 1)[0])
+        self.assertTrue(registered)
+        self.assertIn("migration set currently registered", docs)
+        self.assertIn("migrationRepository.ts", docs)
+        tick = chr(96)
+        self.assertIn(f"{tick}{registered[0]}{tick}–{tick}{registered[-1]}{tick}", docs)
+        self.assertNotIn(f"{tick}001{tick}–{tick}012{tick}", docs)
 if __name__ == "__main__":
     unittest.main()
