@@ -24,7 +24,7 @@ Installed helpers and parent directories are root-owned and not group/world writ
 
 `build-test-release.sh` prepares a SHA-addressed release for a reviewed CI workflow. It rejects tracked environment files other than the safe `.env.example` template and all admin-access files at any path. The activation helper repeats the environment/admin-access check recursively on the submitted release. See the [CI/CD plan](CI-CD.md) for artifact verification, manual deploy, and remaining prerequisites.
 
-## CI/CD checkpoint — 2026-10-28
+## CI/CD checkpoint — 2026-10-28 (before first-boot setup)
 
 CI hardening and manual-only VPS test workflows are merged. `master` is protected by a ruleset requiring PRs and passing `checks`/`Secret scan`, allowing squash only, with no bypass actors and no required approvals. PR #6 and PR #7 are merged; the CI run on `39488082d71eb63cfd052c10603f9463fcc893db` passed. The test deployment remains a separate `workflow_dispatch` action behind the `vps-test` reviewer gate; merge never deploys.
 
@@ -74,3 +74,20 @@ sudo -l -U nhat_hoang
 ```
 
 The deploy account must later be checked with `sudo -l -U cotuong_deploy`; it must have no sudo rights. Keep the old `scripts/deploy-vps.sh`, old sudoers example, systemd units, `/home/nhat_hoang/co-tuong/board-game`, `/var/www/cotuong`, old database/backups, VPS and domain untouched. They are specific to the current production deployment and are not consumed by this bundle.
+
+## VPS test checkpoint — 2026-10-28 (after first-boot setup)
+
+The operator reported successful first-boot setup: empty `cotuong_stage`, app/migrator accounts, protected environment files, and `cotuong-test.service` installed/enabled but not started. No migration or release activation was run. The root helper backup reported by the operator is `/root/cotuong-helper-backup-20261028T045100Z-32997`.
+
+Read-only verification after bootstrap: Ubuntu 24.04.3; MySQL active; `cotuong-test.service` enabled/inactive; Nginx inactive with no listeners on ports 80/443; `/srv/cotuong` root:root 0755, `releases` cotuong_deploy:cotuong_release 2750, `deploy` cotuong_deploy:cotuong_deploy 0700, and `current` absent. The unit points to `/srv/cotuong/current`, uses `/opt/node-v22.23.3/bin/node`, runs as `cotuong`, and binds port 3001 to `127.0.0.1`. Installed admin and activation helpers are root:root 0750; the unit template is root:root 0644; `/etc/cotuong` is root:cotuong 0750. No secret values were read.
+
+GitHub API confirms Environment `vps-test` allows only `master`, has required reviewer `hoangbbcg-cell`, and disallows admin bypass. `prevent_self_review` is false, so the sole configured reviewer may approve their own run. The names `VPS_TEST_SSH_KEY` and `VPS_TEST_KNOWN_HOSTS` exist as Environment secrets; values were not read. Master commit `af307564ddb161832be054aba3ff63fe19f1bec4` passed CI run `40634111191`.
+
+The deploy user's private home is mode 0700, so its `.cotuong-incoming` directory and sudo policy could not be checked through the admin SSH identity without another privileged read. The read-only GitHub workflow `vps-test-preflight.yml` is intended to verify that contract after its Environment approval, without uploading or activating a release. The current release artifact has not been built. MySQL schema/grants and protected env file metadata were not independently re-read because privileged SQL/stat required an interactive sudo password; the successful bootstrap log confirms their creation. All migration files remain unapplied. No deployment, service start, Nginx, firewall, DNS, old VPS, or production data was changed.
+
+## Next steps before the first test release
+
+1. Run the `VPS test read-only preflight` workflow from `master` and approve its Environment gate. It must pass before deployment; it does not upload or activate a release.
+2. Separately review and apply the current SQL migrations to `cotuong_stage` with the protected migrator configuration, then run `db:verify` with the application account. Do not start the service or deploy while migrations are pending. DDL has implicit commits; preserve the migration journal and stop for manual inspection if a step fails.
+3. Select a full `master` SHA with successful push CI. The manual release/deploy workflow will package that SHA, validate the checksum/archive, pause at the `vps-test` reviewer gate, then run its SSH preflight before transferring a release. Merge and artifact creation alone do not deploy.
+4. After explicit approval to deploy, watch systemd/API/Socket.IO health. On first-release failure, the activation helper removes `current` and stops `cotuong-test.service`; it never rolls back database migrations. Keep Nginx inactive and public ports closed.
