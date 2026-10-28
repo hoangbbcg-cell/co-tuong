@@ -40,13 +40,6 @@ function Invoke-NativeChecked {
   if ($exitCode -ne 0) { throw "$FailureMessage (exit $exitCode)." }
 }
 
-function Get-RemoteStatusLine {
-  param([Parameter(Mandatory)][string]$Output, [Parameter(Mandatory)][string]$Name)
-  $match = [regex]::Match($Output, "(?m)^$([regex]::Escape($Name))=(.*)\r?$")
-  if (-not $match.Success) { throw "Read-only VPS inspection did not return $Name." }
-  return $match.Groups[1].Value + '=' + $match.Groups[2].Value
-}
-
 try {
   if ($HostAddress -cne '103.153.254.184' -or $UserName -cne 'nhat_hoang') {
     throw 'This script is pinned to nhat_hoang@103.153.254.184.'
@@ -129,42 +122,63 @@ try {
   Invoke-NativeChecked -FilePath 'ssh.exe' -Arguments (@('-i', $PrivateKey) + $sshOptions + @($Target, $verifyUpload)) -FailureMessage 'Remote owner/type/mode/SHA-256 verification failed'
   Write-Host 'Both uploaded helper hashes matched the local manifest; owner, regular-file type, symlink status, and mode checks passed.'
 
-  # Read-only database inspection. No migration, backup, restore, or service action occurs in this block.
-  $dbInspection = 'sudo mysql --protocol=socket --user=root --batch --skip-column-names -e "SELECT CONCAT(''schema_count='',COUNT(*)) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME=''cotuong_stage''; SELECT CONCAT(''table_count='',COUNT(*)) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=''cotuong_stage''; SELECT CONCAT(''journal_exists='',IF(EXISTS(SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=''cotuong_stage'' AND TABLE_NAME=''schema_migrations''),''yes'',''no''));"'
-  $dbLines = @(& ssh.exe -tt -i $PrivateKey @sshOptions $Target $dbInspection)
-  if ($LASTEXITCODE -ne 0) { throw 'Read-only database inspection failed.' }
-  $dbOutput = ($dbLines -join "`n").Trim()
-  Write-Host "Read-only database status:`n$dbOutput"
-  $schemaLine = Get-RemoteStatusLine -Output $dbOutput -Name 'schema_count'
-  $tableLine = Get-RemoteStatusLine -Output $dbOutput -Name 'table_count'
-  $journalLine = Get-RemoteStatusLine -Output $dbOutput -Name 'journal_exists'
-  if ($schemaLine -cne 'schema_count=1') { throw 'Expected exactly one cotuong_stage schema; stop for investigation.' }
-  $tableCount = [int](($tableLine -split '=', 2)[1])
-  $journalExists = (($journalLine -split '=', 2)[1] -ceq 'yes')
-  if ($tableCount -gt 0 -and -not $journalExists) { throw 'cotuong_stage has tables but no schema_migrations journal; stop for investigation.' }
-  if ($tableCount -eq 0 -and $journalExists) { throw 'Empty cotuong_stage unexpectedly has a migration journal; stop for investigation.' }
-  if ($journalExists) {
-    $journalInspection = 'sudo mysql --protocol=socket --user=root --batch --skip-column-names -e "SELECT CONCAT(''journal_rows='',COUNT(*),'' not_applied='',COALESCE(SUM(status<>''applied''),0)) FROM cotuong_stage.schema_migrations; SELECT CONCAT(''journal_versions='',COALESCE(GROUP_CONCAT(version ORDER BY version SEPARATOR '',''),''none'')) FROM cotuong_stage.schema_migrations;"'
-    $journalLines = @(& ssh.exe -tt -i $PrivateKey @sshOptions $Target $journalInspection)
-    if ($LASTEXITCODE -ne 0) { throw 'Read-only migration-journal inspection failed.' }
-    $journalOutput = ($journalLines -join "`n").Trim()
-    Write-Host "Read-only migration journal:`n$journalOutput"
-    if ($journalOutput -notmatch 'journal_rows=[1-9][0-9]* not_applied=0') {
-      throw 'Migration journal is empty or contains a non-applied row; stop for investigation.'
-    }
-  }
+  # Keep the password prompt visible in the same PTY as all cached-sudo read-only queries.
+  # Base64 keeps PowerShell 5.1 from re-quoting Bash and SQL punctuation in the SSH command.
+  $readOnlyPreflight = @'
+set -Eeuo pipefail
+step='sudo authentication'
+trap 'rc=$?; printf "READ_ONLY_PREFLIGHT_FAILED step=%s exit=%s\n" "$step" "$rc" >&2; exit "$rc"' ERR
+printf 'READ_ONLY_STEP=%s\n' "$step"
+sudo -v
+mysql_ro() { sudo -n mysql --protocol=socket --user=root --batch --skip-column-names "$@"; }
 
-  $grantInspection = 'sudo mysql --protocol=socket --user=root --batch --skip-column-names -e "SHOW GRANTS FOR ''cotuong_app''@''127.0.0.1''; SHOW GRANTS FOR ''cotuong_migrator''@''127.0.0.1'';"'
-  $grantLines = @(& ssh.exe -tt -i $PrivateKey @sshOptions $Target $grantInspection)
-  if ($LASTEXITCODE -ne 0) { throw 'Read-only app/migrator grant inspection failed.' }
-  Write-Host "Read-only database grants (no credentials):`n$(($grantLines -join "`n").Trim())"
+step='cotuong_stage schema count'
+schema_count="$(mysql_ro -e "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='cotuong_stage'")"
+printf 'schema_count=%s\n' "$schema_count"
+[[ "$schema_count" == '1' ]]
 
-  $backupStateCommand = "sudo stat -c 'backup_dir=%U:%a' -- '$BackupDirectory' && sudo find '$BackupDirectory' -mindepth 1 -maxdepth 1 \( -type f -o -type l \) -printf '%y %u:%g %m %s %f\n' | sort"
-  $backupStateLines = @(& ssh.exe -tt -i $PrivateKey @sshOptions $Target $backupStateCommand)
-  if ($LASTEXITCODE -ne 0) { throw 'Read-only backup-directory inspection failed.' }
-  $backupState = ($backupStateLines -join "`n").Trim()
-  Write-Host "Read-only backup directory and existing files:`n$backupState"
-  if ($backupState -notmatch '(?m)^backup_dir=root:700\r?$') { throw 'Backup directory is not the required root-owned mode 0700 directory.' }
+step='cotuong_stage table count'
+table_count="$(mysql_ro -e "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='cotuong_stage'")"
+printf 'table_count=%s\n' "$table_count"
+[[ "$table_count" =~ ^[0-9]+$ ]]
+
+step='schema_migrations presence'
+journal_exists="$(mysql_ro -e "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='cotuong_stage' AND TABLE_NAME='schema_migrations'")"
+printf 'journal_exists=%s\n' "$journal_exists"
+if (( table_count == 0 )); then
+  [[ "$journal_exists" == '0' ]]
+else
+  [[ "$journal_exists" == '1' ]]
+  step='schema_migrations status and rows'
+  journal_stats="$(mysql_ro -e "SELECT COUNT(*),COALESCE(SUM(status<>'applied'),0) FROM cotuong_stage.schema_migrations")"
+  IFS=$'\t' read -r journal_rows not_applied <<< "$journal_stats"
+  printf 'journal_rows=%s not_applied=%s\n' "$journal_rows" "$not_applied"
+  [[ "$journal_rows" =~ ^[0-9]+$ && "$journal_rows" -gt 0 && "$not_applied" == '0' ]]
+  step='schema_migrations version list'
+  versions="$(mysql_ro -e "SELECT COALESCE(GROUP_CONCAT(version ORDER BY version SEPARATOR ','),'none') FROM cotuong_stage.schema_migrations")"
+  printf 'journal_versions=%s\n' "$versions"
+fi
+
+step='application and migrator grants'
+mysql_ro -e "SHOW GRANTS FOR 'cotuong_app'@'127.0.0.1'; SHOW GRANTS FOR 'cotuong_migrator'@'127.0.0.1'"
+
+step='backup directory owner and mode'
+sudo -n test -d '/var/backups/cotuong-stage'
+sudo -n test ! -L '/var/backups/cotuong-stage'
+backup_dir_status="$(sudo -n stat -c '%U:%a' -- '/var/backups/cotuong-stage')"
+printf 'backup_dir=%s\n' "$backup_dir_status"
+[[ "$backup_dir_status" == 'root:700' ]]
+
+step='existing backup inventory'
+sudo -n find '/var/backups/cotuong-stage' -mindepth 1 -maxdepth 1 \( -type f -o -type l \) -printf '%y %u:%g %m %s %f\n' | sort
+printf 'READ_ONLY_PREFLIGHT=PASS\n'
+'@
+  $readOnlyPreflight = $readOnlyPreflight.Replace("`r`n", "`n").Replace("`r", "`n")
+  $preflightBytes = [System.Text.Encoding]::UTF8.GetBytes($readOnlyPreflight)
+  $preflightBase64 = [Convert]::ToBase64String($preflightBytes)
+  $remotePreflight = '/bin/bash -c "$(printf ''%s'' ' + $preflightBase64 + ' | base64 --decode)"'
+  Write-Host 'The next SSH step performs read-only schema/journal/grant/backup checks. Sudo will prompt here if required; enter the password in this terminal. No backup or restore will start in this step.'
+  Invoke-NativeChecked -FilePath 'ssh.exe' -Arguments (@('-tt', '-i', $PrivateKey) + $sshOptions + @($Target, $remotePreflight)) -FailureMessage 'Read-only VPS preflight failed; inspect the READ_ONLY_STEP diagnostic above'
 
   Write-Host ''
   Write-Host 'Ready to perform these actions on the TEST VPS only:'
