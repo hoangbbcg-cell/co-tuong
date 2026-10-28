@@ -51,7 +51,7 @@ Trong nano: dán nguyên dòng public key, xuống một dòng nếu cần, lưu
 ```bash
 chmod 700 "$HOME/.ssh"
 chmod 600 "$HOME/.ssh/authorized_keys"
-chown -R "$(id -un):$(id -gn)" "$HOME/.ssh"
+chown "$(id -un):$(id -gn)" "$HOME/.ssh" "$HOME/.ssh/authorized_keys"
 ssh-keygen -lf "$HOME/.ssh/authorized_keys"
 ```
 
