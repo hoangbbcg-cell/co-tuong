@@ -94,7 +94,7 @@ The deploy user's private home is mode 0700, so its `.cotuong-incoming` director
 3. Select a full `master` SHA with successful push CI. The manual release/deploy workflow will package that SHA, validate the checksum/archive, pause at the `vps-test` reviewer gate, then run its SSH preflight before transferring a release. Merge and artifact creation alone do not deploy.
 4. After explicit approval to deploy, watch systemd/API/Socket.IO health. On first-release failure, the activation helper removes `current` and stops `cotuong-test.service`; it never rolls back database migrations. Keep Nginx inactive and public ports closed.
 
-## Current readiness — 2026-10-28
+## Historical checkpoint — superseded by the later inspector report below
 
 The operator confirms bootstrap completed, creating `cotuong_stage`, app/migrator accounts, protected environment and `cotuong-test.service`. PR #15 merged and master CI passed. Read-only VPS preflight run `40640901804` reports both `validate-environment-gate` and `preflight` SUCCESS; the `vps-test` Environment was approved. This is user-provided run evidence. It proves the checks in that read-only workflow passed, but it does not verify MySQL grants/schema journal or protected env metadata and did not create a backup, restore a dump, run migrations, build/transfer a release, or start/restart a service.
 
@@ -102,4 +102,12 @@ The current local checkout from the earlier task was on `test-github-ci` with ex
 
 Before first release, produce a SHA-addressed artifact from a master commit with passing push CI, verify both backup locations and a scratch restore, and compare the live journal/checksums. Apply only pending steps from the migration set currently registered in `migrationRepository.ts` (currently `001`–`010`) to `cotuong_stage` with `cotuong_migrator`, followed by `db:verify` with `cotuong_app`. The deploy workflow intentionally runs no DDL. The service health endpoint is liveness-only; deployment adds a Socket.IO polling handshake but neither proves DB readiness. The first activation restarts the service; on failure with no prior release it stops service and removes `current`. No DB rollback is automated.
 
-The operator reported local backup/restore PASS and a later read-only preflight PASS. Preserve `/var/backups/cotuong-stage/2026-10-28T09-00-35Z.sql.gz`. No R2 upload/restore, migration or deployment is reported. Keep Nginx inactive and public ports closed.
+The operator reported local backup/restore PASS and a later read-only preflight PASS. Preserve `/var/backups/cotuong-stage/2026-10-28T09-00-35Z.sql.gz`. No R2 upload/restore, migration or deployment was reported at this checkpoint. Keep Nginx inactive and public ports closed.
+
+## Updated migration readiness — 2026-10-28
+
+The operator subsequently supplied `READ_ONLY_MIGRATION_INSPECTION=PASS` for `cotuong_stage`: `EMPTY_BASELINE`, 0 tables, 0 applied of 38 expected statement-level steps, files `001`–`010`, with schema verification still required. The journal comparison passed against the reviewed registry; this does not mean the schema has been migrated or verified. Registry counts are 001=21, 002=5, 003–007=1 each, and 008–010=2 each.
+
+The operator-reported backup/restore drill passed for `/var/backups/cotuong-stage/2026-10-28T09-00-35Z.sql.gz`; preserve it and its checksum sidecar. At 11:10 UTC it was about two hours old; check owner/mode, exact SHA-256, gzip integrity and age again immediately before use. Its hash value was not provided in the inspector summary. No independently verified R2 copy is evidenced, and no migration, deployment or service start was reported. Before migration, verify app/migrator authentication and grants, and require a fresh local backup/restore result plus a separately verified encrypted offsite copy under the approved backup policy.
+
+The manual deployment workflow now separates first-release `stage` and `activate` operations behind the same `vps-test` Environment gate. Staging writes the verified SHA-addressed release but leaves the service stopped and `current` absent. Migration and `db:verify` happen between the separately approved stage and activation operations. Keep production, public exposure, Nginx, DNS and firewall untouched.

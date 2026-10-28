@@ -29,6 +29,7 @@ chmod 2750 "$stage"
   || { echo 'Release archive does not match the systemd release-root contract' >&2; exit 1; }
 [[ ! -e "$stage/uploads" && ! -L "$stage/uploads" ]] || { echo 'Release already contains uploads; refusing to replace shared runtime data' >&2; exit 1; }
 ln -s /srv/cotuong/shared/uploads "$stage/uploads"
+printf '%s\n' "$SHA" > "$stage/.cotuong-release-sha"
 tar -czf "$PWD/$SHA.tar.gz" -C "$stage" .
 python3 ops/vps-new/verify-test-release.py "$PWD/$SHA.tar.gz" "$SHA"
 printf 'Created %s.tar.gz; no .env or ignored local engine assets were included.\n' "$SHA"

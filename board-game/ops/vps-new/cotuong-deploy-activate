@@ -28,6 +28,7 @@ readonly RELEASE="$RELEASES/$SHA"
 [[ -d "$RELEASE" && ! -L "$RELEASE" && "$(realpath -e "$RELEASE")" == "$RELEASE" ]] || die 'release must be a real directory at the pinned path'
 [[ "$(stat -c %U:%G "$RELEASE")" == 'cotuong_deploy:cotuong_release' ]] || die 'release has unexpected owner/group'
 [[ -f "$RELEASE/package.json" && -f "$RELEASE/server/index.ts" && -f "$RELEASE/dist/index.html" && -f "$RELEASE/node_modules/tsx/package.json" ]] || die 'release is incomplete'
+[[ -f "$RELEASE/.cotuong-release-sha" && ! -L "$RELEASE/.cotuong-release-sha" && "$(cat "$RELEASE/.cotuong-release-sha")" == "$SHA" ]] || die 'release SHA marker does not match its directory'
 if find "$RELEASE" \( \( -name '.env' -o -name '.env.*' \) ! -name '.env.example' -o -name '.admin-access*' \) -print -quit | grep -q .; then
   die 'environment/admin-access files must never be part of a release'
 fi

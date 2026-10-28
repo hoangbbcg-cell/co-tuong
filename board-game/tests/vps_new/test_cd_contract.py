@@ -23,12 +23,34 @@ class VpsTestCdContractTests(unittest.TestCase):
     def test_deploy_identity_never_traverses_protected_environment_directory(self) -> None:
         deploy_client = (OPS / "deploy-test-release.sh").read_text(encoding="utf-8")
         self.assertNotIn("/etc/cotuong", deploy_client)
+        self.assertNotIn("test -x /usr/local/sbin/cotuong-deploy-activate", deploy_client)
+        self.assertIn("stat -c %U:%G:%a /usr/local/sbin/cotuong-deploy-activate", deploy_client)
+        self.assertIn('(cd "$ARTIFACT_DIR" && sha256sum -c "$SHA.tar.gz.sha256")', deploy_client)
+
+    def test_first_release_can_be_staged_without_activation_then_activated_separately(self) -> None:
+        deploy_client = (OPS / "deploy-test-release.sh").read_text(encoding="utf-8")
+        stage_exit = deploy_client.index("if [[ \"$MODE\" == stage ]]; then")
+        pending_activation = deploy_client.index('readonly PENDING_TMP=')
+        self.assertLess(stage_exit, pending_activation)
+        self.assertIn("Staged verified release", deploy_client)
+        self.assertIn('readonly MODE="${5:-deploy}"', deploy_client)
+        self.assertIn('install -d -m 0700 \'$REMOTE\'', deploy_client)
+        self.assertIn('if [[ "$MODE" == activate ]]; then', deploy_client)
+        workflow = (REPO.parent / ".github" / "workflows" / "vps-test-deploy.yml").read_text(encoding="utf-8")
+        self.assertIn("operation:", workflow)
+        self.assertIn("default: deploy", workflow)
+        self.assertIn("- stage", workflow)
+        self.assertIn("- activate", workflow)
+        self.assertIn("- deploy", workflow)
+        self.assertIn('DEPLOY_MODE: ${{ inputs.operation }}', workflow)
+        self.assertIn('"$RUN_ATTEMPT" "$DEPLOY_MODE"', workflow)
 
     def test_activation_root_checks_environment_owner_and_mode(self) -> None:
         activator = (OPS / "cotuong-deploy-activate").read_text(encoding="utf-8")
         self.assertIn("readonly ENV_FILE='/etc/cotuong/cotuong.env'", activator)
         self.assertIn("root:cotuong", activator)
         self.assertIn('== 640', activator)
+        self.assertIn(".cotuong-release-sha", activator)
 
     def test_systemd_unit_can_be_enabled_before_first_release_without_starting(self) -> None:
         admin = (OPS / "cotuong-vps-admin").read_text(encoding="utf-8")

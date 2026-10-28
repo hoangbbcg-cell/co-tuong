@@ -102,6 +102,8 @@ test "${MOCK_HEALTH:-ok}" = ok
             "node_modules/tsx/package.json",
         ):
             (release / relative).write_text("{}", encoding="utf-8")
+        (release / ".cotuong-release-sha").write_text(f"{sha}\n", encoding="ascii")
+        (release / ".cotuong-release-sha").chmod(0o640)
         (release / "uploads").symlink_to("/srv/cotuong/shared/uploads")
         return release
 
@@ -128,6 +130,13 @@ test "${MOCK_HEALTH:-ok}" = ok
         self.assertEqual((self.root / "current").resolve(), self.new_release)
         self.assertFalse(self.pending.exists())
         self.assertEqual(self.log.read_text(encoding="utf-8").splitlines(), ["restart"])
+
+    def test_rejects_release_sha_marker_mismatch_before_restart(self) -> None:
+        self.new_release.joinpath(".cotuong-release-sha").write_text(f"{'b' * 40}\n", encoding="ascii")
+        result = self._run()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("release SHA marker", result.stderr)
+        self.assertFalse(self.log.exists())
 
     def test_failed_health_check_restores_previous_release(self) -> None:
         previous = self._release(OLD_SHA)

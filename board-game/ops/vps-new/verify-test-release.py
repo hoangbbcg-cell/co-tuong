@@ -14,6 +14,7 @@ REQUIRED_FILES = {
     "server/index.ts",
     "dist/index.html",
     "node_modules/tsx/package.json",
+    ".cotuong-release-sha",
 }
 UPLOADS_TARGET = "/srv/cotuong/shared/uploads"
 
@@ -68,6 +69,11 @@ def verify_archive(archive_path: str, expected_sha: str) -> None:
     )
     if missing:
         raise ValueError(f"release is missing required regular files: {', '.join(missing)}")
+    marker = seen[".cotuong-release-sha"]
+    with tarfile.open(archive_path, "r:gz") as archive:
+        marker_contents = archive.extractfile(marker)
+        if marker_contents is None or marker_contents.read().decode("ascii").strip() != expected_sha:
+            raise ValueError("release SHA marker does not match the requested commit")
     if "uploads" not in seen or not seen["uploads"].issym():
         raise ValueError("release must contain the shared uploads symlink")
     if "." not in seen or not seen["."].isdir() or seen["."].mode & 0o2777 != 0o2750:

@@ -7,6 +7,15 @@ on:
         description: Full 40-character master commit SHA with successful push CI
         required: true
         type: string
+      operation:
+        description: Stage an inactive first release, activate the staged release, or deploy normally
+        required: true
+        type: choice
+        default: deploy
+        options:
+          - stage
+          - activate
+          - deploy
 
 permissions:
   actions: read
@@ -154,6 +163,7 @@ jobs:
           RELEASE_SHA: ${{ inputs.sha }}
           RUN_ID: ${{ github.run_id }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
+          DEPLOY_MODE: ${{ inputs.operation }}
         run: |
           bash board-game/ops/vps-new/deploy-test-release.sh \
-            "$RELEASE_SHA" "$RUNNER_TEMP/cotuong-release" "$RUN_ID" "$RUN_ATTEMPT"
+            "$RELEASE_SHA" "$RUNNER_TEMP/cotuong-release" "$RUN_ID" "$RUN_ATTEMPT" "$DEPLOY_MODE"
