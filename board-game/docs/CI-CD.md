@@ -75,6 +75,10 @@ Review diff → sửa lỗi full suite → commit/push thủ công master (chưa
 
 Nguồn GitHub chính thức: https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments và https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments .
 
+## Bootstrap VPS test qua PowerShell
+
+`ops/vps-new/prepare-test-vps-first-boot.ps1` chạy trên Windows PowerShell 5.1 hoặc PowerShell 7. Mọi đường dẫn remote Linux phải được ghép bằng dấu `/` tường minh, không dùng `Join-Path` (nó dùng path separator Windows và có thể biến `/home/...` thành `\home\...`, khiến Bash không tìm thấy script). `-Preflight` kiểm tra StrictHostKeyChecking với ED25519 đã pin, SSH/SCP và truyền `/etc/hostname` làm positional argument cho Bash bằng cùng mảng tham số `ssh.exe` như bootstrap; chế độ này chỉ đọc. Bootstrap thật vẫn yêu cầu sudo tương tác và không được chạy trước khi được phê duyệt.
+
 ## Backup adapter 2026-10-21
 
 Đã bổ sung adapter/hướng dẫn/sudoers và25 regression fixture/mock PASS, Bash syntax PASS, build gồm typecheck PASS; dist index-BqK419Up.js. Chưa chạy systemd/Drive/restore/VPS hoặc workflow GitHub. Các số lỗi full suite mục kiểm chứng2026-10-20 là lịch sử; kết quả sửa full suite sau đó xem CI-TEST-AUDIT.md, không tái chạy full npm test trong task adapter.
