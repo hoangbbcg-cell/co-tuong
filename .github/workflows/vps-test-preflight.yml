@@ -116,7 +116,9 @@ jobs:
           id -nG cotuong | tr ' ' '\n' | grep -Fxq cotuong_release || remote_fail 'Runtime user is not in cotuong_release.'
           [[ -f /usr/local/sbin/cotuong-deploy-activate && ! -L /usr/local/sbin/cotuong-deploy-activate ]] || remote_fail 'Activation helper is missing or is a symlink.'
           [[ "$(stat -c %U:%G:%a /usr/local/sbin/cotuong-deploy-activate)" == root:root:750 ]] || remote_fail 'Activation helper must be root:root mode 750.'
-          test -x /usr/local/sbin/cotuong-deploy-activate || remote_fail 'Activation helper is not executable by deploy user.'
+          # The helper is intentionally root:root 0750, so cotuong_deploy must not
+          # execute it directly. The next check verifies the exact NOPASSWD sudo rule;
+          # deployment invokes that fixed helper through sudo only.
           sudo -n -l /usr/local/sbin/cotuong-deploy-activate >/dev/null || remote_fail 'Restricted sudo allowance for the activation helper is missing.'
           if systemctl is-active --quiet cotuong-test.service; then
             remote_fail 'cotuong-test.service is active; expected stopped after bootstrap.'
