@@ -97,6 +97,17 @@ try {
   Invoke-NativeChecked -FilePath 'scp.exe' -Arguments (@('-i', $PrivateKey) + $sshOptions + $remoteFiles + @("${UserName}@${HostAddress}:$remoteDir/")) -FailureMessage 'SCP failed'
   Invoke-NativeChecked -FilePath 'scp.exe' -Arguments (@('-i', $PrivateKey) + $sshOptions + @($manifest, "${UserName}@${HostAddress}:$remoteManifest")) -FailureMessage 'Checksum manifest SCP failed'
 
+  # SCP creates files using the VPS account's login umask (observed 0002,
+  # which yields 0664). Make every uploaded file owner-only before any root
+  # process reads it; require regular files owned by the expected account.
+  $remoteBundleNames = @('prepare-test-vps-first-boot.sh', 'cotuong-vps-admin', 'cotuong-deploy-activate', 'cotuong.service', '.sha256')
+  $modeCommands = foreach ($name in $remoteBundleNames) {
+    $remoteFile = "$remoteDir/$name"
+    "test -f '$remoteFile' && test ! -L '$remoteFile' && test `"`$(stat -c %U:%G -- '$remoteFile')`" = 'nhat_hoang:nhat_hoang' && chmod 0600 -- '$remoteFile'"
+  }
+  $modeCommand = ($modeCommands -join ' && ') + " && stat -c '%n owner=%U:%G mode=%a' -- " + (($remoteBundleNames | ForEach-Object { "'$remoteDir/$_'" }) -join ' ')
+  Invoke-NativeChecked -FilePath 'ssh.exe' -Arguments (@('-i', $PrivateKey) + $sshOptions + @("$UserName@$HostAddress", $modeCommand)) -FailureMessage 'Could not secure uploaded bundle permissions'
+
   $checkCommand = "cd '$remoteDir' && sha256sum --check --status .sha256 && bash -n prepare-test-vps-first-boot.sh cotuong-vps-admin cotuong-deploy-activate"
   Invoke-NativeChecked -FilePath 'ssh.exe' -Arguments (@('-i', $PrivateKey) + $sshOptions + @("$UserName@$HostAddress", $checkCommand)) -FailureMessage 'Remote checksum or Bash syntax check failed'
 

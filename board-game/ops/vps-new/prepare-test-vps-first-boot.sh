@@ -23,7 +23,7 @@ ip -o -4 addr show scope global | awk '{sub(/\/.*/, "", $4); print $4}' | grep -
 [[ -d "$BUNDLE" && ! -L "$BUNDLE" && "$(realpath -e "$BUNDLE")" == "$BUNDLE" ]] || die 'bundle must be a real directory'
 [[ "$(stat -c %U:%G:%a "$BUNDLE")" == 'nhat_hoang:nhat_hoang:700' ]] || die 'bundle must be nhat_hoang-owned mode 0700'
 
-for file in cotuong-vps-admin cotuong-deploy-activate cotuong.service; do
+for file in prepare-test-vps-first-boot.sh cotuong-vps-admin cotuong-deploy-activate cotuong.service .sha256; do
   [[ -f "$BUNDLE/$file" && ! -L "$BUNDLE/$file" ]] || die "missing regular bundle file: $file"
   [[ "$(stat -c %U:%G "$BUNDLE/$file")" == 'nhat_hoang:nhat_hoang' ]] || die "unexpected owner on $file"
   [[ -z "$(find "$BUNDLE/$file" -maxdepth 0 -perm /022 -print)" ]] || die "group/world writable bundle file: $file"

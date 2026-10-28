@@ -77,7 +77,7 @@ Nguồn GitHub chính thức: https://docs.github.com/en/actions/reference/workf
 
 ## Bootstrap VPS test qua PowerShell
 
-`ops/vps-new/prepare-test-vps-first-boot.ps1` chạy trên Windows PowerShell 5.1 hoặc PowerShell 7. Mọi đường dẫn remote Linux phải được ghép bằng dấu `/` tường minh, không dùng `Join-Path` (nó dùng path separator Windows và có thể biến `/home/...` thành `\home\...`, khiến Bash không tìm thấy script). `-Preflight` kiểm tra StrictHostKeyChecking với ED25519 đã pin, SSH/SCP và truyền `/etc/hostname` làm positional argument cho Bash bằng cùng mảng tham số `ssh.exe` như bootstrap; chế độ này chỉ đọc. Bootstrap thật vẫn yêu cầu sudo tương tác và không được chạy trước khi được phê duyệt.
+`ops/vps-new/prepare-test-vps-first-boot.ps1` chạy trên Windows PowerShell 5.1 hoặc PowerShell 7. Mọi đường dẫn remote Linux phải được ghép bằng dấu `/` tường minh, không dùng `Join-Path` (nó dùng path separator Windows và có thể biến `/home/...` thành `\home\...`, khiến Bash không tìm thấy script). `-Preflight` kiểm tra StrictHostKeyChecking với ED25519 đã pin, SSH/SCP và truyền `/etc/hostname` làm positional argument cho Bash bằng cùng mảng tham số `ssh.exe` như bootstrap; chế độ này chỉ đọc. VPS test có login umask `0002`, nên SCP tạo file mode `0664` bất kể umask riêng của script Bash (script đó chỉ chạy sau upload). Wrapper xác minh từng file staging là regular/non-symlink và thuộc `nhat_hoang`, rồi chmod đúng các file bundle + checksum thành `0600` trước kiểm SHA/Bash syntax và trước khi gọi sudo. Script root vẫn tự kiểm owner, loại file và từ chối mọi group/world-write bit trên tất cả file bundle. Bootstrap thật vẫn yêu cầu sudo tương tác và không được chạy trước khi được phê duyệt.
 
 ## Backup adapter 2026-10-21
 

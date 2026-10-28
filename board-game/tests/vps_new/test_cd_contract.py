@@ -51,6 +51,19 @@ class VpsTestCdContractTests(unittest.TestCase):
         self.assertIn("-Recurse -Force -Confirm:$false", wrapper)
         self.assertNotIn("UserKnownHostsFile=\"", wrapper)
 
+    def test_first_boot_bundle_modes_are_secured_before_root_execution(self) -> None:
+        wrapper = (OPS / "prepare-test-vps-first-boot.ps1").read_text(encoding="utf-8")
+        setup = (OPS / "prepare-test-vps-first-boot.sh").read_text(encoding="utf-8")
+        self.assertIn("$remoteBundleNames = @('prepare-test-vps-first-boot.sh', 'cotuong-vps-admin', 'cotuong-deploy-activate', 'cotuong.service', '.sha256')", wrapper)
+        self.assertIn("chmod 0600 -- '$remoteFile'", wrapper)
+        self.assertIn("nhat_hoang:nhat_hoang", wrapper)
+        self.assertLess(wrapper.index("Checksum manifest SCP failed"), wrapper.index("Could not secure uploaded bundle permissions"))
+        self.assertLess(wrapper.index("Could not secure uploaded bundle permissions"), wrapper.index("Remote checksum or Bash syntax check failed"))
+        self.assertLess(wrapper.index("Remote checksum or Bash syntax check failed"), wrapper.index("VPS first-boot preparation failed"))
+        self.assertIn("for file in prepare-test-vps-first-boot.sh cotuong-vps-admin cotuong-deploy-activate cotuong.service .sha256; do", setup)
+        self.assertIn("-perm /022", setup)
+        self.assertIn("group/world writable bundle file", setup)
+
 
 if __name__ == "__main__":
     unittest.main()
