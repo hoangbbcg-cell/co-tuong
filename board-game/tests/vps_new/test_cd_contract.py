@@ -35,11 +35,17 @@ class VpsTestCdContractTests(unittest.TestCase):
         self.assertNotIn("systemctl start", setup)
         self.assertNotIn("systemctl restart", setup)
         self.assertNotIn("nginx enable", setup)
-        self.assertIn("StrictHostKeyChecking=yes", wrapper)
-        self.assertIn("$sshOptions = @(", wrapper)
+        self.assertIn("StrictHostKeyChecking yes", wrapper)
+        self.assertIn("$sshOptions = @('-F', $sshConfigPath)", wrapper)
+        self.assertIn("UserKnownHostsFile \"{0}\"", wrapper)
+        self.assertIn("@('-i', $PrivateKey) + $sshOptions", wrapper)
+        self.assertIn("if ($Preflight)", wrapper)
+        self.assertIn("Read-only SCP preflight", wrapper)
         self.assertIn("finally {", wrapper)
         self.assertIn("cotuong-vps-setup-[a-f0-9]{32}", wrapper)
         self.assertIn("-tt", wrapper)
+        self.assertIn("-Recurse -Force -Confirm:$false", wrapper)
+        self.assertNotIn("UserKnownHostsFile=\"", wrapper)
 
 
 if __name__ == "__main__":
