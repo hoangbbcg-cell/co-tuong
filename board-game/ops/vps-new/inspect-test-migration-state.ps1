@@ -10,13 +10,14 @@ $ErrorActionPreference = 'Stop'
 $RepoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
 $ConfigPath = Join-Path ([IO.Path]::GetTempPath()) ('cotuong-metadata-{0}.conf' -f [guid]::NewGuid().ToString('N'))
 $ExpectedFingerprint = 'SHA256:CJzV7hFpB6mDfGDoBm/ViJvw5D5HlBhR60gmOJGLW74'
+$TransportHelper = Join-Path $PSScriptRoot 'ssh-bash-command.ps1'
 
 try {
   & git.exe -C $RepoRoot fetch origin master
   if ($LASTEXITCODE -ne 0) { throw 'Cannot refresh origin/master.' }
   $master = (& git.exe -C $RepoRoot rev-parse refs/remotes/origin/master).Trim()
   if ($LASTEXITCODE -ne 0 -or $master -cne $ApprovedMasterCommit) { throw 'origin/master differs from the reviewed commit; stop for review.' }
-  $reviewedPaths = @('board-game/ops/vps-new/inspect-test-migration-state.ps1', 'board-game/ops/vps-new/collect-test-migration-state.py', 'board-game/scripts/inspect-test-migrations.ts', 'board-game/server/repositories/migrationRepository.ts', 'board-game/server/repositories/mysqlPool.ts', 'board-game/server/migrations')
+  $reviewedPaths = @('board-game/ops/vps-new/inspect-test-migration-state.ps1', 'board-game/ops/vps-new/ssh-bash-command.ps1', 'board-game/ops/vps-new/collect-test-migration-state.py', 'board-game/scripts/inspect-test-migrations.ts', 'board-game/server/repositories/migrationRepository.ts', 'board-game/server/repositories/mysqlPool.ts', 'board-game/server/migrations')
   & git.exe -C $RepoRoot diff --quiet $ApprovedMasterCommit -- @reviewedPaths
   if ($LASTEXITCODE -ne 0) { throw 'Local audit code/migrations differ from approved master.' }
   $changes = & git.exe -C $RepoRoot status --porcelain=v1 -- @reviewedPaths
@@ -31,6 +32,7 @@ try {
   $config = @('Host *', '  IdentitiesOnly yes', '  BatchMode yes', '  StrictHostKeyChecking yes', '  HostKeyAlgorithms ssh-ed25519', ('  UserKnownHostsFile "{0}"' -f $KnownHosts)) -join "`n"
   [IO.File]::WriteAllText($ConfigPath, $config + "`n", [Text.UTF8Encoding]::new($false))
   $probe = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'collect-test-migration-state.py')).Replace("`r`n", "`n").Replace("`r", "`n")
+  . $TransportHelper
   $probeBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($probe))
   $bash = @'
 set -Eeuo pipefail
@@ -41,7 +43,7 @@ sudo -n python3 -c "import base64; exec(compile(base64.b64decode('__PROBE__'), '
 '@
   $bash = $bash.Replace('__PROBE__', $probeBase64).Replace("`r`n", "`n").Replace("`r", "`n")
   $transport = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($bash))
-  $remote = '/bin/bash -c "$(printf ''%s'' ' + $transport + ' | base64 --decode)"'
+  $remote = New-CotuongSshBashCommand -Base64Script $transport
   Write-Host 'Read-only metadata inspection of 103.153.254.184. Enter sudo password privately in this terminal if prompted.'
   # Tee keeps PTY output/password prompts visible while retaining the metadata sentinel.
   & ssh.exe -tt -i $PrivateKey -F $ConfigPath 'nhat_hoang@103.153.254.184' $remote | Tee-Object -Variable probeOutput
