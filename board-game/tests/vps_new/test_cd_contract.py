@@ -81,6 +81,8 @@ class VpsTestCdContractTests(unittest.TestCase):
         self.assertNotIn("set -x", workflow)
         self.assertIn("if [[ -r /etc/cotuong/cotuong.env ]]; then", workflow)
         self.assertIn("stat -c %U:%G:%a /usr/local/sbin/cotuong-deploy-activate", workflow)
+        self.assertNotIn("test -x /usr/local/sbin/cotuong-deploy-activate", workflow)
+        self.assertIn("intentionally root:root 0750", workflow)
         self.assertIn("sudo -n -l /usr/local/sbin/cotuong-deploy-activate", workflow)
         self.assertIn("systemctl is-active --quiet cotuong-test.service", workflow)
         self.assertNotIn("sudo -n /usr/local/sbin/cotuong-deploy-activate ", workflow)
