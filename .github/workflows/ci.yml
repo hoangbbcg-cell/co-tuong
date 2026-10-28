@@ -74,6 +74,18 @@ jobs:
       - name: VPS activation rollback regression (isolated temp paths and mocked host/service)
         run: sudo -n python3 -m unittest discover -s tests/vps_new -v
 
+  powershell-5-1-runner:
+    name: PowerShell 5.1 backup runner regression
+    runs-on: windows-2022
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Parse and test read-only preflight construction
+        shell: powershell
+        run: .\board-game\tests\vps_new\test-backup-restore-runner.ps1
+
   secret-scan:
     name: Secret scan
     runs-on: ubuntu-24.04

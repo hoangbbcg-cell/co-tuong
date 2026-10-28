@@ -1,4 +1,8 @@
 import unittest
+import os
+import re
+import subprocess
+import tempfile
 from pathlib import Path
 
 
@@ -28,8 +32,8 @@ class BackupRestoreRunnerContractTests(unittest.TestCase):
         self.assertIn("chmod 0600", self.script)
         self.assertIn("sha256sum --check --status .sha256", self.script)
         self.assertIn("Get-FileHash -LiteralPath $file -Algorithm SHA256", self.script)
-        self.assertLess(self.script.index("$dbInspection ="), self.script.index("$confirmation = Read-Host"))
-        self.assertLess(self.script.index("$backupStateCommand ="), self.script.index("$confirmation = Read-Host"))
+        self.assertLess(self.script.index("$readOnlyPreflight = @'"), self.script.index("$confirmation = Read-Host"))
+        self.assertLess(self.script.index("step='existing backup inventory'"), self.script.index("$confirmation = Read-Host"))
         self.assertLess(self.script.index("$confirmation = Read-Host"), self.script.index("$runBackup ="))
         self.assertLess(self.script.index("$runBackup ="), self.script.index("$runValidator ="))
         self.assertIn("schema_migrations", self.script)
@@ -38,6 +42,27 @@ class BackupRestoreRunnerContractTests(unittest.TestCase):
         self.assertIn("$BackupLogPath", self.script)
         self.assertIn("$backupPathMatch.Groups['path'].Value", self.script)
         self.assertNotIn("Paste the exact .sql.gz path", self.script)
+
+    def test_database_preflight_uses_visible_interactive_sudo_and_safe_diagnostics(self) -> None:
+        self.assertIn("$readOnlyPreflight = @'", self.script)
+        self.assertIn("sudo -v", self.script)
+        self.assertIn("sudo -n mysql --protocol=socket --user=root", self.script)
+        self.assertIn("READ_ONLY_PREFLIGHT_FAILED step=%s exit=%s", self.script)
+        self.assertIn("$remotePreflight = '/bin/bash -c", self.script)
+        self.assertIn("| base64 --decode)", self.script)
+        self.assertIn("@('-tt', '-i', $PrivateKey) + $sshOptions + @($Target, $remotePreflight)", self.script)
+        self.assertIn("-FailureMessage 'Read-only VPS preflight failed; inspect the READ_ONLY_STEP diagnostic above'", self.script)
+        self.assertNotIn("$dbLines = @(& ssh.exe", self.script)
+        self.assertNotIn("$journalLines = @(& ssh.exe", self.script)
+
+    @unittest.skipIf(os.name == "nt", "Bash syntax is checked in Linux CI; Windows runs the PowerShell 5.1 parser test.")
+    def test_embedded_read_only_bash_preflight_has_valid_syntax(self) -> None:
+        match = re.search(r"\$readOnlyPreflight = @'\r?\n(.*?)\r?\n'@", self.script, re.DOTALL)
+        self.assertIsNotNone(match)
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", suffix=".sh") as probe:
+            probe.write(match.group(1))
+            probe.flush()
+            subprocess.run(["bash", "-n", probe.name], check=True, capture_output=True, text=True)
 
     def test_failure_preserves_backup_and_upload_for_inspection_and_never_migrates(self) -> None:
         self.assertIn("$DrillStarted -and -not $DrillCompleted", self.script)
