@@ -40,6 +40,19 @@ ssh "${ssh_opts[@]}" "$USER@$HOST" '
   test "$(stat -c %U:%G /etc/cotuong/cotuong.env)" = root:root
   ! find /etc/cotuong/cotuong.env -maxdepth 0 -perm /0027 -print -quit | grep -q .
   systemctl is-enabled --quiet cotuong-test.service
+  unit="$(systemctl cat cotuong-test.service)"
+  grep -Fxq "User=cotuong" <<< "$unit"
+  grep -Fxq "Group=cotuong" <<< "$unit"
+  grep -Fxq "WorkingDirectory=/srv/cotuong/current" <<< "$unit"
+  grep -Fxq "Environment=HOST=127.0.0.1" <<< "$unit"
+  grep -Fxq "Environment=PORT=3001" <<< "$unit"
+  grep -Fxq "ExecStart=/opt/node-v22.23.3/bin/node --import tsx server/index.ts" <<< "$unit"
+  if systemctl is-active --quiet nginx.service; then
+    echo 'Refusing deploy while Nginx is active on the test VPS.' >&2
+    exit 1
+  fi
+  id -nG | tr ' ' '\n' | grep -Fxq cotuong_release
+  id -nG cotuong | tr ' ' '\n' | grep -Fxq cotuong_release
   test -x /usr/local/sbin/cotuong-deploy-activate
   sudo -n -l /usr/local/sbin/cotuong-deploy-activate >/dev/null
   test ! -e /srv/cotuong/deploy/pending && test ! -L /srv/cotuong/deploy/pending
