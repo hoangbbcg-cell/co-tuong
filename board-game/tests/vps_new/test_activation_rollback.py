@@ -16,6 +16,9 @@ class ActivationRollbackTests(unittest.TestCase):
         self.root = Path(self.temp.name) / "srv" / "cotuong"
         self.releases = self.root / "releases"
         self.deploy = self.root / "deploy"
+        self.env_file = Path(self.temp.name) / "etc" / "cotuong" / "cotuong.env"
+        self.env_file.parent.mkdir(parents=True)
+        self.env_file.write_text("DB_NAME=cotuong_stage\n", encoding="utf-8")
         self.mock_bin = Path(self.temp.name) / "mock-bin"
         self.mock_bin.mkdir()
         self.releases.mkdir(parents=True)
@@ -28,6 +31,7 @@ class ActivationRollbackTests(unittest.TestCase):
 
         source = ACTIVATOR.read_text(encoding="utf-8")
         source = source.replace("readonly ROOT='/srv/cotuong'", f"readonly ROOT='{self.root}'")
+        source = source.replace("/etc/cotuong/cotuong.env", str(self.env_file))
         source = source.replace(
             "/run/lock/cotuong-deploy-activate.lock",
             f"{self.temp.name}/activate.lock",
@@ -45,6 +49,8 @@ class ActivationRollbackTests(unittest.TestCase):
 format="$2"; path="$3"
 [ "$path" = -- ] && path="$4"
 case "$format:$path" in
+  %U:%G:*cotuong.env) printf 'root:cotuong\\n' ;;
+  %a:*cotuong.env) printf '%s\\n' "${MOCK_ENV_MODE:-640}" ;;
   %U:%G:*cotuong) printf 'root:root\\n' ;;
   %a:*cotuong) printf '755\\n' ;;
   %U:%G:*releases) printf 'cotuong_deploy:cotuong_release\\n' ;;
@@ -99,7 +105,7 @@ test "${MOCK_HEALTH:-ok}" = ok
         (release / "uploads").symlink_to("/srv/cotuong/shared/uploads")
         return release
 
-    def _run(self, health: str = "ok") -> subprocess.CompletedProcess[str]:
+    def _run(self, health: str = "ok", env_mode: str = "640") -> subprocess.CompletedProcess[str]:
         environment = [
             "sudo",
             "-n",
@@ -107,6 +113,7 @@ test "${MOCK_HEALTH:-ok}" = ok
             f"PATH={self.mock_bin}:/usr/sbin:/usr/bin:/sbin:/bin",
             f"MOCK_SYSTEMCTL_LOG={self.log}",
             f"MOCK_HEALTH={health}",
+            f"MOCK_ENV_MODE={env_mode}",
             str(self.script),
         ]
         return subprocess.run(environment, capture_output=True, text=True, check=False)
@@ -138,6 +145,24 @@ test "${MOCK_HEALTH:-ok}" = ok
         self.assertEqual(result.returncode, 1)
         self.assertFalse((self.root / "current").exists())
         self.assertEqual(self.log.read_text(encoding="utf-8").splitlines(), ["restart", "stop"])
+
+    def test_rejects_missing_environment_before_switch(self) -> None:
+        self.env_file.unlink()
+
+        result = self._run()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("environment file is missing or unsafe", result.stderr)
+        self.assertFalse((self.root / "current").exists())
+        self.assertFalse(self.log.exists())
+
+    def test_rejects_wrong_environment_mode_before_switch(self) -> None:
+        result = self._run(env_mode="660")
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("root:cotuong mode 0640", result.stderr)
+        self.assertFalse((self.root / "current").exists())
+        self.assertFalse(self.log.exists())
 
 
 if __name__ == "__main__":

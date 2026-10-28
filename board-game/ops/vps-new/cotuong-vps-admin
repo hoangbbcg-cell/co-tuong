@@ -189,9 +189,11 @@ action_install_app_unit() {
   [[ -d "$APP_ROOT" && ! -L "$APP_ROOT" ]] || die 'app root has not been prepared'
   [[ -f /etc/cotuong/cotuong.env && ! -L /etc/cotuong/cotuong.env ]] || die 'application environment file must be provisioned separately'
   [[ "$(stat -c %U:%G /etc/cotuong/cotuong.env)" == "root:$RUNTIME_USER" && "$(stat -c %a /etc/cotuong/cotuong.env)" == 640 ]] || die 'environment file must be root-owned, runtime-group-readable, and mode 0640'
-  local current
-  current="$(realpath -e "$APP_ROOT/current" 2>/dev/null || true)"
-  [[ "$current" == "$APP_ROOT/releases/"* && -f "$current/server/index.ts" && -f "$current/node_modules/tsx/package.json" ]] || die 'current must resolve to a complete release under the fixed releases directory'
+  if [[ -e "$APP_ROOT/current" || -L "$APP_ROOT/current" ]]; then
+    local current
+    current="$(realpath -e "$APP_ROOT/current" 2>/dev/null || true)"
+    [[ "$current" == "$APP_ROOT/releases/"* && -f "$current/server/index.ts" && -f "$current/node_modules/tsx/package.json" ]] || die 'current must resolve to a complete release under the fixed releases directory'
+  fi
   [[ ! -e /etc/systemd/system/cotuong-test.service && ! -L /etc/systemd/system/cotuong-test.service ]] || die 'unit already exists; review instead of overwriting'
   [[ ! -e /etc/systemd/system/multi-user.target.wants/cotuong-test.service && ! -L /etc/systemd/system/multi-user.target.wants/cotuong-test.service ]] || die 'unexpected stale unit enablement link; manual review required'
   systemd-analyze verify "$source" || die 'systemd rejected the reviewed unit template'

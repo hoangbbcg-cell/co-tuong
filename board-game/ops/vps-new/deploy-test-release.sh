@@ -36,9 +36,8 @@ ssh "${ssh_opts[@]}" "$USER@$HOST" '
   test ! -L /home/cotuong_deploy/.cotuong-incoming
   test "$(stat -c %U:%G /srv/cotuong/releases)" = cotuong_deploy:cotuong_release
   test "$(stat -c %a /srv/cotuong/releases)" = 2750
-  test -f /etc/cotuong/cotuong.env
-  test "$(stat -c %U:%G /etc/cotuong/cotuong.env)" = root:root
-  ! find /etc/cotuong/cotuong.env -maxdepth 0 -perm /0027 -print -quit | grep -q .
+  # The deploy identity cannot traverse the protected configuration directory.
+  # The root activation helper validates EnvironmentFile before changing current.
   systemctl is-enabled --quiet cotuong-test.service
   unit="$(systemctl cat cotuong-test.service)"
   grep -Fxq "User=cotuong" <<< "$unit"

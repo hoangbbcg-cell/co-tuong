@@ -8,6 +8,7 @@ readonly ROOT='/srv/cotuong'
 readonly RELEASES="$ROOT/releases"
 readonly PENDING="$ROOT/deploy/pending"
 readonly SERVICE='cotuong-test.service'
+readonly ENV_FILE='/etc/cotuong/cotuong.env'
 
 die() { printf 'cotuong-deploy-activate: %s\n' "$*" >&2; exit 1; }
 [[ $# == 0 && "$(id -u)" == 0 ]] || die 'no arguments accepted; run through the exact sudo rule'
@@ -17,6 +18,8 @@ flock -n 9 || die 'another release activation is already running'
 [[ -d "$ROOT" && ! -L "$ROOT" && "$(stat -c %U:%G "$ROOT")" == root:root && "$(stat -c %a "$ROOT")" == 755 ]] || die 'unsafe app root'
 [[ -d "$RELEASES" && ! -L "$RELEASES" && "$(stat -c %U:%G "$RELEASES")" == 'cotuong_deploy:cotuong_release' && "$(stat -c %a "$RELEASES")" == 2750 ]] || die 'unsafe release directory'
 [[ -d "$ROOT/deploy" && ! -L "$ROOT/deploy" && "$(stat -c %U:%G "$ROOT/deploy")" == 'cotuong_deploy:cotuong_deploy' && "$(stat -c %a "$ROOT/deploy")" == 700 ]] || die 'unsafe deploy marker directory'
+[[ -f "$ENV_FILE" && ! -L "$ENV_FILE" ]] || die 'application environment file is missing or unsafe'
+[[ "$(stat -c %U:%G "$ENV_FILE")" == 'root:cotuong' && "$(stat -c %a "$ENV_FILE")" == 640 ]] || die 'application environment file must be root:cotuong mode 0640'
 [[ -L "$PENDING" && "$(stat -c %U:%G -- "$PENDING")" == 'cotuong_deploy:cotuong_deploy' ]] || die 'pending release pointer must be a deploy-owned symlink'
 pending_target="$(readlink -- "$PENDING")"
 [[ "$pending_target" =~ ^\.\./releases/([a-f0-9]{40})$ ]] || die 'invalid release pointer'
