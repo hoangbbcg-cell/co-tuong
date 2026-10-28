@@ -60,6 +60,10 @@ jobs:
           printf '%s\n' "$VPS_TEST_SSH_KEY" > "$ssh_dir/cotuong_deploy"
           printf '%s\n' "$VPS_TEST_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
           chmod 0600 "$ssh_dir/cotuong_deploy" "$ssh_dir/known_hosts"
+          if ! ssh-keygen -y -f "$ssh_dir/cotuong_deploy" >/dev/null 2>&1; then
+            echo 'VPS_TEST_SSH_KEY is not a readable OpenSSH private key.' >&2
+            exit 1
+          fi
           ssh-keygen -F 103.153.254.184 -f "$ssh_dir/known_hosts" >/dev/null || {
             echo 'Known-hosts secret does not contain the pinned new VPS host.' >&2
             exit 1
@@ -79,59 +83,62 @@ jobs:
             -o ConnectTimeout=15
             -o UserKnownHostsFile="$ssh_dir/known_hosts"
           )
-          ssh "${ssh_opts[@]}" cotuong_deploy@103.153.254.184 'bash -s' <<'REMOTE'
+          if ssh "${ssh_opts[@]}" cotuong_deploy@103.153.254.184 'bash -s' <<'REMOTE'
           set -euo pipefail
-          [[ "$(id -un)" == cotuong_deploy && "$HOME" == /home/cotuong_deploy ]]
-          ip -o -4 addr show scope global | awk '{sub(/\/.*/, "", $4); print $4}' | grep -Fxq 103.153.254.184
-          [[ -d /srv/cotuong && ! -L /srv/cotuong ]]
-          [[ "$(stat -c %U:%G:%a /srv/cotuong)" == root:root:755 ]]
-          [[ -d /srv/cotuong/releases && ! -L /srv/cotuong/releases ]]
-          [[ "$(stat -c %U:%G:%a /srv/cotuong/releases)" == cotuong_deploy:cotuong_release:2750 ]]
-          [[ -d /srv/cotuong/deploy && ! -L /srv/cotuong/deploy ]]
-          [[ "$(stat -c %U:%G:%a /srv/cotuong/deploy)" == cotuong_deploy:cotuong_deploy:700 ]]
-          [[ -d /home/cotuong_deploy/.cotuong-incoming && ! -L /home/cotuong_deploy/.cotuong-incoming ]]
-          [[ "$(stat -c %U:%G:%a /home/cotuong_deploy/.cotuong-incoming)" == cotuong_deploy:cotuong_deploy:700 ]]
+          remote_fail() { printf 'Read-only VPS preflight failed: %s\n' "$1" >&2; exit 1; }
+          [[ "$(id -un)" == cotuong_deploy && "$HOME" == /home/cotuong_deploy ]] || remote_fail 'SSH identity or home directory is unexpected.'
+          ip -o -4 addr show scope global | awk '{sub(/\/.*/, "", $4); print $4}' | grep -Fxq 103.153.254.184 || remote_fail 'VPS does not report the pinned public IPv4 address.'
+          [[ -d /srv/cotuong && ! -L /srv/cotuong ]] || remote_fail '/srv/cotuong is missing or is a symlink.'
+          [[ "$(stat -c %U:%G:%a /srv/cotuong)" == root:root:755 ]] || remote_fail '/srv/cotuong must be root:root mode 755.'
+          [[ -d /srv/cotuong/releases && ! -L /srv/cotuong/releases ]] || remote_fail '/srv/cotuong/releases is missing or is a symlink.'
+          [[ "$(stat -c %U:%G:%a /srv/cotuong/releases)" == cotuong_deploy:cotuong_release:2750 ]] || remote_fail '/srv/cotuong/releases has unexpected owner, group, or mode.'
+          [[ -d /srv/cotuong/deploy && ! -L /srv/cotuong/deploy ]] || remote_fail '/srv/cotuong/deploy is missing or is a symlink.'
+          [[ "$(stat -c %U:%G:%a /srv/cotuong/deploy)" == cotuong_deploy:cotuong_deploy:700 ]] || remote_fail '/srv/cotuong/deploy has unexpected owner, group, or mode.'
+          [[ -d /home/cotuong_deploy/.cotuong-incoming && ! -L /home/cotuong_deploy/.cotuong-incoming ]] || remote_fail 'Deploy incoming directory is missing or is a symlink.'
+          [[ "$(stat -c %U:%G:%a /home/cotuong_deploy/.cotuong-incoming)" == cotuong_deploy:cotuong_deploy:700 ]] || remote_fail 'Deploy incoming directory has unexpected owner, group, or mode.'
           if [[ -r /etc/cotuong/cotuong.env ]]; then
-            echo 'Deployment identity can read the protected environment file.' >&2
-            exit 1
+            remote_fail 'Deployment identity can read the protected environment file.'
           fi
-          systemctl is-enabled --quiet cotuong-test.service
-          unit="$(systemctl cat cotuong-test.service)"
-          grep -Fxq 'User=cotuong' <<< "$unit"
-          grep -Fxq 'Group=cotuong' <<< "$unit"
-          grep -Fxq 'WorkingDirectory=/srv/cotuong/current' <<< "$unit"
-          grep -Fxq 'EnvironmentFile=/etc/cotuong/cotuong.env' <<< "$unit"
-          grep -Fxq 'Environment=HOST=127.0.0.1' <<< "$unit"
-          grep -Fxq 'Environment=PORT=3001' <<< "$unit"
-          grep -Fxq 'Environment=NODE_ENV=production' <<< "$unit"
-          grep -Fxq 'ExecStart=/opt/node-v22.23.3/bin/node --import tsx server/index.ts' <<< "$unit"
-          grep -Fxq 'ProtectHome=true' <<< "$unit"
-          grep -Fxq 'ProtectSystem=strict' <<< "$unit"
-          grep -Fxq 'ReadWritePaths=/srv/cotuong/shared' <<< "$unit"
-          id -nG | tr ' ' '\n' | grep -Fxq cotuong_release
-          id -nG cotuong | tr ' ' '\n' | grep -Fxq cotuong_release
-          [[ -f /usr/local/sbin/cotuong-deploy-activate && ! -L /usr/local/sbin/cotuong-deploy-activate ]]
-          [[ "$(stat -c %U:%G:%a /usr/local/sbin/cotuong-deploy-activate)" == root:root:750 ]]
-          test -x /usr/local/sbin/cotuong-deploy-activate
-          sudo -n -l /usr/local/sbin/cotuong-deploy-activate >/dev/null
+          systemctl is-enabled --quiet cotuong-test.service || remote_fail 'cotuong-test.service is not enabled.'
+          unit="$(systemctl cat cotuong-test.service)" || remote_fail 'systemctl cannot read cotuong-test.service.'
+          grep -Fxq 'User=cotuong' <<< "$unit" || remote_fail 'Unit User must be cotuong.'
+          grep -Fxq 'Group=cotuong' <<< "$unit" || remote_fail 'Unit Group must be cotuong.'
+          grep -Fxq 'WorkingDirectory=/srv/cotuong/current' <<< "$unit" || remote_fail 'Unit WorkingDirectory is unexpected.'
+          grep -Fxq 'EnvironmentFile=/etc/cotuong/cotuong.env' <<< "$unit" || remote_fail 'Unit EnvironmentFile path is unexpected.'
+          grep -Fxq 'Environment=HOST=127.0.0.1' <<< "$unit" || remote_fail 'Unit HOST must bind loopback.'
+          grep -Fxq 'Environment=PORT=3001' <<< "$unit" || remote_fail 'Unit PORT is unexpected.'
+          grep -Fxq 'Environment=NODE_ENV=production' <<< "$unit" || remote_fail 'Unit NODE_ENV is unexpected.'
+          grep -Fxq 'ExecStart=/opt/node-v22.23.3/bin/node --import tsx server/index.ts' <<< "$unit" || remote_fail 'Unit ExecStart is unexpected.'
+          grep -Fxq 'ProtectHome=true' <<< "$unit" || remote_fail 'Unit ProtectHome hardening is missing.'
+          grep -Fxq 'ProtectSystem=strict' <<< "$unit" || remote_fail 'Unit ProtectSystem hardening is missing.'
+          grep -Fxq 'ReadWritePaths=/srv/cotuong/shared' <<< "$unit" || remote_fail 'Unit writable path is unexpected.'
+          id -nG | tr ' ' '\n' | grep -Fxq cotuong_release || remote_fail 'Deploy user is not in cotuong_release.'
+          id -nG cotuong | tr ' ' '\n' | grep -Fxq cotuong_release || remote_fail 'Runtime user is not in cotuong_release.'
+          [[ -f /usr/local/sbin/cotuong-deploy-activate && ! -L /usr/local/sbin/cotuong-deploy-activate ]] || remote_fail 'Activation helper is missing or is a symlink.'
+          [[ "$(stat -c %U:%G:%a /usr/local/sbin/cotuong-deploy-activate)" == root:root:750 ]] || remote_fail 'Activation helper must be root:root mode 750.'
+          test -x /usr/local/sbin/cotuong-deploy-activate || remote_fail 'Activation helper is not executable by deploy user.'
+          sudo -n -l /usr/local/sbin/cotuong-deploy-activate >/dev/null || remote_fail 'Restricted sudo allowance for the activation helper is missing.'
           if systemctl is-active --quiet cotuong-test.service; then
-            echo 'cotuong-test.service is already active; expected stopped after bootstrap.' >&2
-            exit 1
+            remote_fail 'cotuong-test.service is active; expected stopped after bootstrap.'
           fi
           if systemctl is-active --quiet nginx.service; then
-            echo 'Nginx is active; refusing the test deployment preflight.' >&2
-            exit 1
+            remote_fail 'Nginx is active; expected inactive for test preflight.'
           fi
           if [[ -e /srv/cotuong/deploy/pending || -L /srv/cotuong/deploy/pending ]]; then
-            echo 'A pending release pointer already exists; inspect it before continuing.' >&2
-            exit 1
+            remote_fail 'A pending release pointer already exists.'
           fi
           if [[ -L /srv/cotuong/current ]]; then
             current="$(realpath -e /srv/cotuong/current)"
-            [[ "$current" == /srv/cotuong/releases/* && -d "$current" ]]
+            [[ "$current" == /srv/cotuong/releases/* && -d "$current" ]] || remote_fail 'Current symlink does not resolve to a release directory.'
           elif [[ -e /srv/cotuong/current ]]; then
-            echo 'The current path exists but is not a symlink.' >&2
-            exit 1
+            remote_fail 'Current exists but is not a symlink.'
           fi
           printf 'Read-only VPS preflight PASS: deploy identity, permissions, unit, sudo gate, Nginx, and release pointers. No files or services were changed.\n'
           REMOTE
+          then
+            :
+          else
+            ssh_status=$?
+            printf 'SSH/read-only VPS preflight failed with exit code %s; see the preceding SSH or named remote-check diagnostic.\n' "$ssh_status" >&2
+            exit "$ssh_status"
+          fi
