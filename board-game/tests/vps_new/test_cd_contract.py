@@ -25,6 +25,22 @@ class VpsTestCdContractTests(unittest.TestCase):
         self.assertNotIn("systemctl start", action)
         self.assertNotIn("systemctl restart", action)
 
+    def test_first_boot_setup_uses_least_privilege_and_does_not_deploy(self) -> None:
+        setup = (OPS / "prepare-test-vps-first-boot.sh").read_text(encoding="utf-8")
+        wrapper = (OPS / "prepare-test-vps-first-boot.ps1").read_text(encoding="utf-8")
+        self.assertIn("GRANT SELECT, INSERT, UPDATE, DELETE ON cotuong_stage.* TO 'cotuong_app'", setup)
+        self.assertIn("GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES ON cotuong_stage.* TO 'cotuong_migrator'", setup)
+        self.assertNotIn("DROP", setup.upper())
+        self.assertNotIn("db:migrate", setup)
+        self.assertNotIn("systemctl start", setup)
+        self.assertNotIn("systemctl restart", setup)
+        self.assertNotIn("nginx enable", setup)
+        self.assertIn("StrictHostKeyChecking=yes", wrapper)
+        self.assertIn("$sshOptions = @(", wrapper)
+        self.assertIn("finally {", wrapper)
+        self.assertIn("cotuong-vps-setup-[a-f0-9]{32}", wrapper)
+        self.assertIn("-tt", wrapper)
+
 
 if __name__ == "__main__":
     unittest.main()
