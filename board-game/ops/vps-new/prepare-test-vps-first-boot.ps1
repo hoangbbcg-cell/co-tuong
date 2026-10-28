@@ -89,7 +89,7 @@ finally {
   if ($uploaded) {
     try {
       if ($remoteDir -notmatch '^/home/nhat_hoang/\.cotuong-vps-setup-[a-f0-9]{32}$') { throw 'Generated remote cleanup path failed its allowlist.' }
-      $cleanupCommand = "rm -rf -- '$remoteDir'"
+      $cleanupCommand = "rm -rf -- '$remoteDir' && test ! -e '$remoteDir' && test ! -L '$remoteDir'"
       & ssh.exe -i $PrivateKey @sshOptions "$UserName@$HostAddress" $cleanupCommand
       $cleanupExit = $LASTEXITCODE
       if ($cleanupExit -ne 0) { Write-Warning "Remote cleanup could not be verified (exit $cleanupExit); only this unique path may remain: $remoteDir" }
