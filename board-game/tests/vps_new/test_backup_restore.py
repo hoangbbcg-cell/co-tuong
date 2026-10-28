@@ -40,6 +40,10 @@ INSERT INTO `schema_migrations` VALUES ('001');
         with self.assertRaisesRegex(ValueError, "unexpected database directive"):
             rewrite_dump_for_restore(unsafe, self.schema)
 
+        for directive in ("DROP SCHEMA `cotuong_stage`;", "ALTER DATABASE cotuong_stage READ ONLY = 1;", "SELECT * FROM `cotuong_stage`.`users`;"):
+            with self.subTest(directive=directive), self.assertRaises(ValueError):
+                rewrite_dump_for_restore(self.dump + directive + "\n", self.schema)
+
     def test_rejects_untrusted_target_identifier(self) -> None:
         with self.assertRaisesRegex(ValueError, "invalid disposable schema"):
             rewrite_dump_for_restore(self.dump, "production")
@@ -63,8 +67,10 @@ INSERT INTO `schema_migrations` VALUES ('001');
                 return next(answers)
 
             stat_info = SimpleNamespace(st_uid=0, st_mode=0o100600)
+            directory_info = SimpleNamespace(st_uid=0, st_mode=0o40700)
+            stat = lambda path, *args, **kwargs: directory_info if path == backup_dir else stat_info
             with patch.object(MODULE, "BACKUP_DIR", backup_dir), \
-                 patch.object(MODULE.Path, "stat", return_value=stat_info), \
+                 patch.object(MODULE.Path, "stat", autospec=True, side_effect=stat), \
                  patch.object(MODULE, "mysql", side_effect=fake_mysql):
                 MODULE.validate_backup(backup)
 
@@ -94,13 +100,72 @@ INSERT INTO `schema_migrations` VALUES ('001');
                 return next(answers)
 
             stat_info = SimpleNamespace(st_uid=0, st_mode=0o100600)
+            directory_info = SimpleNamespace(st_uid=0, st_mode=0o40700)
+            stat = lambda path, *args, **kwargs: directory_info if path == backup_dir else stat_info
             with patch.object(MODULE, "BACKUP_DIR", backup_dir), \
-                 patch.object(MODULE.Path, "stat", return_value=stat_info), \
+                 patch.object(MODULE.Path, "stat", autospec=True, side_effect=stat), \
                  patch.object(MODULE, "mysql", side_effect=fake_mysql):
                 MODULE.validate_backup(backup)
 
             self.assertFalse(any(sql and "schema_migrations" in sql for _, sql in calls))
             self.assertTrue(any(args and "DROP DATABASE" in args[1] for args, _ in calls))
+
+    def test_reports_scratch_schema_when_cleanup_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            backup_dir = Path(directory)
+            backup = backup_dir / "2026-10-28T12-00-00Z.sql.gz"
+            with gzip.open(backup, "wt", encoding="utf-8") as stream:
+                stream.write(self.dump)
+            os.chmod(backup, 0o600)
+            checksum = backup.with_name(backup.name + ".sha256")
+            checksum.write_text(hashlib.sha256(backup.read_bytes()).hexdigest() + "  " + backup.name + "\n", encoding="ascii")
+            os.chmod(checksum, 0o600)
+            calls = 0
+
+            def fake_mysql(*args: str, input_sql: str | None = None) -> str:
+                nonlocal calls
+                calls += 1
+                if calls == 7:
+                    raise RuntimeError("cleanup failed")
+                return {1: "", 2: "", 3: "", 4: "1", 5: "0", 6: "12"}[calls]
+
+            stat_info = SimpleNamespace(st_uid=0, st_mode=0o100600)
+            directory_info = SimpleNamespace(st_uid=0, st_mode=0o40700)
+            stat = lambda path, *args, **kwargs: directory_info if path == backup_dir else stat_info
+            with patch.object(MODULE, "BACKUP_DIR", backup_dir), \
+                 patch.object(MODULE.Path, "stat", autospec=True, side_effect=stat), \
+                 patch.object(MODULE, "mysql", side_effect=fake_mysql):
+                with self.assertRaises(MODULE.ScratchCleanupError) as error:
+                    MODULE.validate_backup(backup)
+            self.assertRegex(error.exception.schema, r"^cotuong_restore_check_[0-9]{8}T[0-9]{6}Z_[0-9]+$")
+
+    def test_refuses_existing_scratch_schema_without_creating_or_dropping_it(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            backup_dir = Path(directory)
+            backup = backup_dir / "2026-10-28T12-00-00Z.sql.gz"
+            with gzip.open(backup, "wt", encoding="utf-8") as stream:
+                stream.write(self.dump)
+            os.chmod(backup, 0o600)
+            checksum = backup.with_name(backup.name + ".sha256")
+            checksum.write_text(hashlib.sha256(backup.read_bytes()).hexdigest() + "  " + backup.name + "\n", encoding="ascii")
+            os.chmod(checksum, 0o600)
+            calls: list[tuple[str, ...]] = []
+
+            def fake_mysql(*args: str, input_sql: str | None = None) -> str:
+                calls.append(args)
+                return "pre-existing schema" if len(calls) == 1 else ""
+
+            stat_info = SimpleNamespace(st_uid=0, st_mode=0o100600)
+            directory_info = SimpleNamespace(st_uid=0, st_mode=0o40700)
+            stat = lambda path, *args, **kwargs: directory_info if path == backup_dir else stat_info
+            with patch.object(MODULE, "BACKUP_DIR", backup_dir), \
+                 patch.object(MODULE.Path, "stat", autospec=True, side_effect=stat), \
+                 patch.object(MODULE, "mysql", side_effect=fake_mysql):
+                with self.assertRaisesRegex(ValueError, "already exists"):
+                    MODULE.validate_backup(backup)
+            self.assertEqual(len(calls), 1)
+            self.assertNotIn("CREATE DATABASE", calls[0][1])
+            self.assertNotIn("DROP DATABASE", calls[0][1])
 
 
 if __name__ == "__main__":
