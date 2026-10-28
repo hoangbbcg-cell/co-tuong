@@ -1,5 +1,7 @@
 # CI/CD plan for the isolated new VPS
 
+Current evidence, journal inspection, ordered migration/deploy approvals, rollback limits and runtime QA are maintained in [FIRST-DEPLOY-ROADMAP.md](FIRST-DEPLOY-ROADMAP.md).
+
 This is a test-only deployment path. Do not edit/reuse the active production workflow or `scripts/deploy-vps.sh`; those are pinned to `103.9.78.75`, `/home/nhat_hoang/co-tuong/board-game`, `/var/www/cotuong`, current production database/backup hooks and `hovanggame.com` health checks.
 
 ## Prepared release contract
@@ -37,7 +39,7 @@ Both workflows are deliberately separate from the production workflow and `scrip
 ## Deliberate gates
 
 - The operator confirmed the first-boot setup, `cotuong_stage` and app/migrator account creation, protected environment and service installation, PR #15 merge/CI success, and read-only preflight run `40640901804` success for both `validate-environment-gate` and `preflight`. The preflight did not inspect MySQL grants/schema journal or protected env metadata. Do not treat older checkpoint statements as current VPS state.
-- No real backup/restore, migration, or release activation has been reported. Before DDL, take and verify a test-only backup and pass the disposable-schema restore drill above. Then review/apply migrations only to `cotuong_stage` and run `db:verify` with the app account. Do not point this Environment at production data.
+- The operator reported local backup/restore PASS for the preserved 2026-10-28 dump and subsequently READ_ONLY_PREFLIGHT_ONLY=PASS. Exact journal rows/checksums were not retained in that supplied evidence; collect them with the read-only inspector before DDL. Independent R2 backup verification, migration and release activation remain unperformed. Run `db:verify` with the app account after any approved migration.
 - Activation health failure switches the code pointer back to the previous release; on a first deployment it stops the service and removes `current`. It never changes database state or deletes previous releases. Database migrations are intentionally outside the code rollback path.
 - The deployment health checks cover process/API liveness and a Socket.IO polling handshake over loopback. They do not yet exercise authenticated matchmaking/gameplay; that requires a verified test schema, credentials, and test account.
 - The bootstrap only creates an empty schema and credentials. The first deployment must wait for the reviewed migrations and a successful `db:verify`; current deployment automation intentionally does not apply migrations or verify schema through the liveness endpoint.

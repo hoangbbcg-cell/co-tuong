@@ -67,7 +67,7 @@ jobs:
       - name: New VPS helper regression
         run: |
           bash -n ops/vps-new/*.sh ops/vps-new/cotuong-vps-admin ops/vps-new/cotuong-deploy-activate ops/vps-new/cotuong-local-backup
-          python3 -m py_compile ops/vps-new/verify-test-release.py ops/vps-new/validate-test-backup.py ops/vps-new/upload-test-backup-r2.py ops/vps-new/verify-offsite-test-backup.py
+          python3 -m py_compile ops/vps-new/verify-test-release.py ops/vps-new/validate-test-backup.py ops/vps-new/upload-test-backup-r2.py ops/vps-new/verify-offsite-test-backup.py ops/vps-new/collect-test-migration-state.py
           bash ops/vps-new/test-node-tree-check.sh
       - name: Release artifact contract regression
         run: python3 -m unittest discover -s tests/release_artifact -v
@@ -84,7 +84,9 @@ jobs:
           persist-credentials: false
       - name: Parse and test read-only preflight construction
         shell: powershell
-        run: .\board-game\tests\vps_new\test-backup-restore-runner.ps1
+        run: |
+          .\board-game\tests\vps_new\test-backup-restore-runner.ps1
+          .\board-game\tests\vps_new\test-migration-inspector.ps1
 
   secret-scan:
     name: Secret scan

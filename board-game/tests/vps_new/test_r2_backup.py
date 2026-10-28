@@ -27,6 +27,11 @@ VERIFY = load_module("verify_offsite_test_backup", "verify-offsite-test-backup.p
 
 
 class R2BackupTests(unittest.TestCase):
+    def test_malformed_or_nonfinite_retention_age_fails_closed(self) -> None:
+        for value in (True, None, '7776000', float('nan'), float('inf'), -1):
+            self.assertFalse(UPLOAD.valid_age({'type': 'Age', 'maxAge': value}, 'maxAge', 90 * 86400))
+        self.assertFalse(UPLOAD.valid_age(None, 'maxAge', 90 * 86400))
+
     def test_source_change_during_encryption_stops_before_remote_upload(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -95,16 +100,25 @@ class R2BackupTests(unittest.TestCase):
     def test_retention_requires_prefix_scoped_lock_and_ninety_day_expiry(self) -> None:
         token_path = Path("/not-read-in-test")
         valid_lock = {"success": True, "result": {"rules": [{"id": "retain-test", "enabled": True, "prefix": "cotuong-stage/", "condition": {"type": "Age", "maxAgeSeconds": 35 * 86400}}]}}
-        response = type("Response", (), {"__enter__": lambda self: self, "__exit__": lambda *args: None, "read": lambda self: json.dumps(valid_lock).encode()})()
-        lifecycle = subprocess.CompletedProcess([], 0, json.dumps({"Rules": [{"Status": "Enabled", "Filter": {"Prefix": "cotuong-stage/"}, "Expiration": {"Days": 90}}]}), "")
-        with patch.object(UPLOAD.Path, "read_text", return_value="redacted-token"), patch.object(UPLOAD.urllib.request, "urlopen", return_value=response), patch.object(UPLOAD.subprocess, "run", return_value=lifecycle):
-            UPLOAD.verify_retention("bucket", "https://" + "a" * 32 + ".r2.cloudflarestorage.com", "a" * 32, token_path, {})
+        valid_expiry = {"enabled": True, "conditions": {"prefix": "cotuong-stage/"}, "deleteObjectsTransition": {"condition": {"type": "Age", "maxAge": 90 * 86400}}}
+        def response(payload):
+            return type("Response", (), {"__enter__": lambda self: self, "__exit__": lambda *args: None, "read": lambda self: json.dumps(payload).encode()})()
+        lifecycle = {"success": True, "result": {"rules": [valid_expiry]}}
+        with patch.object(UPLOAD.Path, "read_text", return_value="redacted-token"), patch.object(UPLOAD.urllib.request, "urlopen", side_effect=[response(valid_lock), response(lifecycle)]) as network, patch.object(UPLOAD.subprocess, "run") as aws:
+            UPLOAD.verify_retention("bucket", "a" * 32, token_path)
+        self.assertTrue(network.call_args_list[0].args[0].full_url.endswith('/lock'))
+        self.assertTrue(network.call_args_list[1].args[0].full_url.endswith('/lifecycle'))
+        aws.assert_not_called()  # Bucket configuration must not use object-only credentials.
 
         unlocked = {"success": True, "result": {"rules": [{"enabled": True, "prefix": "other/", "condition": {"type": "Age", "maxAgeSeconds": 90 * 86400}}]}}
-        response.read = lambda: json.dumps(unlocked).encode()
-        with patch.object(UPLOAD.Path, "read_text", return_value="redacted-token"), patch.object(UPLOAD.urllib.request, "urlopen", return_value=response):
+        with patch.object(UPLOAD.Path, "read_text", return_value="redacted-token"), patch.object(UPLOAD.urllib.request, "urlopen", return_value=response(unlocked)):
             with self.assertRaisesRegex(UPLOAD.BackupError, "35-day lock"):
-                UPLOAD.verify_retention("bucket", "https://" + "a" * 32 + ".r2.cloudflarestorage.com", "a" * 32, token_path, {})
+                UPLOAD.verify_retention("bucket", "a" * 32, token_path)
+        for prefix in ('', 'cotuong-stage/', 'cotuong-stage/nested/'):
+            conflicting = {"enabled": True, "conditions": {"prefix": prefix}, "deleteObjectsTransition": {"condition": {"type": "Age", "maxAge": 86400}}}
+            with patch.object(UPLOAD.Path, "read_text", return_value="redacted-token"), patch.object(UPLOAD, "policy_rules", side_effect=[valid_lock['result']['rules'], [valid_expiry, conflicting]]):
+                with self.assertRaisesRegex(UPLOAD.BackupError, "conflicting deletion"):
+                    UPLOAD.verify_retention("bucket", "a" * 32, token_path)
 
     def test_offsite_verifier_rejects_untrusted_object_prefix_before_network(self) -> None:
         with self.assertRaisesRegex(VERIFY.VerificationError, "prefix is invalid"):
