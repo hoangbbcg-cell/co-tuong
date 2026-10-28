@@ -7,7 +7,8 @@ param(
   [string]$HostAddress = '103.153.254.184',
   [string]$UserName = 'nhat_hoang',
   [string]$PrivateKey = (Join-Path $HOME '.ssh\cotuong_new_vps'),
-  [string]$KnownHosts = (Join-Path $HOME '.ssh\known_hosts')
+  [string]$KnownHosts = (Join-Path $HOME '.ssh\known_hosts'),
+  [switch]$ReadOnlyPreflightOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -85,6 +86,7 @@ try {
   [IO.File]::WriteAllText($SshConfigPath, (($sshConfigLines -join "`n") + "`n"), [System.Text.UTF8Encoding]::new($false))
   $sshOptions = @('-F', $SshConfigPath)
 
+  if (-not $ReadOnlyPreflightOnly) {
   New-Item -ItemType Directory -Path $LocalStage | Out-Null
   $BackupLogPath = Join-Path $LocalStage 'backup-run.log'
   $stagedFiles = @()
@@ -121,6 +123,7 @@ try {
     " && stat -c '%U:%G:%a %n' -- '$RemoteDirectory/cotuong-local-backup' '$RemoteDirectory/validate-test-backup.py' '$RemoteDirectory/.sha256' && cd '$RemoteDirectory' && sha256sum --check --status .sha256"
   Invoke-NativeChecked -FilePath 'ssh.exe' -Arguments (@('-i', $PrivateKey) + $sshOptions + @($Target, $verifyUpload)) -FailureMessage 'Remote owner/type/mode/SHA-256 verification failed'
   Write-Host 'Both uploaded helper hashes matched the local manifest; owner, regular-file type, symlink status, and mode checks passed.'
+  }
 
   # Keep the password prompt visible in the same PTY as all cached-sudo read-only queries.
   # Base64 keeps PowerShell 5.1 from re-quoting Bash and SQL punctuation in the SSH command.
@@ -179,6 +182,10 @@ printf 'READ_ONLY_PREFLIGHT=PASS\n'
   $remotePreflight = '/bin/bash -c "$(printf ''%s'' ' + $preflightBase64 + ' | base64 --decode)"'
   Write-Host 'The next SSH step performs read-only schema/journal/grant/backup checks. Sudo will prompt here if required; enter the password in this terminal. No backup or restore will start in this step.'
   Invoke-NativeChecked -FilePath 'ssh.exe' -Arguments (@('-tt', '-i', $PrivateKey) + $sshOptions + @($Target, $remotePreflight)) -FailureMessage 'Read-only VPS preflight failed; inspect the READ_ONLY_STEP diagnostic above'
+  if ($ReadOnlyPreflightOnly) {
+    Write-Host 'READ_ONLY_PREFLIGHT_ONLY=PASS; no helper upload, backup, restore, migration or deployment was performed.'
+    return
+  }
 
   Write-Host ''
   Write-Host 'Ready to perform these actions on the TEST VPS only:'

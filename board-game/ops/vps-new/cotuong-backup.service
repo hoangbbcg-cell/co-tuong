@@ -2,6 +2,7 @@
 Description=Local compressed backup of the isolated Co Tuong test database
 After=mysql.service
 Requires=mysql.service
+OnSuccess=cotuong-offsite-backup.service
 
 [Service]
 Type=oneshot
