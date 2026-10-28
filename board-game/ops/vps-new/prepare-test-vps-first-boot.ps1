@@ -48,7 +48,9 @@ try {
 
   if ($Preflight) {
     New-Item -ItemType Directory -Path $localStage | Out-Null
-    $preflightCommand = 'id -un && hostname -I'
+    # Exercise Bash positional-argument handling with a POSIX path through the
+    # exact ssh.exe argument-array path used by bootstrap. No remote writes.
+    $preflightCommand = 'bash -c ''test -r "$1" && cat -- "$1"'' _ ''/etc/hostname'' && id -un && hostname -I'
     Invoke-NativeChecked -FilePath 'ssh.exe' -Arguments (@('-i', $PrivateKey) + $sshOptions + @("$UserName@$HostAddress", $preflightCommand)) -FailureMessage 'Read-only SSH preflight failed'
     $hostnameProbe = Join-Path $localStage 'hostname'
     Invoke-NativeChecked -FilePath 'scp.exe' -Arguments (@('-i', $PrivateKey) + $sshOptions + @("${UserName}@${HostAddress}:/etc/hostname", $hostnameProbe)) -FailureMessage 'Read-only SCP preflight failed'
@@ -83,8 +85,10 @@ try {
     "$hash  $name"
   }
   Set-Content -LiteralPath $manifest -Value $manifestLines -Encoding ascii
-  $remoteManifest = Join-Path $remoteDir '.sha256'
-  $remoteBash = Join-Path $remoteDir 'prepare-test-vps-first-boot.sh'
+  # These are Linux paths. Join-Path uses the local Windows provider and turns
+  # /home/... into \home\..., which Bash cannot execute on the VPS.
+  $remoteManifest = "$remoteDir/.sha256"
+  $remoteBash = "$remoteDir/prepare-test-vps-first-boot.sh"
   $remoteCommand = "test ! -e '$remoteDir' && test ! -L '$remoteDir' && install -d -m 0700 '$remoteDir'"
   $remoteMayExist = $true
   Invoke-NativeChecked -FilePath 'ssh.exe' -Arguments (@('-i', $PrivateKey) + $sshOptions + @("$UserName@$HostAddress", $remoteCommand)) -FailureMessage 'Could not create the unique private upload directory'
