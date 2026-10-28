@@ -21,6 +21,8 @@ $ValidatorPath = Join-Path $PSScriptRoot 'validate-test-backup.py'
 $BackupHelperRelative = 'board-game/ops/vps-new/cotuong-local-backup'
 $ValidatorRelative = 'board-game/ops/vps-new/validate-test-backup.py'
 $RunnerRelative = 'board-game/ops/vps-new/run-test-backup-restore-drill.ps1'
+$TransportRelative = 'board-game/ops/vps-new/ssh-bash-command.ps1'
+$TransportHelper = Join-Path $PSScriptRoot 'ssh-bash-command.ps1'
 $LocalStage = Join-Path ([IO.Path]::GetTempPath()) ('cotuong-backup-drill-{0}' -f [guid]::NewGuid().ToString('N'))
 $ManifestPath = Join-Path ([IO.Path]::GetTempPath()) ('cotuong-backup-drill-{0}.sha256' -f [guid]::NewGuid().ToString('N'))
 $SshConfigPath = Join-Path ([IO.Path]::GetTempPath()) ('cotuong-backup-drill-{0}.conf' -f [guid]::NewGuid().ToString('N'))
@@ -53,6 +55,7 @@ try {
   foreach ($path in @($BackupHelperPath, $ValidatorPath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Required helper is missing: $path" }
   }
+  if (-not (Test-Path -LiteralPath $TransportHelper -PathType Leaf)) { throw 'Reviewed SSH Bash transport helper is missing.' }
 
   Write-Host "Fetching origin/master and requiring approved commit $ApprovedMasterCommit."
   Invoke-NativeChecked -FilePath 'git.exe' -Arguments @('-C', $RepoRoot, 'fetch', 'origin', 'master') -FailureMessage 'Could not update origin/master'
@@ -61,7 +64,7 @@ try {
     throw "origin/master is not the approved commit $ApprovedMasterCommit; found $masterCommit. Stop and review the newer master first."
   }
 
-  foreach ($relative in @($RunnerRelative, $BackupHelperRelative, $ValidatorRelative)) {
+  foreach ($relative in @($RunnerRelative, $TransportRelative, $BackupHelperRelative, $ValidatorRelative)) {
     & git.exe -C $RepoRoot diff --quiet $ApprovedMasterCommit -- $relative
     if ($LASTEXITCODE -ne 0) { throw "Local helper differs from approved master: $relative" }
     $localChanges = & git.exe -C $RepoRoot status --porcelain=v1 -- $relative
@@ -179,7 +182,8 @@ printf 'READ_ONLY_PREFLIGHT=PASS\n'
   $readOnlyPreflight = $readOnlyPreflight.Replace("`r`n", "`n").Replace("`r", "`n")
   $preflightBytes = [System.Text.Encoding]::UTF8.GetBytes($readOnlyPreflight)
   $preflightBase64 = [Convert]::ToBase64String($preflightBytes)
-  $remotePreflight = '/bin/bash -c "$(printf ''%s'' ' + $preflightBase64 + ' | base64 --decode)"'
+  . $TransportHelper
+  $remotePreflight = New-CotuongSshBashCommand -Base64Script $preflightBase64
   Write-Host 'The next SSH step performs read-only schema/journal/grant/backup checks. Sudo will prompt here if required; enter the password in this terminal. No backup or restore will start in this step.'
   Invoke-NativeChecked -FilePath 'ssh.exe' -Arguments (@('-tt', '-i', $PrivateKey) + $sshOptions + @($Target, $remotePreflight)) -FailureMessage 'Read-only VPS preflight failed; inspect the READ_ONLY_STEP diagnostic above'
   if ($ReadOnlyPreflightOnly) {
