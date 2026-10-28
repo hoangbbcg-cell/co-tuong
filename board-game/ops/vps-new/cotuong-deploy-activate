@@ -1,0 +1,64 @@
+#!/bin/bash
+# Root-owned atomic activation/rollback. No arguments or environment are accepted.
+set -Eeuo pipefail
+umask 077
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+readonly TARGET_IP='103.153.254.184'
+readonly ROOT='/srv/cotuong'
+readonly RELEASES="$ROOT/releases"
+readonly PENDING="$ROOT/deploy/pending"
+readonly SERVICE='cotuong-test.service'
+
+die() { printf 'cotuong-deploy-activate: %s\n' "$*" >&2; exit 1; }
+[[ $# == 0 && "$(id -u)" == 0 ]] || die 'no arguments accepted; run through the exact sudo rule'
+ip -o -4 addr show scope global | awk '{sub(/\/.*/, "", $4); print $4}' | grep -Fxq "$TARGET_IP" || die 'wrong VPS'
+exec 9>/run/lock/cotuong-deploy-activate.lock
+flock -n 9 || die 'another release activation is already running'
+[[ -d "$ROOT" && ! -L "$ROOT" && "$(stat -c %U:%G "$ROOT")" == root:root && "$(stat -c %a "$ROOT")" == 755 ]] || die 'unsafe app root'
+[[ -d "$RELEASES" && ! -L "$RELEASES" && "$(stat -c %U:%G "$RELEASES")" == 'cotuong_deploy:cotuong_release' && "$(stat -c %a "$RELEASES")" == 2750 ]] || die 'unsafe release directory'
+[[ -d "$ROOT/deploy" && ! -L "$ROOT/deploy" && "$(stat -c %U:%G "$ROOT/deploy")" == 'cotuong_deploy:cotuong_deploy' && "$(stat -c %a "$ROOT/deploy")" == 700 ]] || die 'unsafe deploy marker directory'
+[[ -L "$PENDING" && "$(stat -c %U:%G -- "$PENDING")" == 'cotuong_deploy:cotuong_deploy' ]] || die 'pending release pointer must be a deploy-owned symlink'
+pending_target="$(readlink -- "$PENDING")"
+[[ "$pending_target" =~ ^\.\./releases/([a-f0-9]{40})$ ]] || die 'invalid release pointer'
+readonly SHA="${BASH_REMATCH[1]}"
+readonly RELEASE="$RELEASES/$SHA"
+[[ -d "$RELEASE" && ! -L "$RELEASE" && "$(realpath -e "$RELEASE")" == "$RELEASE" ]] || die 'release must be a real directory at the pinned path'
+[[ "$(stat -c %U:%G "$RELEASE")" == 'cotuong_deploy:cotuong_release' ]] || die 'release has unexpected owner/group'
+[[ -f "$RELEASE/package.json" && -f "$RELEASE/server/index.ts" && -f "$RELEASE/dist/index.html" && -f "$RELEASE/node_modules/tsx/package.json" ]] || die 'release is incomplete'
+if find "$RELEASE" \( \( -name '.env' -o -name '.env.*' \) ! -name '.env.example' -o -name '.admin-access*' \) -print -quit | grep -q .; then
+  die 'environment/admin-access files must never be part of a release'
+fi
+
+previous=''
+if [[ -e "$ROOT/current" || -L "$ROOT/current" ]]; then
+  [[ -L "$ROOT/current" ]] || die 'current must be a symlink before activation'
+  previous="$(realpath -e "$ROOT/current" 2>/dev/null || true)"
+  [[ "$previous" == "$RELEASES/"* && -d "$previous" && ! -L "$previous" ]] || die 'current points outside the approved release tree'
+fi
+
+swap_current() {
+  local target="$1" temp="$ROOT/.current-activate-$$"
+  rm -f -- "$temp"
+  ln -s -- "$target" "$temp"
+  mv -Tf -- "$temp" "$ROOT/current"
+}
+
+swap_current "$RELEASE"
+if ! systemctl restart "$SERVICE"; then
+  if [[ -n "$previous" ]]; then swap_current "$previous"; systemctl restart "$SERVICE" || true
+  else rm -f -- "$ROOT/current"; systemctl stop "$SERVICE" || true; fi
+  die 'service restart failed; previous release restored when available'
+fi
+
+healthy=false
+for _ in {1..30}; do
+  if systemctl is-active --quiet "$SERVICE" && curl --fail --silent --max-time 2 http://127.0.0.1:3001/api/health >/dev/null; then healthy=true; break; fi
+  sleep 1
+done
+if [[ "$healthy" != true ]]; then
+  if [[ -n "$previous" ]]; then swap_current "$previous"; systemctl restart "$SERVICE" || true
+  else rm -f -- "$ROOT/current"; systemctl stop "$SERVICE" || true; fi
+  die 'health check failed; code symlink rolled back, database/data were not changed'
+fi
+rm -f -- "$PENDING"
+printf 'Activated release %s; health check passed. Previous release retained for rollback.\n' "$SHA"

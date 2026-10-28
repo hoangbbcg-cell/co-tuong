@@ -1,0 +1,7 @@
+# Install as /etc/sudoers.d/cotuong-vps-admin; validate with visudo first.
+# Exact command/argument pairs only. No shell, wildcard, environment, SSH or firewall command.
+nhat_hoang ALL=(root) NOPASSWD: NOSETENV: \
+  /usr/local/sbin/cotuong-vps-admin preflight, \
+  /usr/local/sbin/cotuong-vps-admin install-node22, \
+  /usr/local/sbin/cotuong-vps-admin create-deploy-user, \
+  /usr/local/sbin/cotuong-vps-admin install-app-unit
