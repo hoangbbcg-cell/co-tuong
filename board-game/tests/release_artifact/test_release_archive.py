@@ -17,10 +17,11 @@ REQUIRED = {
     "server/index.ts": (tarfile.REGTYPE, 0o640),
     "dist/index.html": (tarfile.REGTYPE, 0o640),
     "node_modules/tsx/package.json": (tarfile.REGTYPE, 0o640),
+    ".cotuong-release-sha": (tarfile.REGTYPE, 0o640),
 }
 
 
-def write_archive(path: Path, extra: tuple[str, int, str] | None = None) -> None:
+def write_archive(path: Path, extra: tuple[str, int, str] | None = None, marker_sha: str = SHA) -> None:
     with tarfile.open(path, "w:gz") as archive:
         root = tarfile.TarInfo(".")
         root.type = tarfile.DIRTYPE
@@ -30,7 +31,7 @@ def write_archive(path: Path, extra: tuple[str, int, str] | None = None) -> None
             info = tarfile.TarInfo(name)
             info.type = kind
             info.mode = mode
-            content = b"{}"
+            content = marker_sha.encode("ascii") if name == ".cotuong-release-sha" else b"{}"
             info.size = len(content)
             archive.addfile(info, io.BytesIO(content))
         link = tarfile.TarInfo("uploads")
@@ -57,6 +58,13 @@ class ReleaseArchiveTests(unittest.TestCase):
             archive = Path(directory) / "release.tar.gz"
             write_archive(archive)
             verify_archive(str(archive), SHA)
+
+    def test_rejects_release_marker_for_another_commit(self) -> None:
+        with tempfile.TemporaryDirectory(dir=TEST_ROOT) as directory:
+            archive = Path(directory) / "release.tar.gz"
+            write_archive(archive, marker_sha="b" * 40)
+            with self.assertRaisesRegex(ValueError, "SHA marker"):
+                verify_archive(str(archive), SHA)
 
     def test_rejects_environment_file(self) -> None:
         with tempfile.TemporaryDirectory(dir=TEST_ROOT) as directory:
