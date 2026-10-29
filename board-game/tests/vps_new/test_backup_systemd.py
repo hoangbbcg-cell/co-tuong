@@ -22,6 +22,15 @@ class BackupUnitVerificationTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_scheduled_unit_fails_if_local_or_offsite_verification_fails(self):
+        ops = Path(__file__).parents[2] / 'ops' / 'vps-new'
+        service = (ops / 'cotuong-backup.service').read_text(encoding='utf-8')
+        self.assertIn('ExecStart=/usr/local/sbin/run-test-backup.py', service)
+        self.assertIn('OnFailure=cotuong-backup-alert.service', service)
+        self.assertIn('OnSuccess=cotuong-r2-retention.service', service)
+        alert = (ops / 'cotuong-backup-alert.service').read_text(encoding='utf-8')
+        self.assertIn('/usr/bin/logger --priority daemon.crit', alert)
+
     def test_verify_requires_execstart_to_be_installed_before_validation(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

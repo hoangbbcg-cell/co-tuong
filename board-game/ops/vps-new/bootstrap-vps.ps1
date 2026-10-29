@@ -15,7 +15,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Could not create the private review directory 
 $Files = @(
   'README.md', 'bootstrap-vps.sh', 'cotuong-vps-admin', 'cotuong-vps-admin.sudoers',
   'cotuong-deploy-activate', 'cotuong-deploy.sudoers', 'cotuong.service', 'cotuong-test.conf',
-  'cotuong-local-backup', 'cotuong-backup.service', 'cotuong-backup.timer',
+  'cotuong-local-backup', 'run-test-backup.py', 'cotuong-backup.service', 'cotuong-backup-alert.service', 'cotuong-backup.timer',
   'upload-test-backup-r2.py', 'cotuong-media-backup.py', 'prune-test-r2-backups.py', 'prune-test-local-backups.py', 'cotuong-offsite-backup.service', 'cotuong-r2-retention.service'
 )
 $SourceFiles = $Files | ForEach-Object { Join-Path $Bundle $_ }
@@ -43,6 +43,8 @@ Write-Host "ssh -tt -i `"$PrivateKey`" -o IdentitiesOnly=yes -o BatchMode=yes -o
 $BackupRefresh = @(
   @{ Source = 'cotuong-local-backup'; Destination = '/usr/local/share/cotuong-vps/cotuong-local-backup'; Mode = '0750' },
   @{ Source = 'cotuong-backup.service'; Destination = '/usr/local/share/cotuong-vps/cotuong-backup.service'; Mode = '0644' },
+  @{ Source = 'run-test-backup.py'; Destination = '/usr/local/share/cotuong-vps/run-test-backup.py'; Mode = '0750' },
+  @{ Source = 'cotuong-backup-alert.service'; Destination = '/usr/local/share/cotuong-vps/cotuong-backup-alert.service'; Mode = '0644' },
   @{ Source = 'cotuong-backup.timer'; Destination = '/usr/local/share/cotuong-vps/cotuong-backup.timer'; Mode = '0644' },
   @{ Source = 'upload-test-backup-r2.py'; Destination = '/usr/local/share/cotuong-vps/upload-test-backup-r2.py'; Mode = '0750' },
   @{ Source = 'cotuong-media-backup.py'; Destination = '/usr/local/share/cotuong-vps/cotuong-media-backup.py'; Mode = '0750' },

@@ -11,6 +11,8 @@ $source = Get-Content -LiteralPath $scriptPath -Raw
 foreach ($required in @(
   'StrictHostKeyChecking=yes',
   "'prune-test-local-backups.py'",
+  "'run-test-backup.py'",
+  "'cotuong-backup-alert.service'",
   'For an already bootstrapped VPS',
   'sudo -k',
   '/usr/local/sbin/cotuong-vps-admin',

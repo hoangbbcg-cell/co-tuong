@@ -1,31 +1,31 @@
 # Backup readiness report — 2026-10-29
 
-## Repository implementation status
+## Repository state and implementation
 
-| Area | Status | Evidence / limitation |
+Audit work started from the latest fetched `origin/master` commit `21f1d89f456aafb02595268ff89815e0577ffbb3` (PR #29). The older Codex branch was preserved. The current candidate adds an orchestration gate so the scheduled service emits `BACKUP_COMPLETE=PASS` only after a matching local DB/media set and exact offsite `OFFSITE_VERIFIED` readback marker. Any helper failure or missing marker fails the systemd unit and records a `daemon.crit` journal alert. Retention remains dry-run.
+
+| Area | Prepared implementation | Verification boundary |
 | --- | --- | --- |
-| Local database backup | Implemented, not re-run | Consistent `mysqldump --single-transaction`, gzip check, root-only mode-0600 dump and SHA-256 sidecar. No backup was executed in this change. |
-| Application media backup | Implemented in master | Packages only group avatars and message images, rejects unsafe archive members and validates scratch extraction. No new data was read. |
-| Encrypted R2 transfer | Candidate implementation | Age-encrypts SQL, media and manifest before upload, uses immutable names, and reads back/verifies ciphertext. Requires approved Cloudflare bucket and credentials. |
-| R2 policy gate | Candidate implementation | Replaces a VPS-held account-wide Admin Read token with a root-owned, seven-day manual dashboard attestation. It asserts private access, exact prefix lock of at least 30 days, and no overlapping lifecycle deletion. Missing, invalid, stale or expired attestation blocks upload. This is not live API proof and cannot detect drift before expiry. |
-| Local retention | Candidate implementation | Dry-run by default; verifies every local set, preserves newest, requires fresh successful offsite marker for that exact source, and uses the same lock as backup. Apply requires explicit flag plus environment gate. No local files were removed. |
-| R2 retention | Candidate implementation | Dry-run by default; validates complete remote sets and hashes, requires a recent success marker, preserves newest. Apply requires explicit flag plus environment gate. No remote objects were removed. |
-| Installer and timer | Candidate implementation | Adds local retention helper to reviewed bundle/install paths. One-time `sudo` action is not added to persistent sudoers. Systemd retention calls are dry-run. Timer remains disabled; no helper was installed on VPS. |
-| Tests | Pending this candidate | Regression tests cover attestation validity/fail-closed cases and local retention planning/gates. CI results will be reported with the PR. |
-| Cloudflare state | Not verified or changed | No Cloudflare account connector was available. No account, billing, bucket, token, lock/lifecycle policy, or credential was created/read. |
-| VPS test current helper state | Read-only SSH verification | Verified strict host key and `nhat_hoang` login. `/usr/local/share/cotuong-vps` is `root:root 0755` and contains only the base local backup/app templates; R2/local-retention helper sources, installed helper executables, R2 config/attestation, and offsite/retention units are missing. `cotuong-local-backup.timer` is `not-found`. No VPS files or services were changed. |
-| VPS privilege path | Read-only sudo listing | `nhat_hoang` has the existing passworded sudo-group `(ALL:ALL) ALL` allowance and existing narrow NOPASSWD admin actions; no `install-local-backup` sudoers entry was added. The installer therefore requires `sudo -k` interactive authentication. |
-| Existing-host helper refresh | Prepared in repository, not executed | `bootstrap-vps.ps1` now prints a separate allowlisted existing-host refresh command after upload/hash review. It copies only root helper sources and unit templates, uses `sudo -k`, checks fixed source/target file types and owner, and does not run systemd/backup/retention or change sudoers. The operator must approve and run it separately. |
-| Prior local restore drill | User-reported PASS | SQL-only scratch restore on 2026-10-28. It does not prove current R2 upload, media restore or current DB state. |
-| Production | Untouched | No access/change to old VPS, production domain, Nginx, DNS or firewall. |
+| Database | Root-only MySQL dump of `cotuong_stage`, `--single-transaction`, routines/triggers/events, gzip validation and SHA-256 | No database was read or backed up in this task. |
+| Media/configuration | Archive only `group-avatars/` and `message-images/`; refuse symlinks, unexpected paths/types and traversal | Runtime config/secrets are deliberately not copied; recreate them from an approved secret store during recovery. RAM rooms/sockets/queues are not recoverable. |
+| Offsite | Age-encrypt DB/media/manifest, create-only R2 keys below `cotuong-stage/`, read each encrypted object back and compare SHA-256 | User previously reported synthetic R2 smoke PASS. No real backup was uploaded in this task. |
+| Success/error handling | New runner verifies matching local DB/media markers and exact `OFFSITE_VERIFIED` output before `BACKUP_COMPLETE=PASS`; systemd failure logs critical local alert | CI and full Ubuntu unit verification pending for this candidate. External email/SMS/chat is not configured. |
+| Schedule | Daily 03:00 `Asia/Ho_Chi_Minh`, `Persistent=false`; installer does not enable/start timer | Timer not activated or checked on VPS in this task. |
+| Retention | Local 30 days; R2 35 days to clear the 30-day Bucket Lock boundary; dry-run by default, preserve newest complete set, delete scope is constrained | No deletion or apply mode was run. “Month” is defined as 30×24h locally; R2 has the extra 5-day lock margin. |
+| Restore | Existing verifier validates downloaded ciphertext, age decryption, manifest, gzip and media archive; SQL/media validators target scratch | A safe export/transfer script for decrypted recovery artifacts is missing. No current offsite-to-scratch DB+media restore PASS exists. |
+| VPS test status | Read-only SSH with pinned host key on 2026-10-29: host `61152.vpsvinahost.vn`, timezone `Asia/Ho_Chi_Minh`, MySQL and `cotuong-test.service` active; `cotuong-local-backup.timer` is `not-found`; `/var/backups/cotuong-stage` is `root:root 0700`. The reviewed shared bundle still lists only `cotuong-backup.service`, its timer template, local helper and app templates. | No sudo, file/config read, DB query, backup, or service action was performed. Newly added runner/R2 executables and installed systemd unit paths were absent to this read-only account. Protected R2 config and actual backup contents were not inspected. |
 
-## Required user actions before operational setup
+## R2 state
 
-1. Explicitly confirm any R2 checkout/payment step, then create a dedicated private Standard bucket.
-2. In Cloudflare dashboard, verify public access is disabled, configure an enabled 30-day `cotuong-stage/` lock and verify no lifecycle deletion overlap; provide a short-lived root-only attestation on the VPS. No Admin Read token is needed or placed on the VPS. Manual verification has a seven-day drift window.
-3. Create an Object Read & Write S3 token scoped only to the backup bucket and a separate bucket-scoped Object Read token for Windows restore checks. Keep credentials in a password manager.
-4. Generate and independently protect the age private identity offline; install only the public recipient on the test VPS.
-5. Approve the one-time interactive-sudo installation of helpers/units; it does not enable timer or run backup.
-6. Separately approve the first real database/media backup, R2 upload, and scratch restore drill; later approve timer activation. Retention deletion is separate and remains disabled.
+Operator-provided context says the private Standard bucket `cotuong-stage-backup` exists, Bucket Lock is enabled for 30 days, and synthetic age-encrypted upload/readback/decrypt/hash passed. This task did not query Cloudflare or revalidate lock/lifecycle, credentials, billing, or public access. Bucket policy attestation is still the VPS-side fail-closed gate and does not detect dashboard drift during its seven-day validity window.
 
-No live backup, restore, retention deletion, timer activation, migration, deployment, VPS file/configuration change, or Cloudflare resource creation was performed for this repository task. The new read-only inspection supersedes older checkpoint statements about current backup helper/unit presence.
+## Not performed
+
+No access to VPS `103.9.78.75` or production domain; no real DB/media backup, R2 upload, restore, migration, deployment, timer activation, retention deletion, config or credential changes. The root-only backup directory was inspected by metadata only; its contents were not listed or read. Existing local backup reported on 2026-10-28 is preserved and not treated as current or as offsite proof.
+
+## Remaining gates
+
+1. Complete and test the safe Windows offsite-recovery export/transfer path, then run an approved real DB+media backup and isolated restore drill.
+2. Review/install the latest helper/unit bundle on the test VPS with interactive sudo; verify installed file hashes, systemd units and disabled timer read-only.
+3. Approve and run one manual two-copy backup and offsite restore drill; require `BACKUP_COMPLETE=PASS`, Windows decryption/manifest verification, and scratch DB+media validation.
+4. Only after the drill passes, separately approve enabling the 03:00 timer. Retention deletion remains separately disabled pending dry-run review and approval.

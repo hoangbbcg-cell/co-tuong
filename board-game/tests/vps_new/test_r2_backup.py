@@ -131,7 +131,7 @@ class R2BackupTests(unittest.TestCase):
 
     def test_retention_plan_keeps_newest_and_expires_only_old_complete_sets(self) -> None:
         old = "cotuong-stage/20260801T000000Z-" + "a" * 32
-        middle = "cotuong-stage/20260901T000000Z-" + "b" * 32
+        middle = "cotuong-stage/20260910T000000Z-" + "b" * 32
         newest = "cotuong-stage/20261028T090000Z-" + "c" * 32
         now = datetime(2026, 10, 29, tzinfo=timezone.utc)
         groups = {prefix: set() for prefix in (old, middle, newest)}
@@ -140,6 +140,17 @@ class R2BackupTests(unittest.TestCase):
         self.assertEqual(expired, [old, middle])
         with self.assertRaisesRegex(RETENTION.RetentionError, "incomplete backup set"):
             RETENTION.group_keys([old + ".sql.gz.age"])
+
+    def test_r2_retention_waits_five_days_past_the_30_day_bucket_lock(self) -> None:
+        newest = "cotuong-stage/20261028T090000Z-" + "a" * 32
+        old = "cotuong-stage/20260925T000000Z-" + "b" * 32
+        groups = {newest: set(), old: set()}
+        preserved, expired = RETENTION.retention_plan(groups, datetime(2026, 10, 29, tzinfo=timezone.utc))
+        self.assertEqual(preserved, newest)
+        self.assertEqual(expired, [])
+        preserved, expired = RETENTION.retention_plan(groups, datetime(2026, 10, 30, tzinfo=timezone.utc))
+        self.assertEqual(preserved, newest)
+        self.assertEqual(expired, [old])
 
     def test_offsite_verifier_rejects_untrusted_object_prefix_before_network(self) -> None:
         with self.assertRaisesRegex(VERIFY.VerificationError, "prefix is invalid"):
