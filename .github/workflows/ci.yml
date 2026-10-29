@@ -87,6 +87,7 @@ jobs:
         run: |
           .\board-game\tests\vps_new\test-backup-restore-runner.ps1
           .\board-game\tests\vps_new\test-migration-inspector.ps1
+          .\board-game\tests\vps_new\test-backup-bundle-refresh.ps1
 
   secret-scan:
     name: Secret scan
