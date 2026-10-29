@@ -2,6 +2,7 @@
 Description=Encrypt and verify the latest local Co Tuong test backup in Cloudflare R2
 After=network-online.target
 Wants=network-online.target
+OnSuccess=cotuong-r2-retention.service
 ConditionPathExists=/etc/cotuong/offsite-backup.conf
 
 [Service]

@@ -4,9 +4,12 @@ import importlib.util
 import json
 import gzip
 import hashlib
+import io
 import subprocess
+import tarfile
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -24,6 +27,7 @@ def load_module(name: str, file_name: str):
 
 UPLOAD = load_module("upload_test_backup_r2", "upload-test-backup-r2.py")
 VERIFY = load_module("verify_offsite_test_backup", "verify-offsite-test-backup.py")
+RETENTION = load_module("prune_test_r2_backups", "prune-test-r2-backups.py")
 
 
 class R2BackupTests(unittest.TestCase):
@@ -37,6 +41,8 @@ class R2BackupTests(unittest.TestCase):
             root = Path(directory)
             source = root / "2026-10-28T09-00-35Z.sql.gz"
             source.write_bytes(b"original dump")
+            media = root / "2026-10-28T09-00-35Z.uploads.tar.gz"
+            media.write_bytes(b"original media archive")
             credentials = root / "credentials"
             credentials.write_text("placeholder", encoding="ascii")
             token = root / "token"
@@ -57,6 +63,8 @@ class R2BackupTests(unittest.TestCase):
                 patch.object(UPLOAD, "R2_READ_TOKEN", token),
                 patch.object(UPLOAD, "AGE_RECIPIENTS", recipients),
                 patch.object(UPLOAD, "verify_source", return_value=old_digest),
+                patch.object(UPLOAD, "media_source_for", return_value=media),
+                patch.object(UPLOAD, "verify_media_source", return_value=(hashlib.sha256(media.read_bytes()).hexdigest(), 1)),
                 patch.object(UPLOAD, "load_config", return_value=("bucket", "endpoint", "account", credentials, token)),
                 patch.object(UPLOAD, "verify_retention"),
                 patch.object(UPLOAD, "require_root_file"),
@@ -97,13 +105,12 @@ class R2BackupTests(unittest.TestCase):
             with self.assertRaisesRegex(UPLOAD.BackupError, "safely determine"):
                 UPLOAD.head_exists("bucket", "key", "https://" + "a" * 32 + ".r2.cloudflarestorage.com", {})
 
-    def test_retention_requires_prefix_scoped_lock_and_ninety_day_expiry(self) -> None:
+    def test_retention_requires_thirty_day_prefix_lock_and_no_lifecycle_deletion(self) -> None:
         token_path = Path("/not-read-in-test")
-        valid_lock = {"success": True, "result": {"rules": [{"id": "retain-test", "enabled": True, "prefix": "cotuong-stage/", "condition": {"type": "Age", "maxAgeSeconds": 35 * 86400}}]}}
-        valid_expiry = {"enabled": True, "conditions": {"prefix": "cotuong-stage/"}, "deleteObjectsTransition": {"condition": {"type": "Age", "maxAge": 90 * 86400}}}
+        valid_lock = {"success": True, "result": {"rules": [{"id": "retain-test", "enabled": True, "prefix": "cotuong-stage/", "condition": {"type": "Age", "maxAgeSeconds": 30 * 86400}}]}}
         def response(payload):
             return type("Response", (), {"__enter__": lambda self: self, "__exit__": lambda *args: None, "read": lambda self: json.dumps(payload).encode()})()
-        lifecycle = {"success": True, "result": {"rules": [valid_expiry]}}
+        lifecycle = {"success": True, "result": {"rules": []}}
         with patch.object(UPLOAD.Path, "read_text", return_value="redacted-token"), patch.object(UPLOAD.urllib.request, "urlopen", side_effect=[response(valid_lock), response(lifecycle)]) as network, patch.object(UPLOAD.subprocess, "run") as aws:
             UPLOAD.verify_retention("bucket", "a" * 32, token_path)
         self.assertTrue(network.call_args_list[0].args[0].full_url.endswith('/lock'))
@@ -112,13 +119,25 @@ class R2BackupTests(unittest.TestCase):
 
         unlocked = {"success": True, "result": {"rules": [{"enabled": True, "prefix": "other/", "condition": {"type": "Age", "maxAgeSeconds": 90 * 86400}}]}}
         with patch.object(UPLOAD.Path, "read_text", return_value="redacted-token"), patch.object(UPLOAD.urllib.request, "urlopen", return_value=response(unlocked)):
-            with self.assertRaisesRegex(UPLOAD.BackupError, "35-day lock"):
+            with self.assertRaisesRegex(UPLOAD.BackupError, "30-day lock"):
                 UPLOAD.verify_retention("bucket", "a" * 32, token_path)
         for prefix in ('', 'cotuong-stage/', 'cotuong-stage/nested/'):
-            conflicting = {"enabled": True, "conditions": {"prefix": prefix}, "deleteObjectsTransition": {"condition": {"type": "Age", "maxAge": 86400}}}
-            with patch.object(UPLOAD.Path, "read_text", return_value="redacted-token"), patch.object(UPLOAD, "policy_rules", side_effect=[valid_lock['result']['rules'], [valid_expiry, conflicting]]):
-                with self.assertRaisesRegex(UPLOAD.BackupError, "conflicting deletion"):
+            conflicting = {"enabled": True, "conditions": {"prefix": prefix}, "deleteObjectsTransition": {"condition": {"type": "Age", "maxAge": 30 * 86400}}}
+            with patch.object(UPLOAD.Path, "read_text", return_value="redacted-token"), patch.object(UPLOAD, "policy_rules", side_effect=[valid_lock['result']['rules'], [conflicting]]):
+                with self.assertRaisesRegex(UPLOAD.BackupError, "lifecycle deletion overlaps"):
                     UPLOAD.verify_retention("bucket", "a" * 32, token_path)
+
+    def test_retention_plan_keeps_newest_and_expires_only_old_complete_sets(self) -> None:
+        old = "cotuong-stage/20260801T000000Z-" + "a" * 32
+        middle = "cotuong-stage/20260901T000000Z-" + "b" * 32
+        newest = "cotuong-stage/20261028T090000Z-" + "c" * 32
+        now = datetime(2026, 10, 29, tzinfo=timezone.utc)
+        groups = {prefix: set() for prefix in (old, middle, newest)}
+        preserved, expired = RETENTION.retention_plan(groups, now)
+        self.assertEqual(preserved, newest)
+        self.assertEqual(expired, [old, middle])
+        with self.assertRaisesRegex(RETENTION.RetentionError, "incomplete backup set"):
+            RETENTION.group_keys([old + ".sql.gz.age"])
 
     def test_offsite_verifier_rejects_untrusted_object_prefix_before_network(self) -> None:
         with self.assertRaisesRegex(VERIFY.VerificationError, "prefix is invalid"):
@@ -132,11 +151,22 @@ class R2BackupTests(unittest.TestCase):
             plain_dump = gzip.compress(b"test dump header\n")
             source_digest = hashlib.sha256(plain_dump).hexdigest()
             encrypted_dump = b"opaque encrypted dump"
+            plain_media = io.BytesIO()
+            with tarfile.open(fileobj=plain_media, mode="w:gz") as media_archive:
+                for directory_name in ("group-avatars", "message-images"):
+                    item = tarfile.TarInfo(directory_name + "/")
+                    item.type = tarfile.DIRTYPE
+                    media_archive.addfile(item)
+            plain_media_bytes = plain_media.getvalue()
+            encrypted_media = b"opaque encrypted media"
             encrypted_manifest = b"opaque encrypted manifest"
-            manifest = json.dumps({"format": 1, "schema": "cotuong_stage", "source_sha256": source_digest, "encrypted_sha256": hashlib.sha256(encrypted_dump).hexdigest()}).encode()
+            media_digest = hashlib.sha256(plain_media_bytes).hexdigest()
+            manifest = json.dumps({"format": 2, "schema": "cotuong_stage", "database": {"source_sha256": source_digest, "encrypted_sha256": hashlib.sha256(encrypted_dump).hexdigest()}, "media": {"source_sha256": media_digest, "encrypted_sha256": hashlib.sha256(encrypted_media).hexdigest(), "file_count": 0}}).encode()
             objects = {
                 prefix + ".sql.gz.age": encrypted_dump,
                 prefix + ".sql.gz.age.sha256": (hashlib.sha256(encrypted_dump).hexdigest() + "\n").encode(),
+                prefix + ".uploads.tar.gz.age": encrypted_media,
+                prefix + ".uploads.tar.gz.age.sha256": (hashlib.sha256(encrypted_media).hexdigest() + "\n").encode(),
                 prefix + ".manifest.age": encrypted_manifest,
                 prefix + ".manifest.age.sha256": (hashlib.sha256(encrypted_manifest).hexdigest() + "\n").encode(),
             }
@@ -146,14 +176,19 @@ class R2BackupTests(unittest.TestCase):
                     Path(args[-1]).write_bytes(objects[args[args.index("--key") + 1]])
                 elif args[0] == "age":
                     target = Path(args[args.index("--output") + 1])
-                    target.write_bytes(plain_dump if "backup.sql.gz.age" in args[-1] else manifest)
+                    if "backup.sql.gz.age" in args[-1]:
+                        target.write_bytes(plain_dump)
+                    elif "backup.uploads.tar.gz.age" in args[-1]:
+                        target.write_bytes(plain_media_bytes)
+                    else:
+                        target.write_bytes(manifest)
                 elif args[0] != "gzip":
                     raise AssertionError("unexpected restore command")
                 return subprocess.CompletedProcess(args, 0, "", "")
 
             with patch.object(VERIFY, "run_silent", side_effect=fake_run):
                 actual = VERIFY.verify(prefix, "backup-bucket", "https://" + "a" * 32 + ".r2.cloudflarestorage.com", identity)
-            self.assertEqual(actual, source_digest)
+            self.assertEqual(actual, (source_digest, 0))
 
 
 if __name__ == "__main__":

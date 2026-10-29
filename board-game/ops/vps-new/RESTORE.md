@@ -12,10 +12,10 @@ The operator reported a successful local database-only restore drill on 2026-10-
 4. Decrypt locally to a temporary file protected by the Windows user's ACL. Verify the manifest checksum, archive contents and compression. Do not print decrypted data.
 5. Transfer only the approved test restore material over a pinned SSH connection to the test VPS. Obtain separate approval before any database restore.
 6. Restore the SQL dump to a newly generated scratch schema, never over `cotuong_stage` or any production database. Run the reviewed scratch validator and compare table/journal metadata.
-7. Restore media only into a new, isolated scratch directory. Reject absolute paths, `..`, symlinks and unexpected file types before extraction. Compare the manifest file count and checksums.
+7. Verify the decrypted media archive against the manifest, then run `sudo /usr/local/sbin/cotuong-media-backup.py --restore-validate /var/backups/cotuong-stage/<timestamp>.uploads.tar.gz`. It creates a unique `/var/tmp/cotuong-media-restore-check-*` directory, rejects traversal, symlinks, unexpected types/names and existing targets, and prints the exact scratch path and file count. The scratch is preserved for inspection; remove only that exact path after explicit cleanup approval.
 8. Preserve the original backup and offsite objects. Remove only scratch data created by that exact drill, after confirming ownership and the generated scratch identifier.
 
-The VPS validation helper is database-only. A future media restore validator must be reviewed and tested before the full application restore can be called PASS.
+SQL and media validators are separate so either failure remains diagnosable. A full application restore passes only when both succeed and the database metadata agrees with the backup manifest.
 
 ## VPS loss
 

@@ -16,7 +16,7 @@ $Files = @(
   'README.md', 'bootstrap-vps.sh', 'cotuong-vps-admin', 'cotuong-vps-admin.sudoers',
   'cotuong-deploy-activate', 'cotuong-deploy.sudoers', 'cotuong.service', 'cotuong-test.conf',
   'cotuong-local-backup', 'cotuong-backup.service', 'cotuong-backup.timer',
-  'upload-test-backup-r2.py', 'cotuong-offsite-backup.service'
+  'upload-test-backup-r2.py', 'cotuong-media-backup.py', 'prune-test-r2-backups.py', 'cotuong-offsite-backup.service', 'cotuong-r2-retention.service'
 )
 $SourceFiles = $Files | ForEach-Object { Join-Path $Bundle $_ }
 scp -i $PrivateKey @SshOptions @SourceFiles "$UserName@${HostAddress}:$RemoteDir/";

@@ -10,6 +10,9 @@ OPS = REPO / "ops" / "vps-new"
 class VpsTestCdContractTests(unittest.TestCase):
     def test_test_backup_has_checksum_and_restore_drill_is_scratch_only(self) -> None:
         backup = (OPS / "cotuong-local-backup").read_text(encoding="utf-8")
+        media_helper = (OPS / "cotuong-media-backup.py").read_text(encoding="utf-8")
+        bootstrap = (OPS / "bootstrap-vps.sh").read_text(encoding="utf-8")
+        admin = (OPS / "cotuong-vps-admin").read_text(encoding="utf-8")
         validator = (OPS / "validate-test-backup.py").read_text(encoding="utf-8")
         self.assertIn("readonly DB='cotuong_stage'", backup)
         self.assertIn('sha256sum "$(basename -- "$OUT")"', backup)
@@ -18,6 +21,10 @@ class VpsTestCdContractTests(unittest.TestCase):
         self.assertIn('f"cotuong_restore_check_{stamp}_{os.getpid()}"', validator)
         self.assertIn('DROP DATABASE `{target}`', validator)
         self.assertNotIn('DROP DATABASE `cotuong_stage`', validator)
+        self.assertIn('cotuong-media-backup.py --package "$STAMP"', backup)
+        self.assertIn('"group-avatars", "message-images"', media_helper)
+        self.assertIn('cotuong-media-backup.py', bootstrap)
+        self.assertIn('/usr/local/sbin/cotuong-media-backup.py', admin)
         self.assertIn("restore_validation_uses_unique_scratch_schema_and_drops_it", (REPO / "tests" / "vps_new" / "test_backup_restore.py").read_text(encoding="utf-8"))
 
     def test_deploy_identity_never_traverses_protected_environment_directory(self) -> None:
@@ -142,13 +149,18 @@ class VpsTestCdContractTests(unittest.TestCase):
 
     def test_r2_offsite_backup_is_encrypted_retained_and_verifies_remote_readback(self) -> None:
         helper = (OPS / "upload-test-backup-r2.py").read_text(encoding="utf-8")
+        media = (OPS / "cotuong-media-backup.py").read_text(encoding="utf-8")
+        retention = (OPS / "prune-test-r2-backups.py").read_text(encoding="utf-8")
         verifier = (OPS / "verify-offsite-test-backup.py").read_text(encoding="utf-8")
         local_unit = (OPS / "cotuong-backup.service").read_text(encoding="utf-8")
         offsite_unit = (OPS / "cotuong-offsite-backup.service").read_text(encoding="utf-8")
         self.assertIn('"age", "--encrypt"', helper)
         self.assertIn('"--if-none-match", "*"', helper)
-        self.assertIn("MIN_LOCK_SECONDS = 35", helper)
-        self.assertIn("MIN_RETENTION_DAYS = 90", helper)
+        self.assertIn("MIN_LOCK_SECONDS = 30", helper)
+        self.assertIn('"format": 2', helper)
+        self.assertIn(".uploads.tar.gz.age", helper)
+        self.assertIn("MEDIA_RESTORE_VALIDATED", media)
+        self.assertIn("RETENTION_DRY_RUN=PASS", retention)
         self.assertIn("sha256_file(downloaded) != expected", helper)
         self.assertIn("OFFSITE_DECRYPTION_VERIFIED", verifier)
         self.assertIn("age", verifier)
@@ -166,6 +178,8 @@ class VpsTestCdContractTests(unittest.TestCase):
         self.assertIn('"IfNoneMatch"', action)
         self.assertNotIn("rm -f /var/backups/cotuong-stage", action)
         self.assertGreater(action.index('systemd-analyze verify'), action.index('install -o root -g root -m 0700 "$offsite"'))
-        self.assertLess(action.index('systemd-analyze verify'), action.index('systemctl enable --now'))
+        self.assertLess(action.index('systemd-analyze verify'), action.index('systemctl daemon-reload'))
+        self.assertNotIn('systemctl enable --now cotuong-local-backup.timer', action)
+        self.assertIn('timer remains disabled', action)
 if __name__ == "__main__":
     unittest.main()
