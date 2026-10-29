@@ -34,6 +34,7 @@ import { Board } from '../../features/game/components/Board'
 import { PlayerCard } from '../../features/game/components/PlayerCard'
 import { RoomQueueButton, RoomUsersPanel } from '../../features/game/components/RoomUsersPanel'
 import { MatchActions } from '../../features/game/components/MatchActions'
+import { RoomOfferDialog } from '../../features/game/components/RoomOfferDialog'
 import { Chat } from '../../features/game/components/Chat'
 import { LobbyDialog } from '../../features/lobby/components/LobbyDialog'
 import { AwardedHonorGrantPanel, ProfileDialog } from '../../features/lobby/components/ProfileDialog'
@@ -53,10 +54,6 @@ import { buttonInteraction, gameUtilityButton, homeUtilityButton, lobbyButton } 
 import { GameBackIcon } from '../../features/game/components/GameBackIcon'
 import { HomeIcon } from '../../features/lobby/components/HomeIcon'
 import { createClientId } from '../../lib/clientId'
-import takebackDialog from '../../assets/takeback/takeback-dialog.png'
-import drawDialog from '../../assets/takeback/draw-dialog.png'
-import takebackDecline from '../../assets/takeback/takeback-decline.png'
-import takebackAccept from '../../assets/takeback/takeback-accept.png'
 import roomCodeFrame from '../../assets/room-code/room-code-frame.png'
 import honorNoticeFrame from '../../assets/awarded-honors/grant-row.png'
 
@@ -395,14 +392,7 @@ export function GamePage({ onEntranceComplete, replayData, skipEntrance = false,
         <p className="relative m-0 px-[12%] text-center font-cormorant text-[clamp(23px,3.5vw,31px)] font-bold leading-tight text-[#f3dda9]">{match.repetitionNotice}</p>
       </div>
     </div>}
-    {match.online && !!match.player && (match.room?.drawOffer && match.room.drawOffer !== match.player.side || match.room?.takebackOffer && match.room.takebackOffer.requester !== match.player.side) && <div className="fixed inset-0 z-50 grid place-items-center bg-[#07171526]" role="alertdialog" aria-label={match.room?.drawOffer ? 'Đối thủ cầu hòa' : 'Đối thủ yêu cầu đi lại'}>
-      <div className="relative w-[min(520px,calc(100%-32px))] overflow-hidden shadow-[0_10px_35px_#0009]">
-        <img src={match.room?.drawOffer ? drawDialog : takebackDialog} alt={match.room?.drawOffer ? 'Đối phương muốn cầu hòa' : 'Đối phương muốn đi lại'} className="block h-auto w-full border-0" />
-        <button type="button" aria-label={match.room?.drawOffer ? 'Đóng và từ chối cầu hòa' : 'Đóng và từ chối đi lại'} disabled={match.pending} onClick={() => match.room?.drawOffer ? match.replyDraw(false) : match.replyTakeback(false)} className="absolute top-[11.5%] right-[2.5%] m-0 aspect-square w-[9.8%] rounded-full border-0 bg-transparent p-0 enabled:hover:brightness-110 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe290]" />
-        <button type="button" aria-label={match.room?.drawOffer ? 'Từ chối cầu hòa' : 'Từ chối đi lại'} disabled={match.pending} onClick={() => match.room?.drawOffer ? match.replyDraw(false) : match.replyTakeback(false)} className="absolute bottom-[10.45%] left-[11.85%] m-0 h-auto w-[36.6%] border-0 bg-transparent p-0 leading-none enabled:hover:brightness-110 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe290]"><img src={takebackDecline} alt="" className="block size-full border-0" /></button>
-        <button type="button" aria-label={match.room?.drawOffer ? 'Đồng ý cầu hòa' : 'Cho phép đi lại'} disabled={match.pending} onClick={() => match.room?.drawOffer ? match.replyDraw(true) : match.replyTakeback(true)} className="absolute right-[12.63%] bottom-[10.45%] m-0 h-auto w-[36.6%] border-0 bg-transparent p-0 leading-none enabled:hover:brightness-110 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe290]"><img src={takebackAccept} alt="" className="block size-full border-0" /></button>
-      </div>
-    </div>}
+    <RoomOfferDialog online={match.online} playerSide={match.player?.side} drawOffer={match.room?.drawOffer} takebackOffer={match.room?.takebackOffer} pending={match.pending} replyDraw={match.replyDraw} replyTakeback={match.replyTakeback} />
     <LobbyDialog lobby={lobby} />
     <FriendsDialog layout={friendsLayout} dialogRef={friendsRef} onClose={() => friendsRef.current?.close()} onOpenProfile={openPlayerProfile} onOpenMessages={(targetName, image, status) => { setMessageRequest({ id: ++messageRequestId.current, name: targetName, image, status }); if (!messagesRef.current?.open) messagesRef.current?.showModal() }} />
     <MessagesDialog layout={messagesLayout} dialogRef={messagesRef} openRequest={messageRequest} onViewInfo={openPlayerProfile} onClose={() => messagesRef.current?.close()} />

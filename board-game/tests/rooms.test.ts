@@ -203,6 +203,82 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(room.takebackRemaining?.red).toBe(0)
     expect(() => service.command('a', { type: 'request-takeback' })).toThrow('hết 2 lần')
   })
+  it('giữ yêu cầu đi lại đến 9.999 ms rồi tự hết hạn đúng 10.000 ms', () => {
+    start(); now = 1300; service.command('a', move)
+    service.command('a', { type: 'request-takeback' })
+
+    now = 11_299
+    expect(service.tick()[0].takebackOffer).toEqual({ requester: 'red', plies: 1 })
+    expect(service.roomFor('a')?.game.remainingTime.black).toBe(600_000)
+
+    now = 11_300
+    const expired = service.tick()[0]
+    expect(expired.takebackOffer).toBeNull()
+    expect(expired.game.remainingTime.black).toBe(600_000)
+    expect(expired.messages.at(-1)?.text).toContain('hết hạn')
+  })
+  it('khi tick muộn, chỉ tính thời gian sau deadline và phản hồi sau hạn bị từ chối', () => {
+    start(); now = 1300; service.command('a', move)
+    service.command('a', { type: 'request-takeback' })
+
+    now = 13_300
+    expect(() => service.command('b', { type: 'reply-takeback', accepted: true })).toThrow('đã hết hạn')
+    const room = service.roomFor('a')!
+    expect(room.takebackOffer).toBeNull()
+    expect(room.game.remainingTime.black).toBe(598_000)
+    expect(room.game.lastClockUpdate).toBe(13_300)
+  })
+  it('không trả offer hết hạn cho người reconnect trước tick kế tiếp', () => {
+    start(); now = 1300; service.command('a', move)
+    service.command('a', { type: 'request-takeback' })
+    now = 11_300
+
+    const reconnected = service.join(id, 'viewer', 'Reconnect', undefined, true)
+    expect(reconnected.takebackOffer).toBeNull()
+    expect(service.tick()).toContain(reconnected)
+  })
+  it('chấp nhận hoàn tác khi phản hồi ở mốc 9.999 ms', () => {
+    start(); now = 1300; service.command('a', move)
+    service.command('a', { type: 'request-takeback' })
+    now = 11_299
+    const accepted = service.command('b', { type: 'reply-takeback', accepted: true })
+    expect(accepted.takebackOffer).toBeNull()
+    expect(accepted.game.currentTurn).toBe('red')
+    expect(accepted.game.remainingTime).toEqual({ red: 600_000, black: 600_000 })
+  })
+  it('deadline đã hết không ảnh hưởng một yêu cầu đi lại mới', () => {
+    start(); now = 1300; service.command('a', move)
+    service.command('a', { type: 'request-takeback' })
+    now = 11_300
+    expect(service.tick()[0].takebackOffer).toBeNull()
+    service.command('b', { type: 'move', move: { from: { row: 3, col: 0 }, to: { row: 4, col: 0 } } })
+    service.command('a', { type: 'move', move: { from: { row: 6, col: 2 }, to: { row: 5, col: 2 } } })
+    const next = service.command('a', { type: 'request-takeback' })
+    expect(next.takebackOffer).toEqual({ requester: 'red', plies: 1 })
+    now = 21_299
+    expect(service.tick()[0].takebackOffer).not.toBeNull()
+    now = 21_300
+    expect(service.tick()[0].takebackOffer).toBeNull()
+  })
+  it('dọn deadline khi người chơi rời phòng', () => {
+    start(); now = 1300; service.command('a', move)
+    service.command('a', { type: 'request-takeback' })
+    expect(service.leave('a')?.takebackOffer).toBeNull()
+  })
+  it('kết thúc, reset và bắt đầu ván mới không mang theo deadline cũ', () => {
+    start(); now = 1300; service.command('a', move)
+    service.command('a', { type: 'request-takeback' })
+    expect(service.command('b', { type: 'resign' }).takebackOffer).toBeNull()
+    const reset = service.command('a', { type: 'reset' })
+    expect(reset.game.phase).toBe('ready')
+
+    const ready = service.command('a', { type: 'ready' })
+    const started = service.command('b', { type: 'ready' })
+    expect(ready.takebackOffer).toBeNull()
+    expect(started.game.phase).toBe('playing')
+    now = 21_300
+    expect(service.tick()[0].takebackOffer).toBeNull()
+  })
   it('đồng hồ server hết giờ, rời phòng xử thua và giải phóng ghế', () => {
     start(); now = 601301
     expect(service.tick()[0].game.result).toEqual({ winner: 'black', reason: 'timeout' })

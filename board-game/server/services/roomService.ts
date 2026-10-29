@@ -12,6 +12,7 @@ import { ROOM_MINUTES, ROOM_TURN_SECONDS, ROOM_REACTIONS } from '../../src/types
 import { RoomRepository } from '../repositories/roomRepository'
 
 export class RoomError extends Error {}
+const TAKEBACK_TIMEOUT_MS = 10_000
 function textInput(value: unknown, limit: number): string {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > limit) throw new RoomError(`Nội dung phải có 1–${limit} ký tự.`)
   return value.trim()
@@ -27,11 +28,15 @@ function createRoomGame(now:number,minutes:number,turnSeconds:number,variant:Gam
 }
 export class RoomService {
   private queueRotations = new Map<string, { result: GameState['result']; deadline: number; waitingAtFinish: Set<string> }>()
+  private takebackDeadlines = new Map<string, number>()
+  private takebackStateChanges = new Set<string>()
   private readyWaits = new Map<string, { pair: string; since: number; readyPlayer: string | null; readySince: number | null }>()
   private histories = new Map<string, GameState[]>()
   private repetitionNoticeDeadlines = new Map<string, number | null>()
   constructor(private repository: RoomRepository, private now = () => performance.now(), private firstPlayerSide: () => 'red' | 'black' = () => randomInt(0, 2) === 0 ? 'red' : 'black') {}
   private startMatch(room: RoomSnapshot, now: number) {
+    this.takebackDeadlines.delete(room.id)
+    room.takebackOffer = null
     room.takebackBlocked = {}
     const chosenSide = this.firstPlayerSide()
     room.players = room.players.map(player => ({ ...player, side: player.side === chosenSide ? 'red' : 'black' }))
@@ -83,6 +88,18 @@ export class RoomService {
   }
   private append(room: RoomSnapshot, name: string, text: string, system = false) {
     room.messages = [...room.messages, { id: randomUUID(), name, text, system }].slice(-100)
+  }
+  private expireTakebackOffer(room: RoomSnapshot, now: number): boolean {
+    const deadline = this.takebackDeadlines.get(room.id)
+    if (!room.takebackOffer || deadline === undefined || now < deadline) return false
+    this.takebackDeadlines.delete(room.id)
+    room.takebackOffer = null
+    room.game = advanceClock({ ...room.game, lastClockUpdate: deadline }, now)
+    if (room.game.phase === 'finished') room.drawOffer = null
+    this.append(room, '', 'Yêu cầu đi lại đã hết hạn.', true)
+    this.repository.save(room)
+    this.takebackStateChanges.add(room.id)
+    return true
   }
   private captureCompletedMatch(room: RoomSnapshot) {
     if (room.game.phase !== 'finished' || room.lastCompletedMatch?.states.at(-1)?.result === room.game.result) return
@@ -179,6 +196,7 @@ export class RoomService {
   }
   join(id: unknown, playerId: string, name: unknown, password?: unknown, asViewer: unknown = false): RoomSnapshot {
     const room = this.get(textInput(id, 64))
+    this.expireTakebackOffer(room, this.now())
     if (typeof name !== 'string') throw new RoomError('Tên người chơi không hợp lệ.')
     const nameError = playerNameError(name)
     if (nameError) throw new RoomError(nameError)
@@ -235,6 +253,7 @@ export class RoomService {
     const player = room.players.find(player => player.id === playerId)
     if (!player) return null
     const leavingAt = this.now()
+    this.takebackDeadlines.delete(room.id)
     this.repetitionNoticeDeadlines.delete(room.id)
     room.repetitionNoticePaused = false
     room.repetitionNoticeKind = null
@@ -254,7 +273,7 @@ export class RoomService {
     room.takebackOffer = null
     this.rotateQueueAfterFinishedGame(room)
     this.updateReadyWait(room)
-    if (!room.players.length && !room.viewers?.length) { this.repository.delete(room.id); this.histories.delete(room.id); this.repetitionNoticeDeadlines.delete(room.id) }
+    if (!room.players.length && !room.viewers?.length) { this.repository.delete(room.id); this.takebackDeadlines.delete(room.id); this.takebackStateChanges.delete(room.id); this.histories.delete(room.id); this.repetitionNoticeDeadlines.delete(room.id) }
     else this.repository.save(room)
     return room
   }
@@ -313,10 +332,13 @@ export class RoomService {
     if (!player) throw new RoomError('Người xem không thể thao tác ván cờ.')
     if (room.repetitionNoticePaused) throw new RoomError('Đóng bảng nhắc nhở để tiếp tục ván cờ.')
     const now = this.now()
+    const takebackExpired = this.expireTakebackOffer(room, now)
+    if (takebackExpired && command.type === 'reply-takeback') throw new RoomError('Yêu cầu đi lại đã hết hạn.')
     room.game = room.takebackOffer ? { ...room.game, lastClockUpdate: now } : command.type === 'move' ? room.game : advanceClock(room.game, now)
     if (room.game.phase === 'finished') {
       room.drawOffer = null
       room.takebackOffer = null
+      this.takebackDeadlines.delete(room.id)
     }
     this.rotateQueueAfterFinishedGame(room)
     this.updateReadyWait(room, now)
@@ -392,6 +414,7 @@ export class RoomService {
         const plies: 1 | 2 = requestedPlies === 2 && history.length === 1 ? 1 : requestedPlies
         room.takebackRemaining = { ...remaining, [player.side]: remaining[player.side] - 1 }
         room.takebackOffer = { requester: player.side, plies }
+        this.takebackDeadlines.set(room.id, now + TAKEBACK_TIMEOUT_MS)
         room.takebackDecline = null
         break
       }
@@ -415,6 +438,7 @@ export class RoomService {
           room.takebackDecline = { id: randomUUID(), requester: offer.requester, declinedBy: player.side }
         }
         room.takebackOffer = null
+        this.takebackDeadlines.delete(room.id)
         break
       }
       case 'reset':
@@ -428,12 +452,17 @@ export class RoomService {
         room.players = room.players.map(player => ({ ...player, ready: false }))
         room.drawOffer = null
         room.takebackOffer = null
+        this.takebackDeadlines.delete(room.id)
         room.takebackDecline = null
         room.takebackRemaining = { red: 2, black: 2 }
         room.moveCount = 0
         this.histories.set(room.id, [])
         break
       default: throw new RoomError('Thao tác không được hỗ trợ.')
+    }
+    if (room.game.phase === 'finished') {
+      room.takebackOffer = null
+      this.takebackDeadlines.delete(room.id)
     }
     this.rotateQueueAfterFinishedGame(room)
     this.updateReadyWait(room, now)
@@ -458,14 +487,27 @@ export class RoomService {
   tick(): RoomSnapshot[] {
     const changed: RoomSnapshot[] = []
     for (const room of this.repository.all()) {
+      const takebackStateChanged = this.takebackStateChanges.delete(room.id)
       if (room.game.phase !== 'playing') {
+        this.takebackDeadlines.delete(room.id)
         const beforeGame = room.game
         this.rotateQueueAfterFinishedGame(room)
         const readinessChanged = this.updateReadyWait(room)
-        if (beforeGame !== room.game || readinessChanged) { this.repository.save(room); changed.push(room) }
+        if (beforeGame !== room.game || readinessChanged || takebackStateChanged) { this.repository.save(room); changed.push(room) }
         continue
       }
       const now = this.now()
+      const takebackExpired = this.expireTakebackOffer(room, now)
+      if (takebackExpired && (room.game as GameState).phase === 'finished') {
+        room.drawOffer = null
+        this.takebackDeadlines.delete(room.id)
+        this.rotateQueueAfterFinishedGame(room, now)
+        this.updateReadyWait(room, now)
+        this.repository.save(room)
+        this.takebackStateChanges.delete(room.id)
+        changed.push(room)
+        continue
+      }
       const repetitionNoticeDeadline = this.repetitionNoticeDeadlines.get(room.id)
       if (room.repetitionNoticePaused && (repetitionNoticeDeadline === undefined || repetitionNoticeDeadline === null || now < repetitionNoticeDeadline)) {
         changed.push(room)
@@ -477,11 +519,12 @@ export class RoomService {
         room.repetitionNoticeKind = null
         this.repetitionNoticeDeadlines.delete(room.id)
       }
-      room.game = room.takebackOffer ? { ...room.game, lastClockUpdate: now } : advanceClock(room.game, now)
-      if (room.game.phase === 'finished') { room.drawOffer = null; room.takebackOffer = null }
+      room.game = room.takebackOffer ? room.game : advanceClock(room.game, now)
+      if (room.game.phase === 'finished') { room.drawOffer = null; room.takebackOffer = null; this.takebackDeadlines.delete(room.id) }
       this.rotateQueueAfterFinishedGame(room)
       this.updateReadyWait(room, now)
       this.repository.save(room)
+      this.takebackStateChanges.delete(room.id)
       changed.push(room)
     }
     return changed
