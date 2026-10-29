@@ -8,6 +8,20 @@ from pathlib import Path
 
 @unittest.skipUnless(os.name == 'posix' and shutil.which('systemd-analyze'), 'Requires Linux systemd-analyze; covered by Ubuntu CI')
 class BackupUnitVerificationTests(unittest.TestCase):
+    def test_backup_timer_is_daily_at_three_vietnam_time_without_catchup(self):
+        timer = Path(__file__).parents[2] / 'ops' / 'vps-new' / 'cotuong-backup.timer'
+        source = timer.read_text(encoding='utf-8')
+        self.assertIn('OnCalendar=*-*-* 03:00:00 Asia/Ho_Chi_Minh', source)
+        self.assertIn('AccuracySec=1s', source)
+        self.assertIn('Persistent=false', source)
+        self.assertNotIn('RandomizedDelaySec=', source)
+        result = subprocess.run(
+            ['systemd-analyze', 'calendar', '*-*-* 03:00:00 Asia/Ho_Chi_Minh'],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_verify_requires_execstart_to_be_installed_before_validation(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
