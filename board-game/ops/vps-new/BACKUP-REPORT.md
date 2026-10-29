@@ -2,14 +2,14 @@
 
 ## Repository state and implementation
 
-Audit work started from the latest fetched `origin/master` commit `21f1d89f456aafb02595268ff89815e0577ffbb3` (PR #29). The older Codex branch was preserved. The current candidate adds an orchestration gate so the scheduled service emits `BACKUP_COMPLETE=PASS` only after a matching local DB/media set and exact offsite `OFFSITE_VERIFIED` readback marker. Any helper failure or missing marker fails the systemd unit and records a `daemon.crit` journal alert. Retention remains dry-run.
+Audit work started from the latest fetched `origin/master` commit `21f1d89f456aafb02595268ff89815e0577ffbb3` (PR #29); the older Codex branch was preserved. PR #30 merged as `655b5875f34b91522e51a6c65b02dcf7494149aa`. The scheduled service now emits `BACKUP_COMPLETE=PASS` only after a matching local DB/media set and exact offsite `OFFSITE_VERIFIED` readback marker. Any helper failure or missing marker fails the systemd unit and records a `daemon.crit` journal alert. Retention remains dry-run.
 
 | Area | Prepared implementation | Verification boundary |
 | --- | --- | --- |
 | Database | Root-only MySQL dump of `cotuong_stage`, `--single-transaction`, routines/triggers/events, gzip validation and SHA-256 | No database was read or backed up in this task. |
 | Media/configuration | Archive only `group-avatars/` and `message-images/`; refuse symlinks, unexpected paths/types and traversal | Runtime config/secrets are deliberately not copied; recreate them from an approved secret store during recovery. RAM rooms/sockets/queues are not recoverable. |
 | Offsite | Age-encrypt DB/media/manifest, create-only R2 keys below `cotuong-stage/`, read each encrypted object back and compare SHA-256 | User previously reported synthetic R2 smoke PASS. No real backup was uploaded in this task. |
-| Success/error handling | New runner verifies matching local DB/media markers and exact `OFFSITE_VERIFIED` output before `BACKUP_COMPLETE=PASS`; systemd failure logs critical local alert | CI and full Ubuntu unit verification pending for this candidate. External email/SMS/chat is not configured. |
+| Success/error handling | Runner verifies matching local DB/media markers and exact `OFFSITE_VERIFIED` output before `BACKUP_COMPLETE=PASS`; systemd failure logs critical local alert | GitHub Actions run `40862654054`: Ubuntu `checks`, Windows PowerShell 5.1 regression and Secret scan all SUCCESS; PR #30 merged under ruleset. External email/SMS/chat is not configured. |
 | Schedule | Daily 03:00 `Asia/Ho_Chi_Minh`, `Persistent=false`; installer does not enable/start timer | Timer not activated or checked on VPS in this task. |
 | Retention | Local 30 days; R2 35 days to clear the 30-day Bucket Lock boundary; dry-run by default, preserve newest complete set, delete scope is constrained | No deletion or apply mode was run. “Month” is defined as 30×24h locally; R2 has the extra 5-day lock margin. |
 | Restore | Existing verifier validates downloaded ciphertext, age decryption, manifest, gzip and media archive; SQL/media validators target scratch | A safe export/transfer script for decrypted recovery artifacts is missing. No current offsite-to-scratch DB+media restore PASS exists. |
