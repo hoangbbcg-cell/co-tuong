@@ -39,3 +39,37 @@ finally {
 Write-Host 'Files uploaded for review only. No sudo command has been run.'
 Write-Host "After reviewing the bundle, run this separate command to copy the installer to /root as root-owned, then install the reviewed helpers:"
 Write-Host "ssh -tt -i `"$PrivateKey`" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes $UserName@$HostAddress 'sudo test ! -e /root/cotuong-vps-bootstrap.sh && sudo test ! -L /root/cotuong-vps-bootstrap.sh && sudo /usr/bin/install -o root -g root -m 0700 $RemoteDir/bootstrap-vps.sh /root/cotuong-vps-bootstrap.sh && sudo /root/cotuong-vps-bootstrap.sh $RemoteDir'"
+
+$BackupRefresh = @(
+  @{ Source = 'cotuong-local-backup'; Destination = '/usr/local/share/cotuong-vps/cotuong-local-backup'; Mode = '0750' },
+  @{ Source = 'cotuong-backup.service'; Destination = '/usr/local/share/cotuong-vps/cotuong-backup.service'; Mode = '0644' },
+  @{ Source = 'cotuong-backup.timer'; Destination = '/usr/local/share/cotuong-vps/cotuong-backup.timer'; Mode = '0644' },
+  @{ Source = 'upload-test-backup-r2.py'; Destination = '/usr/local/share/cotuong-vps/upload-test-backup-r2.py'; Mode = '0750' },
+  @{ Source = 'cotuong-media-backup.py'; Destination = '/usr/local/share/cotuong-vps/cotuong-media-backup.py'; Mode = '0750' },
+  @{ Source = 'prune-test-r2-backups.py'; Destination = '/usr/local/share/cotuong-vps/prune-test-r2-backups.py'; Mode = '0750' },
+  @{ Source = 'prune-test-local-backups.py'; Destination = '/usr/local/share/cotuong-vps/prune-test-local-backups.py'; Mode = '0750' },
+  @{ Source = 'cotuong-offsite-backup.service'; Destination = '/usr/local/share/cotuong-vps/cotuong-offsite-backup.service'; Mode = '0644' },
+  @{ Source = 'cotuong-r2-retention.service'; Destination = '/usr/local/share/cotuong-vps/cotuong-r2-retention.service'; Mode = '0644' },
+  @{ Source = 'cotuong-vps-admin'; Destination = '/usr/local/sbin/cotuong-vps-admin'; Mode = '0750' }
+)
+$RefreshParts = @(
+  "test -d /usr/local/sbin && test ! -L /usr/local/sbin && stat -c '%U:%G' /usr/local/sbin | grep -Fx root:root",
+  "test -d /usr/local/share/cotuong-vps && test ! -L /usr/local/share/cotuong-vps && stat -c '%U:%G:%a' /usr/local/share/cotuong-vps | grep -Fx root:root:755",
+  "test -f '$RemoteDir/cotuong-vps-admin' && test ! -L '$RemoteDir/cotuong-vps-admin'"
+)
+foreach ($Item in $BackupRefresh) {
+  $SourcePath = "$RemoteDir/$($Item.Source)"
+  $RefreshParts += "test -f '$SourcePath' && test ! -L '$SourcePath'"
+  $RefreshParts += "test ! -L '$($Item.Destination)' && { test ! -e '$($Item.Destination)' || { test -f '$($Item.Destination)' && stat -c '%U:%G' '$($Item.Destination)' | grep -Fx root:root; }; }"
+}
+$RefreshParts += 'sudo -k'
+foreach ($Item in $BackupRefresh) {
+  $SourcePath = "$RemoteDir/$($Item.Source)"
+  $RefreshParts += "sudo /usr/bin/install -o root -g root -m $($Item.Mode) '$SourcePath' '$($Item.Destination)'"
+}
+$RefreshParts += 'printf "Reviewed backup helper sources refreshed; no backup, unit reload, timer activation, or sudoers change was run.\n"'
+$RefreshCommand = $RefreshParts -join ' && '
+Write-Host 'For an already bootstrapped VPS, the following separate command refreshes only the listed root-owned backup sources after their uploaded SHA-256 values have been reviewed.'
+Write-Host 'It uses interactive sudo; it does not install backup executables, reload/start units, enable timers, run backup/retention, or modify sudoers.'
+Write-Host "ssh -tt -i `"$PrivateKey`" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes $UserName@$HostAddress `"$RefreshCommand`""
+Write-Host 'After a separately approved config review, the one-time installer command is: sudo -k /usr/local/sbin/cotuong-vps-admin install-local-backup (interactive sudo; no sudoers grant is added).'

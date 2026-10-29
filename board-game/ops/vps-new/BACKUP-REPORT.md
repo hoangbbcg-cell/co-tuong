@@ -12,7 +12,10 @@
 | R2 retention | Candidate implementation | Dry-run by default; validates complete remote sets and hashes, requires a recent success marker, preserves newest. Apply requires explicit flag plus environment gate. No remote objects were removed. |
 | Installer and timer | Candidate implementation | Adds local retention helper to reviewed bundle/install paths. One-time `sudo` action is not added to persistent sudoers. Systemd retention calls are dry-run. Timer remains disabled; no helper was installed on VPS. |
 | Tests | Pending this candidate | Regression tests cover attestation validity/fail-closed cases and local retention planning/gates. CI results will be reported with the PR. |
-| Cloudflare/VPS state | Not verified or changed here | No credentials, bucket, policy, helper installation, backup, restore, deletion or timer action was performed. |
+| Cloudflare state | Not verified or changed | No Cloudflare account connector was available. No account, billing, bucket, token, lock/lifecycle policy, or credential was created/read. |
+| VPS test current helper state | Read-only SSH verification | Verified strict host key and `nhat_hoang` login. `/usr/local/share/cotuong-vps` is `root:root 0755` and contains only the base local backup/app templates; R2/local-retention helper sources, installed helper executables, R2 config/attestation, and offsite/retention units are missing. `cotuong-local-backup.timer` is `not-found`. No VPS files or services were changed. |
+| VPS privilege path | Read-only sudo listing | `nhat_hoang` has the existing passworded sudo-group `(ALL:ALL) ALL` allowance and existing narrow NOPASSWD admin actions; no `install-local-backup` sudoers entry was added. The installer therefore requires `sudo -k` interactive authentication. |
+| Existing-host helper refresh | Prepared in repository, not executed | `bootstrap-vps.ps1` now prints a separate allowlisted existing-host refresh command after upload/hash review. It copies only root helper sources and unit templates, uses `sudo -k`, checks fixed source/target file types and owner, and does not run systemd/backup/retention or change sudoers. The operator must approve and run it separately. |
 | Prior local restore drill | User-reported PASS | SQL-only scratch restore on 2026-10-28. It does not prove current R2 upload, media restore or current DB state. |
 | Production | Untouched | No access/change to old VPS, production domain, Nginx, DNS or firewall. |
 
@@ -25,4 +28,4 @@
 5. Approve the one-time interactive-sudo installation of helpers/units; it does not enable timer or run backup.
 6. Separately approve the first real database/media backup, R2 upload, and scratch restore drill; later approve timer activation. Retention deletion is separate and remains disabled.
 
-No live backup, restore, retention deletion, timer activation, migration, deployment, or Cloudflare resource creation was performed for this repository task.
+No live backup, restore, retention deletion, timer activation, migration, deployment, VPS file/configuration change, or Cloudflare resource creation was performed for this repository task. The new read-only inspection supersedes older checkpoint statements about current backup helper/unit presence.
