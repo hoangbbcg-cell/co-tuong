@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dry-run-first 30-day R2 cleanup; preserves the newest verified backup set."""
+"""Dry-run-first 35-day R2 cleanup; preserves the newest verified backup set."""
 from __future__ import annotations
 
 import hashlib
@@ -21,7 +21,9 @@ UPLOAD = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(UPLOAD)
 
 PREFIX = "cotuong-stage/"
-RETENTION = timedelta(days=30)
+# Keep a five-day safety margin beyond the 30-day R2 lock. Local retention
+# remains 30 days; remote deletion must not hit the lock's exact expiry edge.
+RETENTION = timedelta(days=35)
 STATUS = Path("/var/backups/cotuong-stage/.offsite-status")
 SUFFIXES = (".sql.gz.age", ".uploads.tar.gz.age", ".manifest.age")
 GROUP_RE = re.compile(r"cotuong-stage/([0-9]{8}T[0-9]{6}Z-[0-9a-f]{32})(\.sql\.gz\.age|\.uploads\.tar\.gz\.age|\.manifest\.age)(\.sha256)?")

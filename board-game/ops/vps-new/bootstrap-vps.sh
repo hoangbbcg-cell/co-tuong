@@ -28,7 +28,7 @@ for path in /usr /usr/local /usr/local/sbin /usr/local/share /etc /etc/sudoers.d
   [[ -d "$path" && ! -L "$path" && "$(stat -c %U "$path")" == root ]] || die "unsafe parent directory: $path"
   [[ -z "$(find "$path" -maxdepth 0 -perm /022 -print)" ]] || die "group/world writable parent directory: $path"
 done
-for file in cotuong.service cotuong-test.conf cotuong-local-backup cotuong-backup.service cotuong-backup.timer upload-test-backup-r2.py cotuong-media-backup.py prune-test-r2-backups.py prune-test-local-backups.py cotuong-offsite-backup.service cotuong-r2-retention.service; do
+for file in cotuong.service cotuong-test.conf cotuong-local-backup run-test-backup.py cotuong-backup.service cotuong-backup-alert.service cotuong-backup.timer upload-test-backup-r2.py cotuong-media-backup.py prune-test-r2-backups.py prune-test-local-backups.py cotuong-offsite-backup.service cotuong-r2-retention.service; do
   [[ -f "$SOURCE_DIR/$file" && ! -L "$SOURCE_DIR/$file" ]] || die "missing regular source file: $file"
 done
 [[ -f "$SOURCE_DIR/cotuong-vps-admin" && ! -L "$SOURCE_DIR/cotuong-vps-admin" ]] || die 'missing admin executable'
@@ -62,10 +62,14 @@ install -o root -g root -m 0644 "$SOURCE_DIR/cotuong-test.conf" "$SHARE/cotuong-
 created+=("$SHARE/cotuong-test.conf")
 install -o root -g root -m 0750 "$SOURCE_DIR/cotuong-local-backup" "$SHARE/cotuong-local-backup"
 created+=("$SHARE/cotuong-local-backup")
+install -o root -g root -m 0750 "$SOURCE_DIR/run-test-backup.py" "$SHARE/run-test-backup.py"
+created+=("$SHARE/run-test-backup.py")
 install -o root -g root -m 0750 "$SOURCE_DIR/cotuong-deploy-activate" /usr/local/sbin/cotuong-deploy-activate
 created+=(/usr/local/sbin/cotuong-deploy-activate)
 install -o root -g root -m 0644 "$SOURCE_DIR/cotuong-backup.service" "$SHARE/cotuong-backup.service"
 created+=("$SHARE/cotuong-backup.service")
+install -o root -g root -m 0644 "$SOURCE_DIR/cotuong-backup-alert.service" "$SHARE/cotuong-backup-alert.service"
+created+=("$SHARE/cotuong-backup-alert.service")
 install -o root -g root -m 0644 "$SOURCE_DIR/cotuong-backup.timer" "$SHARE/cotuong-backup.timer"
 created+=("$SHARE/cotuong-backup.timer")
 install -o root -g root -m 0750 "$SOURCE_DIR/upload-test-backup-r2.py" "$SHARE/upload-test-backup-r2.py"

@@ -1,17 +1,25 @@
 [Unit]
-Description=Local compressed backup of the isolated Co Tuong test database
+Description=Verified local and encrypted offsite backup of the Co Tuong test database and media
 After=mysql.service
 Requires=mysql.service
-OnSuccess=cotuong-offsite-backup.service
+OnSuccess=cotuong-r2-retention.service
+OnFailure=cotuong-backup-alert.service
 
 [Service]
 Type=oneshot
 User=root
 Group=root
-ExecStart=/usr/local/sbin/cotuong-local-backup
+ExecStart=/usr/local/sbin/run-test-backup.py
+EnvironmentFile=-/etc/cotuong/offsite-backup.conf
+Environment=AWS_SHARED_CREDENTIALS_FILE=/etc/cotuong/r2-credentials
+Environment=AWS_CONFIG_FILE=/dev/null
+Environment=AWS_DEFAULT_REGION=auto
+Environment=AWS_EC2_METADATA_DISABLED=true
+Environment=AWS_PAGER=
 UMask=0077
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths=/var/backups/cotuong-stage
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

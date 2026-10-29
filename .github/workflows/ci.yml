@@ -67,7 +67,7 @@ jobs:
       - name: New VPS helper regression
         run: |
           bash -n ops/vps-new/*.sh ops/vps-new/cotuong-vps-admin ops/vps-new/cotuong-deploy-activate ops/vps-new/cotuong-local-backup
-          python3 -m py_compile ops/vps-new/verify-test-release.py ops/vps-new/validate-test-backup.py ops/vps-new/upload-test-backup-r2.py ops/vps-new/prune-test-r2-backups.py ops/vps-new/prune-test-local-backups.py ops/vps-new/verify-offsite-test-backup.py ops/vps-new/collect-test-migration-state.py
+          python3 -m py_compile ops/vps-new/verify-test-release.py ops/vps-new/validate-test-backup.py ops/vps-new/run-test-backup.py ops/vps-new/upload-test-backup-r2.py ops/vps-new/prune-test-r2-backups.py ops/vps-new/prune-test-local-backups.py ops/vps-new/verify-offsite-test-backup.py ops/vps-new/collect-test-migration-state.py
           bash ops/vps-new/test-node-tree-check.sh
       - name: Release artifact contract regression
         run: python3 -m unittest discover -s tests/release_artifact -v
