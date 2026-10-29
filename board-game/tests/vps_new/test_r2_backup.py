@@ -31,11 +31,6 @@ RETENTION = load_module("prune_test_r2_backups", "prune-test-r2-backups.py")
 
 
 class R2BackupTests(unittest.TestCase):
-    def test_malformed_or_nonfinite_retention_age_fails_closed(self) -> None:
-        for value in (True, None, '7776000', float('nan'), float('inf'), -1):
-            self.assertFalse(UPLOAD.valid_age({'type': 'Age', 'maxAge': value}, 'maxAge', 90 * 86400))
-        self.assertFalse(UPLOAD.valid_age(None, 'maxAge', 90 * 86400))
-
     def test_source_change_during_encryption_stops_before_remote_upload(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -60,7 +55,7 @@ class R2BackupTests(unittest.TestCase):
             with (
                 patch.object(UPLOAD, "BACKUP_DIR", root),
                 patch.object(UPLOAD, "R2_CREDENTIALS", credentials),
-                patch.object(UPLOAD, "R2_READ_TOKEN", token),
+                patch.object(UPLOAD, "R2_POLICY_ATTESTATION", token),
                 patch.object(UPLOAD, "AGE_RECIPIENTS", recipients),
                 patch.object(UPLOAD, "verify_source", return_value=old_digest),
                 patch.object(UPLOAD, "media_source_for", return_value=media),
@@ -105,27 +100,34 @@ class R2BackupTests(unittest.TestCase):
             with self.assertRaisesRegex(UPLOAD.BackupError, "safely determine"):
                 UPLOAD.head_exists("bucket", "key", "https://" + "a" * 32 + ".r2.cloudflarestorage.com", {})
 
-    def test_retention_requires_thirty_day_prefix_lock_and_no_lifecycle_deletion(self) -> None:
-        token_path = Path("/not-read-in-test")
-        valid_lock = {"success": True, "result": {"rules": [{"id": "retain-test", "enabled": True, "prefix": "cotuong-stage/", "condition": {"type": "Age", "maxAgeSeconds": 30 * 86400}}]}}
-        def response(payload):
-            return type("Response", (), {"__enter__": lambda self: self, "__exit__": lambda *args: None, "read": lambda self: json.dumps(payload).encode()})()
-        lifecycle = {"success": True, "result": {"rules": []}}
-        with patch.object(UPLOAD.Path, "read_text", return_value="redacted-token"), patch.object(UPLOAD.urllib.request, "urlopen", side_effect=[response(valid_lock), response(lifecycle)]) as network, patch.object(UPLOAD.subprocess, "run") as aws:
-            UPLOAD.verify_retention("bucket", "a" * 32, token_path)
-        self.assertTrue(network.call_args_list[0].args[0].full_url.endswith('/lock'))
-        self.assertTrue(network.call_args_list[1].args[0].full_url.endswith('/lifecycle'))
-        aws.assert_not_called()  # Bucket configuration must not use object-only credentials.
+    def test_manual_r2_policy_attestation_is_bucket_scoped_and_expires(self) -> None:
+        now = datetime.now(timezone.utc)
+        report = {
+            "format": 1,
+            "account_id": "a" * 32,
+            "bucket": "backup-bucket",
+            "prefix": "cotuong-stage/",
+            "public_access_disabled": True,
+            "lock_age_seconds": 30 * 86400,
+            "lifecycle_deletion_overlap": False,
+            "verified_via": "cloudflare-dashboard",
+            "checked_at": now.isoformat(),
+            "expires_at": (now + UPLOAD.timedelta(days=7)).isoformat(),
+        }
+        attestation = Path("/not-read-in-test")
+        with patch.object(UPLOAD, "require_root_file"), patch.object(UPLOAD.Path, "read_text", return_value=json.dumps(report)):
+            UPLOAD.verify_retention("backup-bucket", "a" * 32, attestation)
 
-        unlocked = {"success": True, "result": {"rules": [{"enabled": True, "prefix": "other/", "condition": {"type": "Age", "maxAgeSeconds": 90 * 86400}}]}}
-        with patch.object(UPLOAD.Path, "read_text", return_value="redacted-token"), patch.object(UPLOAD.urllib.request, "urlopen", return_value=response(unlocked)):
-            with self.assertRaisesRegex(UPLOAD.BackupError, "30-day lock"):
-                UPLOAD.verify_retention("bucket", "a" * 32, token_path)
-        for prefix in ('', 'cotuong-stage/', 'cotuong-stage/nested/'):
-            conflicting = {"enabled": True, "conditions": {"prefix": prefix}, "deleteObjectsTransition": {"condition": {"type": "Age", "maxAge": 30 * 86400}}}
-            with patch.object(UPLOAD.Path, "read_text", return_value="redacted-token"), patch.object(UPLOAD, "policy_rules", side_effect=[valid_lock['result']['rules'], [conflicting]]):
-                with self.assertRaisesRegex(UPLOAD.BackupError, "lifecycle deletion overlaps"):
-                    UPLOAD.verify_retention("bucket", "a" * 32, token_path)
+        for field, value in (("public_access_disabled", False), ("lock_age_seconds", 0), ("lock_age_seconds", True), ("lifecycle_deletion_overlap", True), ("bucket", "other-bucket")):
+            invalid = dict(report, **{field: value})
+            with patch.object(UPLOAD, "require_root_file"), patch.object(UPLOAD.Path, "read_text", return_value=json.dumps(invalid)):
+                with self.assertRaises(UPLOAD.BackupError):
+                    UPLOAD.verify_retention("backup-bucket", "a" * 32, attestation)
+
+        expired = dict(report, expires_at=(now - UPLOAD.timedelta(seconds=1)).isoformat())
+        with patch.object(UPLOAD, "require_root_file"), patch.object(UPLOAD.Path, "read_text", return_value=json.dumps(expired)):
+            with self.assertRaisesRegex(UPLOAD.BackupError, "expired"):
+                UPLOAD.verify_retention("backup-bucket", "a" * 32, attestation)
 
     def test_retention_plan_keeps_newest_and_expires_only_old_complete_sets(self) -> None:
         old = "cotuong-stage/20260801T000000Z-" + "a" * 32

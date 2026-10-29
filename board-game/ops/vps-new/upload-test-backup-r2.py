@@ -6,7 +6,6 @@ from __future__ import annotations
 import hashlib
 import configparser
 import json
-import math
 import os
 import re
 import shutil
@@ -15,18 +14,17 @@ import subprocess
 import sys
 import tempfile
 import uuid
-import urllib.error
-import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 BACKUP_DIR = Path("/var/backups/cotuong-stage")
 MEDIA_HELPER = Path("/usr/local/sbin/cotuong-media-backup.py")
 R2_CREDENTIALS = Path("/etc/cotuong/r2-credentials")
-R2_READ_TOKEN = Path("/etc/cotuong/r2-read-token")
+R2_POLICY_ATTESTATION = Path("/etc/cotuong/r2-policy-attestation.json")
 AGE_RECIPIENTS = Path("/etc/cotuong/r2-age-recipients")
 MAX_BACKUP_AGE_SECONDS = 12 * 60 * 60
 MIN_LOCK_SECONDS = 30 * 24 * 60 * 60
+MAX_POLICY_ATTESTATION_AGE = timedelta(days=7)
 
 
 class BackupError(RuntimeError):
@@ -57,7 +55,7 @@ def checked_run(args: list[str], *, env: dict[str, str] | None = None) -> subpro
         raise BackupError("required encryption or R2 operation failed; inspect protected service logs") from error
 
 
-def write_offsite_status(status: str, prefix: str) -> None:
+def write_offsite_status(status: str, prefix: str, source_stamp: str) -> None:
     path = BACKUP_DIR / ".offsite-status"
     temporary = BACKUP_DIR / f".offsite-status.{uuid.uuid4().hex}.tmp"
     if path.is_symlink() or (path.exists() and not path.is_file()):
@@ -65,7 +63,7 @@ def write_offsite_status(status: str, prefix: str) -> None:
     fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
     try:
         with os.fdopen(fd, "w", encoding="ascii") as stream:
-            stream.write(f"{status} {prefix} {datetime.now(timezone.utc).isoformat()}\n")
+            stream.write(f"{status} {prefix} {datetime.now(timezone.utc).isoformat()} {source_stamp}\n")
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary, path)
@@ -140,7 +138,7 @@ def load_config() -> tuple[str, str, str, Path, Path]:
     if not re.fullmatch(r"[a-f0-9]{32}", account) or endpoint != f"https://{account}.r2.cloudflarestorage.com":
         raise BackupError("R2 account configuration is invalid")
     require_root_file(R2_CREDENTIALS, 0o600)
-    require_root_file(R2_READ_TOKEN, 0o600)
+    require_root_file(R2_POLICY_ATTESTATION, 0o600)
     require_root_file(AGE_RECIPIENTS, 0o600)
     credentials = configparser.RawConfigParser()
     try:
@@ -152,61 +150,43 @@ def load_config() -> tuple[str, str, str, Path, Path]:
     recipients = [line.strip() for line in AGE_RECIPIENTS.read_text(encoding="ascii").splitlines() if line.strip()]
     if not recipients or any(not re.fullmatch(r"age1[023456789acdefghjklmnpqrstuvwxyz]{58}", item) for item in recipients):
         raise BackupError("age recipient configuration is invalid")
-    return bucket, endpoint, account, R2_CREDENTIALS, R2_READ_TOKEN
+    return bucket, endpoint, account, R2_CREDENTIALS, R2_POLICY_ATTESTATION
 
 
-def policy_rules(bucket: str, account: str, token: str, policy: str) -> list[dict]:
-    request = urllib.request.Request(
-        f"https://api.cloudflare.com/client/v4/accounts/{account}/r2/buckets/{bucket}/{policy}",
-        headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
-    )
+def verify_retention(bucket: str, account: str, attestation_path: Path) -> None:
+    """Require a fresh root-owned manual dashboard attestation without storing Admin Read on the VPS."""
+    require_root_file(attestation_path, 0o600)
     try:
-        with urllib.request.urlopen(request, timeout=15) as response:
-            payload = json.loads(response.read())
-    except (OSError, urllib.error.URLError, ValueError) as error:
-        raise BackupError("could not verify the R2 retention policy") from error
-    if not isinstance(payload, dict) or payload.get("success") is not True or not isinstance(payload.get("result"), dict):
-        raise BackupError("R2 retention policy query was unsuccessful")
-    rules = payload["result"].get("rules")
-    if not isinstance(rules, list) or any(not isinstance(rule, dict) for rule in rules):
-        raise BackupError("R2 retention policy response is invalid")
-    return rules
-
-
-def verify_retention(bucket: str, account: str, token_path: Path) -> None:
-    token = token_path.read_text(encoding="ascii").strip()
-    if not token or any(character.isspace() for character in token):
-        raise BackupError("R2 read token is invalid")
-    rules = policy_rules(bucket, account, token, "lock")
-    locked = any(
-        rule.get("enabled") is True
-        and rule.get("prefix") == "cotuong-stage/"
-        and valid_age(rule.get("condition"), "maxAgeSeconds", MIN_LOCK_SECONDS)
-        for rule in rules
-        if isinstance(rule, dict)
-    )
-    if not locked:
-        raise BackupError("R2 bucket has no enabled 30-day lock for cotuong-stage objects")
-
-    # Object Read & Write credentials cannot inspect bucket configuration.
-    # Use the separate account-level Admin Read only token for both GETs.
-    lifecycle_rules = policy_rules(bucket, account, token, "lifecycle")
-    for rule in lifecycle_rules:
-        if rule.get("enabled") is not True or "deleteObjectsTransition" not in rule:
-            continue
-        scope = rule.get("conditions")
-        prefix = scope.get("prefix") if isinstance(scope, dict) else None
-        if not isinstance(prefix, str):
-            raise BackupError("R2 lifecycle response is invalid")
-        if "cotuong-stage/".startswith(prefix) or prefix.startswith("cotuong-stage/"):
-            raise BackupError("R2 lifecycle deletion overlaps test backups; use the guarded retention helper instead")
-
-
-def valid_age(condition: object, field: str, minimum: int) -> bool:
-    if not isinstance(condition, dict) or condition.get("type") != "Age":
-        return False
-    seconds = condition.get(field)
-    return type(seconds) in (int, float) and math.isfinite(seconds) and seconds >= minimum
+        report = json.loads(attestation_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as error:
+        raise BackupError("R2 policy attestation is missing or invalid") from error
+    expected_fields = {"format", "account_id", "bucket", "prefix", "public_access_disabled", "lock_age_seconds", "lifecycle_deletion_overlap", "verified_via", "checked_at", "expires_at"}
+    if not isinstance(report, dict) or set(report) != expected_fields:
+        raise BackupError("R2 policy attestation fields are invalid")
+    if (
+        report.get("format") != 1
+        or report.get("account_id") != account
+        or report.get("bucket") != bucket
+        or report.get("prefix") != "cotuong-stage/"
+        or report.get("public_access_disabled") is not True
+        or type(report.get("lock_age_seconds")) is not int
+        or report["lock_age_seconds"] < MIN_LOCK_SECONDS
+        or report.get("lifecycle_deletion_overlap") is not False
+        or report.get("verified_via") != "cloudflare-dashboard"
+    ):
+        raise BackupError("R2 policy attestation does not match the required private bucket policy")
+    try:
+        checked_at = datetime.fromisoformat(report["checked_at"])
+        expires_at = datetime.fromisoformat(report["expires_at"])
+    except (TypeError, ValueError) as error:
+        raise BackupError("R2 policy attestation timestamps are invalid") from error
+    now = datetime.now(timezone.utc)
+    if checked_at.tzinfo is None or expires_at.tzinfo is None:
+        raise BackupError("R2 policy attestation timestamps must include a timezone")
+    if checked_at > now + timedelta(minutes=5) or expires_at <= now or expires_at <= checked_at:
+        raise BackupError("R2 policy attestation is from the future or has expired")
+    if now - checked_at.astimezone(timezone.utc) > MAX_POLICY_ATTESTATION_AGE or expires_at > checked_at + MAX_POLICY_ATTESTATION_AGE:
+        raise BackupError("R2 policy attestation must be renewed within seven days")
 
 
 def head_exists(bucket: str, key: str, endpoint: str, env: dict[str, str]) -> bool:
@@ -248,11 +228,15 @@ def latest_backup() -> Path:
 
 
 def upload_backup(path: Path) -> str:
-    write_offsite_status("running", "pending")
+    stamp_match = re.fullmatch(r"([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}-[0-9]{2}-[0-9]{2}Z)\.sql\.gz", path.name)
+    if path.parent != BACKUP_DIR or not stamp_match:
+        raise BackupError("source backup filename is invalid")
+    source_stamp = stamp_match.group(1)
+    write_offsite_status("running", "pending", source_stamp)
     source_digest = verify_source(path)
     media_path = media_source_for(path)
     media_digest, media_files = verify_media_source(media_path)
-    bucket, endpoint, account, credentials, token_path = load_config()
+    bucket, endpoint, account, credentials, attestation_path = load_config()
     credentials_info = credentials.stat()
     env = os.environ.copy()
     env.update({
@@ -262,7 +246,9 @@ def upload_backup(path: Path) -> str:
         "AWS_EC2_METADATA_DISABLED": "true",
         "AWS_PAGER": "",
     })
-    verify_retention(bucket, account, token_path)
+    # The account-wide Admin Read token stays off the VPS. An operator checks
+    # lock/lifecycle in the dashboard and renews this short-lived attestation.
+    verify_retention(bucket, account, attestation_path)
     require_root_file(AGE_RECIPIENTS, 0o600)
     with tempfile.TemporaryDirectory(prefix=".r2-upload-", dir=BACKUP_DIR) as work_name:
         work = Path(work_name)
@@ -317,7 +303,7 @@ def upload_backup(path: Path) -> str:
         # Verify credentials were not changed while AWS CLI was running.
         if credentials.stat().st_ino != credentials_info.st_ino or credentials.stat().st_size != credentials_info.st_size:
             raise BackupError("R2 credentials file changed during upload")
-        write_offsite_status("success", prefix)
+        write_offsite_status("success", prefix, source_stamp)
         return prefix
 
 

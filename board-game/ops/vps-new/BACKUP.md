@@ -20,7 +20,7 @@ The requested target is once daily at 03:00 `Asia/Ho_Chi_Minh`, without a boot c
 
 Do not call a backup successful until SQL and media sources are present, local checksum/archive checks pass, all encrypted R2 objects are read back and verified, and restore validation passes in a new scratch database and media directory. Keep the private age identity on the trusted Windows operator machine and a separate offline recovery copy. Never transfer it to the VPS, GitHub, chat or an offsite bucket.
 
-The R2 cleanup helper defaults to dry-run, verifies complete object sets, requires a recent successful upload marker, and preserves the newest verified set. It never removes local backups. The installed retention service also runs dry-run only. Do not run the helper with `--apply` or enable automatic deletion until the dry-run output and exact prefix have been reviewed and separately approved.
+The R2 cleanup helper defaults to dry-run, verifies complete object sets, requires a recent successful upload marker, and preserves the newest verified set. The local cleanup helper also defaults to dry-run, validates every complete database/media pair, verifies file ownership/modes/checksums/gzip/media structure, requires the newest local set to be the source of a fresh verified offsite upload, and preserves that newest local set. Both apply paths require an explicit CLI flag plus an environment gate. The installed retention service invokes both in dry-run mode only. Do not run either helper with `--apply` or enable deletion until the exact plans and scope have been reviewed and separately approved.
 
 ## Related procedures
 

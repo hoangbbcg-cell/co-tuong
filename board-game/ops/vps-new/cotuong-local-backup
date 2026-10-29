@@ -13,7 +13,11 @@ trap 'rm -f -- "$TMP" "$SUM_TMP"' EXIT
 
 [[ "$(id -u)" == 0 ]] || { echo 'root required' >&2; exit 1; }
 [[ -d "$DEST" && ! -L "$DEST" && "$(stat -c %U:%a "$DEST")" == 'root:700' ]] || { echo 'unsafe backup directory' >&2; exit 1; }
-exec 9>/run/lock/cotuong-local-backup.lock
+readonly LOCK="$DEST/.backup.lock"
+if [[ -e "$LOCK" || -L "$LOCK" ]]; then
+  [[ -f "$LOCK" && ! -L "$LOCK" && "$(stat -c %U:%a "$LOCK")" == 'root:600' ]] || { echo 'unsafe backup lock file' >&2; exit 1; }
+fi
+exec 9>>"$LOCK"
 flock -n 9 || { echo 'another test database backup is already running' >&2; exit 1; }
 [[ ! -e "$TMP" && ! -L "$TMP" && ! -e "$SUM_TMP" && ! -L "$SUM_TMP" && ! -e "$OUT" && ! -L "$OUT" && ! -e "$SUM_OUT" && ! -L "$SUM_OUT" ]] || { echo 'backup timestamp already exists; refusing to overwrite' >&2; exit 1; }
 mysql --protocol=socket --user=root -NBe "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='${DB}'" | grep -Fxq "$DB"
