@@ -1,5 +1,5 @@
 [Unit]
-Description=Dry-run scoped retention check for Co Tuong test backups in R2
+Description=Dry-run scoped R2 and local retention check for Co Tuong test backups
 After=network-online.target
 Wants=network-online.target
 ConditionPathExists=/etc/cotuong/offsite-backup.conf
@@ -15,6 +15,7 @@ Environment=AWS_DEFAULT_REGION=auto
 Environment=AWS_EC2_METADATA_DISABLED=true
 Environment=AWS_PAGER=
 ExecStart=/usr/local/sbin/prune-test-r2-backups.py
+ExecStart=/usr/local/sbin/prune-test-local-backups.py
 UMask=0077
 NoNewPrivileges=true
 PrivateTmp=true

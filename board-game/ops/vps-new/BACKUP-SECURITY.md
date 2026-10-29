@@ -23,4 +23,4 @@ Official references:
 
 ## Scope and deletion
 
-Never access the old production VPS or its backups. Offsite backup verification must not list, modify or delete the legacy `CoTuong-Backups` folder. Retention cleanup is not enabled. A future cleanup command must operate only on a dedicated system-owned prefix, default to dry-run, preserve the newest verified valid backup, and do nothing if the current backup/upload/verification failed.
+Never access the old production VPS or its backups. Offsite backup verification must not list, modify or delete the legacy `CoTuong-Backups` folder. R2 policy is manually checked in the Cloudflare dashboard and recorded in a root-owned, seven-day attestation; never place account-wide Admin Read on the VPS. Upload fails closed when the attestation is absent, invalid, stale or expired. Local and R2 retention commands default to dry-run, validate complete backup sets and the latest verified offsite source, preserve the newest valid set, and require both `--apply` and an explicit environment gate to delete. The installed service receives no deletion gate. Keep deletion disabled until a separate approval.

@@ -93,13 +93,14 @@ def verify_group(prefix: str, bucket: str, endpoint: str, env: dict[str, str]) -
 def require_recent_success(prefix: str) -> None:
     UPLOAD.require_root_file(STATUS, 0o600)
     report = STATUS.read_text(encoding="ascii").strip().split()
-    if len(report) != 3 or report[0] != "success" or report[1] != prefix:
+    if len(report) != 4 or report[0] != "success" or report[1] != prefix or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}-[0-9]{2}-[0-9]{2}Z", report[3]):
         raise RetentionError("latest offsite upload is not recorded as successful; refusing cleanup")
     try:
         at = datetime.fromisoformat(report[2])
     except ValueError as error:
         raise RetentionError("offsite success marker is invalid; refusing cleanup") from error
-    if at.tzinfo is None or datetime.now(timezone.utc) - at.astimezone(timezone.utc) > timedelta(hours=12):
+    now = datetime.now(timezone.utc)
+    if at.tzinfo is None or at > now + timedelta(minutes=5) or now - at.astimezone(timezone.utc) > timedelta(hours=12):
         raise RetentionError("offsite success marker is stale; refusing cleanup")
 
 
@@ -108,7 +109,8 @@ def run(apply: bool = False) -> list[str]:
         raise RetentionError("root is required")
     if apply and os.environ.get("COTUONG_R2_RETENTION_APPLY") != "1":
         raise RetentionError("deletion requires COTUONG_R2_RETENTION_APPLY=1 and explicit --apply")
-    bucket, endpoint, _account, credentials, _token = UPLOAD.load_config()
+    bucket, endpoint, account, credentials, attestation = UPLOAD.load_config()
+    UPLOAD.verify_retention(bucket, account, attestation)
     env = os.environ.copy()
     env.update({"AWS_SHARED_CREDENTIALS_FILE": str(credentials), "AWS_CONFIG_FILE": "/dev/null", "AWS_DEFAULT_REGION": "auto", "AWS_EC2_METADATA_DISABLED": "true", "AWS_PAGER": ""})
     groups = group_keys(list_keys(bucket, endpoint, env))
