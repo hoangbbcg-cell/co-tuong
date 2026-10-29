@@ -1,28 +1,24 @@
 # Backup readiness report — 2026-10-29
 
+## Repository implementation status
+
 | Area | Status | Evidence / limitation |
 | --- | --- | --- |
-| Windows Drive smoke test | PASS | The 228-byte age v1 synthetic fixture was uploaded to `CoTuong-Encrypted-Backups`, downloaded, SHA-256 matched, and the temporary download was removed. No private key or OAuth file was uploaded. |
-| Windows rclone | PASS | `C:\rclone\rclone.exe`, v1.75.2; remote `gdrive_backup:` present. Windows remote config requests `drive.file` and has a custom client configured. |
-| VPS identity and host key | PASS | SSH identity matched pinned ED25519 fingerprint for `103.153.254.184`; no production host was contacted. |
-| VPS OS/timezone/MySQL | PASS | Ubuntu 24.04, `Asia/Ho_Chi_Minh`, MySQL active. |
-| VPS backup prerequisites | PARTIAL | rclone v1.60.1-DEV and age 1.1.1 are present; disk root filesystem 79 GB with 4.2 GB used; backup directory metadata is `root:root:700`. |
-| VPS rclone config | PARTIAL | Config metadata is owner `nhat_hoang`, mode `0600`; remote name exists and scope is `drive.file`, but no custom client ID is configured. Read-only listing of the dedicated folder failed; exact cause remains unverified. |
-| Google OAuth | BLOCKED | Operator reports Testing and Publish disabled. Do not change status. Testing has a short authorization lifetime for External apps. Google policy also prohibits using Drive API to back up the developer's own app/project content. |
-| Database and grants | PENDING | Non-interactive sudo was unavailable. No current schema, table, migration journal, grants or account authentication state was read in this check. Do not infer emptiness from prior checkpoints. |
-| Application data | PENDING | Code writes group avatars and message images under the release `uploads` path, intended to resolve to `/srv/cotuong/shared/uploads`. SSH user could not establish whether that protected directory exists. `current` release symlink was absent. |
-| Local backup | PENDING | A 2026-10-28 database-only restore drill was previously reported PASS, but its dump is now older than the 12-hour upload window. No fresh dump was created in this task. |
-| Full media backup/restore | FAIL | Current local helper and R2 uploader handle the SQL dump only; they do not package or restore app media. |
-| Offsite backup | BLOCKED | No verified offsite application backup exists. Google Drive is not an allowed target for this app-content backup use. R2 remains unconfigured. |
-| Schedule | PREPARED | Repository timer is being changed to daily 03:00 `Asia/Ho_Chi_Minh` with no catch-up. The VPS timer was not inspected, installed or enabled. |
-| Retention | PENDING | 30-day cleanup is not implemented or enabled. No files were deleted. |
-| Restore/deploy/migration | NOT RUN | No restore, migration, deployment, service activation or restart was performed. |
-| Production | UNTOUCHED | VPS `103.9.78.75`, `hovanggame.com`, DNS, firewall and Nginx were not accessed or changed. |
+| Local database backup | IMPLEMENTED, not re-run | Uses `mysqldump --single-transaction`, gzip integrity check, root-only `0600` SQL dump and SHA-256 sidecar. No backup was executed during this repository task. |
+| Application media backup | IMPLEMENTED in candidate branch | New helper packages only `group-avatars/` and `message-images/`, rejects symlinks/unexpected file names and types, records a checksum, and validates extraction into a fresh scratch path. Not yet merged or installed on VPS. |
+| Offsite encryption and transfer | IMPLEMENTED in candidate branch | R2 helper age-encrypts SQL, media and manifest; creates immutable object names, refuses overwrite, downloads objects back and verifies ciphertext checksums. Requires R2 setup and an age recipient on VPS. |
+| Offsite restore verification | IMPLEMENTED in candidate branch | Windows-side verifier downloads encrypted objects, checks hashes, decrypts with local age identity, validates manifest, gzip and media archive. Actual R2 round-trip is pending bucket and credentials. |
+| Retention | PREPARED, dry-run only | R2 helper groups exact object sets, verifies all object/sidecar hashes, requires fresh success marker, preserves newest and selects sets older than 30 days. Apply requires explicit CLI flag plus environment gate. No objects deleted. No local retention is implemented; disk usage needs monitoring. |
+| Schedule | PREPARED, disabled by installer | Daily 03:00 `Asia/Ho_Chi_Minh`, `Persistent=false`. Installer now only installs reviewed helpers/units and reloads systemd; timer remains disabled. No schedule was installed/enabled. |
+| Cloudflare account / R2 bucket | NOT VERIFIED / NOT CREATED | No Cloudflare account connector, token or configured R2 remote was available to inspect. Windows rclone only listed `gdrive_backup:`. No bucket/token/API credential was created. |
+| VPS current R2 setup | NOT VERIFIED in this task | No current read-only inspection of R2 files, systemd unit state or bucket policy was performed. Do not infer current VPS state from old checkpoints. |
+| Prior local restore drill | USER-REPORTED PASS | The previously reported 2026-10-28 SQL backup checksum and scratch-schema restore passed; it predates the new media packaging and R2 code. No new database/media backup or restore was run. |
+| Production | UNTOUCHED | `103.9.78.75`, `hovanggame.com`, DNS, firewall and Nginx were not accessed or changed. |
 
-## Required decisions and operator steps
+## Security and operator decisions
 
-1. Choose an offsite provider whose policies permit application-owned database/media backups. The repository has a Cloudflare R2 design; provisioning or credential setup needs separate approval.
-2. For current schema/grants and protected media metadata, run the reviewed read-only inspector from Windows and enter the sudo password privately in that terminal. Do not send the password here. It must produce a metadata report before the database baseline can be called current.
-3. Approve a fresh local database backup and scratch restore only after the provider/configuration path is approved. Keep backup and restore as separate explicit gates.
-4. Approve full media packaging and its isolated restore test before claiming the application backup complete.
-5. Separately approve installation/enabling of the daily timer, then later approve any retention deletion policy. Neither is included in this repository-only preparation.
+- R2 Object Read & Write/Read tokens can be restricted to one bucket, but Cloudflare documents that these object tokens work only through the S3-compatible API and cannot inspect bucket configuration through the Cloudflare REST API. Lock/lifecycle inspection needs Admin Read only, which has account-wide read scope. The uploader intentionally fails closed unless it can inspect the required lock and absence of overlapping lifecycle deletion. Do not place such a token on the VPS until you explicitly accept its account-wide read scope; never grant Admin Read & Write.
+- Create a dedicated private Standard bucket only after approving R2 billing. Keep public access and custom domains disabled. Configure a 30-day lock only for `cotuong-stage/`; do not configure lifecycle deletion for that prefix. The helper's custom cleanup remains dry-run until separately approved.
+- Expected Standard storage cost is `$0` for up to the published 10 GB-month allowance and `$0.015/GB-month` above it; direct R2 egress is free. For example, 30 GB-month retained would be about `$0.30/month` storage before any account-specific taxes/charges; request allowances also apply. Actual backup sizes are unknown, so a reliable estimate needs one approved backup.
+- The offsite R2 round-trip, decryption and scratch restore must pass before declaring two-site backup readiness. The Windows age private identity stays off VPS and GitHub, with an independent offline recovery copy.
+- Timer activation authorizes recurring real database/media backup and upload. Retention deletion is a separate approval and remains disabled until the dry-run has been reviewed.

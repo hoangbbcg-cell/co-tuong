@@ -1,3 +1,5 @@
+- 2026-10-29: Hệ thống backup VPS test dùng local MySQL dump + media archive, mã hóa age và Cloudflare R2 riêng; private age identity ở operator/offline, không lên VPS/GitHub. Timer 03:00 Asia/Ho_Chi_Minh, Persistent=false; installer chỉ cài units và daemon-reload, không bật timer. Backup/upload thật, restore, migration/deploy, timer activation và retention deletion cần phê duyệt riêng. R2 Object Read & Write có thể scope bucket; kiểm tra bucket-lock/lifecycle cần Admin Read account-wide nên không đặt token này lên VPS khi chưa được chấp thuận rõ. Giữ lock 30 ngày trên prefix riêng, không lifecycle-delete, cleanup dry-run mặc định và giữ bản offsite hợp lệ mới nhất.
+
 # Ghi nhớ quy tắc và lỗi cần tránh
 
 - 2026-10-26: Theo user, SearchButton dùng asset580e9677-60e1-44a8-9fd5-45ef04444b44.png thay khung CSS vàng ở Bạn bè/Chọn Bàn cả mobile/laptop. Căn background theo vùng artwork(124,159)-(1650,725) trong ảnh1774×887 để khung phủ đúng nút, không sửa ảnh nguồn; chữ/icon nâu#2b1909 để rõ trên nền vàng. Giữ sizing từng nơi/submit/disabled/logic tìm. Typecheck/build PASS, dist có asset và import; chưa browser QA.

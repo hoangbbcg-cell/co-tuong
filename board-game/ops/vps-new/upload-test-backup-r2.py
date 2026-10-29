@@ -21,12 +21,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 BACKUP_DIR = Path("/var/backups/cotuong-stage")
+MEDIA_HELPER = Path("/usr/local/sbin/cotuong-media-backup.py")
 R2_CREDENTIALS = Path("/etc/cotuong/r2-credentials")
 R2_READ_TOKEN = Path("/etc/cotuong/r2-read-token")
 AGE_RECIPIENTS = Path("/etc/cotuong/r2-age-recipients")
 MAX_BACKUP_AGE_SECONDS = 12 * 60 * 60
-MIN_LOCK_SECONDS = 35 * 24 * 60 * 60
-MIN_RETENTION_DAYS = 90
+MIN_LOCK_SECONDS = 30 * 24 * 60 * 60
 
 
 class BackupError(RuntimeError):
@@ -57,6 +57,26 @@ def checked_run(args: list[str], *, env: dict[str, str] | None = None) -> subpro
         raise BackupError("required encryption or R2 operation failed; inspect protected service logs") from error
 
 
+def write_offsite_status(status: str, prefix: str) -> None:
+    path = BACKUP_DIR / ".offsite-status"
+    temporary = BACKUP_DIR / f".offsite-status.{uuid.uuid4().hex}.tmp"
+    if path.is_symlink() or (path.exists() and not path.is_file()):
+        raise BackupError("offsite status marker is unsafe")
+    fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
+    try:
+        with os.fdopen(fd, "w", encoding="ascii") as stream:
+            stream.write(f"{status} {prefix} {datetime.now(timezone.utc).isoformat()}\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+        os.chmod(path, 0o600)
+    finally:
+        try:
+            temporary.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
 def verify_source(path: Path) -> str:
     if BACKUP_DIR.is_symlink() or not BACKUP_DIR.is_dir():
         raise BackupError("local backup directory is missing or unsafe")
@@ -80,6 +100,33 @@ def verify_source(path: Path) -> str:
         raise BackupError("source backup checksum does not match")
     checked_run(["gzip", "-t", "--", str(path)])
     return match.group(1)
+
+
+def media_source_for(path: Path) -> Path:
+    stamp = path.name.removesuffix(".sql.gz")
+    return BACKUP_DIR / f"{stamp}.uploads.tar.gz"
+
+
+def verify_media_source(path: Path) -> tuple[str, int]:
+    if BACKUP_DIR.is_symlink() or not BACKUP_DIR.is_dir():
+        raise BackupError("local backup directory is missing or unsafe")
+    if path.parent != BACKUP_DIR or path.is_symlink() or not path.is_file():
+        raise BackupError("media archive must be in the protected local backup directory")
+    if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}-[0-9]{2}-[0-9]{2}Z\.uploads\.tar\.gz", path.name):
+        raise BackupError("media archive filename is invalid")
+    info = path.stat()
+    if info.st_uid != 0 or stat.S_IMODE(info.st_mode) != 0o600 or info.st_size == 0:
+        raise BackupError("media archive owner, mode or size is invalid")
+    checksum_path = path.with_name(path.name + ".sha256")
+    require_root_file(checksum_path, 0o600)
+    match = re.fullmatch(rf"([a-f0-9]{{64}})  {re.escape(path.name)}\n", checksum_path.read_text(encoding="ascii"))
+    if not match or sha256_file(path) != match.group(1):
+        raise BackupError("media archive checksum does not match")
+    result = checked_run(["python3", str(MEDIA_HELPER), "--verify", str(path)])
+    report = re.fullmatch(r"MEDIA_ARCHIVE_VERIFIED files=([0-9]+) sha256=([a-f0-9]{64})\n?", result.stdout)
+    if not report or report.group(2) != match.group(1):
+        raise BackupError("media archive structural verification failed")
+    return match.group(1), int(report.group(1))
 
 
 def load_config() -> tuple[str, str, str, Path, Path]:
@@ -139,12 +186,11 @@ def verify_retention(bucket: str, account: str, token_path: Path) -> None:
         if isinstance(rule, dict)
     )
     if not locked:
-        raise BackupError("R2 bucket has no enabled 35-day lock for cotuong-stage objects")
+        raise BackupError("R2 bucket has no enabled 30-day lock for cotuong-stage objects")
 
     # Object Read & Write credentials cannot inspect bucket configuration.
     # Use the separate account-level Admin Read only token for both GETs.
     lifecycle_rules = policy_rules(bucket, account, token, "lifecycle")
-    retained = False
     for rule in lifecycle_rules:
         if rule.get("enabled") is not True or "deleteObjectsTransition" not in rule:
             continue
@@ -152,16 +198,8 @@ def verify_retention(bucket: str, account: str, token_path: Path) -> None:
         prefix = scope.get("prefix") if isinstance(scope, dict) else None
         if not isinstance(prefix, str):
             raise BackupError("R2 lifecycle response is invalid")
-        if not ("cotuong-stage/".startswith(prefix) or prefix.startswith("cotuong-stage/")):
-            continue
-        transition = rule.get("deleteObjectsTransition")
-        condition = transition.get("condition") if isinstance(transition, dict) else None
-        if not valid_age(condition, "maxAge", MIN_RETENTION_DAYS * 86400):
-            raise BackupError("R2 lifecycle has a conflicting deletion rule for test backups")
-        if prefix == "cotuong-stage/":
-            retained = True
-    if not retained:
-        raise BackupError("R2 bucket has no 90-day lifecycle retention for cotuong-stage objects")
+        if "cotuong-stage/".startswith(prefix) or prefix.startswith("cotuong-stage/"):
+            raise BackupError("R2 lifecycle deletion overlaps test backups; use the guarded retention helper instead")
 
 
 def valid_age(condition: object, field: str, minimum: int) -> bool:
@@ -210,7 +248,10 @@ def latest_backup() -> Path:
 
 
 def upload_backup(path: Path) -> str:
+    write_offsite_status("running", "pending")
     source_digest = verify_source(path)
+    media_path = media_source_for(path)
+    media_digest, media_files = verify_media_source(media_path)
     bucket, endpoint, account, credentials, token_path = load_config()
     credentials_info = credentials.stat()
     env = os.environ.copy()
@@ -227,14 +268,18 @@ def upload_backup(path: Path) -> str:
         work = Path(work_name)
         os.chmod(work, 0o700)
         encrypted_dump = work / "backup.sql.gz.age"
+        encrypted_media = work / "backup.uploads.tar.gz.age"
         checked_run(["age", "--encrypt", "--recipients-file", str(AGE_RECIPIENTS), "--output", str(encrypted_dump), str(path)])
         os.chmod(encrypted_dump, 0o600)
         encrypted_digest = sha256_file(encrypted_dump)
+        checked_run(["age", "--encrypt", "--recipients-file", str(AGE_RECIPIENTS), "--output", str(encrypted_media), str(media_path)])
+        os.chmod(encrypted_media, 0o600)
+        encrypted_media_digest = sha256_file(encrypted_media)
         manifest = {
-            "format": 1,
+            "format": 2,
             "schema": "cotuong_stage",
-            "source_sha256": source_digest,
-            "encrypted_sha256": encrypted_digest,
+            "database": {"source_sha256": source_digest, "encrypted_sha256": encrypted_digest},
+            "media": {"source_sha256": media_digest, "encrypted_sha256": encrypted_media_digest, "file_count": media_files},
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         manifest_plain = work / "manifest.json"
@@ -246,30 +291,33 @@ def upload_backup(path: Path) -> str:
         manifest_plain.unlink()
 
         # Detect an in-place or replacement change before creating any remote objects.
-        if sha256_file(path) != source_digest:
-            raise BackupError("source backup changed during encryption")
+        if sha256_file(path) != source_digest or sha256_file(media_path) != media_digest:
+            raise BackupError("a source backup changed during encryption")
 
         object_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex
         prefix = "cotuong-stage/" + object_id
         encrypted_manifest_digest = sha256_file(encrypted_manifest)
         for local, suffix, digest in (
             (encrypted_dump, ".sql.gz.age", encrypted_digest),
+            (encrypted_media, ".uploads.tar.gz.age", encrypted_media_digest),
             (encrypted_manifest, ".manifest.age", encrypted_manifest_digest),
         ):
             transfer_and_verify(local, prefix + suffix, bucket, endpoint, env, digest)
         for key, digest in (
             (prefix + ".sql.gz.age.sha256", encrypted_digest),
+            (prefix + ".uploads.tar.gz.age.sha256", encrypted_media_digest),
             (prefix + ".manifest.age.sha256", encrypted_manifest_digest),
         ):
             sidecar = work / (Path(key).name + ".tmp")
             sidecar.write_text(digest + "\n", encoding="ascii")
             os.chmod(sidecar, 0o600)
             transfer_and_verify(sidecar, key, bucket, endpoint, env, hashlib.sha256(sidecar.read_bytes()).hexdigest())
-        if sha256_file(path) != source_digest:
-            raise BackupError("source backup changed during encryption or upload")
+        if sha256_file(path) != source_digest or sha256_file(media_path) != media_digest:
+            raise BackupError("a source backup changed during encryption or upload")
         # Verify credentials were not changed while AWS CLI was running.
         if credentials.stat().st_ino != credentials_info.st_ino or credentials.stat().st_size != credentials_info.st_size:
             raise BackupError("R2 credentials file changed during upload")
+        write_offsite_status("success", prefix)
         return prefix
 
 
@@ -286,7 +334,7 @@ def main(argv: list[str]) -> int:
     except (BackupError, OSError, ValueError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
         return 1
-    print(f"OFFSITE_VERIFIED prefix={prefix} encryption=age sha256=readback")
+    print(f"OFFSITE_VERIFIED prefix={prefix} encryption=age database+media sha256=readback")
     return 0
 
 

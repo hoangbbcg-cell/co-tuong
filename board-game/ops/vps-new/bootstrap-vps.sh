@@ -28,7 +28,7 @@ for path in /usr /usr/local /usr/local/sbin /usr/local/share /etc /etc/sudoers.d
   [[ -d "$path" && ! -L "$path" && "$(stat -c %U "$path")" == root ]] || die "unsafe parent directory: $path"
   [[ -z "$(find "$path" -maxdepth 0 -perm /022 -print)" ]] || die "group/world writable parent directory: $path"
 done
-for file in cotuong.service cotuong-test.conf cotuong-local-backup cotuong-backup.service cotuong-backup.timer upload-test-backup-r2.py cotuong-offsite-backup.service; do
+for file in cotuong.service cotuong-test.conf cotuong-local-backup cotuong-backup.service cotuong-backup.timer upload-test-backup-r2.py cotuong-media-backup.py prune-test-r2-backups.py cotuong-offsite-backup.service cotuong-r2-retention.service; do
   [[ -f "$SOURCE_DIR/$file" && ! -L "$SOURCE_DIR/$file" ]] || die "missing regular source file: $file"
 done
 [[ -f "$SOURCE_DIR/cotuong-vps-admin" && ! -L "$SOURCE_DIR/cotuong-vps-admin" ]] || die 'missing admin executable'
@@ -70,8 +70,14 @@ install -o root -g root -m 0644 "$SOURCE_DIR/cotuong-backup.timer" "$SHARE/cotuo
 created+=("$SHARE/cotuong-backup.timer")
 install -o root -g root -m 0750 "$SOURCE_DIR/upload-test-backup-r2.py" "$SHARE/upload-test-backup-r2.py"
 created+=("$SHARE/upload-test-backup-r2.py")
+install -o root -g root -m 0750 "$SOURCE_DIR/cotuong-media-backup.py" "$SHARE/cotuong-media-backup.py"
+created+=("$SHARE/cotuong-media-backup.py")
+install -o root -g root -m 0750 "$SOURCE_DIR/prune-test-r2-backups.py" "$SHARE/prune-test-r2-backups.py"
+created+=("$SHARE/prune-test-r2-backups.py")
 install -o root -g root -m 0644 "$SOURCE_DIR/cotuong-offsite-backup.service" "$SHARE/cotuong-offsite-backup.service"
 created+=("$SHARE/cotuong-offsite-backup.service")
+install -o root -g root -m 0644 "$SOURCE_DIR/cotuong-r2-retention.service" "$SHARE/cotuong-r2-retention.service"
+created+=("$SHARE/cotuong-r2-retention.service")
 install -o root -g root -m 0440 "$SOURCE_DIR/cotuong-vps-admin.sudoers" "$SUDOERS"
 created+=("$SUDOERS")
 install -o root -g root -m 0440 "$SOURCE_DIR/cotuong-deploy.sudoers" "$DEPLOY_SUDOERS"

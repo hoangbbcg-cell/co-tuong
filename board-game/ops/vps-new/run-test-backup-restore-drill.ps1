@@ -17,8 +17,10 @@ $BackupDirectory = '/var/backups/cotuong-stage'
 $Target = "${UserName}@${HostAddress}"
 $RepoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
 $BackupHelperPath = Join-Path $PSScriptRoot 'cotuong-local-backup'
+$MediaHelperPath = Join-Path $PSScriptRoot 'cotuong-media-backup.py'
 $ValidatorPath = Join-Path $PSScriptRoot 'validate-test-backup.py'
 $BackupHelperRelative = 'board-game/ops/vps-new/cotuong-local-backup'
+$MediaHelperRelative = 'board-game/ops/vps-new/cotuong-media-backup.py'
 $ValidatorRelative = 'board-game/ops/vps-new/validate-test-backup.py'
 $RunnerRelative = 'board-game/ops/vps-new/run-test-backup-restore-drill.ps1'
 $TransportRelative = 'board-game/ops/vps-new/ssh-bash-command.ps1'
@@ -31,6 +33,7 @@ $RemoteDirectoryCreated = $false
 $DrillStarted = $false
 $DrillCompleted = $false
 $BackupPath = $null
+  $MediaBackupPath = $null
 
 function Invoke-NativeChecked {
   param(
@@ -52,7 +55,7 @@ try {
   $KnownHosts = [IO.Path]::GetFullPath($KnownHosts)
   if ($KnownHosts.Contains('"') -or $KnownHosts.Contains("`r") -or $KnownHosts.Contains("`n")) { throw 'KnownHosts path contains unsupported characters.' }
 
-  foreach ($path in @($BackupHelperPath, $ValidatorPath)) {
+  foreach ($path in @($BackupHelperPath, $MediaHelperPath, $ValidatorPath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Required helper is missing: $path" }
   }
   if (-not (Test-Path -LiteralPath $TransportHelper -PathType Leaf)) { throw 'Reviewed SSH Bash transport helper is missing.' }
@@ -64,7 +67,7 @@ try {
     throw "origin/master is not the approved commit $ApprovedMasterCommit; found $masterCommit. Stop and review the newer master first."
   }
 
-  foreach ($relative in @($RunnerRelative, $TransportRelative, $BackupHelperRelative, $ValidatorRelative)) {
+  foreach ($relative in @($RunnerRelative, $TransportRelative, $BackupHelperRelative, $MediaHelperRelative, $ValidatorRelative)) {
     & git.exe -C $RepoRoot diff --quiet $ApprovedMasterCommit -- $relative
     if ($LASTEXITCODE -ne 0) { throw "Local helper differs from approved master: $relative" }
     $localChanges = & git.exe -C $RepoRoot status --porcelain=v1 -- $relative
@@ -168,6 +171,15 @@ fi
 step='application and migrator grants'
 mysql_ro -e "SHOW GRANTS FOR 'cotuong_app'@'127.0.0.1'; SHOW GRANTS FOR 'cotuong_migrator'@'127.0.0.1'"
 
+step='installed media helper checksum'
+sudo -n test -f '/usr/local/sbin/cotuong-media-backup.py'
+sudo -n test ! -L '/usr/local/sbin/cotuong-media-backup.py'
+media_helper_status="$(sudo -n stat -c '%U:%G:%a' -- '/usr/local/sbin/cotuong-media-backup.py')"
+[[ "$media_helper_status" == 'root:root:700' ]]
+media_helper_sha="$(sudo -n sha256sum -- '/usr/local/sbin/cotuong-media-backup.py' | awk '{print $1}')"
+printf 'media_helper_sha256=%s\n' "$media_helper_sha"
+[[ "$media_helper_sha" == '__MEDIA_HELPER_SHA256__' ]]
+
 step='backup directory owner and mode'
 sudo -n test -d '/var/backups/cotuong-stage'
 sudo -n test ! -L '/var/backups/cotuong-stage'
@@ -180,6 +192,8 @@ sudo -n find '/var/backups/cotuong-stage' -mindepth 1 -maxdepth 1 \( -type f -o 
 printf 'READ_ONLY_PREFLIGHT=PASS\n'
 '@
   $readOnlyPreflight = $readOnlyPreflight.Replace("`r`n", "`n").Replace("`r", "`n")
+  $MediaHelperSha256 = (Get-FileHash -LiteralPath $MediaHelperPath -Algorithm SHA256).Hash.ToLowerInvariant()
+  $readOnlyPreflight = $readOnlyPreflight.Replace('__MEDIA_HELPER_SHA256__', $MediaHelperSha256)
   $preflightBytes = [System.Text.Encoding]::UTF8.GetBytes($readOnlyPreflight)
   $preflightBase64 = [Convert]::ToBase64String($preflightBytes)
   . $TransportHelper
@@ -193,12 +207,12 @@ printf 'READ_ONLY_PREFLIGHT=PASS\n'
 
   Write-Host ''
   Write-Host 'Ready to perform these actions on the TEST VPS only:'
-  Write-Host '  1. Run cotuong-local-backup as root to create a new cotuong_stage SQL backup and SHA-256 sidecar.'
-  Write-Host '  2. Verify backup owner/mode, SHA-256, and gzip integrity.'
-  Write-Host '  3. Run validate-test-backup.py as root; it restores only to a fresh cotuong_restore_check_* schema and removes that scratch schema on success.'
+  Write-Host '  1. Run cotuong-local-backup as root to create a new cotuong_stage SQL dump and application media archive with SHA-256 sidecars.'
+  Write-Host '  2. Verify both backup artifacts and their checksums; validate SQL in a fresh scratch schema.'
+  Write-Host '  3. Validate media extraction in a unique /var/tmp scratch directory; preserve both source backups.'
   Write-Host 'No migration, deployment, service start/restart, Nginx, firewall, DNS, old VPS, or production action will be run.'
-  $confirmation = Read-Host 'To continue, type exactly: RUN BACKUP RESTORE cotuong_stage'
-  if ($confirmation -cne 'RUN BACKUP RESTORE cotuong_stage') { throw 'Confirmation did not match; no backup or restore was started.' }
+  $confirmation = Read-Host 'To continue, type exactly: RUN BACKUP RESTORE cotuong_stage AND MEDIA'
+  if ($confirmation -cne 'RUN BACKUP RESTORE cotuong_stage AND MEDIA') { throw 'Confirmation did not match; no backup or restore was started.' }
 
   $DrillStarted = $true
   $runBackup = "sudo -v && sudo /bin/bash '$RemoteDirectory/cotuong-local-backup'"
@@ -211,7 +225,13 @@ printf 'READ_ONLY_PREFLIGHT=PASS\n'
     throw 'Backup helper returned success without its expected new-backup path; inspect the retained local log and VPS backup directory. No restore was started.'
   }
   $BackupPath = $backupPathMatch.Groups['path'].Value
+  $mediaPathMatch = [regex]::Match($backupLog, '(?m)^Created test media archive files=(?<count>[0-9]+) sha256=[a-f0-9]{64} path=(?<path>/var/backups/cotuong-stage/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}-[0-9]{2}-[0-9]{2}Z\.uploads\.tar\.gz)\r?$')
+  if (-not $mediaPathMatch.Success) {
+    throw 'Backup helper returned success without its expected media archive path; preserve the SQL backup and investigate. No restore was started.'
+  }
+  $MediaBackupPath = $mediaPathMatch.Groups['path'].Value
   Write-Host "Captured the exact path emitted by this backup run: $BackupPath"
+  Write-Host "Captured the exact media archive emitted by this backup run: $MediaBackupPath"
   $dumpName = [IO.Path]::GetFileName($BackupPath)
   $sumName = "$dumpName.sha256"
   $quotedBackup = "'$BackupPath'"
@@ -225,8 +245,16 @@ printf 'READ_ONLY_PREFLIGHT=PASS\n'
 
   $runValidator = "sudo -v && sudo python3 '$RemoteDirectory/validate-test-backup.py' '$BackupPath'"
   Invoke-NativeChecked -FilePath 'ssh.exe' -Arguments (@('-tt', '-i', $PrivateKey) + $sshOptions + @($Target, $runValidator)) -FailureMessage 'Restore drill failed; do not migrate or deploy'
+  $mediaIntegrity = 'sudo test -f ' + "'$MediaBackupPath'" + ' && sudo test ! -L ' + "'$MediaBackupPath'" +
+    ' && sudo test -f ' + "'$MediaBackupPath.sha256'" + ' && sudo test ! -L ' + "'$MediaBackupPath.sha256'" +
+    ' && test "$(sudo stat -c %U:%a -- ' + "'$MediaBackupPath'" + ')" = root:600' +
+    ' && test "$(sudo stat -c %U:%a -- ' + "'$MediaBackupPath.sha256'" + ')" = root:600' +
+    ' && sudo bash -c ''cd /var/backups/cotuong-stage && sha256sum --check "' + [IO.Path]::GetFileName($MediaBackupPath) + '.sha256"'''
+  Invoke-NativeChecked -FilePath 'ssh.exe' -Arguments (@('-tt', '-i', $PrivateKey) + $sshOptions + @($Target, $mediaIntegrity)) -FailureMessage 'Media owner/mode/checksum verification failed'
+  $runMediaValidator = "sudo -v && sudo python3 /usr/local/sbin/cotuong-media-backup.py --restore-validate '$MediaBackupPath'"
+  Invoke-NativeChecked -FilePath 'ssh.exe' -Arguments (@('-tt', '-i', $PrivateKey) + $sshOptions + @($Target, $runMediaValidator)) -FailureMessage 'Media restore validation failed; preserve both source backups'
   $DrillCompleted = $true
-  Write-Host "Backup and restore drill completed successfully. Preserve $BackupPath and its .sha256 sidecar. No migration or deployment was run."
+  Write-Host "Database and media backup/restore validation passed. Preserve $BackupPath and $MediaBackupPath with their .sha256 sidecars. No migration or deployment was run."
 }
 catch {
   Write-Host ("ERROR: " + $_.Exception.Message) -ForegroundColor Red
