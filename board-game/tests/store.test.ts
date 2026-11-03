@@ -1,3 +1,4 @@
+import { MATCH_INTRO_MS } from '../src/game/moves/actions'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useGameStore } from '../src/store/gameStore'
 import { createGame } from '../src/game/state/initial'
@@ -9,22 +10,22 @@ function emptyBoard(): Board { return Array.from({ length: 10 }, () => Array<Pie
 
 describe('State local', () => {
   beforeEach(() => useGameStore.getState().reset(0))
-  it('khai cuộc 1,3 giây giữ đồng hồ và khóa chọn quân', () => {
+  it('khai cuộc theo thời lượng hiệu ứng giữ đồng hồ và khóa chọn quân', () => {
     const store = useGameStore.getState()
     store.start(0)
     store.select({ row: 6, col: 0 }, 1299)
     expect(useGameStore.getState().selected).toBeNull()
     expect(useGameStore.getState().game.remainingTime.red).toBe(600000)
-    store.select({ row: 6, col: 0 }, 1300)
+    store.select({ row: 6, col: 0 }, MATCH_INTRO_MS)
     expect(useGameStore.getState().selected).toEqual({ row: 6, col: 0 })
-    store.tick(1400)
+    store.tick(MATCH_INTRO_MS + 100)
     expect(useGameStore.getState().game.remainingTime.red).toBe(599900)
   })
   it('khóa trước sẵn sàng và trong animation; reset hủy nước đang chờ', () => {
     let state = useGameStore.getState()
     state.select({ row: 6, col: 0 }, 0)
     expect(useGameStore.getState().selected).toBeNull()
-    state.start(-1300)
+    state.start(-MATCH_INTRO_MS)
     state.select({ row: 6, col: 0 }, 0)
     state.select({ row: 5, col: 0 }, 0)
     state = useGameStore.getState()
@@ -39,7 +40,7 @@ describe('State local', () => {
   })
   it('hoàn thành animation đúng một lần, không tính giờ animation', () => {
     const store = useGameStore.getState()
-    store.start(-1300); store.select({ row: 6, col: 0 }, 100); store.select({ row: 5, col: 0 }, 100)
+    store.start(-MATCH_INTRO_MS); store.select({ row: 6, col: 0 }, 100); store.select({ row: 5, col: 0 }, 100)
     const version = useGameStore.getState().animationVersion
     store.completeAnimation(version, 400)
     store.completeAnimation(version, 800)
@@ -49,7 +50,7 @@ describe('State local', () => {
   })
   it('đi lại local chỉ có sau nước đầu tiên và trừ tối đa hai lần', () => {
     let store = useGameStore.getState()
-    store.start(-1300)
+    store.start(-MATCH_INTRO_MS)
     expect(store.history).toHaveLength(0)
     store.select({ row: 6, col: 0 }, 500, false)
     store.select({ row: 5, col: 0 }, 500, false)
@@ -65,7 +66,7 @@ describe('State local', () => {
   })
   it('restores both clocks when taking back two plies', () => {
     let store = useGameStore.getState()
-    store.start(-1300)
+    store.start(-MATCH_INTRO_MS)
     store.select({ row: 6, col: 0 }, 500, false)
     store.select({ row: 5, col: 0 }, 500, false)
     store = useGameStore.getState()
@@ -77,11 +78,11 @@ describe('State local', () => {
   })
   it('hòa, xin thua và timeout khóa ván', () => {
     const store = useGameStore.getState()
-    store.start(-1300); store.finish(true, 100)
+    store.start(-MATCH_INTRO_MS); store.finish(true, 100)
     expect(useGameStore.getState().game.result).toEqual({ winner: null, reason: 'draw' })
-    store.reset(0); store.start(-1300); store.finish(false, 100)
+    store.reset(0); store.start(-MATCH_INTRO_MS); store.finish(false, 100)
     expect(useGameStore.getState().game.result).toEqual({ winner: 'black', reason: 'resign' })
-    store.reset(0); store.start(-1300); store.finish(true, 600000)
+    store.reset(0); store.start(-MATCH_INTRO_MS); store.finish(true, 600000)
     expect(useGameStore.getState().game.result?.reason).toBe('timeout')
   })
   it('đi qua store vẫn nhận nước chiếu và kết thúc đúng khi chiếu bí', () => {
@@ -116,7 +117,7 @@ describe('State local', () => {
   })
   it('đi thường, ăn quân, undo và replay bằng state ban đầu', () => {
     let store = useGameStore.getState()
-    store.start(-1300)
+    store.start(-MATCH_INTRO_MS)
     store.select({ row: 6, col: 0 }, 0, false)
     store.select({ row: 5, col: 0 }, 0, false)
     store.select({ row: 3, col: 0 }, 0, false)
@@ -139,8 +140,8 @@ describe('State local', () => {
     expect(store.game.board.flat().filter(Boolean)).toHaveLength(32)
     expect(store.history).toEqual([])
     expect(store.moves).toEqual([])
-    store.select({ row: 6, col: 0 }, 1400, false)
-    store.select({ row: 5, col: 0 }, 1400, false)
+    store.select({ row: 6, col: 0 }, MATCH_INTRO_MS + 100, false)
+    store.select({ row: 5, col: 0 }, MATCH_INTRO_MS + 100, false)
     expect(useGameStore.getState().history).toHaveLength(1)
   })
 })

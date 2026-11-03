@@ -1,3 +1,4 @@
+import { MATCH_INTRO_MS } from '../src/game/moves/actions'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { RoomRepository } from '../server/repositories/roomRepository'
 import { RoomService } from '../server/services/roomService'
@@ -31,7 +32,7 @@ it.each([0, 1])('draws player %i once at start and enforces that player as the f
   const snapshot = service.command('b', { type: 'ready' })
   expect(draw.pick).toHaveBeenCalledTimes(1)
   expect(snapshot.game.currentTurn).toBe('red')
-  at(1300)
+  at(MATCH_INTRO_MS)
   const first = value === 0 ? 'a' : 'b', second = value === 0 ? 'b' : 'a'
   expect(snapshot.players.find(player => player.id === first)?.side).toBe('red')
   expect(snapshot.players.find(player => player.id === second)?.side).toBe('black')

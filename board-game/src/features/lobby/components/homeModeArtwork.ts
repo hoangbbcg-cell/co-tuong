@@ -1,7 +1,7 @@
-import quick from '../../../assets/home-actions/quick-full.png'
-import rooms from '../../../assets/home-actions/rooms-full.png'
-import hidden from '../../../assets/home-actions/hidden-full.png'
-import computer from '../../../assets/home-actions/computer-full.png'
+import quick from '../../../assets/home-actions/quick-full.webp'
+import rooms from '../../../assets/home-actions/rooms-full.webp'
+import hidden from '../../../assets/home-actions/hidden-full.webp'
+import computer from '../../../assets/home-actions/computer-full.webp'
 
 /** Source-canvas offsets align the baked name plaques across all four modes. */
 export const homeModeArtwork = {

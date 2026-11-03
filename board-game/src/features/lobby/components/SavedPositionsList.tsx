@@ -13,13 +13,15 @@ import replayButtonFrame from '../../../assets/history/history-replay-button-fra
 import { savedMatchSide } from '../../../lib/savedMatchPerspective'
 import { NumberText } from '../../../lib/NumberText'
 import { usePressToRevealDelete } from '../hooks/usePressToRevealDelete'
+import { playBoardEntryActionSound } from '../../../lib/uiActionSound'
 
 const noop = () => {}
 function NewspaperIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24" className="inline-block size-[var(--ui-p-24,24px)] shrink-0 align-middle" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4h16v15a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8h2Zm0 4v11a2 2 0 0 0 2 2" /><path d="M9 8h8v4H9Zm0 8h3m3 0h2M9 18h8" /></svg>
 }
 export function SavedPositionsList({ owner, scale, compact = false, onClose }: { owner: string; scale: number; compact?: boolean; onClose: () => void }) {
-  const positions = useSavedPositions(state => state.entries).filter(item => item.owner === owner).slice().reverse()
+  const positions = useSavedPositions(state => state.entries).filter(item => item.owner === owner)
+  positions.sort((a, b) => b.savedAt - a.savedAt)
   const [error, setError] = useState('')
   const [editing, setEditing] = useState<string | null>(null)
   const deletePress = usePressToRevealDelete(compact && !editing, owner)
@@ -50,7 +52,7 @@ export function SavedPositionsList({ owner, scale, compact = false, onClose }: {
         <div className="flex h-full min-h-0 min-w-0 flex-col gap-2 py-1 text-[#271608]">
           <div className="flex min-w-0 items-center gap-2">
             {editing === position.id && editField === 'title' ? <input aria-label="Tên thế cờ" value={title} maxLength={100} onChange={event => setTitle(event.target.value)} className="min-w-0 flex-1 rounded border-0 bg-[linear-gradient(90deg,#efc45c,#f5d273_70%,#e9e5a7)] px-1 font-position-title-input lining-nums tabular-nums text-[length:var(--ui-p-24,24px)] font-black text-[#271608]" /> : <h3 className="min-w-0 truncate rounded bg-[linear-gradient(90deg,#efc45c,#f5d273_70%,#e9e5a7)] px-1 font-heading text-[length:var(--ui-p-24,24px)] font-black" title={position.title}><NumberText text={position.title} compact weight="normal" soften={false} /></h3>}
-            <button type="button" aria-label={editing === position.id && editField === 'title' ? 'Lưu chỉnh sửa' : `Sửa thế ${position.title}`} className={`${buttonInteraction} grid size-[var(--ui-p-28,28px)] shrink-0 place-items-center rounded bg-[#f7e8bf] text-[#43240f]`} onClick={() => {
+            <button data-ui-tab-sound type="button" aria-label={editing === position.id && editField === 'title' ? 'Lưu chỉnh sửa' : `Sửa thế ${position.title}`} className={`${buttonInteraction} grid size-[var(--ui-p-28,28px)] shrink-0 place-items-center rounded bg-[#f7e8bf] text-[#43240f]`} onClick={() => {
               if (editing === position.id && editField === 'title') { void useSavedPositions.getState().update(owner, position.id, title, note).then(()=>{setEditing(null);setError('')}).catch(()=>setError('Không thể lưu chỉnh sửa.')) }
               else { setEditing(position.id); setEditField('title'); setTitle(position.title); setNote(position.note) }
             }}><svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{editing === position.id && editField === 'title' ? <path d="m5 12 4 4L19 6" /> : <><path d="m15 4 5 5M4 20l5-1L20 8a2 2 0 0 0-5-5L4 14Z" /><path d="M4 20h16" /></>}</svg></button>
@@ -72,15 +74,15 @@ export function SavedPositionsList({ owner, scale, compact = false, onClose }: {
           <div className="relative flex min-h-0 flex-1 rounded bg-[#c7a370]/25 font-arial text-[length:var(--ui-p-17,17px)] text-[#613014]">
             <span className="absolute left-2 top-1"><NewspaperIcon /></span>
             {editing === position.id && editField === 'note' ? <textarea aria-label="Ghi chú" value={note} maxLength={5000} onChange={event => setNote(event.target.value)} className="min-h-0 w-full flex-1 resize-none overflow-y-auto rounded border-0 bg-transparent py-1 pl-10 pr-10 text-inherit" /> : <div tabIndex={0} aria-label="Ghi chú" className="min-h-0 flex-1 overflow-y-auto whitespace-pre-wrap break-words py-1 pl-10 pr-10">{position.note || 'Chưa có ghi chú.'}</div>}
-            <button type="button" aria-label={editing === position.id && editField === 'note' ? 'Lưu ghi chú' : 'Sửa ghi chú'} className={`${buttonInteraction} absolute right-1 top-1 grid size-[var(--ui-p-28,28px)] place-items-center rounded bg-[#f7e8bf] text-[#43240f]`} onClick={() => {
+            <button data-ui-tab-sound type="button" aria-label={editing === position.id && editField === 'note' ? 'Lưu ghi chú' : 'Sửa ghi chú'} className={`${buttonInteraction} absolute right-1 top-1 grid size-[var(--ui-p-28,28px)] place-items-center rounded bg-[#f7e8bf] text-[#43240f]`} onClick={() => {
               if (editing === position.id && editField === 'note') { void useSavedPositions.getState().update(owner, position.id, position.title, note).then(()=>{setEditing(null);setError('')}).catch(()=>setError('Không thể lưu ghi chú.')) }
               else { setEditing(position.id); setEditField('note'); setTitle(position.title); setNote(position.note) }
             }}><svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{editing === position.id && editField === 'note' ? <path d="m5 12 4 4L19 6" /> : <><path d="m15 4 5 5M4 20l5-1L20 8a2 2 0 0 0-5-5L4 14Z" /><path d="M4 20h16" /></>}</svg></button>
           </div>
         </div>
         <div className="flex items-center justify-end compact:col-start-2 compact:justify-start">
-          <button type="button" className={`${buttonInteraction} relative h-[var(--ui-p-52,52px)] w-[var(--ui-p-151,151px)] shrink-0`} onClick={() => { useSavedMatches.setState({ replay: { replayKind: 'position', initialMoveCount: position.moveNumber, id: position.id, endedAt: position.savedAt, redName: position.redName, blackName: position.blackName, states: [position.boardState] } }); onClose(); useSessionStore.setState({ screen: 'replay' }) }}><CrispUiImage src={replayButtonFrame} alt="" className="absolute inset-0 size-full object-contain" /><span className="relative font-arial text-[length:var(--ui-p-19,19px)] text-[#f4dcc0]">▶ Mở thế</span></button>
-          {(!compact || deletePress.revealedId === position.id) && <button data-history-delete type="button" className={`${buttonInteraction} absolute right-3 top-[5px] grid h-[var(--ui-p-36,36px)] w-[var(--ui-p-28,28px)] shrink-0 place-items-center rounded-md border border-[#696761] bg-[linear-gradient(180deg,#777672,#5b5a56)] text-[#e5e7eb]`} aria-label={`Xóa thế ${position.title}`} onClick={async () => { try { await useSavedPositions.getState().remove(owner, position.id); deletePress.clear(); setError('') } catch { setError('Không thể xóa thế cờ. Hãy thử lại.') } }}><svg aria-hidden="true" viewBox="0 0 24 24" className="h-[var(--ui-p-24,24px)] w-[var(--ui-p-19,19px)]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M10 10v8m4-8v8M6 6l1 15h10l1-15M9 6V3h6v3" /></svg></button>}
+          <button type="button" className={`${buttonInteraction} relative h-[var(--ui-p-52,52px)] w-[var(--ui-p-151,151px)] shrink-0`} onClick={() => { useSavedMatches.setState({ replay: { replayKind: 'position', initialMoveCount: position.moveNumber, id: position.id, endedAt: position.savedAt, redName: position.redName, blackName: position.blackName, states: [position.boardState] } }); onClose(); playBoardEntryActionSound(); useSessionStore.setState({ screen: 'replay' }) }}><CrispUiImage src={replayButtonFrame} alt="" className="absolute inset-0 size-full object-contain" /><span className="relative font-arial text-[length:var(--ui-p-19,19px)] text-[#f4dcc0]">▶ Mở thế</span></button>
+          {(!compact || deletePress.revealedId === position.id) && <button data-history-delete data-ui-selection-sound type="button" className={`${buttonInteraction} absolute right-3 top-[5px] grid h-[var(--ui-p-36,36px)] w-[var(--ui-p-28,28px)] shrink-0 place-items-center rounded-md border border-[#696761] bg-[linear-gradient(180deg,#777672,#5b5a56)] text-[#e5e7eb]`} aria-label={`Xóa thế ${position.title}`} onClick={async () => { try { await useSavedPositions.getState().remove(owner, position.id); deletePress.clear(); setError('') } catch { setError('Không thể xóa thế cờ. Hãy thử lại.') } }}><svg aria-hidden="true" viewBox="0 0 24 24" className="h-[var(--ui-p-24,24px)] w-[var(--ui-p-19,19px)]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M10 10v8m4-8v8M6 6l1 15h10l1-15M9 6V3h6v3" /></svg></button>}
         </div>
       </li>)}
     </ol>}

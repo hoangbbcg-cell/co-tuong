@@ -4,5 +4,5 @@ export { computerAvatar }
 
 /** Includes older saved machine names so their portraits remain consistent. */
 export function getComputerAvatar(name: string): string | undefined {
-  return /^(?:Ông Hoàng|Pikafish|Máy)(?:$|[\s·])/.test(name.trim()) ? computerAvatar : undefined
+  return /^(?:Fairy-Stockfish|Ông Hoàng|Pikafish|Máy)(?:$|[\s·])/.test(name.trim()) ? computerAvatar : undefined
 }

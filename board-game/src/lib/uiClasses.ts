@@ -34,3 +34,5 @@ export const shopMobileDialogFrameClass = "compact:rounded-2xl compact:border-2 
 // Shared mobile notice appearance from the Home tournament notice; overlays keep their own dimming.
 export const mobileNoticePanelStyle = 'compact:rounded-[12px]! compact:border compact:border-[#c7a264] compact:bg-none compact:bg-[#30271e] compact:text-[#f7e6c1] compact:shadow-2xl'
 export const mobileNoticeButtonStyle = 'compact:rounded-[3px]! compact:border-2 compact:border-[#d8ac35] compact:bg-[linear-gradient(#ad7e08,#805100)] compact:text-[#ffe535] compact:shadow-[inset_0_1px_0_#ffec8d,inset_0_0_0_1px_#6f400b,0_3px_5px_#0005] compact:[text-shadow:none] compact:hover:border-[#ffe78b] compact:hover:bg-[linear-gradient(#d49b12,#a16a08)] compact:hover:text-[#fff7a5]'
+
+export const customizationListPanel = 'rounded-[var(--ui-p-10,10px)] border border-[#9f6025] bg-[#1c0d07aa] shadow-[inset_0_0_12px_#0d0503]'

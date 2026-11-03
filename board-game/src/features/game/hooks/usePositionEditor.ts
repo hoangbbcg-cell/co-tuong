@@ -4,10 +4,12 @@ import { createInitialBoard } from '../../../game/state/initial'
 import { positionError, positionFen, positionPiece, positionPieceCount, POSITION_PIECE_LIMITS, positionPlacementError } from '../../../game/state/customPosition'
 import { useSessionStore } from '../../../store/sessionStore'
 import { useGameStore } from '../../../store/gameStore'
-import { pikafishApi } from '../../../services/pikafish'
+import { fairyStockfishApi } from '../../../services/fairyStockfish'
 import { errorMessage } from '../../../services/api'
+import { playBoardEntryActionSound, playPositionRemoveActionSound, preparePositionRemoveActionSound, playPositionMoveActionSound, preparePositionMoveActionSound } from '../../../lib/uiActionSound'
 
 export function usePositionEditor() {
+  useEffect(() => { void preparePositionRemoveActionSound(); void preparePositionMoveActionSound() }, [])
   const [board, setBoard] = useState<Board>(createInitialBoard)
   const [side, setSide] = useState<Side>(() => useSessionStore.getState().humanSide)
   const [firstSide, setFirstSide] = useState<Side>('red')
@@ -29,6 +31,7 @@ export function usePositionEditor() {
     else noticeTimer.current = null
   }
   const remove = (point: Position) => {
+    if (board[point.row][point.col]) playPositionRemoveActionSound()
     setBoard(board => board.map((row, r) => row.map((value, c) => r === point.row && c === point.col ? null : value)))
     setSelected(null)
   }
@@ -49,6 +52,7 @@ export function usePositionEditor() {
         if (error) { showNotice(error); setSelected(null); return }
         const id = `placed-${++nextId.current}`
         setBoard(board => board.map((row, r) => row.map((value, c) => r === point.row && c === point.col ? positionPiece(piece.side, piece.type, id) : value)))
+        playPositionMoveActionSound()
         const replaced = board[point.row][point.col]
         if (positionPieceCount(board, piece.side, piece.type) - Number(replaced?.side === piece.side && replaced.type === piece.type) + 1 >= POSITION_PIECE_LIMITS[piece.type]) setPiece(null)
       } else if (selected) {
@@ -63,6 +67,7 @@ export function usePositionEditor() {
             next[selected.row][selected.col] = null
             return next
           })
+          playPositionMoveActionSound()
         }
         setSelected(null)
       } else if (board[point.row][point.col]) setSelected(point)
@@ -87,10 +92,11 @@ export function usePositionEditor() {
         next[target.row][target.col] = moving
         return next
       })
+      if (!source.from || source.from.row !== target.row || source.from.col !== target.col) playPositionMoveActionSound()
     },
     remove, removeAndChoose,
-    clearPieces: () => { setBoard(current => current.map(row => row.map(value => value?.type === 'general' ? value : null))); setSelected(null); setPiece(null); showNotice('') },
-    reset: () => { setBoard(createInitialBoard()); setSelected(null); setPiece(null); showNotice('') },
+    clearPieces: () => { if (board.some(row => row.some(value => value && value.type !== 'general'))) playPositionRemoveActionSound(); setBoard(current => current.map(row => row.map(value => value?.type === 'general' ? value : null))); setSelected(null); setPiece(null); showNotice('') },
+    reset: () => { playPositionMoveActionSound(); setBoard(createInitialBoard()); setSelected(null); setPiece(null); showNotice('') },
     importBoard: (board: Board) => { setBoard(board); setSelected(null); setPiece(null); setSide('red'); showNotice('Đã đọc ảnh. Hãy kiểm tra và chỉnh lại quân trước khi đấu.') },
     save: () => {
       const fen = positionFen(board, firstSide)
@@ -109,11 +115,12 @@ export function usePositionEditor() {
       request.current = controller
       setStarting(true); showNotice('')
       try {
-        await pikafishApi.ready(controller.signal)
+        await fairyStockfishApi.ready(controller.signal)
         if (controller.signal.aborted || useSessionStore.getState().screen !== 'position') return
         useGameStore.getState().loadPosition(positionFen(board, firstSide))
+        playBoardEntryActionSound()
         useSessionStore.getState().joinLocal()
-        useSessionStore.setState({ mode: 'computer', humanSide: side, computerEngine: 'pikafish', customPositionTrial: true })
+        useSessionStore.setState({ mode: 'computer', humanSide: side, computerEngine: 'fairy', computerLevel: 10, customPositionTrial: true })
       } catch (error) { if (!controller.signal.aborted) showNotice(errorMessage(error)) }
       finally { request.current = null; if (!controller.signal.aborted) setStarting(false) }
     },

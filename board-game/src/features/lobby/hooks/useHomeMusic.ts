@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { readAudioPreference, saveAudioPreference } from '../../../lib/audioPreferences'
+import { BackgroundMusicPlayer } from '../audio/BackgroundMusicPlayer'
 import firstTrack from '../../../assets/audio/et11lx-chinese-ancient-style-music-love-et11lx-155926.mp3'
 import secondTrack from '../../../assets/audio/et11lx-chinese-ancient-style-music-love-etlx-247345.mp3'
 import thirdTrack from '../../../assets/audio/chinesezenmusic-chinese-bamboo-flute-amp-guzheng-relaxing-zen-music-618302.mp3'
@@ -9,7 +10,7 @@ let trackIndex = 0
 
 const listeners = new Set<() => void>()
 let enabled = readAudioPreference('music', true)
-let audio: HTMLAudioElement | null = null
+let audio: BackgroundMusicPlayer | null = null
 let replayTimer: ReturnType<typeof setTimeout> | null = null
 
 function clearReplay() {
@@ -19,12 +20,20 @@ function clearReplay() {
 
 function getAudio() {
   if (!audio) {
-    audio = new Audio(tracks[trackIndex])
-    audio.preload = 'metadata'
-    audio.loop = false
-    audio.addEventListener('ended', scheduleNext)
+    audio = new BackgroundMusicPlayer(scheduleNext)
+    // The shared player survives page changes, so its visibility listener must too.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') audio?.pause()
+      else resumeMusic()
+    })
   }
   return audio
+}
+
+function resumeMusic() {
+  if (document.visibilityState !== 'hidden' && enabled && replayTimer === null && getAudio().paused) {
+    void getAudio().play(tracks[trackIndex]).catch(() => {})
+  }
 }
 
 function scheduleNext() {
@@ -34,9 +43,7 @@ function scheduleNext() {
     replayTimer = null
     if (!enabled || !audio) return
     trackIndex = (trackIndex + 1) % tracks.length
-    audio.src = tracks[trackIndex]
-    audio.load()
-    void audio.play().catch(() => {})
+    if (document.visibilityState !== 'hidden') void audio.play(tracks[trackIndex]).catch(() => {})
   }, 4000)
 }
 
@@ -52,7 +59,7 @@ async function toggle() {
   listeners.forEach(listener => listener())
   if (!enabled) { audio?.pause(); return }
   if (getAudio().ended) { scheduleNext(); return }
-  try { await getAudio().play() }
+  try { if (document.visibilityState !== 'hidden') await getAudio().play(tracks[trackIndex]) }
   catch (error) {
     enabled = false
     saveAudioPreference('music', false)
@@ -65,11 +72,7 @@ async function toggle() {
 export function useHomeMusic() {
   const playing = useSyncExternalStore(subscribe, () => enabled)
   useEffect(() => {
-    const resume = () => {
-      if (enabled && replayTimer === null && getAudio().paused && !getAudio().ended) {
-        void getAudio().play().catch(() => {})
-      }
-    }
+    const resume = resumeMusic
     resume()
     document.addEventListener('pointerdown', resume)
     document.addEventListener('keydown', resume)

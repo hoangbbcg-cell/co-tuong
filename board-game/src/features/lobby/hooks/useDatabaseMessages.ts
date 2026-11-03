@@ -4,9 +4,12 @@ import { accountApi } from '../../../services/accountApi'
 export interface DatabaseConversation {online?:boolean;id:string;type:string;title:string|null;avatarUrl:string|null;nickname:string|null;peerId:string|null;peerName:string|null;lastMessageAt:string|null;preview:string|null;unreadCount:number;mutedUntil:string|null;mutedIndefinitely:number}
 export type GroupMemberRole = 'owner' | 'deputy' | 'member'
 export interface BlockedGroupMember { id: string; name: string }
+export interface GroupInvitation {conversationId:string;title:string;avatarUrl:string|null;inviterName:string;createdAt:string}
 export interface PendingGroupMember { id:string; name:string; inviterName:string }
-export interface DatabaseMessage {id:string;senderId:string;displayName:string;body:string;sentAt:string;clientMessageId:string}
+export interface DatabaseMessage {eventType?: 'group-left' | null;avatarCode?:string;avatarFrameCode?:string;id:string;senderId:string;displayName:string;body:string;sentAt:string;clientMessageId:string}
 const databaseMessages={
+  invitations:async()=>(await accountApi.request.get<GroupInvitation[]>('/group-invitations')).data,
+  respondInvitation:async(id:string,accepted:boolean)=>(await accountApi.request.patch<{pendingApproval:boolean}>(`/group-invitations/${id}`,{accepted})).data,
   list:async()=>(await accountApi.request.get<DatabaseConversation[]>('/conversations')).data,
   messages:async(id:string)=>(await accountApi.request.get<DatabaseMessage[]>(`/conversations/${id}/messages`)).data,
   direct:async(name:string)=>{
@@ -20,13 +23,13 @@ const databaseMessages={
   },
   send:async(id:string,body:string,clientMessageId:string)=>{await accountApi.request.post(`/conversations/${id}/messages`,{body,clientMessageId})},
   sendImage:async(id:string,image:string,clientMessageId:string)=>{await accountApi.request.post(`/conversations/${id}/images`,{image,clientMessageId})},
-  member:async(id:string,action:string,value?:string)=>(await accountApi.request.patch<{pendingApproval?:boolean}>(`/conversations/${id}`,{action,value})).data,
+  member:async(id:string,action:string,value?:string)=>(await accountApi.request.patch<{pendingApproval?:boolean;pendingInvitation?:boolean}>(`/conversations/${id}`,{action,value})).data,
 }
 export function useDatabaseMessages(){
   const queryClient = useQueryClient()
   return {...databaseMessages,
     social:()=>accountApi.social(),
-    settings:async(id:string)=>(await accountApi.request.get<{approvalRequired:boolean}>(`/conversations/${id}/settings`)).data,
+    settings:async(id:string)=>(await accountApi.request.get<{approvalRequired:boolean;chatDisabled:boolean;deputyChatAllowed:boolean}>(`/conversations/${id}/settings`)).data,
     blocked:async(id:string)=>(await accountApi.request.get<BlockedGroupMember[]>(`/conversations/${id}/blocked`)).data,
     manageMember:async(id:string,name:string,action:'block-member'|'unblock-member'|'promote-deputy'|'demote-deputy')=>{
       const endpoint=action==='unblock-member'?'blocked':'members'
@@ -36,6 +39,7 @@ export function useDatabaseMessages(){
       await databaseMessages.member(id,action,target.id)
     },
     pending:async(id:string)=>(await accountApi.request.get<PendingGroupMember[]>(`/conversations/${id}/pending`)).data,
+    setChat:async(id:string,chatDisabled:boolean,deputyChatAllowed:boolean)=>{await accountApi.request.patch(`/conversations/${id}/chat-settings`,{chatDisabled,deputyChatAllowed})},
     setApproval:async(id:string,approvalRequired:boolean)=>{await accountApi.request.patch(`/conversations/${id}/settings`,{approvalRequired})},
     invite:async(id:string,name:string)=>{
       const users=await accountApi.search(name),target=users.find(user=>user.name===name)

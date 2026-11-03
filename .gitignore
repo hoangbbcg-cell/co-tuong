@@ -60,3 +60,24 @@ board-game/src/assets/references/uploads/*
 *.sql.gz
 *.sql.zst
 /ci-tests-*.json
+
+# Local reports, rollback snapshots and generated application artifacts
+/outputs/
+/board-game/outputs/
+/.security-backup/
+/board-game/.ai-backups/
+/board-game/.*-20*/
+/board-game/HOVANG-*-Audit/
+/board-game/HOVANG-*-Inspection/
+/board-game/docs/checkpoints/
+.idea/
+*.bak
+*.apk
+*.aab
+*.jks
+*.keystore
+/VPS_CHECKPOINT.zip
+
+/board-game/scripts/hovang-webp-build-result.json
+/board-game/engines/fairy-stockfish/fairy-stockfish*
+/board-game/engines/fairy-stockfish/*.nnue

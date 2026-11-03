@@ -1,0 +1,20 @@
+/*
+ * HOVANG common list scrollbar rail.
+ * Desktop and mobile.
+ * Scrollbar remains immediately beside row content.
+ */
+
+ol.hovang-scroll-rail {
+    box-sizing: border-box;
+    margin-right: -18px !important;
+    padding-right: 2px !important;
+    min-width: 0;
+    scrollbar-gutter: auto;
+}
+
+@media (max-width: 767px) {
+    ol.hovang-scroll-rail {
+        margin-right: -10px !important;
+        padding-right: 2px !important;
+    }
+}

@@ -1,3 +1,4 @@
+import { MATCH_INTRO_MS } from '../src/game/moves/actions'
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
@@ -145,7 +146,7 @@ describe('React regression', () => {
     mount()
     expect(screen.getAllByTestId('covered-piece')).toHaveLength(30)
     fireEvent.click(board().getByRole('button', { name: 'Sẵn sàng' }))
-    act(() => vi.advanceTimersByTime(1300))
+    act(() => vi.advanceTimersByTime(MATCH_INTRO_MS))
     fireEvent.click(board().getByRole('button', { name: 'Hàng 7, cột 1, Quân úp' }))
     fireEvent.click(board().getByRole('button', { name: 'Hàng 6, cột 1' }))
     expect(screen.getAllByTestId('covered-piece')).toHaveLength(29)
@@ -188,7 +189,7 @@ describe('React regression', () => {
     useSessionStore.setState({ screen: 'game', mode: 'computer' })
     mount()
     fireEvent.click(board().getByRole('button', { name: 'Sẵn sàng' }))
-    act(() => vi.advanceTimersByTime(1300))
+    act(() => vi.advanceTimersByTime(MATCH_INTRO_MS))
     expect(useSessionStore.getState().humanSide).toBe('black')
     expect(useGameStore.getState().game.currentTurn).toBe('black')
     const before = useGameStore.getState().game
@@ -297,7 +298,7 @@ describe('React regression', () => {
     vi.useFakeTimers()
     mount()
     fireEvent.click(board().getByRole('button', { name: 'Sẵn sàng' }))
-    act(() => vi.advanceTimersByTime(1300))
+    act(() => vi.advanceTimersByTime(MATCH_INTRO_MS))
     expect(screen.getByTestId('match-intro')).not.toBeVisible()
     expect(screen.getByLabelText('Thời gian quân đỏ')).toHaveTextContent('10:00')
     expect(screen.getByLabelText('Thời gian quân đen')).toHaveTextContent('10:00')
@@ -314,7 +315,7 @@ describe('React regression', () => {
     expect(screen.getAllByTestId('board-hit')).toHaveLength(90)
     fireEvent.click(board().getByRole('button', { name: 'Sẵn sàng' }))
     expect(board().getByRole('button', { name: 'Hàng 7, cột 1, 兵' })).toBeDisabled()
-    act(() => vi.advanceTimersByTime(1300))
+    act(() => vi.advanceTimersByTime(MATCH_INTRO_MS))
     fireEvent.click(board().getByRole('button', { name: 'Hàng 7, cột 1, 兵' }))
     expect(screen.getAllByTestId('move-marker')).toHaveLength(1)
     fireEvent.click(board().getByRole('button', { name: 'Hàng 6, cột 1' }))
@@ -329,7 +330,7 @@ describe('React regression', () => {
   it('xin thua sau khi ăn quân, rời bàn và mở ván local mới sạch trạng thái', () => {
     vi.useFakeTimers()
     const now = performance.now()
-    useGameStore.getState().start(now - 1300)
+    useGameStore.getState().start(now - MATCH_INTRO_MS)
     // Arrange the same legal capture through the real store without six UI renders.
     for (const point of [{ row: 6, col: 0 }, { row: 5, col: 0 }, { row: 3, col: 0 }, { row: 4, col: 0 }, { row: 5, col: 0 }, { row: 4, col: 0 }]) {
       useGameStore.getState().select(point, now, false)
@@ -352,7 +353,7 @@ describe('React regression', () => {
     mount()
     act(() => vi.advanceTimersByTime(1000))
     fireEvent.click(board().getByRole('button', { name: 'Sẵn sàng' }))
-    act(() => vi.advanceTimersByTime(1300))
+    act(() => vi.advanceTimersByTime(MATCH_INTRO_MS))
     expect(screen.queryByRole('button', { name: 'Cầu hòa' })).not.toBeInTheDocument()
     const resign = screen.getByRole('button', { name: 'Xin thua' })
     expect(screen.getByTestId('avatar-red')).toHaveAttribute('data-active', 'true')
@@ -389,7 +390,7 @@ describe('React regression', () => {
     act(() => useSessionStore.setState({ notice: 'Thông báo cũ' }))
     // Commit the playing render before timeout, as in a real match. Result faces
     // intentionally ignore a finished state without an observed live session.
-    act(() => useGameStore.getState().start(-1300))
+    act(() => useGameStore.getState().start(-MATCH_INTRO_MS))
     expect(useGameStore.getState().game.phase).toBe('playing')
     act(() => {
       const game = useGameStore.getState().game

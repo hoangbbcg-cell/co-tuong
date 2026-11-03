@@ -1,4 +1,20 @@
+- 2026-10-28: User chốt giá Shop tuần:5avatar thường10.000 vàng/món;4Tây Du Ký (42 Tôn Ngộ Không,38 Đường Tăng,45 Trư Bát Giới,46 Sa Tăng)12.000 vàng/món. SHOP_PRODUCTS dùng nhóm chuẩn chung để API tuần/hiển thị/xác nhận/giao dịch server lấy cùng giá; chợ ngày3.000 giữ nguyên. Kiểm tra catalog Node PASS toàn bộ nhóm; build/typecheck PASS; dist cập nhật; chưa browser/giao dịch DB QA, không phát sinh mua thử.
+
+- 2026-10-27: Đính chính chính thức nhóm Shop tuần theo đúng4 ảnh user chỉ: Tây Du Ký gồm42 Tôn Ngộ Không/38 Đường Tăng/45 Trư Bát Giới/46 Sa Tăng. Nhóm thường gồm39 Bạch Long/40 Bạch Hổ/41 Hồ Ly/43 Hắc Lang/44 Thiên Tôn. Mỗi tuần đủ6 avatar duy nhất: toàn bộ5 ảnh thường +1 random trong đúng4 ảnh Tây Du Ký; cùng tuần ổn định theo seed server. Giữ ID/asset, sửa tên38/46. Không dùng DB/migration mới. Typecheck/build PASS; dist cập nhật, chưa browser QA.
+
 # Cửa hàng
+
+- 2026-10-27: Ảnh avatar phiên chợ tuần áp dụng `image-rendering:-webkit-optimize-contrast` khi hiển thị nhỏ; không sửa hay nén asset gốc.
+
+- 2026-10-27: Đính chính ảnh: thu chiều ngang biển artwork “Cửa Hàng” LAPTOP220→180px; giữ mobile110px. Trả MarketHeading từ24dvh về31dvh vì đó không phải khung user nói.
+
+- 2026-10-27: Theo user, chữ ba tab lọc Shop LAPTOP tăng14→18px; mobile giữ14px.
+
+- 2026-10-27: Theo user, riêng Shop LAPTOP ba tab Tất cả/Avatar/Khung Viền chuyển sang bộ nền/viền/glow/hover/click của mobile; bỏ tab artwork desktop. Vùng MarketHeading trên cùng giảm31→24dvh; mobile giữ18dvh. Danh mục và mua bán giữ nguyên.
+
+- 2026-10-26: Theo user, Home thêm popup nhận đồ từ ảnh85b40e21: ô vuông đồngcỡ cho danh hiệu/avatar/viền/vàng/Elo, số tài nguyên ngoài ô bên dưới4px/icon88%. Resource-only giữ vùng18/56/64/16% như trận; không sửa MatchResultDialog. Hook quan sát profile/APIhonors5s→homeRewardsStore baseline/pending localStorage riêngaccount, firstload chỉbaseline, xác nhận xóa pendingđanghiện; gold/Elo bỏ khi game/replay hoặc played tăng để tránh lặp thưởng trận. Đồ mới chờHome. Snapshot-based/chưa ledgerthôngbáoserver/ackchưađồngbộthiếtbị; xem docs/HOME-REWARDS.md. Build/typecheck PASS; dist index-DJG3nU5R.js + asset; chưa browser/API QA, không DB/restart/deploy.
+
+- 2026-10-26: Theo user, mua không đủ vàng hiển thị toast “Không đủ tiền” dùng useInviteSentNotice như Đã gửi lời mời: giữa màn hình/nền nâu/chữ18px/bay48px rồi mờ trong1300ms, không nút×/không nền phủ. Áp dụng Shop mobile/laptop, chỉ nhận đúng lỗi thiếu vàng backend; các lỗi khác và giao dịch giữ nguyên. Bỏ popup thiếu tiền cũ/timer2s. Typecheck/build PASS, dist có toast; chưa browser/API QA.
 
 - 2026-10-25: User chỉnh lại Shop MOBILE thành3cột×3hàng, thay yêu cầu4×3 ngay trước. Giữ chiều cao3hàng/cuộn và desktop. Build/typecheck PASS; dist index-BWTLGI6c.js xác nhận3×3; chưa browser QA.
 
@@ -160,3 +176,24 @@ Kiểm chứng:4/4 test shop-page/mobile-home/home-quick-wait PASS; typecheck/bu
 - Lịch chung server theo00:00ViệtNam UTC+7; mỗi ngày1roll60%0móncũ/30%1/10%2 trên tổng6món. Cũ là từngxuấthiện bấtkỳngàytrước, không phải đãsởhữu; ngày đầu chưa cócũ chỉhàngmới. Khônglặpmón trongngày. Khi khôngđủ mới mỗi loại, bù tối thiểu bằngcũ để đủ3+3; hếtmới được6móncũ theo user, khôngreset lịch sử. DB daily_shop_state/daily_shop_days giữ lịch sử trọn đời và bộngày đã chốt; khóa singletontransaction để khôngrandomkhác giữa request/server/restart. Chỉ chốt khi phát sinh phiên ngày, không tạo lịch giả cho ngày không truy cập.
 - Thực hiện migration local chuẩn theo thứtự:007_saved_match_details:001 cònchờ (title/noteLịchsử) và008_daily_shop:001–002 đãapply+verifySchemaPASS (3bước).001–006 khôngsửa; khôngSSH/deploy/restart. CLItsx vướng uv_os_get_passwd ENOMEM, dùng Node native transform-types/resolvehook để chạy chính server/database.ts migrate. Đãkhởi tạo phiên thật2026-10-25 từShopService.daily:avatar27/36/31,frame23/8/11,đúng6×3000vàng; khôngmua thử/trừvàng/cấpđồuser. Build/typecheck PASS; dist index-BsP-6WJl.js có/shop/daily, không chạy tests/browserQA. ClientQuery poll30s/focus vàtimerrefreshAt để đổi ngày; lỗi cóThửlại, khôngfallbackcataloggiả.
 - 2026-10-25: Theo user, popup xem viền Shop cả laptop/mobile dùng avatar hiện tại từ sessionStore.avatarIndex thay avatar16 cố định. Theo dõi reactive cùng nguồn trang bị/account, chỉ đổi ảnh trong viền; xem avatar sản phẩm/geometry/mua không đổi. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+
+
+
+
+
+
+- 2026-10-28: Theo user, khôi phục customization-tab.mp4 có chọn lọc cho: mở/sửa Thông tin và Danh hiệu, chọn avatar/viền/skin/hiệu ứng, bút chỉnh trong Đã lưu, tab/tìm/thao tác Bạn bè, danh sách/emoji/đổi tên/ảnh nhóm/nút tích Tin nhắn, tab và nút Mua Cửa hàng, mọi role=switch và nút âm thanh, chọn thời gian bàn/nhanh, cấp và phe Chơi với máy. Marker data-ui-tab-sound, tôn trọng muted và phát sau preload; các vùng khác tiếp tục âm thanh X. Không đổi UI/nghiệp vụ. npm.cmd run build PASS; dist index-BWqCwhvL.js có cả hai asset; chưa browser/audio QA.
+
+- 2026-10-29: Ba tab bên trái và ba tab lọc giữa Cửa hàng dùng tiếng X; nút Mua giữ tiếng tab, cả laptop/mobile.
+- Kiểm chứng mapping âm thanh và thông báo 2026-10-29: npm.cmd run build PASS (TypeScript/Vite, exit0); dist/assets/index-CQzan5Qb.js chứa hai marker âm thanh và kích thước thông báo mới. Chưa browser/audio QA.
+
+- 2026-10-29: Theo user, bấm ô avatar/viền trong danh sách Shop (ngày/tuần, laptop/mobile) để xem rõ phát tiếng X/ui-action-confirmation qua data-ui-selection-sound. Nút Mua tiếp tục tiếng tab theo quy tắc riêng; giữ mua/preview và muted chung.
+
+- 2026-11-02: Theo user, tách 6 viền đang ghép trên avatar Shop cao cấp thành sản phẩm Khung Viền riêng: Hồ Ly/Thiên Tôn/Sa Tăng/Bạch Long/Hắc Lang/Bạch Hổ, mã frame-27–32. Avatar không còn overlay viền; Tất cả có cả hai loại. Catalog/API tuần/mua/admin/chọn viền dùng định nghĩa chung, loại viền tuần khỏi chợ ngày. Giữ giá theo mẫu cũ (Sa Tăng12.000, còn lại10.000), không tự cấp/equip hoặc đổi geometry avatar. Regression tuần + inventory4/4 PASS; TypeScript/Vite build PASS, dist có đủ6PNG; chưa browser/giao dịch DB QA. Backend cần nạp mã mới; không restart/deploy.
+
+- 2026-11-02: Theo user, thanh cuộn danh sách Shop phải nổi trên mép khung, không chiếm chiều rộng/đẩy ô sản phẩm. ShopScrollPanel ẩn scrollbar native bằng utility ưu tiên cao, vẽ thumb absolute 6px kéo được; giữ wheel/touch cuộn thật và dùng chung chợ ngày/tuần, các tab, laptop/mobile. TypeScript/Vite build PASS, dist đã cập nhật; chưa browser/touch QA.
+
+- 2026-11-02: User báo 6 viền tuần mờ. Kiểm tra PNG: 5ảnh341–342×341, Bạch Hổ512². crispImageProps áp dụng -webkit-optimize-contrast riêng đúng6tên asset (URL source/hashed), dùng chung Shop/chọn viền/overlay; preview viền đổi sang CrispUiImage để đồng bộ. Không sửa geometry hoặc tái tạo asset. TypeScript/Vite build PASS, dist cập nhật; chưa browser QA nên chưa khẳng định hết mờ; nguồn nhỏ vẫn giới hạn chi tiết khi phóng lớn.
+
+- 2026-11-02: User yêu cầu tái tạo6viền tuần nét hơn, giữ mẫu và thay vào. Built-in image_gen edit từngPNG nguồn,6bản1254² tại assets/shop/frames/weekly-custom (giữ tên/mapping frame27–32), originals-before-hd-20261102 giữ bản cũ, source-hd.json ghi prompt/nguồn. Đã đối chiếu trực quan6mẫu, giữ motif/màu/bố cục chính; tái tạoAI không pixel-identical. Tâm/góc6ảnh alpha0. Không đổi geometry/catalog/giá. Build TypeScript/Vite PASS, dist kiểm đủ6PNG mới; chưa browser QA.

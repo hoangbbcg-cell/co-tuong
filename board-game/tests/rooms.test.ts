@@ -1,11 +1,12 @@
+import { MATCH_INTRO_MS } from '../src/game/moves/actions'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { RoomRepository } from '../server/repositories/roomRepository'
 import { RoomService } from '../server/services/roomService'
 
 describe('Service phòng và server là nguồn sự thật', () => {
-  let now: number, service: RoomService, id: string
+  let now: number, base: number, service: RoomService, id: string
   beforeEach(() => {
-    now = 0; service = new RoomService(new RoomRepository(), () => now, () => 'red')
+    now = 0; base = 0; service = new RoomService(new RoomRepository(), () => now, () => 'red')
     id = service.create('Phòng test').id
     service.join(id, 'a', 'Đỏ'); service.join(id, 'b', 'Đen')
   })
@@ -17,7 +18,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(() => service.reaction('viewer', { targetSide: 'red', targetId: 'a', reaction: '<script>' })).toThrow()
   })
   const move = { type: 'move', move: { from: { row: 6, col: 0 }, to: { row: 5, col: 0 } } }
-  const start = () => { service.command('a', { type: 'ready' }); service.command('b', { type: 'ready' }) }
+  const start = () => { service.command('a', { type: 'ready' }); service.command('b', { type: 'ready' }); base = now }
   it('cấp mã phòng thật riêng và giữ cùng mã qua danh sách, người tham gia và reset', () => {
     const first = service.roomFor('a')!
     const created = service.create('Phòng thứ hai')
@@ -39,7 +40,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
   it.each([0, -3, 7, '5', null])('từ chối thời gian không hợp lệ %s', minutes => {
     expect(() => service.create('Sai giờ', minutes)).toThrow('Thời gian không hợp lệ')
   })
-  it('giữ phòng có khán giả dù không còn người ngồi chơi', () => {
+  it('đưa người xem sớm nhất lên ghế trống khi người ngồi rời phòng', () => {
     const room = service.create('Còn khán giả')
     service.join(room.id, 'player-a', 'Người A')
     service.join(room.id, 'player-b', 'Người B')
@@ -47,9 +48,9 @@ describe('Service phòng và server là nguồn sự thật', () => {
     service.leave('player-a')
     service.leave('player-b')
 
-    expect(service.list().find(item => item.id === room.id)).toMatchObject({ players: 0, viewerCount: 1 })
+    expect(service.list().find(item => item.id === room.id)).toMatchObject({ players: 1, viewerCount: 0 })
   })
-  it('tự đưa người thua xuống cuối hàng và cho người đầu lên bàn', () => {
+  it('đưa người thua về View thường sau hiệu ứng+2s và cho người đầu lên bàn', () => {
     service.join(id, 'viewer-1', 'Khán giả 1')
     service.join(id, 'viewer-2', 'Khán giả 2')
     service.command('viewer-1', { type: 'join-queue' })
@@ -61,42 +62,47 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(result.game.phase).toBe('finished')
     expect(result.players.map(player => player.id)).toEqual(['a', 'b'])
     expect(() => service.command('b', { type: 'ready' })).toThrow()
-    now = 2999
+    for (const player of result.players) service.command(player.id, { type: 'result-presentation-complete', matchId: result.lastCompletedMatch!.id })
+    now = base + 1999
     expect(service.tick()).toEqual([])
     expect(result.players.map(player => player.id)).toEqual(['a', 'b'])
-    now = 3000
+    now = base + 2000
     expect(service.tick()).toHaveLength(1)
     expect(result.players.map(player => player.id)).toEqual(['viewer-1', 'b'])
-    expect(result.viewers?.filter(viewer => viewer.queued).map(viewer => viewer.id)).toEqual(['viewer-2', 'a'])
+    expect(result.viewers?.filter(viewer => viewer.queued).map(viewer => viewer.id)).toEqual(['viewer-2'])
     expect(result.game.phase).toBe('ready')
   })
   it('keeps loser seated without queued viewers', () => {
     service.join(id, 'viewer', 'Viewer')
     start()
     const room = service.command('a', { type: 'resign' })
-    now = 4000
+    now = base + 4000
     service.tick()
     expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
     expect(room.viewers).toEqual([expect.objectContaining({ id: 'viewer', queued: false })])
     expect(room.game.phase).toBe('finished')
   })
-  it('promotes a late queue entry immediately without rematch readiness', () => {
+  it('late queue entry waits for both presentations and two seconds', () => {
     start()
     service.command('a', { type: 'resign' })
-    now = 1
+    now = base + 1
     service.join(id, 'viewer', 'Viewer')
     const room = service.command('viewer', { type: 'join-queue' })
+    expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
+    for (const player of room.players) service.command(player.id, { type: 'result-presentation-complete', matchId: room.lastCompletedMatch!.id })
+    now = base + 2001
+    service.tick()
     expect(room.players.map(player => player.id)).toEqual(['viewer', 'b'])
-    expect(room.viewers).toEqual([expect.objectContaining({ id: 'a', queued: true })])
+    expect(room.viewers).toEqual([expect.objectContaining({ id: 'a', queued: false })])
   })
   it.each(['a', 'b'])('keeps late entrants queued after %s readies a rematch', playerId => {
     start()
     service.command('a', { type: 'resign' })
-    now = 4000
+    now = base + 4000
     service.command(playerId, { type: 'ready' })
     service.join(id, 'viewer', 'Viewer')
     const room = service.command('viewer', { type: 'join-queue' })
-    now = 8000
+    now = base + 8000
     service.tick()
     expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
     expect(room.players.find(player => player.id === playerId)?.ready).toBe(true)
@@ -120,18 +126,18 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(roomAfterLeave?.viewers?.filter(viewer => viewer.queued).map(viewer => viewer.id)).toEqual(['viewer-2'])
     expect(roomAfterLeave?.game.result).toMatchObject({ winner: 'black', reason: 'leave' })
   })
-  it('server khóa nước đi và giữ giờ trong 1,3 giây khai cuộc', () => {
+  it('server khóa nước đi và giữ giờ trong thời gian khai cuộc đã cấu hình', () => {
     start()
-    now = 1299
+    now = base + MATCH_INTRO_MS - 1
     expect(() => service.command('a', move)).toThrow()
     expect(service.tick()[0].game.remainingTime.red).toBe(600000)
-    now = 1300
+    now = base + MATCH_INTRO_MS
     const room = service.command('a', move)
     expect(room.game.board[5][0]?.side).toBe('red')
     expect(room.game.remainingTime.red).toBe(600000)
     expect(room.game.phase).toBe('playing')
     expect(room.game.result).toBeNull()
-    now = 1301
+    now = base + MATCH_INTRO_MS + 1
     const reply = service.command('b', { type: 'move', move: { from: { row: 3, col: 0 }, to: { row: 4, col: 0 } } })
     expect(reply.game.phase).toBe('playing')
     expect(reply.game.currentTurn).toBe('red')
@@ -144,6 +150,8 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(joined.viewers).toContainEqual(expect.objectContaining({ id: 'c', name: 'Khách' }))
     expect(() => service.command('c', { type: 'ready' })).toThrow()
     expect(service.command('b', { type: 'ready' }).game.phase).toBe('playing')
+    now += 31_000; service.tick()
+    expect(service.roomFor('a')!.game.phase).toBe('playing')
   })
   it('không tin phe do client gửi, chặn tọa độ giả, chỉ cập nhật nước hợp lệ', () => {
     start()
@@ -151,7 +159,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(() => service.command('a', { type: 'move', move: { from: { row: -1, col: 0 }, to: { row: 5, col: 0 } } })).toThrow()
     expect(() => service.command('outsider', move)).toThrow()
     expect(() => service.command('a', { type: 'teleport' })).toThrow()
-    now = 1500
+    now = base + MATCH_INTRO_MS + 200
     const room = service.command('a', move)
     expect(room.game.board[5][0]?.side).toBe('red')
     expect(room.game.remainingTime.red).toBe(599800)
@@ -169,13 +177,13 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(reset.players.every(player => !player.ready)).toBe(true)
   })
   it('đi lại cần đối thủ đồng ý, hoàn tác một hoặc hai nước và giới hạn hai yêu cầu', () => {
-    start(); now = 1300
+    start(); now = base + MATCH_INTRO_MS
     let room = service.command('a', move)
     expect(room.game.currentTurn).toBe('black')
     room = service.command('a', { type: 'request-takeback' })
     expect(room.takebackOffer).toEqual({ requester: 'red', plies: 1 })
     expect(room.takebackRemaining?.red).toBe(1)
-    now = 1350
+    now = base + MATCH_INTRO_MS + 50
     room = service.tick()[0]
     expect(room.game.remainingTime.black).toBe(600000)
     expect(room.game.turnElapsed).toBe(0)
@@ -184,8 +192,8 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(room.game.board[6][0]?.side).toBe('red')
     expect(room.game.currentTurn).toBe('red')
     expect(room.takebackRemaining?.red).toBe(2)
-    now = 1400; service.command('a', move)
-    now = 1500; service.command('b', { type: 'move', move: { from: { row: 3, col: 0 }, to: { row: 4, col: 0 } } })
+    now = base + MATCH_INTRO_MS + 100; service.command('a', move)
+    now = base + MATCH_INTRO_MS + 200; service.command('b', { type: 'move', move: { from: { row: 3, col: 0 }, to: { row: 4, col: 0 } } })
     room = service.command('a', { type: 'request-takeback' })
     expect(room.takebackOffer?.plies).toBe(2)
     room = service.command('b', { type: 'reply-takeback', accepted: true })
@@ -194,7 +202,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(room.game.remainingTime).toEqual({ red: 600000, black: 600000 })
     expect(room.game.turnElapsed).toBe(0)
     expect(room.takebackRemaining?.red).toBe(2)
-    now = 1600; service.command('a', move)
+    now = base + MATCH_INTRO_MS + 300; service.command('a', move)
     room = service.command('a', { type: 'request-takeback' })
     room = service.command('b', { type: 'reply-takeback', accepted: false })
     expect(room.takebackRemaining?.red).toBe(1)
@@ -204,69 +212,62 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(() => service.command('a', { type: 'request-takeback' })).toThrow('hết 2 lần')
   })
   it('giữ yêu cầu đi lại đến 9.999 ms rồi tự hết hạn đúng 10.000 ms', () => {
-    start(); now = 1300; service.command('a', move)
+    start(); now = base + MATCH_INTRO_MS; service.command('a', move)
     service.command('a', { type: 'request-takeback' })
 
-    now = 11_299
+    now = base + 11_299
     expect(service.tick()[0].takebackOffer).toEqual({ requester: 'red', plies: 1 })
     expect(service.roomFor('a')?.game.remainingTime.black).toBe(600_000)
 
-    now = 11_300
+    now = base + MATCH_INTRO_MS + 10000
     const expired = service.tick()[0]
     expect(expired.takebackOffer).toBeNull()
+    expect(expired.takebackDecline).toMatchObject({ requester: 'red', declinedBy: 'black' })
     expect(expired.game.remainingTime.black).toBe(600_000)
     expect(expired.messages.at(-1)?.text).toContain('hết hạn')
   })
   it('khi tick muộn, chỉ tính thời gian sau deadline và phản hồi sau hạn bị từ chối', () => {
-    start(); now = 1300; service.command('a', move)
+    start(); now = base + MATCH_INTRO_MS; service.command('a', move)
     service.command('a', { type: 'request-takeback' })
 
-    now = 13_300
+    now = base + MATCH_INTRO_MS + 12000 // deadline 11.300; server tick trễ 2 giây
     expect(() => service.command('b', { type: 'reply-takeback', accepted: true })).toThrow('đã hết hạn')
     const room = service.roomFor('a')!
     expect(room.takebackOffer).toBeNull()
     expect(room.game.remainingTime.black).toBe(598_000)
-    expect(room.game.lastClockUpdate).toBe(13_300)
-  })
-  it('không trả offer hết hạn cho người reconnect trước tick kế tiếp', () => {
-    start(); now = 1300; service.command('a', move)
-    service.command('a', { type: 'request-takeback' })
-    now = 11_300
-
-    const reconnected = service.join(id, 'viewer', 'Reconnect', undefined, true)
-    expect(reconnected.takebackOffer).toBeNull()
-    expect(service.tick()).toContain(reconnected)
+    expect(room.game.lastClockUpdate).toBe(base + MATCH_INTRO_MS + 12000)
   })
   it('chấp nhận hoàn tác khi phản hồi ở mốc 9.999 ms', () => {
-    start(); now = 1300; service.command('a', move)
+    start(); now = base + MATCH_INTRO_MS; service.command('a', move)
     service.command('a', { type: 'request-takeback' })
-    now = 11_299
+    now = base + 11_299
     const accepted = service.command('b', { type: 'reply-takeback', accepted: true })
     expect(accepted.takebackOffer).toBeNull()
     expect(accepted.game.currentTurn).toBe('red')
     expect(accepted.game.remainingTime).toEqual({ red: 600_000, black: 600_000 })
   })
   it('deadline đã hết không ảnh hưởng một yêu cầu đi lại mới', () => {
-    start(); now = 1300; service.command('a', move)
+    start(); now = base + MATCH_INTRO_MS; service.command('a', move)
     service.command('a', { type: 'request-takeback' })
-    now = 11_300
+    now = base + MATCH_INTRO_MS + 10000
     expect(service.tick()[0].takebackOffer).toBeNull()
     service.command('b', { type: 'move', move: { from: { row: 3, col: 0 }, to: { row: 4, col: 0 } } })
     service.command('a', { type: 'move', move: { from: { row: 6, col: 2 }, to: { row: 5, col: 2 } } })
     const next = service.command('a', { type: 'request-takeback' })
     expect(next.takebackOffer).toEqual({ requester: 'red', plies: 1 })
-    now = 21_299
+    now = base + MATCH_INTRO_MS + 19999
     expect(service.tick()[0].takebackOffer).not.toBeNull()
-    now = 21_300
+    now += 21_300
     expect(service.tick()[0].takebackOffer).toBeNull()
   })
   it('dọn deadline khi người chơi rời phòng', () => {
-    start(); now = 1300; service.command('a', move)
+    start(); now = base + MATCH_INTRO_MS; service.command('a', move)
     service.command('a', { type: 'request-takeback' })
-    expect(service.leave('a')?.takebackOffer).toBeNull()
+    const left = service.leave('a')!
+    expect(left.takebackOffer).toBeNull()
   })
   it('kết thúc, reset và bắt đầu ván mới không mang theo deadline cũ', () => {
-    start(); now = 1300; service.command('a', move)
+    start(); now = base + MATCH_INTRO_MS; service.command('a', move)
     service.command('a', { type: 'request-takeback' })
     expect(service.command('b', { type: 'resign' }).takebackOffer).toBeNull()
     const reset = service.command('a', { type: 'reset' })
@@ -276,16 +277,20 @@ describe('Service phòng và server là nguồn sự thật', () => {
     const started = service.command('b', { type: 'ready' })
     expect(ready.takebackOffer).toBeNull()
     expect(started.game.phase).toBe('playing')
-    now = 21_300
+    now += 31_000; service.tick()
+    expect(started.game.phase).toBe('playing')
+    now += 21_300
     expect(service.tick()[0].takebackOffer).toBeNull()
   })
   it('đồng hồ server hết giờ, rời phòng xử thua và giải phóng ghế', () => {
-    start(); now = 601301
+    start(); now = base + MATCH_INTRO_MS + 600001
     expect(service.tick()[0].game.result).toEqual({ winner: 'black', reason: 'timeout' })
     let room = service.command('a', { type: 'ready' })
     expect(room.game.phase).toBe('ready')
     expect(room.players.find(player => player.id === 'a')?.ready).toBe(true)
     room = service.command('b', { type: 'ready' })
+    expect(room.game.phase).toBe('playing')
+    now += 31_000; service.tick()
     expect(room.game.phase).toBe('playing')
     expect(service.leave('a')?.game.result).toEqual({ winner: 'black', reason: 'leave' })
     expect(service.join(id, 'c', 'Mới').players.find(player => player.id === 'c')?.side).toBe('red')

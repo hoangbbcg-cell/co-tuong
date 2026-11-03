@@ -1,3 +1,4 @@
+import { useAvatarTouchHold } from '../hooks/useAvatarTouchHold'
 import { createPortal } from 'react-dom'
 import { sendRoomReaction, useRoomReactions } from '../hooks/useRoomReactions'
 import { saveMatchLike } from '../hooks/useMatchLike'
@@ -19,11 +20,10 @@ import { useSessionStore } from '../../../store/sessionStore'
 import readyRibbon from '../../../assets/buttons/ready-avatar-ribbon.png'
 import { PlayerNameplate } from './PlayerNameplate'
 import eloFrame from '../../../assets/player/elo-frame.png'
-import redGeneral from '../../../assets/pieces/red-general.png'
+import { XIANGQI_ELO_ICON as redGeneral } from '../../../lib/eloArtwork'
 import concealedPiece from '../../../assets/history/history-hidden-user.png'
-import takebackDecline from '../../../assets/takeback/takeback-decline.png'
 
-interface Props { recordedClock?: boolean; mobileHeader?: boolean; mobileEdge?: 'top' | 'bottom'; empty?: boolean; playerId?: string; entranceHidden?: boolean; fillHeight?: boolean; side: Side; variant?: GameVariant; name: string; started: boolean; active: boolean; timerExpired?: boolean; showClock?: boolean; ready?: boolean; remaining: number; turnElapsed: number; turnTimeLimitMs?: number; outcome?: 'win' | 'loss'; takebackDeclineKey?: string | number | null; likeVisible?: boolean; likePosition?: 'left' | 'right'; likeMatchId: string; likeActorId: string; onAvatarClick?: () => void; onAvatarContextMenu?: () => void; children?: ReactNode }
+interface Props { recordedClock?: boolean; mobileHeader?: boolean; mobileEdge?: 'top' | 'bottom'; empty?: boolean; playerId?: string; entranceHidden?: boolean; fillHeight?: boolean; side: Side; variant?: GameVariant; name: string; started: boolean; active: boolean; timerExpired?: boolean; showClock?: boolean; ready?: boolean; remaining: number; turnElapsed: number; turnTimeLimitMs?: number; outcome?: 'win' | 'loss'; likeVisible?: boolean; likePosition?: 'left' | 'right'; likeMatchId: string; likeActorId: string; onAvatarClick?: () => void; onAvatarContextMenu?: () => void; onAvatarHold?: () => void; children?: ReactNode }
 const LIKE_BUBBLE_INTERVAL_MS = 100
 const LIKE_PICKER_HOVER_DELAY_MS = 400
 const LIKE_PICKER_REOPEN_DELAY_MS = 1000
@@ -158,12 +158,23 @@ function ResultFace({ outcome }: { outcome: 'win' | 'loss' }) {
     </svg>
   </div>
 }
-export function PlayerCard({ recordedClock = false, mobileHeader = false, mobileEdge, empty = false, playerId, entranceHidden = false, fillHeight = false, side, variant = 'xiangqi', name: originalName, started, active, timerExpired = false, showClock = true, ready = false, remaining, turnElapsed, turnTimeLimitMs = TURN_TIME_LIMIT_MS, outcome, takebackDeclineKey, likeVisible = false, likePosition = 'left', likeMatchId, likeActorId, onAvatarClick, onAvatarContextMenu, children }: Props) {
+export function PlayerCard({ recordedClock = false, mobileHeader = false, mobileEdge, empty = false, playerId, entranceHidden = false, fillHeight = false, side, variant = 'xiangqi', name: originalName, started, active, timerExpired = false, showClock = true, ready = false, remaining, turnElapsed, turnTimeLimitMs = TURN_TIME_LIMIT_MS, outcome, likeVisible = false, likePosition = 'left', likeMatchId, likeActorId, onAvatarClick, onAvatarContextMenu, onAvatarHold, children }: Props) {
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pointerKind = useRef('mouse')
+  const held = useRef(false)
+  const holdOrigin = useRef({ x: 0, y: 0 })
+  const cancelHold = () => { if (holdTimer.current) clearTimeout(holdTimer.current); holdTimer.current = null }
+  useEffect(() => { cancelHold(); held.current = false; return cancelHold }, [originalName, playerId, empty])
   const ownName=useSessionStore(s=>s.name)
   const profile=useDatabaseProfile(empty?'':originalName,originalName===ownName,playerId)
   const elo=profile?.stats.find(s=>s.variant===variant)?.elo??1000
   const machineAvatar = getComputerAvatar(originalName)
-  const name = machineAvatar ? 'Ông Hoàng' : profile?.displayName ?? originalName
+  const touchHold = useAvatarTouchHold(`${originalName}:${playerId ?? ''}:${empty}:${!!machineAvatar}`, machineAvatar || empty ? undefined : onAvatarHold)
+  const resolvedName = machineAvatar ? 'Ông Hoàng' : profile?.displayName ?? originalName
+  const occupiedName = useRef(resolvedName)
+  if (!empty) occupiedName.current = resolvedName
+  // Preserve the hidden identity height when a seat becomes empty; mobile clocks anchor to its Elo row.
+  const name = empty ? occupiedName.current : resolvedName
   const likeBubbleLayerRef = useRef<HTMLSpanElement>(null)
   useRoomReactions(side, likeBubbleLayerRef)
   useEffect(() => {
@@ -172,11 +183,14 @@ export function PlayerCard({ recordedClock = false, mobileHeader = false, mobile
   const turnRatio = Math.max(0, Math.min(1, turnElapsed / turnTimeLimitMs))
   const turnAngle = turnRatio * 360
   const timerVisible = !machineAvatar && showClock && (active || timerExpired)
-  if(empty)return null
-  return <section data-active={active} data-mobile-edge={mobileEdge} data-mobile-header={mobileHeader || undefined} className={`mx-auto flex min-w-0 flex-col desktop:w-40 items-center pt-3 compact:grid-cols-[64px_minmax(0,1fr)] compact:gap-x-2 compact:gap-y-[3px] compact:p-0 compact:text-left short-desktop:pt-0 ${fillHeight ? 'h-full compact:h-auto' : 'flex-none desktop:self-center'} ${mobileHeader ? 'compact:relative compact:pointer-events-auto compact:flex compact:w-full compact:flex-col compact:translate-y-0' : mobileEdge ? 'compact:relative compact:pointer-events-auto compact:min-h-[64px] compact:w-[200px] compact:translate-y-0 compact:grid' : side === 'red' ? 'compact:grid compact:-translate-y-[10px]' : 'compact:grid'} ${mobileHeader ? '' : mobileEdge === 'top' ? 'compact:ml-[10px] compact:mr-auto' : mobileEdge === 'bottom' ? 'compact:mr-[10px] compact:ml-auto compact:grid-cols-[minmax(0,1fr)_64px] compact:[&_[data-player-identity]>p]:ml-auto' : ''}`} id={`player-${side}`} aria-label={`Người chơi quân ${side === 'red' ? 'đỏ' : 'đen'}`} style={{ visibility: entranceHidden ? 'hidden' : undefined, translate: mobileHeader ? 'none' : undefined } as CSSProperties}>
+  return <section data-active={active} data-mobile-edge={mobileEdge} data-mobile-header={mobileHeader || undefined} className={`mx-auto flex min-w-0 flex-col desktop:w-40 items-center pt-3 compact:grid-cols-[64px_minmax(0,1fr)] compact:gap-x-2 compact:gap-y-[3px] compact:p-0 compact:text-left short-desktop:pt-0 ${fillHeight ? 'h-full compact:h-auto' : 'flex-none desktop:self-center'} ${mobileHeader ? 'compact:relative compact:pointer-events-auto compact:flex compact:w-full compact:flex-col compact:translate-y-0' : mobileEdge ? 'compact:relative compact:pointer-events-auto compact:min-h-[64px] compact:w-[200px] compact:translate-y-0 compact:grid' : side === 'red' ? 'compact:grid compact:-translate-y-[10px]' : 'compact:grid'} ${mobileHeader ? '' : mobileEdge === 'top' ? 'compact:ml-[10px] compact:mr-auto' : mobileEdge === 'bottom' ? 'compact:mr-[10px] compact:ml-auto compact:grid-cols-[minmax(0,1fr)_64px] compact:[&_[data-player-identity]>p]:ml-auto' : ''}`} id={`player-${side}`} aria-label={`Người chơi quân ${side === 'red' ? 'đỏ' : 'đen'}`} style={{ visibility: entranceHidden || empty ? 'hidden' : undefined, translate: mobileHeader ? 'none' : undefined } as CSSProperties}>
     <div data-active={active} data-testid={`avatar-${side}`} data-mobile-avatar className={`relative size-[132px] shrink-0 rounded-full bg-transparent p-2 shadow-[0_5px_18px_#071c1b99] compact:size-[64px] compact:mb-5 compact:p-[5px] short-desktop:size-[88px] ${mobileEdge === 'top' ? 'compact:col-start-1 compact:row-start-1 compact:self-center' : mobileEdge === 'bottom' ? 'compact:col-start-2 compact:row-start-1 compact:self-center' : ''}`} style={{ ...(machineAvatar ? { boxShadow: 'none' } : {}), ...(mobileHeader ? { width: 68, height: 68 } : {}) }}>
       {!machineAvatar && likeVisible && <div className="compact:hidden"><PlayerLikeButton name={name} position={likePosition} matchId={likeMatchId} actorId={likeActorId} targetSide={side} avatarBubbleLayerRef={likeBubbleLayerRef} /></div>}
-      <button type="button" disabled={!!machineAvatar} aria-label={machineAvatar ? 'Avatar Ông Hoàng' : `Xem hồ sơ ${name}`} title={!machineAvatar && onAvatarContextMenu ? 'Bấm chuột phải để phong danh hiệu' : undefined} onClick={machineAvatar ? undefined : onAvatarClick} onContextMenu={event => { event.preventDefault(); if (!machineAvatar) onAvatarContextMenu?.() }} className={`${buttonInteraction} relative block size-full rounded-full border-0 bg-transparent p-0 disabled:opacity-100`}>
+      <button ref={touchHold.ref} type="button" disabled={!!machineAvatar} aria-label={machineAvatar ? 'Avatar Ông Hoàng' : `Xem hồ sơ ${name}`} title={!machineAvatar && onAvatarHold ? 'Nhấn giữ để phong danh hiệu' : undefined}
+        onPointerDown={event => { pointerKind.current = event.pointerType; if (event.pointerType === 'touch') { cancelHold(); held.current = false; return } if (event.button !== 0 || machineAvatar) return; cancelHold(); held.current = false; holdOrigin.current = { x: event.clientX, y: event.clientY }; if (onAvatarHold) holdTimer.current = setTimeout(() => { held.current = true; onAvatarHold() }, 550) }}
+        onPointerUp={event => { if (event.pointerType !== 'touch') cancelHold() }} onPointerCancel={event => { if (event.pointerType !== 'touch') cancelHold() }} onPointerLeave={event => { if (event.pointerType !== 'touch') cancelHold() }}
+        onPointerMove={event => { if (event.pointerType === 'touch') return; if (Math.hypot(event.clientX - holdOrigin.current.x, event.clientY - holdOrigin.current.y) > 10) cancelHold() }}
+        onClick={event => { if (touchHold.consumeHeldClick() || held.current) { held.current = false; event.preventDefault(); return } if (!machineAvatar) onAvatarClick?.() }} onContextMenu={event => { event.preventDefault(); if (pointerKind.current === 'touch') return; cancelHold(); if (!machineAvatar) onAvatarContextMenu?.() }} onDragStart={event => event.preventDefault()} className={`${buttonInteraction} relative block size-full touch-none select-none rounded-full border-0 bg-transparent p-0 [-webkit-touch-callout:none] [&_img]:[-webkit-user-drag:none] disabled:opacity-100`}>
         {machineAvatar ? <img src={machineAvatar} alt="" className="block size-full object-contain" style={{ transform: `scale(${AVATAR_FRAME_VISIBLE_SCALE})` }} /> : <AvatarPortrait avatarIndex={Number(profile?.avatarCode.replace('avatar-',''))||0} className="size-full rounded-full" />}<span aria-hidden="true" className={`pointer-events-none absolute inset-0 z-2 rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: `conic-gradient(from 0deg, transparent 0deg ${turnAngle}deg, #187b1299 ${turnAngle}deg 360deg)` }} />
         {!machineAvatar && <AvatarFrameOverlay src={getAvatarFrame(Number(profile?.avatarFrameCode.replace('frame-',''))||0).image} dimmed={timerVisible} />}
         <svg aria-hidden="true" viewBox="0 0 100 100" className={`pointer-events-none absolute top-1/2 left-1/2 z-[11] size-[107%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`}>
@@ -186,7 +200,6 @@ export function PlayerCard({ recordedClock = false, mobileHeader = false, mobile
 
       </button>
       <span ref={likeBubbleLayerRef} aria-hidden="true" className="pointer-events-none absolute inset-0 z-8 overflow-visible" />
-      {takebackDeclineKey != null && <span key={takebackDeclineKey} role="status" className="pointer-events-none absolute top-1/2 left-1/2 z-[30] w-[126px] -translate-x-1/2 -translate-y-1/2 brightness-125 animate-[bounce_450ms_ease-in-out_2] motion-reduce:animate-none compact:w-[78px] short-desktop:w-[96px]"><img src={takebackDecline} alt="Từ chối" className="m-0 block h-auto w-full border-0 p-0" /></span>}
       {!machineAvatar && ready && <img src={readyRibbon} alt="Sẵn sàng" className="pointer-events-none absolute top-1/2 left-1/2 z-[110] m-0 block h-auto w-[158px] -translate-x-1/2 -translate-y-1/2 border-0 p-0 drop-shadow-[0_2px_3px_#17200899] compact:w-[72px] short-desktop:w-[106px]" />}
       {!machineAvatar && outcome && <ResultFace outcome={outcome} />}
     </div>
@@ -201,7 +214,7 @@ export function PlayerCard({ recordedClock = false, mobileHeader = false, mobile
         {likeVisible && !machineAvatar && <PlayerLikeButton name={name} position={likePosition} matchId={likeMatchId} actorId={likeActorId} targetSide={side} avatarBubbleLayerRef={likeBubbleLayerRef} />}
       </div>
     </div>
-    {!machineAvatar && showClock && <div hidden={!started} className={`[&[hidden]]:hidden! mt-3 hidden w-fit min-w-[70px] -translate-y-[23px] items-center justify-center rounded-[3px] border px-2 py-0.5 transition-[background-color,border-color,box-shadow] duration-100 desktop:flex compact:translate-y-0 compact:col-span-full compact:mt-1.5 compact:justify-self-center compact:px-[5px] compact:text-center ${mobileEdge === 'bottom' ? 'compact:row-start-1 compact:mb-1.5 compact:mt-0 compact:hidden' : ''} ${active ? 'border-[#e8c479] bg-[#244b40] shadow-[0_0_0_1px_#e8c47933]' : 'border-[#c5ad6b] bg-[#503a23]'}`}>
+    {!machineAvatar && showClock && <div className={`[&[hidden]]:hidden! visible mt-[5px] hidden w-fit min-w-[70px] items-center justify-center rounded-[3px] border px-2 py-0.5 transition-[background-color,border-color,box-shadow] duration-100 desktop:flex compact:translate-y-0 compact:col-span-full compact:mt-1.5 compact:justify-self-center compact:px-[5px] compact:text-center ${mobileEdge === 'bottom' ? 'compact:row-start-1 compact:mb-1.5 compact:mt-0 compact:hidden' : ''} ${active ? 'border-[#e8c479] bg-[#244b40] shadow-[0_0_0_1px_#e8c47933]' : 'border-[#c5ad6b] bg-[#503a23]'}`}>
       <output className="block font-number text-lg/[1.1] text-[#e8b923] tabular-nums" id={`clock-${side}`} aria-label={`Thời gian quân ${side === 'red' ? 'đỏ' : 'đen'}`}>{formatClock(remaining)}</output>
     </div>}
     {mobileHeader ? <div className="pointer-events-auto fixed bottom-[76px] left-1/2 z-[260] max-h-[160px] max-w-[95vw] -translate-x-1/2 overflow-y-auto">{children}</div> : children}

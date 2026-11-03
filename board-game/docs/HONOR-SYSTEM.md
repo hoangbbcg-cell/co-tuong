@@ -1,4 +1,44 @@
+- 2026-10-27: Theo user, Back trong Danh hiệu dịch trái8px thật cả mobile/laptop. X trong Thông tin, Tùy chỉnh avatar, Chọn địa chỉ, catalog và chi tiết Danh hiệu đóng toàn bộ ProfileDialog; Back giữ quay về Thông tin. Dùng callback đóng ngoài thay đóng riêng màn con. Build/typecheck PASS; dist cập nhật, chưa browser QA.
+
+- 2026-10-27: Theo user, hạ cả khung và dãy tab Danh hiệu LAPTOP thêm10px (khung top64→74px, tab81→91px trong quy đổi wrapper); nút back laptop28→34px, mobile giữ28px. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Đính chính hạ tab Danh hiệu LAPTOP: tab thực tế là các button absolute compact:hidden, không phải nav hidden/compact:flex. Tăng offset top26→81px trong phép quy đổi wrapper để dịch đúng55px; hoàn tác chỉnh nhầm nav/mobile. Khung giữ top64px. Build/typecheck PASS; chưa browser QA.
+
 # Quy tắc hệ thống danh hiệu
+
+- 2026-10-27: Theo user, hạ dãy tab catalog Danh hiệu LAPTOP thêm55px (top48→103px trong vùng nav); khung/nav và mobile khác giữ nguyên. Typecheck/build PASS, dist xác nhận; chưa browser QA.
+
+- 2026-10-27: Theo ảnh user, các tab catalog Danh hiệu LAPTOP căn từ mép trên khung bằng items-start, không căn giữa theo chiều cao khung; nội dung/mobile giữ nguyên. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, hạ dãy tab catalog Danh hiệu LAPTOP thêm48px vào trong khung; giữ kích thước tab và mobile. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo ảnh user, hạ mép trên khung dọc bao tab catalog Danh hiệu LAPTOP thêm48px để không đè nút quay lại; mobile giữ nguyên. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, riêng catalog Danh hiệu LAPTOP hạ chiều cao khung chứa nhóm tab còn72% vùng nội dung và tab artwork xuống42px; mobile giữ kích thước cũ. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, Thông tin → Danh hiệu thêm MessagesBackButton 28px góc trên trái, tâm ngang nút Ẩn cả mobile/laptop; bấm trở về Thông tin người chơi. Dùng component Tin nhắn chung. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user dấu+ chọn danh hiệu LAPTOP tăng nút28px thật, neo top0/left0 góc trên trái từng ô danh hiệu (thay offset3%/2%, clamp22–30logical). Glyph92%/tick/hànhvi giữ; mobile22px/neo cũ giữ. Build/typecheck PASS; dist xác nhận nút+28px góc trái; chưa browser QA.
+
+- 2026-10-27: Theo user tăng nút Ẩn Danh hiệu LAPTOP: nhãn20px, switch48×26px/knob18px/left3px/travel22px. Dùng HonorHiddenToggle chung catalog/chi tiết cho đồng bộ; mobile13px/30×18/knob12 giữ nguyên. Build/typecheck PASS; dist xác nhận switch48×26 desktop; chưa browser QA.
+
+- 2026-10-27: Theo user nâng nhóm tab Danh hiệu LAPTOP: tab đầu cách mép trên khung10px thật, các tab sau giữ offset tương đối cũ (category.top-13%). Quy đổi tọa độ Shell sang wrapper108.7087%/top-3.5035%; mobile giữ. Build/typecheck PASS; dist xác nhận neo tab cách trên10px; chưa browser QA.
+
+- 2026-10-27: Theo user LAPTOP khung tab Danh hiệu dịch trái13px từ vịtrí hiện tại (leftborder5+36→+23), padding tab ngang7→12px mỗi bên; lefttab=border5+35,width20%-24px quyđổi wrapper1.060029. Mobile giữ. Build/typecheck PASS; dist xác nhận padding12/offset mới; chưa browser QA.
+
+- 2026-10-27: Theo user khung tab Danh hiệu LAPTOP dịch phải20px thật (leftborder5+16→+36), tab căn giữa trong khung với padding ngang7px. Tọa độ tab quy đổi wrapper106.0029%/offset-3.0747% về Shell: left=(3.0747%+border5+43px)/1.060029,width=(20%-14px)/1.060029. Mobile/vịtrídọc giữ. Build/typecheck PASS; dist xác nhận tọa độ tab mới; chưa browser QA.
+
+- 2026-10-27: Theo ảnh user sửa khung tab Danh hiệu LAPTOP bị tràn: chuyển background panel ra khỏi wrapper âm/phóng106%×108.7% về cùng hệ tọa độ HonorsDialogShell, neo left/top/bottom=border5token+padding16px đúng viền trong Shell. Mép trên chạm viền trong, đáy nằm trong khung, width20%; tab/vùngbấm/mobile giữ. Build/typecheck PASS; dist xác nhận neo khung tab trong Shell; chưa browser QA.
+
+- 2026-10-27: Theo user bỏ khung/nền/viền bao danh sách danh hiệu, chỉ giữ khung tab dùng customizationListPanel. Laptop khung tab kéo dọc vùng nội dung top10.5%→bottom5% của layout nội bộ (sát khoảng header/đáy khung ngoài); mobile khung tab wfull vùng nội dung, giữ lướt ngang. Không đổi danh hiệu/data/selection. Build/typecheck PASS; dist xác nhận chỉ khung tab mới; chưa browser QA.
+
+- 2026-10-27: Theo user cảmobile/laptop catalog Danh hiệu thêm2khung riêng bao nhóm tab và danh sách danh hiệu, cùng customizationListPanel token với lưới avatar/viền (nâu#1c0d07aa/viền#9f6025/bo10/shadowinset). Desktop2khung cạnh nhau top12%/cao80%, compact giữ tab ngang trên/danh hiệu dưới với padding8. Giữ data/selection/thứtự/avatar. Build/typecheck PASS; dist xác nhận2khung danh hiệu/token chung; chưa browser QA.
+
+- 2026-10-27: Theo user LAPTOP Chọn viền5cột/3hàng, mobile4cột ôvuông giữ. Catalog Danh hiệu laptop bỏ sprite nền sidebar cắt gây lệch/icon cụt; mỗi category button tự chứa artwork riêng hiện có và selectionframe neo tương đối như mobile, giữ tọa độ/thứ tự/luồng chọn. Bỏ phong cảnh thừa nằm trong sprite sidebar. Mobile không đổi. Build/typecheck PASS; dist xác nhận tab artwork riêng; chưa browser QA.
+
+- 2026-10-27: Carousel preview trong Thông tin dừng khi chuột nằm trên toàn vùng Danh hiệu, tiếp tục khi rời nếu chi tiết không mở. Chi tiết Vinh Quang Kỳ Đài cấp2/3 thêm dòng2 theo địa chỉ tỉnh/xã đã chọn của người có danh hiệu, ví dụ “Vô địch Cờ Tướng tỉnh Đồng Nai.”; Á Quân/Hạng Ba dùng đúng tên hạng. Chưa chọn địa chỉ dùng dấu…; không dùng địa chỉ người xem thay chủ hồ sơ. Đây là chú thích thiết kế theo địa chỉ hiện tại; lưu địa phương và giải đấu lúc đạt cần thiết kế sau.
+
+- 2026-10-26: Theo user, Home thêm popup nhận đồ từ ảnh85b40e21: ô vuông đồngcỡ cho danh hiệu/avatar/viền/vàng/Elo, số tài nguyên ngoài ô bên dưới4px/icon88%. Resource-only giữ vùng18/56/64/16% như trận; không sửa MatchResultDialog. Hook quan sát profile/APIhonors5s→homeRewardsStore baseline/pending localStorage riêngaccount, firstload chỉbaseline, xác nhận xóa pendingđanghiện; gold/Elo bỏ khi game/replay hoặc played tăng để tránh lặp thưởng trận. Đồ mới chờHome. Snapshot-based/chưa ledgerthôngbáoserver/ackchưađồngbộthiếtbị; xem docs/HOME-REWARDS.md. Build/typecheck PASS; dist index-DJG3nU5R.js + asset; chưa browser/API QA, không DB/restart/deploy.
 
 - 2026-10-26: Theo user, nút Ẩn Danh hiệu MOBILE cách phải thêm8px: right15→23px. Build/typecheck PASS; dist xác nhận23px; chưa browser QA.
 
@@ -227,3 +267,28 @@ Rendering2026-10-05: xem docs/UI-IMAGE-RENDERING.md. Crop scaleY và scale của
 - 2026-10-25: Theo user, catalog Danh hiệu trong Thông tin user chỉ hiển thị danh hiệu đã sở hữu ở TẤT CẢ tab/nhóm, ẩn mọi danh hiệu chưa có. HonorsFrame lọc ownedIds cả streak/games/attendance như all/arena/awarded. useDatabaseHonors xóa dữ liệu cũ khi đổi user để không hiện nhầm sở hữu tài khoản trước lúc chờ API. Quyền sở hữu/cấp theo criteria ở backend giữ hiện hành: giải đấu cấp riêng; phong tặng threshold; chuỗi/tổng ván khi chốt ván; attendance theo ngày hoạt động. Build/typecheck PASS; dist cập nhật; chưa browser/MySQL QA.
 
 - 2026-10-25: User xác nhận ẩn toàn bộ danh hiệu chưa nhận, đủ điều kiện backend cấp mới xuất hiện. Đồng bộ cả Sở hữu và preview ngoài catalog: chỉ lấy databaseHonors.ownedIds, bỏ fallback local coi danh hiệu giải đấu/chưa cấp là sở hữu. Không xóa danh hiệu DB đã cấp/không sửa điều kiện; hook tiếp tục tải lại mỗi5giây khi mở hồ sơ. Build/typecheck PASS; dist cập nhật; chưa browser/MySQL QA.
+- 2026-10-28: Theo ảnh user, laptop mở Thông tin danh hiệu cạnh bên phải khung hồ sơ, cách15px. Tọa độ popover chuyển từ viewport sang tọa độ cục bộ hộp thoại; chiều rộng giới hạn phần viewport còn trống để không bị cắt. Mobile giữ kiểu xếp dọc/neo giữa. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-28: User đính chính vị trí Thông tin danh hiệu LAPTOP: neo theo chính badge danh hiệu vừa bấm với gap15px, giống catalog Danh hiệu; nếu mép phải thiếu chỗ thì hiện phía trái theo cột. Chuyển tọa độ viewport sang hệ của hộp thoại hồ sơ và giới hạn rộng theo khoảng trống phía tương ứng. Mobile giữ xếp dọc. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-28: Đính chính luồng Danh hiệu trong ProfileDialog: X của HonorDetailPopover quay lại danh sách catalog bằng onBack/setSelectedHonor(null), giữ nguyên bảng Thông tin người chơi; không gọi onDismiss/đóng ProfileDialog. Thay quy tắc 2026-10-27 về X chi tiết đóng toàn bộ. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-28: Đính chính vị trí nút Back catalog Danh hiệu: dịch sang trái thêm10 logical px so với vị trí gốc trên laptop. Compact/điện thoại và các Back khác giữ nguyên.
+- 2026-10-28: Riêng preview hồ sơ laptop public ID64830084 có9 danh hiệu mẫu để xem bố cục 3×3. Chỉ render demo khi xem hồ sơ laptop; danh hiệu mẫu không được tính vào sở hữu, lựa chọn, catalog, API hay persistence. Số “Sở hữu” luôn là số thật từ backend.
+- 2026-10-28: Theo user, khung Danh hiệu hồ sơ LAPTOP nhận thêm chiều cao do card thông tin trên giảm min-height190→166logical; khung danh hiệu dùng flex để lấp vùng thêm. Giữ tỷ lệ/lưới 3×3, avatar, card stats và điện thoại.
+- 2026-10-28: Demo preview laptop ID64830084 có9 mẫu + danh hiệu thật hiện có (10 mục) để kiểm tra chuyển trang carousel; chỉ frontend, không persistence.
+- 2026-10-28: Preview Danh hiệu trong hồ sơ laptop nâng lưới huy hiệu6px; không đổi heading/khung/mobile.
+- 2026-10-28: Riêng preview demo LAPTOP ID64830084 bỏ dịch lưới lên6px và rút ngắn thời gian trượt carousel xuống700ms để giảm thời gian các trang bị cắt khi chuyển; giữ lưới3×3,9 mẫu + danh hiệu thật, dữ liệu sở hữu thật và mobile không đổi.
+- 2026-10-28: Theo user, carousel preview LAPTOP ID64830084 dùng lại thời lượng trượt6s như mobile; giữ hiệu ứng/vị trí/lưới3×3 và dữ liệu demo.
+
+- 2026-10-28: Sửa X Thông tin danh hiệu mở từ badge trong hồ sơ: callback chỉ setPreviewHonorDetailOpen(false), không gọi onClose của ProfileDialog. Áp dụng laptop/mobile; giữ bảng Thông tin người chơi. Build cần xác nhận.
+- Kiểm chứng sửa X chi tiết danh hiệu hồ sơ: npm.cmd run build PASS (typecheck/Vite), dist cập nhật; chưa browser QA.
+- 2026-10-29: Xem lớn danh hiệu vừa nhận phải có nền/khung nâu viền vàng kiểu Shop như các vật phẩm khác, kể cả khi bảng Thông tin danh hiệu mở bên cạnh. RewardPreviewDialog không được bỏ lớp khung theo prop details.
+- 2026-10-29: Tab nhóm catalog trên laptop/mobile và HonorHiddenToggle (gồm popup chi tiết) dùng âm thanh X/ui-action-confirmation. Ô danh hiệu xem chi tiết vẫn dùng tiếng tab hiện tại; không đổi geometry/UI/state.
+- 2026-10-29: Nút chọn/bỏ danh hiệu hồ sơ dạng dấu+/tick dùng tiếng tab như ô tick. Nút Ẩn là switch riêng vẫn dùng tiếng X đã chốt trước đó.
+
+- 2026-10-29: Theo user, hàng chờ Bàn khóa hoạt động như thường khi người thua KHÔNG phải chủ: đầu hàng lên sau3s nếu đã chờ từ trước, người thua xuống cuối hàng; chủ thua giữ ghế, người thắng không bị thay. Chặn hàng và ưu tiên thay ghế hết năng lượng vẫn giữ; không bật ép Sẵn sàng/countdown. Mobile Cài đặt người chơi nằm ngoài phía trên khung Phong danh hiệu, không chiếm hàng danh hiệu. Bỏ ⋯ trong dòng View/hàng chờ; nhấn giữ550ms mở quản lý, cho phép kéo cuộn danh sách và không mở hồ sơ sau giữ. Danh hiệu đã phong không gỡ: nút đã phong disabled, hook local/API chỉ thêm idempotent; server ContentRepository.endorse từ chối enabled=false trước transaction, không DELETE/revoke từ bỏ phong. Không thay lựa chọn ẩn/hiện danh hiệu đã sở hữu.
+- 2026-10-29: Preview danh hiệu nhận thưởng MOBILE thu nhỏ khung chính và luôn căn giữa viewport; bảng Thông tin nhỏ ở bên phải, absolute/giữa dọc và chồng vào mép khung chính để vừa màn hình. Không xếp info xuống dưới hoặc làm khung chính dịch khi đóng info. Style cục bộ RewardPreviewDialog khi có details; không đổi catalog/popover khác hoặc desktop.
+- 2026-10-29: Đính chính preview nhận danh hiệu MOBILE: không tự hiện bảng info nhỏ bên cạnh nữa. Chạm/giữ danh hiệu tại ô nhận thưởng hoặc artwork preview mở ngay bảng Thông tin lớn min(86vw,56dvh), căn giữa màn hình; thả/hủy/mất capture/mất focus là ẩn. Không có ngưỡng nhấn giữ. Khung preview chính vẫn ở giữa; desktop giữ bảng info bên cạnh như cũ. Triển khai cục bộ RewardItemTile/HomeRewardNotifications, không đổi catalog/danh hiệu hồ sơ.
+
+- 2026-10-29: Theo user, artwork danh hiệu trong nhận thưởng Home và preview nhận thưởng bỏ badge con mắt/lượt phong tặng phía trên cả laptop/mobile. ReceivedHonorArtwork truyền showCount=false qua HonorCatalogBadge/AwardedHonorBadge; mặc định catalog/hồ sơ vẫn giữ bộ đếm.
+- Kiểm chứng bỏ mắt nhận danh hiệu: npm.cmd run build PASS (TypeScript/Vite), dist/assets/index-iOlacHhl.js xác nhận showCount=false; chưa browser QA.
+- 2026-11-03: Ba tab Chuỗi Chiến Thắng/Tổng Ván Chơi/Online Chuyên Cần trong catalog Danh hiệu hiện liệt kê toàn bộ danh hiệu catalog; sở hữu giữ giao diện chọn, chưa sở hữu phủ khóa qua renderer hiện hữu. Tab Tất cả và hai nhóm đầu tiếp tục chỉ hiện danh hiệu đã sở hữu. TypeScript PASS; chưa browser QA. Backup outputs/backups/locked-honor-catalog-20261103.

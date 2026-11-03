@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
 import { mobileDialogHeight, mobileDialogMargin } from '../../../lib/mobileDialogHeight'
+import { getAppViewportSize } from '../../../lib/desktopCanvas'
 
 const width = 1120
 const height = 750
 
 function measure() {
-  const viewport = window.visualViewport
-  const availableWidth = viewport?.width ?? window.innerWidth
-  const availableHeight = viewport?.height ?? window.innerHeight
+  const viewport = getAppViewportSize()
+  const availableWidth = viewport.width
+  const availableHeight = viewport.height
   // Match the Ranking frame scale so reducing the height does not enlarge the dialog.
   const scale = Math.max(0.1, Math.min(0.85, (availableWidth - mobileDialogMargin(availableWidth, availableHeight)) / width, (availableHeight - 32) / 780))
-  return { scale, height: mobileDialogHeight(height, scale, availableWidth, availableHeight), compact: availableWidth <= 800 }
+  return { scale, height: mobileDialogHeight(height, scale, availableWidth, availableHeight), compact: viewport.compact }
 }
 
 export function useFriendsLayout() {

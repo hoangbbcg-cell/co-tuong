@@ -1,3 +1,7 @@
+import { HovangLoadingOverlay } from '../../components/HovangLoadingOverlay'
+import { useSyncExternalStore } from 'react'
+import { getPendingOnlineAdOffer, subscribeOnlineAdOffer, takeOnlineAdOffer } from '../../features/ads/onlineAdOffer'
+import { createBrowserH5Interstitial } from '../../features/ads/googleH5Interstitial'
 import { useUnreadMessageCount } from '../../features/lobby/hooks/useDatabaseMessages'
 import { homeResourceLayout } from '../../features/lobby/components/homeResourceLayout'
 import { ResourceAddButton } from '../../features/lobby/components/ResourceAddButton'
@@ -8,21 +12,23 @@ import { EnergyDialog } from '../../features/lobby/components/EnergyDialog'
 ﻿import { getComputerAvatar } from '../../lib/computerAvatar'
 import { CrispUiImage } from '../../lib/CrispUiImage'
 import { getCrispUiLayout } from '../../lib/crispUiRendering'
-import { useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { homeModeArtwork } from '../../features/lobby/components/homeModeArtwork'
-import tournamentArt from '../../assets/home-actions/tournament-title-large.png'
+import tournamentArt from '../../assets/home-actions/tournament-title-large.webp'
 import { useHome } from '../../features/lobby/hooks/useHome'
+import { oneChoiceNoticeDialog, oneChoiceNoticeButton } from '../../features/lobby/components/OneChoiceNoticeStyles'
 import { buttonInteraction, homeUtilityButton as utility } from '../../lib/uiClasses'
-import background from '../../assets/backgrounds/home.png'
+import { NumberText } from '../../lib/NumberText'
+import background from '../../assets/backgrounds/home.webp'
 import { useHomeLayout } from '../../features/lobby/hooks/useHomeLayout'
 import { AvatarRankBadge } from '../../features/game/components/AvatarRankBadge'
 import { AvatarPortrait } from '../../features/lobby/components/AvatarCustomization'
 import { useSessionStore } from '../../store/sessionStore'
 import { getAvatarFrame } from '../../lib/avatarFrames'
 import { AvatarFrameOverlay } from '../../features/game/components/AvatarFrameOverlay'
-import redGeneral from '../../assets/pieces/red-general.png'
+import { XIANGQI_ELO_ICON as redGeneral } from '../../lib/eloArtwork'
 import concealedPiece from '../../assets/history/history-hidden-user.png'
-import goldFrame from '../../assets/player/name-frame.png'
+import goldFrame from '../../assets/player/name-frame.webp'
 import energyIcon from '../../assets/home-actions/energy-icon-v2.png'
 import goldIcon from '../../assets/home-actions/gold-icon-v2.png'
 import { PlayerNameplate } from '../../features/game/components/PlayerNameplate'
@@ -32,7 +38,10 @@ import { useHomeMusic } from '../../features/lobby/hooks/useHomeMusic'
 import { ProfileDialog } from '../../features/lobby/components/ProfileDialog'
 import { useProfileLayout } from '../../features/lobby/hooks/useProfileLayout'
 import { RankingDialog } from '../../features/lobby/components/RankingDialog'
-import { MessagesDialog } from '../../features/lobby/components/MessagesDialog'
+const LazyMessagesDialog = lazy(() =>
+  import('../../features/lobby/components/MessagesDialog')
+    .then(module => ({ default: module.MessagesDialog }))
+)
 import type { MessageConversationRequest } from '../../features/lobby/components/MessagesDialog'
 import { useRankingLayout } from '../../features/lobby/hooks/useRankingLayout'
 import { FriendsDialog } from '../../features/lobby/components/FriendsDialog'
@@ -48,7 +57,24 @@ const modes = [
   { ...homeModeArtwork.hidden, name: 'Cờ Úp', action: 'hidden' },
 ] as const
 
+
+function MessagesMountReady({ onReady }: { onReady: () => void }) {
+  useEffect(() => { onReady() }, [onReady])
+  return null
+}
+const homeInterstitial = createBrowserH5Interstitial()
+
 export function HomePage() {
+  const pendingOnlineAd = useSyncExternalStore(subscribeOnlineAdOffer, getPendingOnlineAdOffer)
+  const activeHome = useSessionStore(state => state.screen === 'home')
+  // The offer is consumed synchronously, before any SDK call. This prevents
+  // duplicate attempts during React StrictMode remounts and Home rerenders.
+  useEffect(() => {
+    if (!activeHome || !pendingOnlineAd) return
+    if (!takeOnlineAdOffer(pendingOnlineAd)) return
+    // An unavailable/failing ad must not block returning to Home.
+    homeInterstitial.request()
+  }, [activeHome, pendingOnlineAd])
   const home = useHome()
   const unreadMessageCount = useUnreadMessageCount()
   const elo = useSessionStore(state => state.elo)
@@ -56,7 +82,8 @@ export function HomePage() {
   const selectedAvatarIndex = useSessionStore(state => state.avatarIndex)
   const selectedFrameIndex = useSessionStore(state => state.avatarFrameIndex)
   const layout = useHomeLayout()
-  const { resourceWidth, resourceHeight, resourceFrameHeight, resourceIconHeight, resourceFrameWidth } = homeResourceLayout(layout.scale, layout.compact)
+  const { resourceWidth, resourceHeight, resourceFrameHeight, resourceIconHeight, resourceFrameWidth: baseResourceFrameWidth } = homeResourceLayout(layout.scale, layout.compact)
+  const resourceFrameWidth = baseResourceFrameWidth + (layout.compact ? 0 : 2 * layout.scale)
   const profileLayout = useProfileLayout()
   const rankingLayout = useRankingLayout()
   const friendsLayout = useFriendsLayout()
@@ -69,12 +96,17 @@ export function HomePage() {
   const energyTooltipDismissed = useRef(false)
   const openEnergy = () => { energyTooltipDismissed.current = true; setEnergyTooltip(false); energyRef.current?.showModal() }
   const messagesRef = useRef<HTMLDialogElement>(null)
+  const [messagesMounted, setMessagesMounted] = useState(false)
   const messageRequestId = useRef(0)
   const [messageRequest, setMessageRequest] = useState<MessageConversationRequest | null>(null)
   const openMessages = (name?: string, image?: string, status?: 'online' | 'offline', playerId?: string) => {
     if (name) setMessageRequest({ id: ++messageRequestId.current, name, image, status, playerId })
-    if (!messagesRef.current?.open) messagesRef.current?.showModal()
+    setMessagesMounted(true)
+    if (messagesRef.current && !messagesRef.current.open) messagesRef.current.showModal()
   }
+  const showMountedMessages = useCallback(() => {
+    if (messagesRef.current && !messagesRef.current.open) messagesRef.current.showModal()
+  }, [])
   const [historyPlayerName, setHistoryPlayerName] = useState('')
   const openHistoryPlayerProfile = (playerName: string) => {
     if (getComputerAvatar(playerName)) return
@@ -83,7 +115,9 @@ export function HomePage() {
   }
 
   return <main className="relative isolate h-dvh w-full overflow-hidden bg-[#263a35] text-[#f7e6c1]" aria-label="Màn hình chính">
+    {home.joining && <HovangLoadingOverlay label="Đang tìm bàn" />}
     <MobileHome unreadMessageCount={unreadMessageCount} home={home} music={music} onEnergy={openEnergy} onMessages={() => openMessages()} />
+
     <div className="absolute top-1/2 left-1/2 isolate flex compact:hidden origin-center flex-col overflow-hidden border-[length:var(--ui-p-5,5px)] border-[#80582c] bg-[#d9d4bf] px-8 py-5 shadow-[inset_0_0_0_2px_#efd397,0_0_0_1px_#e1c993,0_8px_30px_#101d18aa] compact:px-4 compact:py-3" style={{ ...getCrispUiLayout(layout.scale, layout.width, layout.height), transform: 'translate(-50%, -50%)' }}>
       <CrispUiImage src={background} alt="" className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover object-center" />
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,#f4e8cd11,transparent_50%,#344b4233)]" />
@@ -94,7 +128,7 @@ export function HomePage() {
         <div className="relative -left-[10px] flex items-start gap-4">
           <span className="block w-[var(--ui-p-108,108px)] shrink-0 pb-7">
             <span className="relative block size-[var(--ui-p-106,106px)]">
-              <button type="button" className={`${buttonInteraction} block size-full rounded-full bg-transparent p-0`} onClick={home.openProfile} aria-label="Mở hồ sơ người chơi"><span role="img" aria-label="Avatar kỳ sĩ" className="relative block size-full rounded-full"><AvatarPortrait avatarIndex={selectedAvatarIndex} className="block size-full rounded-full" /><AvatarFrameOverlay src={getAvatarFrame(selectedFrameIndex).image} /></span></button>
+              <button data-ui-selection-sound type="button" className={`${buttonInteraction} block size-full rounded-full bg-transparent p-0`} onClick={home.openProfile} aria-label="Mở hồ sơ người chơi"><span role="img" aria-label="Avatar kỳ sĩ" className="relative block size-full rounded-full"><AvatarPortrait avatarIndex={selectedAvatarIndex} className="block size-full rounded-full" /><AvatarFrameOverlay src={getAvatarFrame(selectedFrameIndex).image} /></span></button>
                             <AvatarRankBadge elo={elo} previewStars={account?undefined:3} />
             </span>
           </span>
@@ -106,33 +140,33 @@ export function HomePage() {
             </span>
           </span>
         </div>
-        <div className="absolute top-1 left-1/2 max-w-full -translate-x-1/2 border-0 bg-transparent p-0 leading-none shadow-none compact:static compact:order-last compact:mx-auto compact:translate-x-0 compact:-translate-y-2" style={{ width: resourceWidth, height: resourceHeight }} aria-label="Năng lượng và vàng">
+        <div className="absolute top-1 left-1/2 max-w-full -translate-x-1/2 origin-center border-0 bg-transparent p-0 leading-none shadow-none compact:static compact:order-last compact:mx-auto compact:translate-x-0 compact:-translate-y-2" style={{ width: resourceWidth, height: resourceHeight, scale: layout.compact ? undefined : 0.97 }} aria-label="Năng lượng và vàng">
           <ResourceArtwork src={goldFrame} alt="" className="pointer-events-none absolute m-0 block border-0 p-0" style={{ width: resourceFrameWidth, height: resourceFrameHeight, left: 0, top: Math.round((resourceHeight - resourceFrameHeight) / 2) }} />
           <ResourceArtwork src={goldFrame} alt="" className="pointer-events-none absolute m-0 block border-0 p-0" style={{ width: resourceFrameWidth, height: resourceFrameHeight, left: resourceWidth - resourceFrameWidth, top: Math.round((resourceHeight - resourceFrameHeight) / 2) }} />
           <button type="button" aria-label={`Năng lượng ${home.energyUnlimited ? 'vô hạn' : `${home.energy}/5`}. ${home.energyCountdown}`} aria-describedby={energyTooltip ? 'home-energy-tooltip' : undefined} onMouseEnter={()=>{energyTooltipDismissed.current=false;setEnergyTooltip(true)}} onMouseLeave={()=>setEnergyTooltip(false)} onFocus={()=>{if(!energyTooltipDismissed.current)setEnergyTooltip(true)}} onBlur={()=>setEnergyTooltip(false)} className="absolute inset-y-0 left-0 z-10 w-[46%] cursor-default border-0 bg-transparent p-0" />
-          {energyTooltip && <div id="home-energy-tooltip" role="tooltip" className="pointer-events-none absolute top-[calc(100%+8px)] left-[25%] z-50 -translate-x-1/2 whitespace-nowrap rounded-lg border border-[#d7a34e] bg-[linear-gradient(135deg,#48270f,#241207)] px-4 py-2 font-cormorant text-[length:var(--ui-p-18,18px)] font-semibold leading-normal text-[#fff0cc] shadow-[inset_0_0_0_1px_#ffe2a326,0_4px_12px_#0009]"><span aria-hidden="true" className="absolute -top-[5px] left-1/2 size-2 -translate-x-1/2 rotate-45 border-t border-l border-[#d7a34e] bg-[#3b200d]" />{home.energyCountdown}</div>}
+          {energyTooltip && <div id="home-energy-tooltip" role="tooltip" className="pointer-events-none absolute top-[calc(100%+8px)] left-[25%] z-50 -translate-x-1/2 whitespace-nowrap rounded-lg border border-[#d7a34e] bg-[linear-gradient(135deg,#48270f,#241207)] px-4 py-2 font-cormorant text-[length:var(--ui-p-18,18px)] font-semibold leading-normal text-[#fff0cc] shadow-[inset_0_0_0_1px_#ffe2a326,0_4px_12px_#0009]"><span aria-hidden="true" className="absolute -top-[5px] left-1/2 size-2 -translate-x-1/2 rotate-45 border-t border-l border-[#d7a34e] bg-[#3b200d]" /><NumberText text={home.energyCountdown} weight="semibold" soften={false} /></div>}
           <ResourceArtwork smooth src={energyIcon} alt="Năng lượng" className="pointer-events-none absolute z-10 m-0 block max-w-none border-0 p-0 object-contain" style={{ height: resourceIconHeight, width: Math.round(resourceIconHeight * 169 / 218), top: Math.round((resourceHeight - resourceIconHeight) / 2), left: Math.round(resourceWidth * 0.03 + 3) }} />
           <ResourceArtwork smooth src={goldIcon} alt="Vàng" className="pointer-events-none absolute z-10 m-0 block max-w-none border-0 p-0 object-contain" style={{ height: resourceIconHeight, width: Math.round(resourceIconHeight * 222 / 219), top: Math.round((resourceHeight - resourceIconHeight) / 2), left: Math.round(resourceWidth * 0.54 + 3) }} />
           <span aria-label={`Năng lượng: ${home.energyUnlimited ? 'vô hạn' : `${home.energy}/5`}. ${home.energyCountdown}`} className="pointer-events-none absolute top-1/2 left-[24.5%] -translate-x-1/2 -translate-y-1/2 font-number text-[length:var(--ui-p-20,20px)] leading-none text-[#ffe7ae] lining-nums tabular-nums [text-shadow:0_1px_2px_#2a1008]">{home.energyUnlimited ? '∞' : `${home.energy}/5`}</span>
           <span aria-label={`Vàng: ${home.gold}`} className="absolute top-1/2 left-[75.5%] -translate-x-1/2 -translate-y-1/2 font-number text-[length:var(--ui-p-20,20px)] leading-none text-[#ffe7ae] lining-nums tabular-nums [text-shadow:0_1px_2px_#2a1008]">{home.gold}</span>
           {[{ label: 'Thêm năng lượng', position: 'left-[41%]' }, { label: 'Thêm vàng', position: 'left-[92%]' }].map(action => <ResourceAddButton key={action.label} type="button" aria-label={action.label} onMouseEnter={() => {if(action.position === 'left-[41%]'){energyTooltipDismissed.current=false;setEnergyTooltip(true)}}} onMouseLeave={()=>setEnergyTooltip(false)} onFocus={() => {if(action.position === 'left-[41%]'&&!energyTooltipDismissed.current)setEnergyTooltip(true)}} onBlur={()=>setEnergyTooltip(false)} onClick={() => action.label === 'Thêm năng lượng' ? openEnergy() : home.setMessage('Tính năng bổ sung vàng chưa được hỗ trợ.')} className={`absolute top-[calc(50%-var(--ui-p-1,1px))] ${action.position} z-20 size-[var(--ui-p-26,26px)] -translate-x-1/2 -translate-y-1/2 compact:size-[var(--ui-p-23,23px)]`} />)}
         </div>
-        <nav className="relative left-[10px] flex flex-wrap justify-end gap-2" aria-label="Tiện ích">
+        <nav className="relative left-[13px] flex flex-wrap justify-end gap-2" aria-label="Tiện ích">
           {[
             ['trophy', 'Thành tích', 'Thành tích sẽ có khi hệ thống tài khoản được mở.'],
             ['history', 'Lịch sử', 'Lịch sử ván đấu chưa được lưu.'],
             ['friends', 'Bạn bè', 'Tính năng bạn bè sắp ra mắt.'],
             ['messages', 'Tin nhắn', ''],
-          ].map(([icon, label, message]) => <button key={label} className={`${utility} relative`} aria-label={icon === 'messages' && unreadMessageCount > 0 ? `${label}, ${unreadMessageCount} tin nhắn chưa đọc` : label} onClick={() => icon === 'trophy' ? home.openRanking() : icon === 'history' ? home.openHistory() : icon === 'friends' ? home.openFriends() : icon === 'messages' ? openMessages() : home.setMessage(message)}><HomeIcon name={icon as HomeIconName} />{icon === 'messages' && unreadMessageCount > 0 && <span aria-hidden="true" className="pointer-events-none absolute -top-2 -right-2 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-[#ffe2a1] bg-[#d82323] px-1 font-number text-sm font-semibold leading-none text-white shadow-[0_1px_4px_#321407]">{unreadMessageCount > 99 ? '99+' : unreadMessageCount}</span>}</button>)}
-          <button className={utility} aria-label="Shop" title="Shop" onClick={home.openShop}><HomeIcon name="shop" /></button>
+          ].map(([icon, label, message]) => <button key={label} data-ui-selection-sound className={`${utility} relative`} aria-label={icon === 'messages' && unreadMessageCount > 0 ? `${label}, ${unreadMessageCount} tin nhắn chưa đọc` : label} onClick={() => icon === 'trophy' ? home.openRanking() : icon === 'history' ? home.openHistory() : icon === 'friends' ? home.openFriends() : icon === 'messages' ? openMessages() : home.setMessage(message)}><HomeIcon name={icon as HomeIconName} />{icon === 'messages' && unreadMessageCount > 0 && <span aria-hidden="true" className="pointer-events-none absolute -top-2 -right-2 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-[#ffe2a1] bg-[#d82323] px-1 font-number text-sm font-semibold leading-none text-white shadow-[0_1px_4px_#321407]">{unreadMessageCount > 99 ? '99+' : unreadMessageCount}</span>}</button>)}
+          <button data-ui-selection-sound className={utility} aria-label="Shop" title="Shop" onClick={home.openShop}><HomeIcon name="shop" /></button>
           <HomeSettings music={music} onError={() => home.setMessage('Không thể phát nhạc trên trình duyệt này.')} />
-          <button className={utility} aria-label="Toàn màn hình" onClick={() => void home.fullscreen()}><HomeIcon name="fullscreen" /></button>
+          <button data-ui-selection-sound className={utility} aria-label="Toàn màn hình" onClick={() => void home.fullscreen()}><HomeIcon name="fullscreen" /></button>
         </nav>
       </header>
       {home.notice && <p role="status" className="mt-3 rounded-lg border border-[#b38c4a] bg-[#30261c] p-3 text-center text-sm">{home.notice}</p>}
       <div className="hidden desktop:block desktop:flex-1" aria-hidden="true" />
       <section className="relative isolate flex min-h-0 flex-1 flex-col items-center justify-center py-5 desktop:absolute desktop:left-1/2 desktop:w-[48%] desktop:py-0" style={{ top: layout.compact ? undefined : '28%', transform: layout.compact ? 'translateY(-28px)' : 'translate(-50%, -50%)' }} aria-label="Giải đấu">
-        <button aria-label="Giải đấu" className={`${buttonInteraction} relative block w-[var(--ui-p-700,700px)] max-w-full bg-transparent [container-type:inline-size] transition-[filter] duration-150 hover:brightness-105 motion-reduce:transition-none`} onClick={() => home.setMessage('Giải đấu đang được chuẩn bị. Hãy luyện cờ và chờ ngày khai hội!')}>
+        <button data-ui-selection-sound aria-label="Giải đấu" className={`${buttonInteraction} relative block w-[var(--ui-p-700,700px)] max-w-full bg-transparent [container-type:inline-size] transition-[filter] duration-150 hover:brightness-105 motion-reduce:transition-none`} onClick={() => home.setMessage('Giải đấu đang được chuẩn bị. Hãy luyện cờ và chờ ngày khai hội!')}>
           <CrispUiImage src={tournamentArt} alt="" draggable={false} className="pointer-events-none block h-auto w-full brightness-95 contrast-95 saturate-90 select-none [mask-image:linear-gradient(to_right,transparent,black_14%,black_86%,transparent),linear-gradient(to_bottom,transparent,black_12%,black_78%,transparent)] [mask-composite:intersect]" />
           <span className="pointer-events-none absolute top-[10%] left-1/2 -translate-x-1/2 whitespace-nowrap font-[Arial,sans-serif] text-[1.9cqw] tracking-[0.3em] text-[#dbb66b] [text-shadow:0_2px_3px_#321b0b,0_0_8px_#e9a63d88]">KỲ PHÙNG ĐỊCH THỦ</span>
           <span className="pointer-events-none absolute top-[20%] left-1/2 -translate-x-1/2 text-[17cqw]/none [filter:drop-shadow(0_5px_4px_#3d1d0b99)_drop-shadow(0_0_12px_#ffe5a1)_drop-shadow(0_0_30px_#eeb53bcc)]" aria-hidden="true">🏆</span>
@@ -144,7 +178,7 @@ export function HomePage() {
       <section style={{ transform: `translateY(${(layout.compact ? -20 : -40) * layout.scale + 25}px)` }} className="mx-auto grid w-full max-w-[var(--ui-p-1020,1020px)] grid-cols-4 items-start gap-6 pb-6 compact:gap-2" aria-label="Chế độ chơi">
         {modes.map(mode => <div key={mode.name} style={{ rowGap: '38px' }} className="flex min-w-0 flex-col items-center gap-3 text-center compact:gap-2">
           <span style={{ transform: 'translateY(38px)' }} className="relative block aspect-square w-[95%] max-w-[var(--ui-p-175,175px)] shrink-0">
-            <button type="button" style={{ width: 205, aspectRatio: '561 / 701', transform: `translate(-50%, ${mode.artworkOffset / 701 * 100}%)`, clipPath: `inset(${mode.alphaInsets[0] / 701 * 100}% ${mode.alphaInsets[1] / 561 * 100}% ${mode.alphaInsets[2] / 701 * 100}% ${mode.alphaInsets[3] / 561 * 100}%)` }} className={`${buttonInteraction} absolute top-0 left-1/2 block border-0 bg-transparent p-0 transition-[filter] duration-150 hover:brightness-105 motion-reduce:transition-none`} disabled={home.joining} aria-label={mode.name} aria-busy={mode.action === 'quick' && home.joining} onClick={() => mode.action === 'computer' ? home.openComputer() : mode.action === 'hidden' ? home.playHidden() : mode.action === 'quick' ? home.quickPlay() : mode.action === 'rooms' ? home.openRooms() : undefined}>
+            <button type="button" data-ui-selection-sound style={{ width: 205, aspectRatio: '561 / 701', transform: `translate(-50%, ${mode.artworkOffset / 701 * 100}%)`, clipPath: `inset(${mode.alphaInsets[0] / 701 * 100}% ${mode.alphaInsets[1] / 561 * 100}% ${mode.alphaInsets[2] / 701 * 100}% ${mode.alphaInsets[3] / 561 * 100}%)` }} className={`${buttonInteraction} absolute top-0 left-1/2 block border-0 bg-transparent p-0 transition-[filter] duration-150 hover:brightness-105 motion-reduce:transition-none`} disabled={home.joining} aria-label={mode.name} aria-busy={mode.action === 'quick' && home.joining} onClick={() => mode.action === 'computer' ? home.openComputer() : mode.action === 'hidden' ? home.playHidden() : mode.action === 'quick' ? home.quickPlay() : mode.action === 'rooms' ? home.openRooms() : undefined}>
               <CrispUiImage src={mode.image} alt="" draggable={false} className="pointer-events-none block h-full w-full max-w-none object-contain" />
             </button>
           </span>
@@ -156,12 +190,15 @@ export function HomePage() {
         <button className={`${buttonInteraction} absolute bottom-2 left-1/2 h-10 w-[var(--ui-p-150,150px)] -translate-x-1/2 rounded-[50%/95%] border-2 border-[#b97838] bg-[linear-gradient(180deg,#f5c58d_0%,#eab071_24%,#d99451_68%,#bc783b_100%)] font-[Arial,sans-serif] text-[length:var(--ui-p-22,22px)] leading-none font-medium text-[#33200e] shadow-[inset_0_2px_2px_#ffe0aa,inset_0_0_0_3px_#edb475,inset_0_-4px_3px_#97532288,0_3px_3px_#30221488] hover:brightness-110 active:brightness-95 compact:w-[var(--ui-p-120,120px)] compact:text-xl`} onClick={() => void home.exit()}>THOÁT</button>
       </footer>
     </div>
-    <dialog ref={home.messageRef} aria-label="Thông báo" className="m-auto w-[min(var(--ui-p-384,384px),90vw)] rounded-xl border border-[#c7a264] bg-[#30271e] p-6 text-center text-[#f7e6c1] shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm" onCancel={() => home.setMessage('')}>
-        <p className="leading-relaxed">{home.message}</p><button autoFocus className={`${utility} mx-auto mt-5 w-auto px-6 text-base`} onClick={() => home.setMessage('')}>Đã hiểu</button>
+    <dialog ref={home.messageRef} aria-label="Thông báo" className={`${oneChoiceNoticeDialog} backdrop:bg-black/60 backdrop:backdrop-blur-sm`} onCancel={() => home.setMessage('')}>
+        <p className="leading-relaxed">{home.message}</p><button autoFocus className={oneChoiceNoticeButton} onClick={() => home.setMessage('')}>Đã hiểu</button>
     </dialog>
     <EnergyDialog dialogRef={energyRef} onUnavailable={()=>home.setMessage('Video và thanh toán chưa được tích hợp.')} />
-    <ProfileDialog layout={profileLayout} dialogRef={home.profileRef} name={home.name} editable accountActions onClose={home.closeProfile} primaryActionLabel="Liên kết tài khoản" onPrimaryAction={() => home.setMessage('Liên kết tài khoản sắp ra mắt. Hiện bạn đang chơi với tư cách khách.')} />
-    <MessagesDialog layout={rankingLayout} dialogRef={messagesRef} openRequest={messageRequest} onViewInfo={openHistoryPlayerProfile} onClose={() => messagesRef.current?.close()} />
+    <ProfileDialog layout={profileLayout} dialogRef={home.profileRef} name={home.name} editable accountActions allowProfileEditControls onClose={home.closeProfile} primaryActionLabel="Liên kết tài khoản" onPrimaryAction={() => home.setMessage('Liên kết tài khoản sắp ra mắt. Hiện bạn đang chơi với tư cách khách.')} />
+    {messagesMounted && <Suspense fallback={<HovangLoadingOverlay fullscreen />}>
+      <LazyMessagesDialog layout={rankingLayout} dialogRef={messagesRef} openRequest={messageRequest} onViewInfo={openHistoryPlayerProfile} onClose={() => messagesRef.current?.close()} />
+      <MessagesMountReady onReady={showMountedMessages} />
+    </Suspense>}
     <ProfileDialog layout={profileLayout} dialogRef={historyPlayerProfileRef} name={historyPlayerName} onOpenMessages={(name, playerId) => openMessages(name, undefined, undefined, playerId)} onClose={() => historyPlayerProfileRef.current?.close()} primaryActionLabel="Kết bạn" onPrimaryAction={() => {
       historyPlayerProfileRef.current?.close()
       home.setMessage('Tính năng kết bạn sắp ra mắt.')

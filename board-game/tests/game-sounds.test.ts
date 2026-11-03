@@ -156,3 +156,17 @@ it('disposes pending playback and removes gesture listeners when leaving the boa
   expect(context.sources).toHaveLength(0)
   expect(context.close).toHaveBeenCalledTimes(1)
 })
+
+it('keeps ready countdown audible when automatic ticking and other effects stop', async () => {
+  sounds.dispose()
+  sounds = new GameSounds({ ...sources, clockTick: '/tick' })
+  context = FakeContext.instances.at(-1)!
+  sounds.playReadyCountdownTick()
+  await vi.waitFor(() => expect(context.sources).toHaveLength(1))
+  const tick = context.sources[0]
+  sounds.stopClockTick()
+  sounds.stopAll()
+  expect(tick.stop).not.toHaveBeenCalled()
+  sounds.dispose()
+  expect(tick.stop).toHaveBeenCalledOnce()
+})

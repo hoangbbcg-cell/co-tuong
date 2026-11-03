@@ -3,16 +3,23 @@ import type { RecordedMatch } from './recordedMatch'
 import type { ChallengeProfile, ChallengeInvite, ChallengeResult, ChallengeAccepted } from './challenge'
 
 export interface ChatMessage { id: string; name: string; text: string; system: boolean }
-export interface RoomPlayer { userId?: string; id: string; name: string; side: Side; ready: boolean }
-export interface RoomViewer { id: string; name: string; queued: boolean }
+export interface RoomPlayer { userId?: string; id: string; name: string; side: Side; ready: boolean; connected?: boolean; leaseGeneration?: number; disconnectedAtEpochMs?: number }
+export interface RoomViewer { id: string; name: string; queued: boolean; userId?: string }
 export const ROOM_MINUTES = [3, 5, 10, 15, 30] as const
 export const ROOM_TURN_SECONDS = [30, 60, 90, 120] as const
-export interface RoomSummary { code?: string; variant?: GameState['variant']; locked?: boolean; id: string; name: string; players: number; viewerCount?: number; playerNames?: string[]; phase: GameState['phase']; minutes?: number; province?: string }
+export interface RoomSummary { ownerName?: string; code?: string; variant?: GameState['variant']; locked?: boolean; passwordRequired?: boolean; id: string; name: string; players: number; viewerCount?: number; playerNames?: string[]; phase: GameState['phase']; minutes?: number; province?: string }
 export interface RoomSnapshot {
+  /** Server-verified pair entitled to play without energy. */
+  friendEnergyExemptPair?: [string, string]
   /** Server-only invitation pairs; removed from public snapshots. */
   goldRewardExcludedPairs?: [string, string][]
   code?: string
   locked?: boolean
+  passwordRequired?: boolean
+  ownerId?: string
+  queueBlocked?: boolean
+  chatBlocked?: boolean
+  mutedMemberIds?: string[]
   readyCountdown?: number | null
   lastCompletedMatch?: RecordedMatch
   activeMatchId?: string
@@ -29,9 +36,17 @@ export interface RoomSnapshot {
   takebackRemaining?: Record<Side, number>
   takebackBlocked?: Partial<Record<Side, boolean>>
   moveCount?: number
+  /** Server-only recovery material. publicRoom must never expose these fields. */
+  persistenceHistory?: GameState[]
+  processedCommandIds?: Record<string, string[]>
+  persistenceTakebackDeadlineEpochMs?: number
 }
-export type RoomCommand =
+export type RoomCommand = (
+  | { type: 'result-presentation-complete'; matchId: string }
+  | { type: 'room-settings'; queueBlocked: boolean; chatBlocked: boolean }
+  | { type: 'moderate'; targetId: string; action: 'demote' | 'promote' | 'mute' | 'unmute' | 'kick' }
   | { type: 'ready' }
+  | { type: 'stand-up' }
   | { type: 'join-queue' }
   | { type: 'leave-queue' }
   | { type: 'move'; move: Move }
@@ -42,16 +57,20 @@ export type RoomCommand =
   | { type: 'reply-draw'; accepted: boolean }
   | { type: 'request-takeback' }
   | { type: 'reply-takeback'; accepted: boolean }
-  | { type: 'reset' }
+  | { type: 'reset' }) & { commandId?: string }
 export type Reply<T> = { ok: true; data: T } | { ok: false; error: string }
 export type Ack<T> = (reply: Reply<T>) => void
 export const ROOM_REACTIONS = ['😛', '😂', '👍', '👏', '🤔', '❤️'] as const
 export interface RoomReactionInput { targetSide: Side; targetId: string; reaction: string }
 export interface RoomReaction extends RoomReactionInput { roomId: string; actorId: string; players: string[]; matchId?: string }
 export interface ServerEvents {
+  'room:control-replaced': (roomId: string) => void
+  'room:notice': (message: string) => void
+  'room:removed': (roomId: string) => void
   'room:reaction': (reaction: RoomReaction) => void
   'lobby:count': (count: number) => void
   'lobby:province-counts': (counts: Record<string, number>) => void
+  'room:sound': (event: { kind: 'seat' | 'leave'; roomId: string; actorId: string }) => void // HOVANG_ROOM_SOUND_V1
   'room:state': (room: RoomSnapshot) => void
   'challenge:invite': (invite: ChallengeInvite) => void
   'challenge:result': (result: ChallengeResult) => void
@@ -59,10 +78,11 @@ export interface ServerEvents {
 }
 
 export interface ClientEvents {
+  'room:resume': (ack: Ack<RoomSnapshot | null>) => void
   'room:reaction': (input: RoomReactionInput, ack: Ack<null>) => void
   'lobby:presence': (province: string | null) => void
   'presence:update': (profile: ChallengeProfile, ack: Ack<null>) => void
-  'challenge:send': (target: { id?: string; name: string }, ack: Ack<null>) => void
+  'challenge:send': (target: { id?: string; accountId?: string; name: string }, ack: Ack<null>) => void
   'challenge:reply': (reply: { id: string; accepted: boolean; blockMinutes?: 5 | 10 }, ack: Ack<null>) => void
   'room:join': (input: { roomId: string; name: string; password?: string; asViewer?: boolean }, ack: Ack<RoomSnapshot>) => void
   'room:leave': (ack: Ack<null>) => void

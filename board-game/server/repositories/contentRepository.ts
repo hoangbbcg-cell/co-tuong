@@ -13,29 +13,31 @@ export class ContentRepository {
     return { settled:result[0].status==='finished',gold:Number(result[0].gold),eloDelta:Number(result[0].eloDelta) }
   }
   async history(id:string,saved=false):Promise<RecordedMatch[]> {
-    const list=await rows(`SELECT DISTINCT m.id,m.ended_at endedAt, ${saved ? 's.title savedTitle,s.note savedNote,' : ''}
-      COALESCE(ru.display_name,r.name_snapshot) redName,COALESCE(bu.display_name,b.name_snapshot) blackName
+    const list=await rows(`SELECT DISTINCT m.id,m.started_at startedAt,COALESCE(m.ended_at,m.started_at) endedAt, ${saved ? 's.saved_at savedAt,s.title savedTitle,s.note savedNote,' : ''}
+      COALESCE(ru.display_name,r.name_snapshot) redName,COALESCE(bu.display_name,b.name_snapshot) blackName,r.avatar_code_snapshot redAvatarCode,r.avatar_frame_code_snapshot redAvatarFrameCode,b.avatar_code_snapshot blackAvatarCode,b.avatar_frame_code_snapshot blackAvatarFrameCode
       FROM matches m JOIN match_players r ON r.match_id=m.id AND r.side='red'
       JOIN match_players b ON b.match_id=m.id AND b.side='black'
       LEFT JOIN users ru ON ru.id=r.user_id LEFT JOIN users bu ON bu.id=b.user_id
       ${saved?'JOIN saved_matches s ON s.match_id=m.id AND s.user_id=?':'JOIN match_players mine ON mine.match_id=m.id AND mine.user_id=?'}
-      WHERE m.status='finished' AND m.source='server_online' ${saved?'':'AND (m.history_expires_at IS NULL OR m.history_expires_at>UTC_TIMESTAMP(3))'} ORDER BY m.ended_at DESC LIMIT 100`,[id])
+      WHERE m.status IN ('playing','finished') AND m.started_at IS NOT NULL AND m.source='server_online' ${saved?'':'AND (m.history_expires_at IS NULL OR m.history_expires_at>UTC_TIMESTAMP(3))'} ORDER BY COALESCE(m.ended_at,m.started_at) DESC LIMIT 100`,[id])
     const result:RecordedMatch[]=[]
     for(const item of list) {
       const m=await rows('SELECT initial_state,final_state FROM matches WHERE id=?',[String(item.id)])
       const moves=await rows('SELECT state_after FROM match_moves WHERE match_id=? ORDER BY ply',[String(item.id)])
       const states=[m[0].initial_state,...moves.map(r=>r.state_after)] as GameState[]
-      const final=m[0].final_state as GameState
-      if(JSON.stringify(states.at(-1)?.board)===JSON.stringify(final.board))states[states.length-1]=final
-      else states.push(final)
-      result.push({id:String(item.id),endedAt:new Date(item.endedAt as string).getTime(),redName:String(item.redName),blackName:String(item.blackName),states,...(saved ? {savedTitle:String(item.savedTitle??''),savedNote:String(item.savedNote??'')} : {})})
+      const final=m[0].final_state as GameState | null
+      if(final) {
+        if(JSON.stringify(states.at(-1)?.board)===JSON.stringify(final.board))states[states.length-1]=final
+        else states.push(final)
+      }
+      result.push({id:String(item.id),startedAt:new Date(item.startedAt as string).getTime(),endedAt:new Date(item.endedAt as string).getTime(),redName:String(item.redName),blackName:String(item.blackName),redAvatarCode:item.redAvatarCode == null ? undefined : String(item.redAvatarCode),redAvatarFrameCode:item.redAvatarFrameCode == null ? undefined : String(item.redAvatarFrameCode),blackAvatarCode:item.blackAvatarCode == null ? undefined : String(item.blackAvatarCode),blackAvatarFrameCode:item.blackAvatarFrameCode == null ? undefined : String(item.blackAvatarFrameCode),states,...(saved ? {savedAt:new Date(item.savedAt as string).getTime(),savedTitle:String(item.savedTitle??''),savedNote:String(item.savedNote??'')} : {})})
     }
     return result
   }
   async bookmark(id:string,match:string,enabled:boolean) {
     if(enabled) {
-      const m=await rows("SELECT id FROM matches WHERE id=? AND status='finished' AND source='server_online'",[match])
-      if(!m.length)throw new AccountError('Ván chưa tồn tại hoặc chưa kết thúc.')
+      const m=await rows("SELECT id FROM matches WHERE id=? AND started_at IS NOT NULL AND source='server_online' AND (status='finished' OR (status='playing' AND EXISTS (SELECT 1 FROM match_players WHERE match_id=matches.id AND user_id=?)))",[match,id])
+      if(!m.length)throw new AccountError('Ván chưa bắt đầu hoặc bạn không có quyền lưu ván này.')
     }
     await change(enabled?'INSERT INTO saved_matches(user_id,match_id) VALUES (?,?) ON DUPLICATE KEY UPDATE user_id=saved_matches.user_id':'DELETE FROM saved_matches WHERE user_id=? AND match_id=?',[id,match])
   }
@@ -89,14 +91,14 @@ export class ContentRepository {
     })
   }
   async endorse(id:string,target:string,code:string,enabled:boolean) {
+    if (!enabled) throw new AccountError('Danh hiệu đã phong không thể gỡ.')
     await transaction(async c=>{
       await rows('SELECT id FROM users WHERE id=? FOR UPDATE',[target],c)
       const h=await rows("SELECT criteria FROM honors WHERE code=? AND category='awarded' AND active=1",[code],c)
       if(!h.length)throw new AccountError('Danh hiệu phong tặng không hợp lệ.')
-      await change(enabled?'INSERT INTO honor_endorsements(giver_id,recipient_id,honor_code) VALUES (?,?,?) ON DUPLICATE KEY UPDATE giver_id=honor_endorsements.giver_id':'DELETE FROM honor_endorsements WHERE giver_id=? AND recipient_id=? AND honor_code=?',[id,target,code],c)
+      await change('INSERT INTO honor_endorsements(giver_id,recipient_id,honor_code) VALUES (?,?,?) ON DUPLICATE KEY UPDATE giver_id=honor_endorsements.giver_id',[id,target,code],c)
       const count=await rows('SELECT COUNT(*) n FROM honor_endorsements WHERE recipient_id=? AND honor_code=?',[target,code],c)
       if(Number(count[0].n)>=Number(h[0].criteria.threshold)) await change('INSERT INTO user_honors(user_id,honor_code) VALUES (?,?) ON DUPLICATE KEY UPDATE revoked_at=NULL',[target,code],c)
-      else await change('UPDATE user_honors SET selected=0,revoked_at=UTC_TIMESTAMP(3) WHERE user_id=? AND honor_code=?',[target,code],c)
     })
   }
   async like(id:string,match:string,side:string,enabled:boolean) {

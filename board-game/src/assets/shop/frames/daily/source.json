@@ -1,0 +1,167 @@
+{
+  "date": "2026-10-25",
+  "method": "Original SVG circular frames revised with one primary ornament and one small lower-rim jewel; transparent center and exterior",
+  "transparentCenter": true,
+  "frames": [
+    {
+      "id": "do-hong",
+      "name": "Viền đỏ hồng",
+      "light": "#ed5650",
+      "dark": "#7b151d",
+      "trim": "#ffe5a3",
+      "style": "hoa-sen"
+    },
+    {
+      "id": "xanh-ngoc",
+      "name": "Viền xanh ngọc",
+      "light": "#54d6bc",
+      "dark": "#0d6558",
+      "trim": "#fff0ba",
+      "style": "nhu-y"
+    },
+    {
+      "id": "tim-thach",
+      "name": "Viền tím thạch",
+      "light": "#b987ed",
+      "dark": "#4d267a",
+      "trim": "#f6d8ff",
+      "style": "vuong-mien"
+    },
+    {
+      "id": "vang-kim",
+      "name": "Viền vàng kim",
+      "light": "#f9d77d",
+      "dark": "#98601c",
+      "trim": "#fff0bb",
+      "style": "la-nguyet-que"
+    },
+    {
+      "id": "bac-sang",
+      "name": "Viền bạc sáng",
+      "light": "#ecf3fb",
+      "dark": "#718497",
+      "trim": "#ffffff",
+      "style": "canh-bac"
+    },
+    {
+      "id": "dong-co",
+      "name": "Viền đồng cổ",
+      "light": "#d59e62",
+      "dark": "#663b23",
+      "trim": "#f7dca1",
+      "style": "an-co"
+    },
+    {
+      "id": "xanh-duong",
+      "name": "Viền xanh dương",
+      "light": "#6eaefa",
+      "dark": "#183f8b",
+      "trim": "#daeaff",
+      "style": "ngon-lua"
+    },
+    {
+      "id": "hong-ngoc",
+      "name": "Viền hồng ngọc",
+      "light": "#ee7baf",
+      "dark": "#812d50",
+      "trim": "#ffe1b7",
+      "style": "hoa-mai"
+    },
+    {
+      "id": "den-vang",
+      "name": "Viền đen vàng",
+      "light": "#65616b",
+      "dark": "#19151d",
+      "trim": "#edcb75",
+      "style": "ngoc-thoi"
+    },
+    {
+      "id": "trang-ngoc",
+      "name": "Viền trắng ngọc",
+      "light": "#fffbeb",
+      "dark": "#ada790",
+      "trim": "#fff4c7",
+      "style": "ngoc-trai"
+    },
+    {
+      "id": "cam-ho-phach",
+      "name": "Viền hổ phách",
+      "light": "#ffc275",
+      "dark": "#9c450f",
+      "trim": "#ffe8aa",
+      "style": "quat-co"
+    },
+    {
+      "id": "xanh-la",
+      "name": "Viền xanh lá",
+      "light": "#9ad56c",
+      "dark": "#2d6828",
+      "trim": "#f3df9c",
+      "style": "la-truc"
+    },
+    {
+      "id": "lam-bac",
+      "name": "Viền lam bạc",
+      "light": "#a4dae7",
+      "dark": "#376978",
+      "trim": "#f0faff",
+      "style": "song-nuoc"
+    },
+    {
+      "id": "tim-vang",
+      "name": "Viền tím vàng",
+      "light": "#d59be5",
+      "dark": "#692c7a",
+      "trim": "#ffe5a3",
+      "style": "tinh-tu"
+    },
+    {
+      "id": "do-dong",
+      "name": "Viền đỏ đồng",
+      "light": "#e98a6d",
+      "dark": "#842f27",
+      "trim": "#f0c083",
+      "style": "nut-ket"
+    },
+    {
+      "id": "hong-phan",
+      "name": "Viền hồng phấn",
+      "light": "#ffd2dc",
+      "dark": "#ab667e",
+      "trim": "#fff0ce",
+      "style": "canh-hoa"
+    },
+    {
+      "id": "ngoc-bich",
+      "name": "Viền ngọc bích",
+      "light": "#79b5a6",
+      "dark": "#254f44",
+      "trim": "#d7e9cb",
+      "style": "ngoc-boi"
+    },
+    {
+      "id": "xanh-dem",
+      "name": "Viền xanh đêm",
+      "light": "#617ab3",
+      "dark": "#1d2b51",
+      "trim": "#e9d8a8",
+      "style": "son-van"
+    },
+    {
+      "id": "vang-chanh",
+      "name": "Viền vàng chanh",
+      "light": "#efdf81",
+      "dark": "#8a7a24",
+      "trim": "#fff4be",
+      "style": "mat-troi"
+    },
+    {
+      "id": "nau-go",
+      "name": "Viền nâu gỗ",
+      "light": "#b98759",
+      "dark": "#4f2d19",
+      "trim": "#e8c18c",
+      "style": "cuon-van"
+    }
+  ]
+}

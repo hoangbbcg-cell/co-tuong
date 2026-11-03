@@ -10,7 +10,9 @@ afterEach(cleanup)
 const props={side:'black' as const,name:'Tên cũ',started:false,active:false,remaining:600000,turnElapsed:0,likeMatchId:'',likeActorId:''}
 it('renders no identity at all for an empty seat',()=>{
   const view=render(<PlayerCard {...props} empty />)
-  expect(view.container.childElementCount).toBe(0)
+  expect(view.container.querySelector('[data-player-identity]')).toBeNull()
+  expect(screen.queryByTestId('portrait')).toBeNull()
+  expect(screen.getByLabelText('Thời gian quân đen').textContent).toBe('10:00')
 })
 it('uses the occupied player profile for portrait, frame, name and Elo',()=>{
   const view=render(<PlayerCard {...props} playerId="123" />)
@@ -32,4 +34,14 @@ it('shows the recorded clock even at the initial replay position and updates whe
   expect(screen.getByLabelText('Thời gian đã lưu quân đen').textContent).toBe('10:00')
   view.rerender(<PlayerCard {...props} mobileHeader recordedClock remaining={598000} />)
   expect(screen.getByLabelText('Thời gian đã lưu quân đen').textContent).toBe('09:58')
+})
+
+it('shows a stationary desktop clock before Ready without changing the mobile header clock', () => {
+  const view = render(<PlayerCard {...props} remaining={300000} />)
+  const clock = screen.getByLabelText('Thời gian quân đen')
+  expect(clock.textContent).toBe('05:00')
+  expect(clock.parentElement?.hasAttribute('hidden')).toBe(false)
+  expect(clock.parentElement?.className).toContain('desktop:flex')
+  view.rerender(<PlayerCard {...props} mobileHeader remaining={300000} />)
+  expect(view.container.querySelector('[data-testid="mobile-clock-black"]')?.hasAttribute('hidden')).toBe(true)
 })

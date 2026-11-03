@@ -27,7 +27,7 @@ export function takebackSnapshot(game: GameState): GameState {
     turnElapsed: 0,
   }
 }
-export const MATCH_INTRO_MS = 1300
+export const MATCH_INTRO_MS = 2000
 export function startGame(game: GameState, now: number, delay = 0): GameState {
   return game.phase === 'ready' ? { ...game, phase: 'playing', lastClockUpdate: now + delay } : game
 }

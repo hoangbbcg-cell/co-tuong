@@ -1,0 +1,1 @@
+ALTER TABLE conversations ADD COLUMN group_chat_disabled BOOLEAN NOT NULL DEFAULT FALSE, ADD COLUMN deputy_chat_allowed BOOLEAN NOT NULL DEFAULT FALSE, ADD CONSTRAINT ck_group_chat_disabled CHECK (group_chat_disabled IN (0,1)), ADD CONSTRAINT ck_deputy_chat_allowed CHECK (deputy_chat_allowed IN (0,1));

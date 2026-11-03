@@ -2,7 +2,7 @@ import { beforeEach, expect, it, vi } from 'vitest'
 import { createGame } from '../src/game/state/initial'
 import type { RoomSnapshot } from '../src/types/room'
 
-const db = vi.hoisted(() => ({ friends: false, eligible: 1, finished: false, change: vi.fn(), ledger: vi.fn() }))
+const db = vi.hoisted(() => ({ friends: false, eligible: 1, finished: false, energy: 5, change: vi.fn(), ledger: vi.fn() }))
 vi.mock('../server/repositories/accountRepository', () => ({
   transaction: async (run: (connection: unknown) => Promise<unknown>) => run({}),
   rows: async (sql: string) => {
@@ -21,14 +21,14 @@ vi.mock('../server/repositories/accountRepository', () => ({
     if (sql.startsWith('UPDATE matches SET')) db.finished = true
   },
   AccountRepository: class {
-    resources = async () => ({ gold: '0', energy: 5, energyRecoveryAt: null })
+    resources = async () => ({ gold: '0', energy: db.energy, energyRecoveryAt: null })
     hasUnlimitedEnergy = async () => false
     ledger = db.ledger
   },
 }))
 import { MatchRepository } from '../server/repositories/matchRepository'
 
-beforeEach(() => { vi.clearAllMocks(); db.friends = false; db.eligible = 1; db.finished = false })
+beforeEach(() => { vi.clearAllMocks(); db.friends = false; db.eligible = 1; db.finished = false; db.energy = 5 })
 const room = (): RoomSnapshot => ({ id: 'room', name: 'Room', game: createGame(), players: [
   { id: 'a', name: 'Red', side: 'red', ready: true }, { id: 'b', name: 'Black', side: 'black', ready: true },
 ], messages: [], drawOffer: null })
@@ -93,4 +93,27 @@ it('an agreed draw does not change gold, Elo, stats, or honors', async () => {
   expect(db.ledger).not.toHaveBeenCalled()
   expect(db.change.mock.calls.some(([sql]) => sql.startsWith('UPDATE user_game_stats'))).toBe(false)
   expect(db.change.mock.calls.some(([sql]) => sql.startsWith('INSERT INTO user_honors'))).toBe(false)
+})
+
+it.each([0,5])('accepted friends play without an energy debit or energy ledger entry, balance=%s',async energy=>{
+  db.friends=true;db.energy=energy
+  await new MatchRepository().start('friends',room(),{red:'2',black:'10'})
+  expect(db.change.mock.calls.filter(([sql])=>sql.startsWith('UPDATE user_resources SET energy='))).toHaveLength(0)
+  expect(db.ledger.mock.calls.filter(call=>call[2]==='energy')).toHaveLength(0)
+  expect(db.eligible).toBe(0)
+})
+it('normal opponents still spend one energy each',async()=>{
+  await new MatchRepository().start('normal',room(),{red:'2',black:'10'})
+  expect(db.change.mock.calls.filter(([sql])=>sql.startsWith('UPDATE user_resources SET energy='))).toHaveLength(2)
+  expect(db.ledger.mock.calls.filter(call=>call[2]==='energy'&&call[3]===-1)).toHaveLength(2)
+})
+it('a play invitation alone does not grant the friendship energy exception',async()=>{
+  const snapshot=room();snapshot.goldRewardExcludedPairs=[['a','b']]
+  await new MatchRepository().start('invited',snapshot,{red:'2',black:'10'})
+  expect(db.change.mock.calls.filter(([sql])=>sql.startsWith('UPDATE user_resources SET energy='))).toHaveLength(2)
+})
+it('zero energy still blocks non-friends',async()=>{
+  db.energy=0
+  await expect(new MatchRepository().start('empty',room(),{red:'2',black:'10'})).rejects.toThrow('Không đủ năng lượng')
+  expect(db.change).not.toHaveBeenCalled()
 })

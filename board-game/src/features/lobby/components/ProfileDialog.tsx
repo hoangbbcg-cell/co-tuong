@@ -1,9 +1,13 @@
+import { oneChoiceNoticePanel, oneChoiceNoticeButton } from './OneChoiceNoticeStyles'
+import { HomeIcon } from './HomeIcon'
+import { confirmationDialogFrame, confirmationDialogTitle, confirmationDialogDescription, confirmationDialogActions, confirmationDialogOverlay } from '../../../lib/confirmationDialogStyles'
+import { confirmationCancelButton, confirmationAcceptButton } from '../../../lib/confirmationButtonStyles'
 import { NoticeOverlay } from './NoticeOverlay'
-import { mobileNoticePanelStyle, mobileNoticeButtonStyle } from '../../../lib/uiClasses'
 import { HonorsDialogShell } from './HonorsDialogShell'
 import { useInviteSentNotice } from './InviteSentNotice'
 import { useRankingLayout } from '../hooks/useRankingLayout'
 import { DialogCloseButton } from './DialogCloseButton'
+import { MessagesBackButton } from './MessagesBackButton'
 import { GoogleLinkDialog } from './GoogleLinkDialog'
 import { ProfileRenameDialog } from './ProfileRenameDialog'
 import { CountryFlag } from '../../../lib/CountryFlag'
@@ -64,7 +68,7 @@ import grantHonorRowFrame from '../../../assets/awarded-honors/grant-row.png'
 import grantHonorSparkleFrame from '../../../assets/awarded-honors/grant-row-sparkle.png'
 import { useHonorGrants } from '../hooks/useHonorGrants'
 import editIcon from '../../../assets/icons/903174a3-cfa1-4f7c-badc-1dd24d62c991.png'
-import { buttonInteraction } from '../../../lib/uiClasses'
+import { buttonInteraction, customizationListPanel, gameUtilityButton } from '../../../lib/uiClasses'
 import { AvatarCustomization, AvatarPortrait } from './AvatarCustomization'
 import { getAvatarFrame } from '../../../lib/avatarFrames'
 import { AvatarRankBadge } from '../../game/components/AvatarRankBadge'
@@ -194,6 +198,9 @@ const ATTENDANCE_HONORS: AttendanceHonor[] = [
 ]
 const PROFILE_HONOR_CATEGORIES = ['arena', 'awarded', 'streak', 'games', 'attendance'] as const
 type ProfileHonorCategory = (typeof PROFILE_HONOR_CATEGORIES)[number]
+// Desktop-only visual samples for Guest85382. These IDs are never written to account state or storage.
+const DESKTOP_DEMO_PROFILE_ID = '64830084'
+const DESKTOP_DEMO_HONOR_IDS = ['arena_1_1', 'arena_1_2', 'arena_1_3', 'pt_1_ky-dao', 'thong-tri-1', 'khoi-dau-2', 'tich-cuc-2', 'ben-bi-2', 'da-thang-1'] as const
 const HONORS_BY_CATEGORY = {
   arena: ARENA_HONORS,
   awarded: AWARDED_HONORS,
@@ -278,7 +285,7 @@ function ArenaHonorTitle({ honor, detailOffsetY = 0, previewOffsetY = 0 }: { hon
 }
 
 function ArenaHonorBadge({ honor, isSelected, onSelect }: { honor: ArenaHonor; isSelected: boolean; onSelect: (honor: ArenaHonor) => void }) {
-  return <button type="button" aria-pressed={isSelected} aria-label={`Xem thông tin ${honor.title} cấp ${honor.level}`} onClick={event => { event.stopPropagation(); onSelect(honor) }} className={titleFrameButtonClass(isSelected)}>
+  return <button data-ui-tab-sound type="button" aria-pressed={isSelected} aria-label={`Xem thông tin ${honor.title} cấp ${honor.level}`} onClick={event => { event.stopPropagation(); onSelect(honor) }} className={titleFrameButtonClass(isSelected)}>
     <SelectedTitleFrameEffect active={isSelected} frameStyle={{ inset: 0 }} sizeScale={honor.level === 1 ? 1.3 : honor.level === 2 ? 1.25 : 1.2} />
     <FittedUiArtwork scaleY={1.16} retryOnError src={honor.image} alt="" aria-hidden="true" style={{ filter: isSelected ? SELECTED_TITLE_FRAME_FILTER : UNSELECTED_TITLE_FRAME_FILTER }} className="pointer-events-none absolute inset-0 z-10 block size-full object-contain transition-[filter] duration-200 ease-out" />
     <span style={getArenaHonorTitleAnchorStyle(honor)} className={`pointer-events-none absolute inset-0 z-20 flex ${MOBILE_HONOR_TITLE_ANCHOR_CLASS} ${honor.level === 3 ? 'translate-y-0' : 'translate-y-[var(--ui-p-2,2px)]'} items-center justify-center overflow-hidden whitespace-nowrap px-[15%] text-center`}><ArenaHonorTitle honor={honor} /></span>
@@ -322,7 +329,7 @@ function HonorDetailText({ text }: { text: string }) {
 
 function StreakHonorBadge({ honor, isSelected, onSelect }: { honor: StreakHonor; isSelected: boolean; onSelect: (honor: StreakHonor) => void }) {
   const crop = STREAK_FRAME_CROPS[honor.frame]
-  return <button type="button" aria-pressed={isSelected} aria-label={`Xem thông tin ${normalizeHonorTitle(honor.name)}, Chuỗi Chiến Thắng ${honor.level}`} onClick={event => { event.stopPropagation(); onSelect(honor) }} className={titleFrameButtonClass(isSelected)}>
+  return <button data-ui-tab-sound type="button" aria-pressed={isSelected} aria-label={`Xem thông tin ${normalizeHonorTitle(honor.name)}, Chuỗi Chiến Thắng ${honor.level}`} onClick={event => { event.stopPropagation(); onSelect(honor) }} className={titleFrameButtonClass(isSelected)}>
     <SelectedTitleFrameEffect active={isSelected} frameStyle={getSpriteFrameBoxStyle(crop)} sizeScale={getProgressHonorGlowScale(honor.frame === 'lien-thang-2')} intensity={getProgressHonorGlowIntensity(honor.frame === 'lien-thang-2')} />
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 transition-[filter] duration-200 ease-out" style={{ filter: `brightness(${isSelected ? 0.9 : 1}) ${isSelected ? SELECTED_TITLE_FRAME_FILTER : UNSELECTED_TITLE_FRAME_FILTER}` }}>
       <div className="absolute overflow-hidden" style={getSpriteFrameBoxStyle(crop)}>
@@ -337,7 +344,7 @@ function StreakHonorBadge({ honor, isSelected, onSelect }: { honor: StreakHonor;
 
 function GamesHonorBadge({ honor, isSelected, onSelect }: { honor: GamesHonor; isSelected: boolean; onSelect: (honor: GamesHonor) => void }) {
   const crop = GAMES_FRAME_CROPS[honor.frame]
-  return <button type="button" aria-pressed={isSelected} aria-label={`Xem thông tin ${normalizeHonorTitle(honor.name)}, Tổng Ván Chơi ${honor.level}`} onClick={event => { event.stopPropagation(); onSelect(honor) }} className={titleFrameButtonClass(isSelected)}>
+  return <button data-ui-tab-sound type="button" aria-pressed={isSelected} aria-label={`Xem thông tin ${normalizeHonorTitle(honor.name)}, Tổng Ván Chơi ${honor.level}`} onClick={event => { event.stopPropagation(); onSelect(honor) }} className={titleFrameButtonClass(isSelected)}>
     <SelectedTitleFrameEffect active={isSelected} frameStyle={getSpriteFrameBoxStyle(crop)} sizeScale={getProgressHonorGlowScale(honor.frame === 'games-1')} intensity={getProgressHonorGlowIntensity(honor.frame === 'games-1')} />
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 transition-[filter] duration-200 ease-out" style={{ filter: `brightness(${isSelected ? 0.9 : 1}) ${isSelected ? SELECTED_TITLE_FRAME_FILTER : UNSELECTED_TITLE_FRAME_FILTER}` }}>
       <div className="absolute overflow-hidden" style={getSpriteFrameBoxStyle(crop)}>
@@ -352,7 +359,7 @@ function GamesHonorBadge({ honor, isSelected, onSelect }: { honor: GamesHonor; i
 
 function AttendanceHonorBadge({ honor, isSelected, onSelect }: { honor: AttendanceHonor; isSelected: boolean; onSelect: (honor: AttendanceHonor) => void }) {
   const crop = ATTENDANCE_FRAME_CROPS[honor.frame]
-  return <button type="button" aria-pressed={isSelected} aria-label={`Xem thông tin ${normalizeHonorTitle(honor.name)}, Online Chuyên Cần ${honor.level}`} onClick={event => { event.stopPropagation(); onSelect(honor) }} className={titleFrameButtonClass(isSelected)}>
+  return <button data-ui-tab-sound type="button" aria-pressed={isSelected} aria-label={`Xem thông tin ${normalizeHonorTitle(honor.name)}, Online Chuyên Cần ${honor.level}`} onClick={event => { event.stopPropagation(); onSelect(honor) }} className={titleFrameButtonClass(isSelected)}>
     <SelectedTitleFrameEffect active={isSelected} frameStyle={getSpriteFrameBoxStyle(crop)} sizeScale={getProgressHonorGlowScale(honor.frame === 'attendance-1')} intensity={getProgressHonorGlowIntensity(honor.frame === 'attendance-1')} />
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 transition-[filter] duration-200 ease-out" style={{ filter: `brightness(${isSelected ? 0.9 : 1}) ${isSelected ? SELECTED_TITLE_FRAME_FILTER : UNSELECTED_TITLE_FRAME_FILTER}` }}>
       <div className="absolute overflow-hidden" style={getSpriteFrameBoxStyle(crop)}>
@@ -369,27 +376,27 @@ function AwardedHonorCount({ honor, catalogBadge = false }: { honor: AwardedHono
   if (honor.level < 2) return null
   const frameAnchorY = AWARDED_FRAME_COUNTER_ANCHOR_Y[honor.level] ?? 0
   const viewBadgeTop = `${((frameAnchorY / 500) * 1.36 - 0.18) * 100}%`
-  return <span aria-label={`Lượt phong tặng: ${honor.viewCount ?? 0}`} style={{ top: viewBadgeTop }} className={`pointer-events-none absolute right-[12%] z-30 flex items-center compact:!top-0 compact:!text-[length:6cqw] gap-[0.24em] rounded-[0.45em] border border-[#d4a13c] bg-[linear-gradient(135deg,#8b6125,#5a3716)] px-[0.55em] py-[0.24em] text-[length:clamp(var(--ui-p-10,10px),4.4cqw,var(--ui-p-15,15px))] font-semibold leading-none text-[#ffe5a6] shadow-[0_1px_3px_#140804] ${catalogBadge ? 'translate-y-[5px] scale-90' : ''}`}>
+  return <span aria-label={`Lượt phong tặng: ${honor.viewCount ?? 0}`} style={catalogBadge ? { top: '6%', right: '4%' } : { top: viewBadgeTop }} className={`pointer-events-none absolute right-[12%] z-30 flex items-center compact:!text-[length:6cqw] gap-[0.24em] rounded-[0.45em] border border-[#d4a13c] bg-[linear-gradient(135deg,#8b6125,#5a3716)] px-[0.55em] py-[0.24em] text-[length:clamp(var(--ui-p-10,10px),4.4cqw,var(--ui-p-15,15px))] font-semibold leading-none text-[#ffe5a6] shadow-[0_1px_3px_#140804] ${catalogBadge ? 'translate-y-[5px] scale-90' : ''}`}>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-[1.35em] shrink-0" focusable="false" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" /><circle cx="12" cy="12" r="2.5" /></svg>
     <span className="font-number lining-nums tabular-nums">{honor.viewCount ?? 0}</span>
   </span>
 }
 
-function AwardedHonorBadge({ honor, isSelected, onSelect }: { honor: AwardedHonor; isSelected: boolean; onSelect: (honor: AwardedHonor) => void }) {
+function AwardedHonorBadge({ honor, isSelected, onSelect, showCount = true, received = false }: { honor: AwardedHonor; isSelected: boolean; onSelect: (honor: AwardedHonor) => void; showCount?: boolean; received?: boolean }) {
   const viewCount = honor.viewCount ?? 0
   const hasViewCount = honor.level >= 2
   const scaleX = honor.level === 2 || honor.level === 3 ? 1.7 : honor.level === 5 ? 1.58 : 1.52
-  return <button type="button" aria-pressed={isSelected} aria-label={`Xem thông tin ${normalizeHonorTitle(honor.name)}${hasViewCount ? `. Lượt phong tặng: ${viewCount}` : ''}`} onClick={event => { event.stopPropagation(); onSelect(honor) }} className={titleFrameButtonClass(isSelected, `${honor.level === 1 ? 'translate-y-[var(--ui-p-2,2px)]' : honor.level >= 4 ? '-translate-y-[var(--ui-p-2,2px)]' : ''}`)}>
+  return <button data-ui-tab-sound type="button" aria-pressed={isSelected} aria-label={`Xem thông tin ${normalizeHonorTitle(honor.name)}${hasViewCount ? `. Lượt phong tặng: ${viewCount}` : ''}`} onClick={event => { event.stopPropagation(); onSelect(honor) }} className={titleFrameButtonClass(isSelected, `${honor.level === 1 ? 'translate-y-[var(--ui-p-2,2px)]' : honor.level >= 4 ? '-translate-y-[var(--ui-p-2,2px)]' : ''}`)}>
     <SelectedTitleFrameEffect active={isSelected} frameStyle={getAwardedFrameVisibleBoxStyle(honor.level)} sizeScale={honor.level <= 4 ? 1.3 : 1.25} />
     <FittedUiArtwork retryOnError src={honor.image} alt="" aria-hidden="true" style={{ filter: isSelected ? SELECTED_TITLE_FRAME_FILTER : UNSELECTED_TITLE_FRAME_FILTER }} scaleX={scaleX} scaleY={1.36} className="pointer-events-none absolute inset-0 z-10 block size-full object-contain transition-[filter] duration-200 ease-out" />
-    <AwardedHonorCount honor={honor} catalogBadge />
-    <span style={{ ...getAwardedHonorTitleAnchorStyle(honor.level), top: honor.level === 1 ? 'calc(53% + 4px)' : honor.level === 3 ? 'calc(53% + 1px)' : honor.level === 4 ? 'calc(53% - 2px)' : honor.level === 5 ? 'calc(53% - 3px)' : '53%' }} className="pointer-events-none absolute left-1/2 z-20 flex h-full w-[70%] -translate-x-1/2 -translate-y-1/2 compact:!top-[var(--awarded-title-center-y)] items-center justify-center overflow-hidden whitespace-nowrap text-center">
+    {showCount && <AwardedHonorCount honor={honor} catalogBadge />}
+    <span style={{ ...getAwardedHonorTitleAnchorStyle(honor.level), top: received ? 'var(--awarded-title-center-y)' : honor.level === 1 ? 'calc(53% + 4px)' : honor.level === 3 ? 'calc(53% + 1px)' : honor.level === 4 ? 'calc(53% - 2px)' : honor.level === 5 ? 'calc(53% - 3px)' : '53%' }} className="pointer-events-none absolute left-1/2 z-20 flex h-full w-[70%] -translate-x-1/2 -translate-y-1/2 compact:!top-[var(--awarded-title-center-y)] items-center justify-center overflow-hidden whitespace-nowrap text-center">
       <AwardedHonorTitle displayName={honor.displayName} />
     </span>
   </button>
 }
 
-export function AwardedHonorGrantPanel({ targetName, grantedHonorIds, onGrant, onClose, anchor }: { targetName: string; grantedHonorIds: string[]; onGrant: (honor: AwardedHonor) => void; onClose: () => void; anchor?: { left: number; top: number; width: number } }) {
+export function AwardedHonorGrantPanel({ targetName, grantedHonorIds, onGrant, onClose, anchor, onSettings }: { onSettings?: () => void; targetName: string; grantedHonorIds: string[]; onGrant: (honor: AwardedHonor) => void; onClose: () => void; anchor?: { left: number; top: number; width: number } }) {
   const panelRef = useRef<HTMLElement>(null)
   useEffect(() => {
     panelRef.current?.focus()
@@ -398,16 +405,17 @@ export function AwardedHonorGrantPanel({ targetName, grantedHonorIds, onGrant, o
     return () => document.removeEventListener('keydown', close)
   }, [onClose])
   const width = Math.min(230, window.innerWidth - 24)
-  const height = Math.min(360, window.innerHeight - 24)
+  const height = Math.min(360, window.innerHeight - 24 - (onSettings ? 54 : 0))
   const left = anchor ? Math.max(12, Math.min(window.innerWidth - width - 12, anchor.left + anchor.width / 2 - width / 2)) : (window.innerWidth - width) / 2
-  const top = anchor ? Math.max(12, Math.min(window.innerHeight - height - 12, anchor.top)) : (window.innerHeight - height) / 2
+  const top = anchor ? Math.max(onSettings ? 66 : 12, Math.min(window.innerHeight - height - 12, anchor.top)) : Math.max(onSettings ? 66 : 12, (window.innerHeight - height) / 2)
   return <div className="fixed inset-0 z-[1000]" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }} onContextMenu={event => { event.preventDefault(); onClose() }}>
-    <section ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={`Phong danh hiệu cho ${targetName}`} className="absolute overflow-hidden bg-[#30190b] outline-none" style={{ left, top, width, height }}>
+    <section ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={`Phong danh hiệu cho ${targetName}`} className="absolute overflow-visible bg-[#30190b] outline-none" style={{ left, top, width, height }}>
+      {onSettings && <button type="button" aria-label="Cài đặt người chơi" className={gameUtilityButton + ' absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 compact:size-(--mobile-utility-size) compact:[&_svg]:size-(--mobile-utility-icon)'} onClick={onSettings}><HomeIcon name="settings" /></button>}
       <CrispUiImage src={grantHonorPanelFrame} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 block size-full max-w-none object-fill" />
       <div className="relative flex h-full flex-col px-[8%] pb-[6%] pt-[5%]">
         <h2 className="m-0 flex h-[40px] shrink-0 items-center justify-center gap-2 font-heading text-[18px] font-bold text-[#ffe5a6]"><span aria-hidden="true" className="text-[#d79b45]">❧</span>Phong danh hiệu<span aria-hidden="true" className="text-[#d79b45]">❧</span></h2>
         <div aria-label="Danh sách 15 danh hiệu Phong Tặng" className="min-h-0 flex-1 overflow-y-auto overscroll-contain  " style={{ '--grant-row-height': `calc((${height}px - 40px - ${width * .11}px) / 8)` } as CSSProperties}>
-          {AWARDED_HONORS.map(honor => <button key={honor.id} type="button" aria-pressed={grantedHonorIds.includes(honor.id)} aria-label={`${grantedHonorIds.includes(honor.id) ? 'Bỏ phong' : 'Phong tặng'} ${honor.displayName} cho ${targetName}`} onClick={() => onGrant(honor)} className={`relative m-0 flex h-[var(--grant-row-height)] w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0 font-heading text-[15px] font-semibold leading-none text-[#f3dda9] ${grantedHonorIds.includes(honor.id) ? 'brightness-50' : 'hover:brightness-125'}`}>
+          {AWARDED_HONORS.map(honor => <button key={honor.id} type="button" disabled={grantedHonorIds.includes(honor.id)} aria-pressed={grantedHonorIds.includes(honor.id)} aria-label={`${grantedHonorIds.includes(honor.id) ? 'Đã phong' : 'Phong tặng'} ${honor.displayName} cho ${targetName}`} onClick={() => onGrant(honor)} className={`relative m-0 flex h-[var(--grant-row-height)] w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0 font-heading text-[15px] font-semibold leading-none text-[#f3dda9] ${grantedHonorIds.includes(honor.id) ? 'brightness-50' : 'hover:brightness-125'}`}>
             <CrispUiImage src={honor.level === 1 ? grantHonorSparkleFrame : grantHonorRowFrame} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 block size-full object-fill" />
             <span className="relative truncate px-[15%]">{honor.displayName}</span>
           </button>)}
@@ -531,6 +539,18 @@ function ProfileHonorPreviewBadge({ honor, onSelect }: { honor: ProfileHonorPrev
   </button>
 }
 
+/** Reuse the catalog artwork for newly received honors without a second catalog. */
+export function ReceivedHonorArtwork({ code }: { code: string }) {
+  const honor = PROFILE_HONOR_CATEGORIES.flatMap<HonorDetail>(category => HONORS_BY_CATEGORY[category]).find(entry => honorCode(entry.id) === code)
+  if (!honor) return <span className="text-center font-body text-[12px]">Danh hiệu</span>
+  return <div inert className="pointer-events-none w-full [container-type:inline-size]">{'rank' in honor || 'frame' in honor ? <HonorCatalogBadge honor={honor} isSelected={false} onSelect={() => {}} showCount={false} /> : <AwardedHonorBadge honor={honor} isSelected={false} onSelect={() => {}} showCount={false} received />}</div>
+}
+
+export function ReceivedHonorDetails({ code, onClose }: { code: string; onClose: () => void }) {
+  const honor = PROFILE_HONOR_CATEGORIES.flatMap<HonorDetail>(category => HONORS_BY_CATEGORY[category]).find(entry => honorCode(entry.id) === code)
+  return honor ? <HonorDetailPopover honor={honor} onBack={onClose} inline /> : null
+}
+
 function isStreakHonor(honor: HonorDetail): honor is StreakHonor {
   return 'frame' in honor && (honor.frame === 'lien-thang-1' || honor.frame === 'lien-thang-2')
 }
@@ -539,20 +559,20 @@ function isGamesHonor(honor: HonorDetail): honor is GamesHonor {
   return 'frame' in honor && (honor.frame === 'games-1' || honor.frame === 'games-2')
 }
 
-function HonorCatalogBadge({ honor, isSelected, onSelect }: { honor: HonorDetail; isSelected: boolean; onSelect: (honor: HonorDetail) => void }) {
+function HonorCatalogBadge({ honor, isSelected, onSelect, showCount = true }: { honor: HonorDetail; isSelected: boolean; onSelect: (honor: HonorDetail) => void; showCount?: boolean }) {
   if ('rank' in honor) return <ArenaHonorBadge honor={honor} isSelected={isSelected} onSelect={onSelect} />
   if ('frame' in honor) {
     if (isStreakHonor(honor)) return <StreakHonorBadge honor={honor} isSelected={isSelected} onSelect={onSelect} />
     if (isGamesHonor(honor)) return <GamesHonorBadge honor={honor} isSelected={isSelected} onSelect={onSelect} />
     return <AttendanceHonorBadge honor={honor} isSelected={isSelected} onSelect={onSelect} />
   }
-  return <AwardedHonorBadge honor={honor} isSelected={isSelected} onSelect={onSelect} />
+  return <AwardedHonorBadge honor={honor} isSelected={isSelected} onSelect={onSelect} showCount={showCount} />
 }
 
 function ProfileHonorSelectionButton({ honorName, isSelected, canSelect, onToggle }: { honorName: string; isSelected: boolean; canSelect: boolean; onToggle: () => void }) {
-  return <span className="absolute left-[3%] top-[2%] z-40 grid size-[clamp(var(--ui-p-18,18px),2cqw,var(--ui-p-24,24px))] place-items-center">
-    <button type="button" aria-label={`${isSelected ? 'Bỏ khỏi' : 'Hiển thị'} hồ sơ: ${normalizeHonorTitle(honorName)}`} aria-pressed={isSelected} disabled={!isSelected && !canSelect} onClick={event => { event.stopPropagation(); onToggle() }} className={`relative z-10 grid size-full place-items-center rounded-full border border-[#e1b359] p-0 shadow-[0_1px_4px_#120803] transition-colors ${isSelected ? 'bg-[#2f9b58] text-white' : 'bg-[linear-gradient(135deg,#75471c,#321909)] text-[#ffe5a6]'} ${!isSelected && !canSelect ? 'cursor-not-allowed opacity-45' : 'cursor-pointer hover:brightness-125'}`}>
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={isSelected ? 'size-[82%]' : 'size-[72%]'}>
+  return <span className="absolute left-[3%] top-[2%] z-40 grid size-[clamp(var(--ui-p-22,22px),2.5cqw,var(--ui-p-30,30px))] place-items-center desktop:left-0 desktop:top-0 desktop:size-[28px] compact:size-[22px]">
+    <button type="button" data-ui-tab-sound aria-label={`${isSelected ? 'Bỏ khỏi' : 'Hiển thị'} hồ sơ: ${normalizeHonorTitle(honorName)}`} aria-pressed={isSelected} disabled={!isSelected && !canSelect} onClick={event => { event.stopPropagation(); onToggle() }} className={`relative z-10 grid size-full place-items-center rounded-full border border-[#e1b359] p-0 shadow-[0_1px_4px_#120803] transition-colors ${isSelected ? 'bg-[#2f9b58] text-white' : 'bg-[linear-gradient(135deg,#75471c,#321909)] text-[#ffe5a6]'} ${!isSelected && !canSelect ? 'cursor-not-allowed opacity-45' : 'cursor-pointer hover:brightness-125'}`}>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isSelected ? 2.5 : 3} strokeLinecap="round" strokeLinejoin="round" className={isSelected ? 'size-[82%]' : 'size-[92%]'}>
         {isSelected ? <path d="m5 12 4 4L19 6" /> : <path d="M12 5v14M5 12h14" />}
       </svg>
     </button>
@@ -561,14 +581,14 @@ function ProfileHonorSelectionButton({ honorName, isSelected, canSelect, onToggl
 
 function HonorHiddenToggle({ isHidden, onToggle, compactHeader = false, className = 'absolute right-[10.5%] top-[10%] z-20 translate-y-[var(--ui-p-10,10px)]' }: { isHidden: boolean; onToggle: () => void; compactHeader?: boolean; className?: string }) {
   return <div className={`${className} group/honor-toggle flex items-center gap-2 compact:data-[catalog-header=true]:gap-1`} data-catalog-header={compactHeader || undefined}>
-    <span className="font-cormorant text-[length:clamp(var(--ui-p-11,11px),1.3vw,var(--ui-p-16,16px))] font-bold text-[#ffe5a6] compact:group-data-[catalog-header=true]/honor-toggle:text-[13px] compact:group-data-[catalog-header=true]/honor-toggle:leading-none">Ẩn</span>
-    <button type="button" role="switch" aria-label="Ẩn thông tin danh hiệu" aria-checked={isHidden} onClick={onToggle} className={`relative h-[var(--ui-p-20,20px)] w-[var(--ui-p-38,38px)] compact:group-data-[catalog-header=true]/honor-toggle:h-[18px] compact:group-data-[catalog-header=true]/honor-toggle:w-[30px] cursor-pointer rounded-full border border-[#dfbc7a] p-0 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe08b] ${isHidden ? 'bg-[#2f9b58]' : 'bg-[#777777]'}`}>
-      <span aria-hidden="true" className={`absolute left-[var(--ui-p-2,2px)] top-1/2 size-[var(--ui-p-14,14px)] -translate-y-1/2 rounded-full bg-[#fff4d4] shadow-[0_1px_3px_#190b04] transition-transform duration-150 compact:group-data-[catalog-header=true]/honor-toggle:left-[2px] compact:group-data-[catalog-header=true]/honor-toggle:size-[12px] ${isHidden ? 'translate-x-[var(--ui-p-18,18px)] compact:group-data-[catalog-header=true]/honor-toggle:translate-x-[12px]' : 'translate-x-0'}`} />
+    <span className="font-cormorant text-[length:clamp(var(--ui-p-11,11px),1.3vw,var(--ui-p-16,16px))] font-bold text-[#ffe5a6] desktop:text-[20px] compact:group-data-[catalog-header=true]/honor-toggle:text-[13px] compact:group-data-[catalog-header=true]/honor-toggle:leading-none">Ẩn</span>
+    <button type="button" data-ui-selection-sound role="switch" aria-label="Ẩn thông tin danh hiệu" aria-checked={isHidden} onClick={onToggle} className={`relative h-[var(--ui-p-20,20px)] w-[var(--ui-p-38,38px)] desktop:h-[26px] desktop:w-[48px] compact:group-data-[catalog-header=true]/honor-toggle:h-[18px] compact:group-data-[catalog-header=true]/honor-toggle:w-[30px] cursor-pointer rounded-full border border-[#dfbc7a] p-0 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe08b] ${isHidden ? 'bg-[#2f9b58]' : 'bg-[#777777]'}`}>
+      <span aria-hidden="true" className={`absolute left-[var(--ui-p-2,2px)] top-1/2 size-[var(--ui-p-14,14px)] desktop:left-[3px] desktop:size-[18px] -translate-y-1/2 rounded-full bg-[#fff4d4] shadow-[0_1px_3px_#190b04] transition-transform duration-150 compact:group-data-[catalog-header=true]/honor-toggle:left-[2px] compact:group-data-[catalog-header=true]/honor-toggle:size-[12px] ${isHidden ? 'translate-x-[var(--ui-p-18,18px)] desktop:translate-x-[22px] compact:group-data-[catalog-header=true]/honor-toggle:translate-x-[12px]' : 'translate-x-0'}`} />
     </button>
   </div>
 }
 
-function HonorDetailPopover({ honor, onBack, standalonePosition, honorColumn, isHidden, onToggleHidden }: { honor: HonorDetail; onBack: () => void; standalonePosition?: { side: 'left' | 'right'; anchorX: number }; honorColumn?: number; isHidden?: boolean; onToggleHidden?: () => void }) {
+function HonorDetailPopover({ honor, onBack, standalonePosition, honorColumn, isHidden, onToggleHidden, inline = false }: { honor: HonorDetail; onBack: () => void; standalonePosition?: { side: 'left' | 'right'; anchorX: number; availableWidth?: number }; honorColumn?: number; isHidden?: boolean; onToggleHidden?: () => void; inline?: boolean }) {
   const standalone = standalonePosition !== undefined
   const isArenaHonor = 'rank' in honor
   const title = normalizeHonorTitle(isArenaHonor ? honor.title : honor.displayName)
@@ -591,39 +611,42 @@ function HonorDetailPopover({ honor, onBack, standalonePosition, honorColumn, is
         : 'calc(46.6333% + 15px)'
 
   const standaloneWidth = standalonePosition?.side === 'right'
-    ? `min(82vw, 54dvh, calc(100vw - ${standalonePosition.anchorX}px))`
+    ? standalonePosition.availableWidth !== undefined
+      ? `min(82vw, 54dvh, ${standalonePosition.availableWidth}px)`
+      : `min(82vw, 54dvh, calc(100vw - ${standalonePosition.anchorX}px))`
     : standalonePosition
       ? `min(82vw, 54dvh, ${standalonePosition.anchorX}px)`
       : undefined
 
-  return <div data-honor-detail-popover="true" className={`absolute z-50 aspect-[932/1481] overflow-hidden ${standalone ? 'compact:!fixed compact:!left-1/2 compact:!top-1/2 compact:!w-[min(82vw,54dvh)] compact:!transform-[translate(-50%,-50%)]' : 'top-[49.2173%] -translate-y-1/2 compact:!left-1/2 compact:!top-1/2 compact:!w-[82%] compact:-translate-x-1/2'}`} style={{ left: standalonePosition ? `${standalonePosition.anchorX}px` : left, top: standalone ? '50%' : undefined, transform: standalonePosition ? `translate(${standalonePosition.side === 'left' ? '-100%' : '0'}, -50%)` : undefined, width: standalone ? standaloneWidth : 'calc(43.4168% - 31.465px)' }}>
+  return <div data-honor-detail-popover="true" className={inline ? 'relative z-50 aspect-[932/1481] w-full overflow-hidden' : `absolute z-50 aspect-[932/1481] overflow-hidden ${standalone ? 'compact:!fixed compact:!left-1/2 compact:!top-1/2 compact:!w-[min(82vw,54dvh)] compact:!transform-[translate(-50%,-50%)]' : 'top-[49.2173%] -translate-y-1/2 compact:!left-1/2 compact:!top-1/2 compact:!w-[82%] compact:-translate-x-1/2'}`} style={inline ? undefined : { left: standalonePosition ? `${standalonePosition.anchorX}px` : left, top: standalone ? '50%' : undefined, transform: standalonePosition ? `translate(${standalonePosition.side === 'left' ? '-100%' : '0'}, -50%)` : undefined, width: standalone ? standaloneWidth : 'calc(43.4168% - 31.465px)' }}>
     <CrispUiImage src={honorsDetailFrame} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 block size-full" />
     <h2 id="honors-detail-title" className="sr-only">Thông tin danh hiệu: {title}</h2>
-    {!standalone && isHidden !== undefined && onToggleHidden && <HonorHiddenToggle isHidden={isHidden} onToggle={onToggleHidden} />}
+    {!standalone && isHidden !== undefined && onToggleHidden && <HonorHiddenToggle isHidden={isHidden} onToggle={onToggleHidden} compactHeader />}
     <div className="absolute left-[21%] top-[15.5%] z-10 h-[13.2%] w-[58%] [container-type:inline-size]">
       {isSpriteHonor(honor) ? <HonorDetailSprite honor={honor} mobileTitle={honor.level === 1} /> : <FittedUiArtwork retryOnError src={honor.image} alt="" aria-hidden="true" scaleX={isArenaHonor ? 1 : honor.level === 2 || honor.level === 3 ? 1.7 : honor.level === 5 ? 1.58 : 1.52} scaleY={isArenaHonor ? 1.16 : 1.36} className="pointer-events-none absolute inset-0 z-0 block size-full object-contain" />}
       <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center text-center">
         {isArenaHonor ? <span style={getArenaHonorTitleAnchorStyle(honor)} className={`inline-block translate-y-[var(--ui-p-2,2px)] compact:absolute ${MOBILE_HONOR_TITLE_ANCHOR_CLASS}`}><ArenaHonorTitle honor={honor} detailOffsetY={getArenaHonorDetailTitleOffsetY(honor)} /></span> : isSpriteHonor(honor) ? <span style={getProgressHonorTitleAnchorStyle(honor)} className={honor.level === 1 ? 'w-full compact:hidden' : 'w-full'}><StreakHonorTitle displayName={honor.displayName} centeredMobile={honor.level === 1} /></span> : <span style={getAwardedHonorTitleAnchorStyle(honor.level)} className="block w-full translate-y-[var(--ui-p-5,5px)] compact:absolute compact:left-1/2 compact:top-[var(--awarded-title-center-y)] compact:-translate-x-1/2 compact:-translate-y-1/2"><AwardedHonorTitle displayName={honor.displayName} detailOffsetY={getAwardedHonorDetailTitleOffsetY(honor.level)} /></span>}
       </div>
     </div>
-    <ul className={`absolute left-[13%] top-[43.8%] z-10 flex h-auto max-h-[17%] w-[74%] flex-col justify-start gap-1 overflow-y-auto overscroll-contain   py-[0.45em] text-left font-cormorant font-semibold text-[length:clamp(var(--ui-p-12,12px),1.8vw,var(--ui-p-18,18px))] leading-relaxed text-[#ffe5a6] [text-shadow:0_1px_2px_#170903] ${isArenaHonor ? 'translate-y-[var(--ui-p-2,2px)]' : ''}`}>
-      {descriptionLines.map(({ text, bullet }, index) => <li key={`${honor.id}-description-${index}`} className={bullet ? "relative pl-5 before:absolute before:left-0 before:content-['◆']" : 'relative'}><HonorDetailText text={text} /></li>)}
+    <ul className={`absolute left-[15%] top-[45%] z-10 flex h-[14.5%] min-h-0 w-[70%] box-border flex-col justify-start gap-1 overflow-x-hidden overflow-y-auto overscroll-contain touch-pan-y [overflow-wrap:anywhere] [&>li]:shrink-0   py-[0.45em] text-left font-cormorant font-semibold text-[length:clamp(14px,2.2vw,22px)] compact:text-[16px] leading-relaxed text-[#ffe5a6] [text-shadow:0_1px_2px_#170903] ${isArenaHonor ? 'translate-y-[var(--ui-p-2,2px)]' : ''}`}>
+      {descriptionLines.map(({ text, bullet }, index) => <li key={`${honor.id}-description-${index}`} className={bullet ? "relative pl-[1.5em] before:absolute before:left-0 before:w-[1em] before:content-['◆']" : 'relative'}><HonorDetailText text={text} /></li>)}
     </ul>
-    <ul className={`absolute left-[13%] top-[69.5%] z-10 flex h-auto max-h-[23%] w-[74%] flex-col justify-start gap-1 overflow-y-auto overscroll-contain   py-[0.45em] text-left font-cormorant font-semibold text-[length:clamp(var(--ui-p-12,12px),1.8vw,var(--ui-p-18,18px))] leading-relaxed text-[#ffe5a6] [text-shadow:0_1px_2px_#170903] ${isArenaHonor ? 'translate-y-[var(--ui-p-2,2px)]' : ''}`}>
-      {howToEarnLines.map((line, index) => <li key={`${honor.id}-how-to-earn-${index}`} className="relative pl-5 before:absolute before:left-0 before:content-['◆']"><HonorDetailText text={line} /></li>)}
+    <ul className={`absolute left-[15%] top-[71%] z-10 flex h-[18.5%] min-h-0 w-[70%] box-border flex-col justify-start gap-1 overflow-x-hidden overflow-y-auto overscroll-contain touch-pan-y [overflow-wrap:anywhere] [&>li]:shrink-0   py-[0.45em] text-left font-cormorant font-semibold text-[length:clamp(14px,2.2vw,22px)] compact:text-[16px] leading-relaxed text-[#ffe5a6] [text-shadow:0_1px_2px_#170903] ${isArenaHonor ? 'translate-y-[var(--ui-p-2,2px)]' : ''}`}>
+      {howToEarnLines.map((line, index) => <li key={`${honor.id}-how-to-earn-${index}`} className="relative pl-[1.5em] before:absolute before:left-0 before:w-[1em] before:content-['◆']"><HonorDetailText text={line} /></li>)}
     </ul>
-    <button type="button" aria-label={standalone ? 'Đóng thông tin danh hiệu' : 'Quay lại danh sách danh hiệu'} onClick={onBack} className="absolute right-0 top-[2.4%] z-20 h-[9%] w-[12%] cursor-pointer rounded-full bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#ffe08b]" />
+    <button type="button" aria-label={standalone || inline ? 'Đóng thông tin danh hiệu' : 'Quay lại danh sách danh hiệu'} onClick={event => { event.preventDefault(); event.stopPropagation(); onBack() }} className="absolute right-0 top-[2.4%] z-20 h-[9%] w-[12%] cursor-pointer rounded-full bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#ffe08b]" />
   </div>
 }
 
-function HonorsFrame({ scale, closeScale, compact, onClose, selectedHonor, onSelectHonor, onBack, selectedProfileHonors, onToggleProfileHonor, honorDetailsHidden, onToggleHonorDetailsHidden, ownedIds, resolveHonor }: { scale: number; closeScale: number; compact: boolean; ownedIds: string[]; resolveHonor: (honor: HonorDetail) => HonorDetail; onClose: () => void; selectedHonor: HonorDetail | null; onSelectHonor: (honor: HonorDetail) => void; onBack: () => void; selectedProfileHonors: SelectedProfileHonors; onToggleProfileHonor: (honor: HonorDetail) => void; honorDetailsHidden: boolean; onToggleHonorDetailsHidden: () => void }) {
+function HonorsFrame({ scale, closeScale, compact, onDismiss, onClose, selectedHonor, onSelectHonor, onBack, selectedProfileHonors, onToggleProfileHonor, honorDetailsHidden, onToggleHonorDetailsHidden, ownedIds, resolveHonor }: { scale: number; closeScale: number; compact: boolean; ownedIds: string[]; resolveHonor: (honor: HonorDetail) => HonorDetail; onDismiss: () => void; onClose: () => void; selectedHonor: HonorDetail | null; onSelectHonor: (honor: HonorDetail) => void; onBack: () => void; selectedProfileHonors: SelectedProfileHonors; onToggleProfileHonor: (honor: HonorDetail) => void; honorDetailsHidden: boolean; onToggleHonorDetailsHidden: () => void }) {
   const [selectedCategory, setSelectedCategory] = useState<(typeof HONORS_CATEGORIES)[number]['id']>('all')
   const [illuminatedHonorId, setIlluminatedHonorId] = useState<string | null>(null)
   const [selectedHonorColumn, setSelectedHonorColumn] = useState<number | undefined>()
-  const selectedItem = HONORS_CATEGORIES.find(category => category.id === selectedCategory)
   const honorsForCategory = (selectedCategory === 'all'
     ? PROFILE_HONOR_CATEGORIES.flatMap<HonorDetail>(category => HONORS_BY_CATEGORY[category]).filter(honor => ownedIds.includes(honor.id))
-    : HONORS_BY_CATEGORY[selectedCategory].filter(honor => ownedIds.includes(honor.id))).map(resolveHonor)
+    : ['streak', 'games', 'attendance'].includes(selectedCategory)
+      ? HONORS_BY_CATEGORY[selectedCategory]
+      : HONORS_BY_CATEGORY[selectedCategory].filter(honor => ownedIds.includes(honor.id))).map(resolveHonor)
   // Percentage row gaps use total content height; normalize to the All tab's row count.
   const allHonorRowCount = Math.max(1, Math.ceil(ownedIds.length / 3))
   const categoryHonorRowCount = Math.max(1, Math.ceil(honorsForCategory.length / 3))
@@ -659,21 +682,20 @@ function HonorsFrame({ scale, closeScale, compact, onClose, selectedHonor, onSel
   }}>
     <div className="relative h-full w-full overflow-visible">
     <HonorsDialogShell />
-<span className="pointer-events-none absolute inset-[var(--ui-p-5,5px)] z-40 [&_button]:pointer-events-auto" style={{ '--honor-close-top': `${Math.round(24 * closeScale)}px`, '--honor-close-right': `${Math.round(28 * closeScale)}px` } as CSSProperties}><DialogCloseButton onClose={onClose} scale={compact ? closeScale : scale} compact={compact} positionClass="top-[var(--honor-close-top)] right-[var(--honor-close-right)]" /></span>
+    <div aria-hidden="true" className={`${customizationListPanel} pointer-events-none absolute left-[calc(var(--ui-p-5,5px)+23px)] top-[calc(var(--ui-p-5,5px)+74px)] bottom-[calc(var(--ui-p-5,5px)+16px)] w-[20%] compact:hidden`} />
+<span className="pointer-events-none absolute inset-[var(--ui-p-5,5px)] z-40 [&_button]:pointer-events-auto" style={{ '--honor-close-top': `${Math.round(24 * closeScale)}px`, '--honor-close-right': `${Math.round(28 * closeScale)}px` } as CSSProperties}><DialogCloseButton onClose={onDismiss} scale={compact ? closeScale : scale} compact={compact} positionClass="top-[var(--honor-close-top)] right-[var(--honor-close-right)]" /></span>
+
     <div className="absolute compact:!inset-0 compact:grid compact:grid-rows-[50px_auto_minmax(0,1fr)] compact:gap-y-2 compact:!h-full compact:!w-full compact:px-[22px] compact:pb-[24px]" style={{ left: '-3.0747%', top: '-3.5035%', width: '106.0029%', height: '108.7087%' }}>
-    <CrispUiImage src={honorsFrame} alt="" aria-hidden="true" className="pointer-events-none absolute block max-w-none compact:hidden" style={{ left: '2.9006%', top: '3.2228%', width: '94.337%', height: '91.989%', clipPath: 'inset(12% 76% 8% 4%)' }} />
-    <div aria-hidden="true" className="pointer-events-none absolute z-[15] overflow-hidden [container-type:inline-size] compact:hidden" style={{ top: HONORS_CATEGORIES[0].top, left: '4.7%', width: '17.7%', height: HONORS_CATEGORIES[0].height }}>
-      <div className="absolute inset-0 bg-no-repeat" style={{ backgroundImage: `url(${honorsFrame})`, backgroundSize: '533% 979%', backgroundPosition: '2.5% 23.5%' }} />
-      <div className="absolute inset-x-[4%] top-[9%] bottom-[9%] rounded-[var(--ui-p-3,3px)] bg-[linear-gradient(90deg,#3c1e0e_0%,#281207_52%,#3c1e0e_100%)]" />
-      <CrispUiImage src={allHonorsIcon} alt="" className="pointer-events-none absolute left-[-13%] top-1/2 block w-[70%] max-w-none -translate-y-1/2" />
-      <span className="pointer-events-none absolute left-[45%] top-1/2 w-[53%] -translate-y-1/2 text-left font-cormorant text-[12cqw] font-semibold leading-[1.1] text-[#f3e5c8] [text-shadow:0_1px_2px_#1b0d04]">Tất cả</span>
-    </div>
-    {HONORS_CATEGORIES.map(category => {
-      const selected = selectedCategory === category.id
-      return <button key={category.id} type="button" aria-label={category.label} aria-pressed={selected} onClick={() => setSelectedCategory(category.id)} style={{ top: category.top, left: '4.7%', width: '17.7%', height: category.height }} className={`absolute z-20 cursor-pointer rounded-[var(--ui-p-10,10px)] border-2 border-transparent bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#ffe08b] compact:hidden compact:px-1 ${selected ? 'compact:border-[#e1b359] compact:bg-[#633a17]' : 'compact:border-[#93612d] compact:bg-[#321c10]'}`}><span className="hidden text-center font-cormorant text-xs font-semibold leading-tight text-[#f3d59a] compact:block">{category.label}</span></button>
-    })}
-    {selectedItem && <CrispUiImage src={honorsSelectionFrame} alt="" aria-hidden="true" className="pointer-events-none absolute z-30 max-w-none mix-blend-lighten compact:hidden" style={{ top: `calc(${selectedItem.top} + 0.4% - ${selectedItem.height} * 0.2)`, left: '3.284%', width: '20.532%', height: `calc(${selectedItem.height} * 1.4)` }} />}
-    <nav aria-label="Nhóm danh hiệu" className="absolute top-[12%] left-[5%] z-20 hidden w-[90%] touch-pan-x items-center gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain py-1  compact:relative compact:inset-auto compact:row-start-2 compact:flex compact:w-full compact:py-0 ">{HONORS_CATEGORIES.map(category => <button key={category.id} type="button" aria-label={category.label} aria-pressed={selectedCategory === category.id} onClick={() => setSelectedCategory(category.id)} className="relative isolate block h-fit w-fit shrink-0 cursor-pointer border-0 bg-transparent p-0 leading-none focus-visible:outline-2 focus-visible:outline-[#ffe08b]">
+    {HONORS_CATEGORIES.map(category => <button key={category.id} type="button" data-ui-selection-sound aria-label={category.label} aria-pressed={selectedCategory === category.id} onClick={() => setSelectedCategory(category.id)} style={{ top: `calc((3.5035% + var(--ui-p-5,5px) + 91px) / 1.087087 + ${parseFloat(category.top) - 13}%)`, left: 'calc((3.0747% + var(--ui-p-5,5px) + 35px) / 1.060029)', width: 'calc((20% - 24px) / 1.060029)', height: category.height }} className="absolute z-20 isolate cursor-pointer border-0 bg-transparent p-0 leading-none focus-visible:outline-2 focus-visible:outline-[#ffe08b] compact:hidden">
+      {category.id === 'all' ? <span className="relative block size-full overflow-hidden [container-type:inline-size]">
+        <span className="absolute inset-0 bg-no-repeat" style={{ backgroundImage: `url(${honorsFrame})`, backgroundSize: '533% 979%', backgroundPosition: '2.5% 23.5%' }} />
+        <span className="absolute inset-x-[4%] top-[9%] bottom-[9%] rounded-[3px] bg-[linear-gradient(90deg,#3c1e0e_0%,#281207_52%,#3c1e0e_100%)]" />
+        <CrispUiImage src={allHonorsIcon} alt="" className="pointer-events-none absolute left-[-13%] top-1/2 block w-[70%] max-w-none -translate-y-1/2" />
+        <span className="pointer-events-none absolute left-[45%] top-1/2 w-[53%] -translate-y-1/2 text-left font-cormorant text-[12cqw] font-semibold leading-[1.1] text-[#f3e5c8]">Tất cả</span>
+      </span> : <CrispUiImage src={MOBILE_HONOR_TAB_ARTWORK[category.id]} alt="" className="pointer-events-none block size-full max-w-none object-fill" />}
+      {selectedCategory === category.id && <CrispUiImage src={honorsSelectionFrame} alt="" aria-hidden="true" className="pointer-events-none absolute left-[-8%] top-[-20%] z-30 block h-[140%] w-[116%] max-w-none mix-blend-lighten" />}
+    </button>)}
+    <nav aria-label="Nhóm danh hiệu" className={`${customizationListPanel} absolute top-[12%] left-[5%] z-20 hidden w-[90%] touch-pan-x items-center gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain py-1 compact:relative compact:inset-auto compact:row-start-2 compact:flex compact:h-auto compact:w-full compact:px-2 compact:py-2`}>{HONORS_CATEGORIES.map(category => <button key={category.id} type="button" data-ui-selection-sound aria-label={category.label} aria-pressed={selectedCategory === category.id} onClick={() => setSelectedCategory(category.id)} className="relative isolate block h-fit w-fit shrink-0 cursor-pointer border-0 bg-transparent p-0 leading-none focus-visible:outline-2 focus-visible:outline-[#ffe08b]">
       {category.id === 'all' ? <span className="relative block h-[49px] w-[120px] overflow-hidden [container-type:inline-size]">
         <span className="absolute inset-0 bg-no-repeat" style={{ backgroundImage: `url(${honorsFrame})`, backgroundSize: '533% 979%', backgroundPosition: '2.5% 23.5%' }} />
         <span className="absolute inset-x-[4%] top-[9%] bottom-[9%] rounded-[3px] bg-[linear-gradient(90deg,#3c1e0e_0%,#281207_52%,#3c1e0e_100%)]" />
@@ -682,12 +704,15 @@ function HonorsFrame({ scale, closeScale, compact, onClose, selectedHonor, onSel
       </span> : <CrispUiImage src={MOBILE_HONOR_TAB_ARTWORK[category.id]} alt="" className="block h-auto w-[120px] max-w-none border-0 p-0" />}
       {selectedCategory === category.id && <CrispUiImage src={honorsSelectionFrame} alt="" aria-hidden="true" className="pointer-events-none absolute left-[-8%] top-[-20%] z-30 block h-[140%] w-[116%] max-w-none mix-blend-lighten" />}
     </button>)}</nav>
-    <div className="absolute left-[24%] top-[12.5%] z-10 h-[79.5%] w-[70%] overflow-hidden compact:relative compact:inset-auto compact:row-start-3 compact:h-auto compact:min-h-0 compact:w-full">
-      <div className="absolute inset-x-0 top-[var(--ui-p-18,18px)] bottom-0 overflow-y-auto compact:overflow-x-hidden compact:touch-pan-y compact:overscroll-x-none compact:top-0 overscroll-contain  ">
+    <div className="absolute left-[24.5%] top-[12%] z-10 h-[80%] w-[69.5%] overflow-hidden compact:relative compact:inset-auto compact:row-start-3 compact:h-auto compact:min-h-0 compact:w-full">
+      <div className="absolute inset-x-2 top-2 bottom-2 overflow-y-auto compact:overflow-x-hidden compact:touch-pan-y compact:overscroll-x-none overscroll-contain  ">
         {honorsForCategory.length > 0 ? <div className="grid w-full grid-cols-3 gap-x-[1.5%] pt-[var(--ui-p-6,6px)] compact:grid-cols-2 compact:!gap-y-4" style={{ rowGap: honorRowGap }}>{honorsForCategory.map(renderHonor)}</div> : <p className="grid h-full place-items-center font-cormorant text-2xl font-semibold text-[#f3d59a] compact:text-[22px]">Chưa có danh hiệu</p>}
       </div>
     </div>
         {!honorDetailsHidden && selectedHonor && <HonorDetailPopover honor={selectedHonor} onBack={onBack} honorColumn={selectedHonorColumn} isHidden={honorDetailsHidden} onToggleHidden={toggleHonorDetailsHidden} />}
+<div onClick={event => event.stopPropagation()} className="absolute left-[9%] top-[5.8%] z-40 translate-y-[var(--ui-p-25,25px)] compact:left-[23px] compact:top-[calc((var(--ui-p-86,86px)*1.02-var(--ui-p-18,18px)-var(--ui-p-12,12px)+50px)/2-9px)] compact:translate-y-0">
+  <MessagesBackButton size={compact ? 28 : 38} label="Quay lại thông tin người chơi" onClick={onClose} className="-translate-x-[8px] desktop:-translate-x-[18px] desktop:-translate-y-px compact:-translate-x-[8px] compact:-translate-y-[5px]" />
+</div>
 <HonorHiddenToggle isHidden={honorDetailsHidden} onToggle={toggleHonorDetailsHidden} compactHeader className="absolute right-[9%] top-[5.8%] z-40 translate-y-[var(--ui-p-25,25px)] compact:top-[calc((var(--ui-p-86,86px)*1.02-var(--ui-p-18,18px)-var(--ui-p-12,12px)+50px)/2-9px)] compact:right-[23px] compact:left-auto compact:translate-x-0 compact:translate-y-0" />
 
     </div>
@@ -713,12 +738,13 @@ function getOrCreateProfileId() {
   }
 }
 
-export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, onOpenMessages, onClose, primaryActionLabel, onPrimaryAction, layout, editable = false, accountActions = false, isOwnProfile: ownProfileOverride }: {
+export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, onOpenMessages, onClose, primaryActionLabel, onPrimaryAction, layout, editable = false, accountActions = false, allowProfileEditControls = false, isOwnProfile: ownProfileOverride }: {
   layout: ReturnType<typeof useProfileLayout>
   dialogRef: RefObject<HTMLDialogElement | null>
   name: string
   editable?: boolean
   accountActions?: boolean
+  allowProfileEditControls?: boolean
   isOwnProfile?: boolean
   playerId?: string
   challengeTargetId?: string
@@ -730,13 +756,18 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
   const ownName=useSessionStore(state=>state.name)
   const isOwnProfile=ownProfileOverride??(editable||name===ownName)
   const showAccountActions=isOwnProfile&&accountActions
+  const rankingCloseLayout = useRankingLayout()
   const [googleLinkOpen,setGoogleLinkOpen]=useState(false)
-  const friendship = useMessageFriendship(name)
+  const sentFeedback = useInviteSentNotice()
+  const friendship = useMessageFriendship(name, sentFeedback.show)
   const [otherAddress, setOtherAddress] = useState('TP. Hồ Chí Minh')
   const ownAddress = useSessionStore(state => state.address)
+  const ownProvince = useSessionStore(state => state.province)
   const account=useSessionStore(state=>state.account)
   const canRename = isOwnProfile && Boolean(account?.linked) && !account?.renamed
+  const canOfferRename = allowProfileEditControls && isOwnProfile && !account?.renamed
   const [renameOpen,setRenameOpen] = useState(false)
+  const [linkRequiredOpen,setLinkRequiredOpen] = useState(false)
   const displayedAccount=useDatabaseProfile(name,isOwnProfile)
   const ownElo = useSessionStore(state => state.elo)
   const displayedElo = displayedAccount?.stats.find(stat => stat.variant === 'xiangqi')?.elo ?? (isOwnProfile ? ownElo : 1000)
@@ -770,9 +801,8 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
     try { await logout(); logoutDialogRef.current?.close(); onClose() }
     catch { setLogoutError('Không thể đăng xuất. Hãy cho phép lưu dữ liệu trình duyệt rồi thử lại.') }
   }
-  const sentFeedback = useInviteSentNotice()
   const challenge = useProfileChallenge(name, challengeTargetId, setProfileActionFeedback, sentFeedback.show)
-  const [previewDetailPosition, setPreviewDetailPosition] = useState<{ side: 'left' | 'right'; anchorX: number } | null>(null)
+  const [previewDetailPosition, setPreviewDetailPosition] = useState<{ side: 'left' | 'right'; anchorX: number; availableWidth?: number } | null>(null)
   const [selectedHonor, setSelectedHonor] = useState<HonorDetail | null>(null)
   const ownAvatarIndex = useSessionStore(state => state.avatarIndex)
   const followedIds=useSocialStore(s=>s.follows)
@@ -784,14 +814,34 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
   const setSelectedFrameIndex = useSessionStore(state => state.setAvatarFrameIndex)
   const selectedFrameIndex = editable ? ownFrameIndex : Number(displayedAccount?.avatarFrameCode.replace('frame-',''))||0
   const { getGrantCount } = useHonorGrants(name)
-  const resolveHonor = (honor: HonorDetail): HonorDetail => 'rank' in honor || 'frame' in honor ? honor : { ...honor, viewCount: account?databaseHonors.counts[honorCode(honor.id)]??0:getGrantCount(name, honor.id), endorsementCount: account?databaseHonors.counts[honorCode(honor.id)]??0:getGrantCount(name, honor.id) }
+  const resolveHonor = (honor: HonorDetail): HonorDetail => {
+    if ('rank' in honor) {
+      if (honor.level === 1) return honor
+      const locationProfile = isOwnProfile ? account ?? displayedAccount : displayedAccount
+      const province = locationProfile?.provinceName ?? (isOwnProfile && countryCode === 'VN' ? ownProvince : null)
+      const localWard = isOwnProfile && countryCode === 'VN' && ownAddress.includes(',') ? ownAddress.split(',')[0].trim() : null
+      const ward = locationProfile?.wardName ?? localWard
+      const place = (honor.level === 2 ? province : ward)?.trim()
+      const scope = honor.level === 2 ? 'tỉnh' : 'xã'
+      const location = place ? /^(?:tỉnh|thành phố|tp\.?|xã|phường|đặc khu)\s/iu.test(place) ? place.charAt(0).toLowerCase() + place.slice(1) : `${scope} ${place}` : `${scope} …`
+      const rank = honor.rank === 1 ? 'Vô địch' : honor.rank === 2 ? 'Á quân' : 'Hạng Ba'
+      return { ...honor, description: `${honor.description.split('\n')[0]}\n${rank} Cờ Tướng ${location}.` }
+    }
+    return 'frame' in honor ? honor : { ...honor, viewCount: account?databaseHonors.counts[honorCode(honor.id)]??0:getGrantCount(name, honor.id), endorsementCount: account?databaseHonors.counts[honorCode(honor.id)]??0:getGrantCount(name, honor.id) }
+  }
   const ownedHonorCount = databaseHonors.ownedIds.length
   const previewHonors = getSelectedProfileHonors(selectedProfileHonorIds).map(resolveHonor).filter(honor => databaseHonors.ownedIds.includes(honor.id))
+  const desktopDemoHonorIds = !rankingCloseLayout.compact && displayedProfileId === DESKTOP_DEMO_PROFILE_ID ? DESKTOP_DEMO_HONOR_IDS : []
+  const desktopDemoHonors = desktopDemoHonorIds
+    .map(id => PROFILE_HONOR_CATEGORIES.flatMap<HonorDetail>(category => HONORS_BY_CATEGORY[category]).find(honor => honor.id === id))
+    .filter((honor): honor is HonorDetail => honor !== undefined && !previewHonors.some(preview => preview.id === honor.id))
+    .map(resolveHonor)
+  const displayedPreviewHonors = [...previewHonors, ...desktopDemoHonors]
   const eligibleProfileHonors: SelectedProfileHonors = {
     ...selectedProfileHonorIds,
     awarded: previewHonors.filter(honor => getProfileHonorCategory(honor) === 'awarded').map(honor => honor.id),
   }
-  const orderedPreviewHonors = [...previewHonors].sort((a, b) => {
+  const orderedPreviewHonors = [...displayedPreviewHonors].sort((a, b) => {
     const categoryA = getProfileHonorCategory(a)
     const categoryB = getProfileHonorCategory(b)
     const categoryDifference = PROFILE_HONOR_CATEGORIES.indexOf(categoryA) - PROFILE_HONOR_CATEGORIES.indexOf(categoryB)
@@ -806,8 +856,10 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
   const previewHonorPages = Array.from({ length: Math.ceil(orderedPreviewHonors.length / PROFILE_HONORS_PER_PAGE) }, (_, pageIndex) =>
     orderedPreviewHonors.slice(pageIndex * PROFILE_HONORS_PER_PAGE, (pageIndex + 1) * PROFILE_HONORS_PER_PAGE),
   )
+  const previewHonorScrollMs = PROFILE_HONOR_SCROLL_MS
   const previewHonorListKey = orderedPreviewHonors.map(honor => honor.id).join('|')
   const previewHonorTrackRef = useRef<HTMLDivElement | null>(null)
+  const previewHonorRegionRef = useRef<HTMLElement | null>(null)
   const previewHonorAnimationRef = useRef<Animation | null>(null)
   const [visiblePreviewHonorPages, setVisiblePreviewHonorPages] = useState<number[]>([0])
   const [previewHonorCarouselPaused, setPreviewHonorCarouselPaused] = useState(false)
@@ -822,7 +874,7 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
     return () => observer.disconnect()
   }, [dialogRef])
   useEffect(() => {
-    setPreviewHonorCarouselPaused(false)
+    setPreviewHonorCarouselPaused(previewHonorRegionRef.current?.matches(':hover') ?? false)
   }, [previewHonorListKey, profileDialogOpen, honorsOpen])
   useEffect(() => {
     setViewOtherProfileInfo(false)
@@ -834,13 +886,13 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
     const track = previewHonorTrackRef.current
     if (!track || !profileHonorPreviewVisible || previewHonorPages.length < 2) return
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const scrollEnd = PROFILE_HONOR_HOLD_MS + PROFILE_HONOR_SCROLL_MS
+    const scrollEnd = PROFILE_HONOR_HOLD_MS + previewHonorScrollMs
     const cycleDuration = scrollEnd + PROFILE_HONOR_END_HOLD_MS
     const lastTransform = `translateX(-${(previewHonorPages.length - 1) * 100}%)`
     const keyframes: Keyframe[] = [
       { transform: 'translateX(0%)', offset: 0 },
       ...(reducedMotion
-        ? previewHonorPages.map((_, index) => ({ transform: `translateX(-${index * 100}%)`, offset: (PROFILE_HONOR_HOLD_MS + PROFILE_HONOR_SCROLL_MS * index / previewHonorPages.length) / cycleDuration, easing: 'steps(1, end)' }))
+        ? previewHonorPages.map((_, index) => ({ transform: `translateX(-${index * 100}%)`, offset: (PROFILE_HONOR_HOLD_MS + previewHonorScrollMs * index / previewHonorPages.length) / cycleDuration, easing: 'steps(1, end)' }))
         : [{ transform: 'translateX(0%)', offset: PROFILE_HONOR_HOLD_MS / cycleDuration }]),
       { transform: lastTransform, offset: scrollEnd / cycleDuration },
       { transform: lastTransform, offset: 1 },
@@ -857,10 +909,10 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
       animation.cancel()
       previewHonorAnimationRef.current = null
     }
-  }, [previewHonorListKey, previewHonorPages.length, profileHonorPreviewVisible])
+  }, [previewHonorListKey, previewHonorPages.length, previewHonorScrollMs, profileHonorPreviewVisible])
   useEffect(() => {
     const animation = previewHonorAnimationRef.current
-    if (previewHonorCarouselPaused || previewHonorDetailOpen) animation?.pause()
+    if (previewHonorCarouselPaused || previewHonorDetailOpen || previewHonorRegionRef.current?.matches(':hover')) animation?.pause()
     else animation?.play()
   }, [previewHonorCarouselPaused, previewHonorDetailOpen, previewHonorListKey, previewHonorPages.length, profileHonorPreviewVisible])
   useEffect(() => {
@@ -915,38 +967,47 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
     })
   }
   const toggleHonorDetailsHidden = () => setHonorDetailsHidden(hidden => !hidden)
-  const copyProfileId = async (): Promise<boolean> => {
-    if (!displayedProfileId) return false
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(displayedProfileId)
-        return true
-      }
-    } catch {
-      // Fall back when clipboard permission is unavailable.
-    }
+  const copyProfileId = async (id: string): Promise<boolean> => {
+    if (!/^\d+$/.test(id)) return false
+    // Try the synchronous legacy command while the click still has user activation.
     try {
       const input = document.createElement('textarea')
-      input.value = displayedProfileId
+      input.value = id
       input.setAttribute('readonly', '')
-      input.style.position = 'fixed'
-      input.style.left = '-9999px'
-      document.body.appendChild(input)
+      input.setAttribute('aria-hidden', 'true')
+      Object.assign(input.style, { position: 'fixed', left: '0', top: '0', width: '2px', height: '2px', opacity: '0.01', fontSize: '16px', zIndex: '-1' })
+      // A modal dialog makes the rest of the document inert, including inputs
+      // appended to body. Keep the selection target inside the active dialog.
+      const activeElement = document.activeElement
+      ;(dialogRef.current?.open ? dialogRef.current : document.body).appendChild(input)
       try {
-        input.focus()
+        input.focus({ preventScroll: true })
         input.select()
-        return document.execCommand('copy')
+        input.setSelectionRange(0, id.length)
+        if (typeof document.execCommand === 'function' && document.execCommand('copy')) return true
       } finally {
         input.remove()
+        if (activeElement instanceof HTMLElement && activeElement.isConnected) activeElement.focus({ preventScroll: true })
       }
+    } catch {
+      // Continue with the asynchronous Clipboard API when legacy copy is blocked.
+    }
+    try {
+      if (!navigator.clipboard?.writeText) return false
+      await navigator.clipboard.writeText(id)
+      return true
     } catch {
       // Clipboard access can be blocked by the browser.
       return false
     }
   }
-  const copyProfileIdAndShowFeedback = async () => {
-    if (!await copyProfileId()) return
+  const copyProfileIdAndShowFeedback = async (id: string) => {
+    if (!await copyProfileId(id)) {
+      sentFeedback.show('Không sao chép được ID')
+      return
+    }
     setProfileIdCopied(true)
+    sentFeedback.show('Đã sao chép ID')
     if (copyFeedbackTimeout.current !== null) window.clearTimeout(copyFeedbackTimeout.current)
     copyFeedbackTimeout.current = window.setTimeout(() => {
       setProfileIdCopied(false)
@@ -955,8 +1016,7 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
   }
   const editButton = `${buttonInteraction} grid size-8 shrink-0 place-items-center rounded-md text-[#f1bd58] hover:bg-[#f3dba71a] hover:text-[#ffe8ad]`
   const flagCode=isOwnProfile?countryCode:displayedAccount?.countryCode
-  const editControl = () => flagCode ? <CountryFlag code={flagCode} className="ml-auto h-[var(--ui-p-21,21px)] w-[var(--ui-p-28,28px)]" /> : <button type="button" aria-label="Đổi địa chỉ" onClick={() => setLocationPickerOpen(true)} className={`${editButton} ml-auto`}><CrispUiImage src={editIcon} alt="" aria-hidden="true" className="block size-9 object-contain" /></button>
-  const rankingCloseLayout = useRankingLayout()
+    const editControl = () => flagCode ? <CountryFlag code={flagCode} className="ml-auto h-[var(--ui-p-26,26px)] w-[var(--ui-p-36,36px)]" /> : allowProfileEditControls ? <button data-ui-tab-sound type="button" aria-label="Đổi địa chỉ" onClick={() => setLocationPickerOpen(true)} className={`${editButton} ml-auto`}><CrispUiImage src={editIcon} alt="" aria-hidden="true" className="block size-9 object-contain" /></button> : undefined
   const dialogWidth = avatarCustomizationOpen ? layout.avatarWidth : layout.width
   const dialogHeight = avatarCustomizationOpen ? layout.avatarHeight : layout.height
   const dialogScale = avatarCustomizationOpen ? layout.avatarScale : layout.scale
@@ -967,15 +1027,13 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
     setSelectedHonor(null)
   }
   const renderPhotoPanel = (sizeClass: string) => <PlayerInfoCard
-    className={sizeClass}
+    className={`${sizeClass} desktop:!px-[11px]`}
     mobileExpanded
     data={{ name:isOwnProfile?ownName:name, xiangqiScore: displayedAccount?.stats.find(s=>s.variant==='xiangqi')?.elo??1000, jieqiScore: displayedAccount?.stats.find(s=>s.variant==='jieqi')?.elo??1000, friends: displayedAccount?.friends??0, followers: displayedAccount?.followers??0, likes: String(displayedAccount?.likes??0), address, playerId: displayedProfileId }}
-    nameEditControl={canRename ? <button type="button" aria-label="Đổi tên người chơi" onClick={()=>setRenameOpen(true)} className={`${editButton} ml-auto`}><CrispUiImage src={editIcon} alt="" aria-hidden="true" className="block size-9 object-contain" /></button> : undefined}
-    editControl={(editable||flagCode) ? avatarCustomizationOpen
-      ? <span inert aria-hidden="true" className="pointer-events-none invisible hidden compact:contents">{editControl()}</span>
-      : editControl() : undefined}
+    nameEditControl={!avatarCustomizationOpen && canOfferRename ? <button data-ui-tab-sound type="button" aria-label="Đổi tên người chơi" onClick={()=>account?.linked ? setRenameOpen(true) : setLinkRequiredOpen(true)} className={`${editButton} ml-auto`}><CrispUiImage src={editIcon} alt="" aria-hidden="true" className="block size-9 object-contain" /></button> : undefined}
+    editControl={!avatarCustomizationOpen && (allowProfileEditControls || flagCode) ? editControl() : undefined}
     idCopied={profileIdCopied}
-    onCopyId={() => { void copyProfileIdAndShowFeedback() }}
+    onCopyId={(id) => { void copyProfileIdAndShowFeedback(id) }}
   />
   return <dialog ref={dialogRef} aria-labelledby={previewHonorDetailOpen && selectedHonor ? 'honors-detail-title' : honorsOpen ? (selectedHonor ? 'honors-frame-title honors-detail-title' : 'honors-frame-title') : 'profile-title'} onClick={event => {
     if (previewHonorDetailOpen) {
@@ -996,14 +1054,12 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
       else onClose()
     }
   }} onCancel={event => { event.preventDefault(); if (friendship.removalName) friendship.cancelRemoval(); else if (profileActionFeedback) setProfileActionFeedback(null); else if (previewHonorDetailOpen) closePreviewHonorDetail(); else if (selectedHonor) setSelectedHonor(null); else if (honorsOpen) setHonorsOpen(false); else if (locationPickerOpen) setLocationPickerOpen(false); else if (avatarCustomizationOpen) setAvatarCustomizationOpen(false); else onClose() }} onClose={() => { setSelectedHonor(null); setPreviewHonorDetailOpen(false); setPreviewDetailPosition(null); setAvatarCustomizationOpen(false); setLocationPickerOpen(false); setHonorsOpen(false); setViewOtherProfileInfo(false); setProfileActionFeedback(null); friendship.cancelRemoval() }} className="m-auto max-h-none max-w-none overflow-visible border-0 bg-transparent p-0 text-[#43240f] backdrop:bg-black/50" style={(honorsOpen && !rankingCloseLayout.compact ? { position: 'fixed', inset: 0, margin: 0, width: '100vw', height: '100dvh', display: 'grid', placeItems: 'center' } : { width: dialogWidth * dialogScale, height: dialogHeight * dialogScale }) as CSSProperties}>
-    {honorsOpen ? <div className="compact:absolute compact:left-0 compact:top-0 compact:-translate-y-[6px]" style={{ ...getCrispUiLayout(dialogScale), ...(rankingCloseLayout.compact ? { width: dialogWidth * dialogScale, height: dialogHeight * dialogScale } : { width: 'min(90vw, 123.06dvh)' }) } as CSSProperties}><HonorsFrame scale={dialogScale} closeScale={rankingCloseLayout.scale} compact={rankingCloseLayout.compact} ownedIds={account ? databaseHonors.ownedIds : []} resolveHonor={resolveHonor} onClose={() => { setSelectedHonor(null); setHonorsOpen(false) }} selectedHonor={selectedHonor} onSelectHonor={setSelectedHonor} onBack={() => setSelectedHonor(null)} selectedProfileHonors={eligibleProfileHonors} onToggleProfileHonor={toggleProfileHonor} honorDetailsHidden={honorDetailsHidden} onToggleHonorDetailsHidden={toggleHonorDetailsHidden} /></div> : <div onDragStart={event => { if (event.target instanceof HTMLImageElement) event.preventDefault() }} className="absolute origin-top-left rounded-[var(--ui-p-22,22px)] border-[length:var(--ui-p-5,5px)] border-[#5e3014] bg-[linear-gradient(135deg,#7a431c,#2d160a)] p-4 shadow-[inset_0_0_0_2px_#e0b466,inset_0_0_0_7px_#875026,inset_0_0_0_9px_#160904] [&_img]:select-none [&_svg]:select-none compact:-translate-y-[6px]" style={{ left: 0, top: 0, ...getCrispUiLayout(dialogScale, dialogWidth, dialogHeight) } as CSSProperties}>
-      {!locationPickerOpen && <span className="hidden compact:contents" style={{ '--profile-close-top': `${Math.round(24 * rankingCloseLayout.scale)}px`, '--profile-close-right': `${Math.round(28 * rankingCloseLayout.scale)}px` } as CSSProperties}><DialogCloseButton onClose={avatarCustomizationOpen ? () => setAvatarCustomizationOpen(false) : onClose} scale={rankingCloseLayout.scale} compact positionClass="top-[var(--profile-close-top)] right-[var(--profile-close-right)]" /></span>}
+    {honorsOpen ? <div className="compact:absolute compact:left-0 compact:top-0 compact:-translate-y-[6px]" style={{ ...getCrispUiLayout(dialogScale), ...(rankingCloseLayout.compact ? { width: dialogWidth * dialogScale, height: dialogHeight * dialogScale } : { width: 'min(90vw, 123.06dvh)' }) } as CSSProperties}><HonorsFrame onDismiss={onClose} scale={dialogScale} closeScale={rankingCloseLayout.scale} compact={rankingCloseLayout.compact} ownedIds={account ? databaseHonors.ownedIds : []} resolveHonor={resolveHonor} onClose={() => { setSelectedHonor(null); setHonorsOpen(false) }} selectedHonor={selectedHonor} onSelectHonor={setSelectedHonor} onBack={() => setSelectedHonor(null)} selectedProfileHonors={eligibleProfileHonors} onToggleProfileHonor={toggleProfileHonor} honorDetailsHidden={honorDetailsHidden} onToggleHonorDetailsHidden={toggleHonorDetailsHidden} /></div> : <div onDragStart={event => { if (event.target instanceof HTMLImageElement) event.preventDefault() }} className="absolute origin-top-left rounded-[var(--ui-p-22,22px)] border-[length:var(--ui-p-5,5px)] border-[#5e3014] bg-[linear-gradient(135deg,#7a431c,#2d160a)] p-4 shadow-[inset_0_0_0_2px_#e0b466,inset_0_0_0_7px_#875026,inset_0_0_0_9px_#160904] [&_img]:select-none [&_svg]:select-none compact:-translate-y-[6px]" style={{ left: 0, top: 0, ...getCrispUiLayout(dialogScale, dialogWidth, dialogHeight) } as CSSProperties}>
+      <span className="contents" style={{ '--profile-close-top': `${Math.round(24 * rankingCloseLayout.scale)}px`, '--profile-close-right': `${Math.round(28 * rankingCloseLayout.scale)}px` } as CSSProperties}><DialogCloseButton onClose={onClose} scale={rankingCloseLayout.scale} compact={rankingCloseLayout.compact} positionClass="top-[var(--profile-close-top)] right-[var(--profile-close-right)]" /></span>
     <div inert={Boolean(profileActionFeedback || friendship.removalName)} className={`relative flex h-full flex-col rounded-xl border-[length:var(--ui-p-3,3px)] border-[#d39a42] bg-[radial-gradient(ellipse_at_50%_20%,#b87a3344,transparent_43%),linear-gradient(135deg,#6e3718,#2b160b_48%,#5d2e14)] px-4 pb-3 shadow-[0_0_0_2px_#48220e,inset_0_0_18px_#160904]`}>
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[var(--ui-p-10,10px)]">
-        <CrispUiImage src={profileScene} alt="" className={`absolute top-0 object-cover object-[left_top] ${avatarCustomizationOpen ? 'left-0 h-[calc(var(--ui-p-226,226px)+8px)] w-full' : 'left-0 h-[var(--ui-p-238,238px)] w-full'} ${mobileProfilePanel || avatarCustomizationOpen ? 'compact:h-[calc(var(--ui-p-270,270px)+var(--ui-p-32,32px))] compact:[mask-image:linear-gradient(to_bottom,black_65%,transparent_100%)]' : ''}`} />
-        {avatarCustomizationOpen && <>
-          <div className="absolute inset-x-0 top-0 h-[calc(var(--ui-p-226,226px)+8px)] compact:hidden" style={{ backgroundImage: 'linear-gradient(90deg, transparent 45%, rgba(43,22,11,0.62) 48%, #2b160b 53%, #2b160b 100%)' }} />
-        </>}
+        <CrispUiImage src={profileScene} alt="" className={`absolute top-0 object-cover object-[left_top] ${avatarCustomizationOpen ? 'left-0 h-[var(--ui-p-238,238px)] w-full desktop:[mask-image:linear-gradient(to_bottom,black_65%,transparent_100%)]' : 'left-0 h-[var(--ui-p-238,238px)] w-full desktop:[mask-image:linear-gradient(to_bottom,black_65%,transparent_100%)]'} ${mobileProfilePanel || avatarCustomizationOpen ? 'compact:h-[calc(var(--ui-p-270,270px)+var(--ui-p-32,32px))] compact:[mask-image:linear-gradient(to_bottom,black_65%,transparent_100%)]' : ''}`} />
+
       </div>
       <div aria-hidden="true" className="pointer-events-none absolute inset-2 overflow-hidden rounded-lg opacity-20"><svg viewBox="0 0 660 800" preserveAspectRatio="none" className="h-full w-full" fill="none" stroke="#b8873e" strokeWidth="5"><path d="M-30 130c85-90 120 30 40 18-60-12-15-84 30-42m450-100c-60 35-30 95 15 60s-40-70-65-20M-40 680c80-65 165 10 95 55-55 35-100-50-45-65 65-18 80 93 160 57m340 75c-65-70 15-125 58-75 30 40-45 80-60 30-10-40 80-80 140-20"/><path d="M-15 780q80-100 160 0m-145 0q65-80 130 0m-110 0q45-55 90 0M500 0q75 90 150 0m-130 0q55 65 110 0"/></svg></div>
       <header className={`relative z-20 mx-auto -mt-[var(--ui-p-42,42px)] ${avatarCustomizationOpen ? 'mb-3' : 'mb-1'} w-[68%] text-center ${mobileProfilePanel || avatarCustomizationOpen ? 'compact:-translate-y-[var(--ui-p-12,12px)] compact:mb-1' : ''}`}>
@@ -1011,26 +1067,26 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
         <h2 id="profile-title" className="sr-only">{avatarCustomizationOpen ? 'Tùy chỉnh avatar' : 'Thông tin'}</h2>
       </header>
       <div className="relative z-30 flex min-h-0 flex-1 flex-col gap-3">
-        {avatarCustomizationOpen ? <AvatarCustomization elo={displayedElo} previewPanel={renderPhotoPanel('h-[var(--ui-p-185,185px)] self-center -translate-y-[var(--ui-p-30,30px)] compact:h-[var(--ui-p-270,270px)] compact:-translate-y-[var(--ui-p-28,28px)]')} selectedAvatarIndex={selectedAvatarIndex} selectedFrameIndex={selectedFrameIndex} onCancel={() => setAvatarCustomizationOpen(false)} onUse={(index, frameIndex) => { if(account) { void profilePersistence.avatar(index,frameIndex).catch(()=>setProfileActionFeedback('Không lưu được avatar hoặc khung chưa được mở khóa.')) } else {setSelectedAvatarIndex(index); setSelectedFrameIndex(frameIndex)} }} /> : locationPickerOpen ? <VietnamAddressPicker onCancel={() => setLocationPickerOpen(false)} onSave={async (value, province, country, provinceCode, wardCode, wardName) => { if (isOwnProfile && account) { await profilePersistence.location({countryCode:country,provinceCode,provinceName:province||null,wardCode,wardName}) } else if (isOwnProfile) setOwnAddress(value, province, country); else setOtherAddress(value); setLocationPickerOpen(false) }} /> : <>
-        <section aria-label="Hồ sơ người chơi" className="relative isolate grid h-[var(--ui-p-190,190px)] shrink-0 grid-cols-[var(--ui-p-145,145px)_1fr] gap-3 rounded-[var(--ui-p-10,10px)] compact:h-[var(--ui-p-270,270px)] compact:grid-cols-[var(--ui-p-180,180px)_minmax(0,1fr)]">
+        {avatarCustomizationOpen ? <AvatarCustomization elo={displayedElo} previewPanel={renderPhotoPanel('desktop:-top-[8px] min-h-[var(--ui-p-190,190px)] self-stretch -translate-y-[var(--ui-p-21,21px)] compact:min-h-[var(--ui-p-270,270px)] compact:-translate-y-[var(--ui-p-28,28px)]')} selectedAvatarIndex={selectedAvatarIndex} selectedFrameIndex={selectedFrameIndex} onCancel={() => setAvatarCustomizationOpen(false)} onUse={(index, frameIndex) => { if(account) { void profilePersistence.avatar(index,frameIndex).catch(()=>setProfileActionFeedback('Không lưu được avatar hoặc khung chưa được mở khóa.')) } else {setSelectedAvatarIndex(index); setSelectedFrameIndex(frameIndex)} }} /> : locationPickerOpen ? <VietnamAddressPicker onCancel={() => setLocationPickerOpen(false)} onSave={async (value, province, country, provinceCode, wardCode, wardName) => { if (isOwnProfile && account) { await profilePersistence.location({countryCode:country,provinceCode,provinceName:province||null,wardCode,wardName}) } else if (isOwnProfile) setOwnAddress(value, province, country); else setOtherAddress(value); setLocationPickerOpen(false) }} /> : <>
+        <section aria-label="Hồ sơ người chơi" className="relative isolate grid min-h-[var(--ui-p-190,190px)] shrink-0 grid-cols-[var(--ui-p-145,145px)_minmax(0,1fr)] gap-3 rounded-[var(--ui-p-10,10px)] desktop:min-h-[var(--ui-p-166,166px)] compact:min-h-[var(--ui-p-270,270px)] compact:grid-cols-[var(--ui-p-180,180px)_minmax(0,1fr)]">
           <div className="relative z-10 flex min-h-0 flex-col items-center gap-1 pt-1 text-center">
-            <button type="button" disabled={!editable} onClick={() => setAvatarCustomizationOpen(true)} aria-label={editable ? 'Tùy chỉnh avatar' : 'Avatar kỳ sĩ'} className={`${buttonInteraction} relative size-[var(--ui-p-128,128px)] shrink-0 rounded-full border-0 bg-transparent p-0 shadow-none disabled:cursor-default disabled:opacity-100 compact:size-[calc(var(--ui-p-128,128px)*1.25)]`}>
+          <button data-ui-selection-sound type="button" disabled={!editable} onClick={() => setAvatarCustomizationOpen(true)} aria-label={editable ? 'Tùy chỉnh avatar' : 'Avatar kỳ sĩ'} className={`${buttonInteraction} relative size-[var(--ui-p-128,128px)] shrink-0 rounded-full border-0 bg-transparent p-0 shadow-none disabled:cursor-default disabled:opacity-100 compact:size-[calc(var(--ui-p-128,128px)*1.25)]`}>
               <span className="relative grid size-full place-items-center">{!isOwnProfile && getComputerAvatar(name) ? <img src={getComputerAvatar(name)} alt="" className="block size-full object-contain" style={{ transform: `scale(${AVATAR_FRAME_VISIBLE_SCALE})` }} /> : <AvatarPortrait avatarIndex={selectedAvatarIndex} className="size-full rounded-full" />}{(isOwnProfile || !getComputerAvatar(name)) && <><AvatarFrameOverlay src={getAvatarFrame(selectedFrameIndex).image} alt={getAvatarFrame(selectedFrameIndex).label} /><AvatarRankBadge elo={displayedElo} /></>}
 
               </span>
             </button>
           </div>
-          {renderPhotoPanel('h-full self-center -translate-y-[var(--ui-p-21,21px)] compact:-translate-y-[var(--ui-p-28,28px)]')}
+          {renderPhotoPanel('min-h-[var(--ui-p-190,190px)] desktop:min-h-[var(--ui-p-166,166px)] desktop:gap-y-1 desktop:py-1 self-stretch -translate-y-[var(--ui-p-21,21px)] compact:min-h-[var(--ui-p-270,270px)] compact:-translate-y-[var(--ui-p-28,28px)]')}
         </section>
-        <section aria-label="Thống kê ván đấu" className="grid h-[var(--ui-p-132,132px)] shrink-0 grid-cols-2 gap-5 compact:h-[var(--ui-p-170,170px)] compact:grid-rows-[minmax(0,1fr)]">
+        <section aria-label="Thống kê ván đấu" className="grid h-[var(--ui-p-132,132px)] desktop:h-[calc(var(--ui-p-132,132px)+24px)] desktop:-mt-[12px] shrink-0 grid-cols-2 gap-5 compact:h-[var(--ui-p-170,170px)] compact:grid-rows-[minmax(0,1fr)]">
           {[{ name: 'Cờ Tướng', image: xiangqiMode }, { name: 'Cờ Úp', image: hiddenMode }].map(mode => <div key={mode.name} className="rounded-[var(--ui-p-12,12px)] border-2 border-[#b8782d] bg-[linear-gradient(135deg,#f8d99e,#efbd6b)] px-3 py-2 text-[#54270d] shadow-[inset_0_0_0_2px_#fff0bd,inset_0_0_0_4px_#ce9648,0_3px_4px_#2b120755] compact:h-[calc(100%+var(--ui-p-21,21px))] compact:-translate-y-[var(--ui-p-16,16px)]">
             <CrispUiImage src={mode.image} alt={mode.name} className="mx-auto mb-1 h-[var(--ui-p-36,36px)] w-auto object-contain compact:h-[var(--ui-p-44,44px)]" />
             <div className="grid grid-cols-2 divide-x divide-[#b77b43] text-center">
-              {['Thắng', 'Thua'].map(label => <div key={label}><p className="text-lg font-bold leading-5 compact:text-2xl compact:leading-normal">{label}</p><p className="mt-1 font-number text-2xl font-bold text-[#c3261e] compact:text-3xl">{displayedAccount?.stats.find(s=>s.variant===(mode.name==='Cờ Tướng'?'xiangqi':'jieqi'))?.[label==='Thắng'?'wins':'losses']??0}</p></div>)}
+              {['Thắng', 'Thua'].map(label => <div key={label}><p className="text-lg font-bold leading-5 desktop:text-2xl desktop:leading-normal compact:text-2xl compact:leading-normal">{label}</p><p className="mt-1 font-number text-2xl font-bold text-[#c3261e] desktop:text-3xl compact:text-3xl">{displayedAccount?.stats.find(s=>s.variant===(mode.name==='Cờ Tướng'?'xiangqi':'jieqi'))?.[label==='Thắng'?'wins':'losses']??0}</p></div>)}
             </div>
           </div>)}
         </section>
-        {showOtherProfileActions ? <section aria-label={`Thao tác với ${name}`} className={`${panel} grid min-h-[var(--ui-p-240,240px)] flex-1 grid-cols-3 grid-rows-2 gap-x-3 gap-y-5 px-3 pt-8 pb-10 compact:h-fit compact:min-h-0 compact:flex-none compact:content-start compact:grid-cols-2 compact:grid-rows-[auto_auto_auto] compact:gap-[5px] compact:px-[5px] compact:pt-[5px] compact:pb-[2px]`}>
+        {showOtherProfileActions ? <section aria-label={`Thao tác với ${name}`} className={`${panel} grid min-h-[var(--ui-p-240,240px)] flex-1 grid-cols-3 grid-rows-2 gap-x-3 gap-y-5 px-3 pt-8 pb-10 compact:h-auto compact:min-h-0 compact:flex-1 compact:content-center compact:grid-cols-2 compact:grid-rows-[auto_auto_auto] compact:gap-[5px] compact:px-[5px] compact:py-[5px]`}>
           {([
             { id: 'info', label: 'Xem thông tin', icon: profileActionInfo },
             { id: 'challenge', label: 'So tài', icon: profileActionChallenge },
@@ -1038,10 +1094,10 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
             { id: 'message', label: 'Nhắn tin', icon: profileActionMessage },
             { id: 'follow', label: isFollowing ? 'Bỏ theo dõi' : 'Theo dõi', icon: profileActionFollow },
             { id: 'gift', label: 'Tặng quà', icon: profileActionGift },
-          ] as const).map(action => <button key={action.id} type="button" disabled={action.id === 'challenge' && challenge.pending} onClick={() => {
+          ] as const).map(action => <button key={action.id} data-ui-selection-sound type="button" disabled={action.id === 'challenge' && challenge.pending} onClick={() => {
             if (action.id === 'info') setViewOtherProfileInfo(true)
             else if (action.id === 'friend') friendship.activate()
-            else if (action.id === 'follow') void socialActionByName(name,'follow',!isFollowing).catch(()=>setProfileActionFeedback('Không cập nhật được theo dõi.'))
+            else if (action.id === 'follow') void socialActionByName(name,'follow',!isFollowing).then(()=>sentFeedback.show(isFollowing ? 'Đã bỏ theo dõi' : 'Đã theo dõi')).catch(()=>setProfileActionFeedback('Không cập nhật được theo dõi.'))
             else if (action.id === 'challenge') void challenge.invite()
             else if (action.id === 'message' && onOpenMessages) {
               onClose()
@@ -1058,41 +1114,48 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
               <span className="min-w-0 flex-1 whitespace-nowrap text-center font-cormorant text-[10.7cqw] font-bold leading-none tracking-[-0.025em] text-[#ffebba] [text-shadow:0_1px_1px_#291207]">{action.label}</span>
             </span>
           </button>)}
-        </section> : <section aria-labelledby="profile-honors" className={`${panel} min-h-[var(--ui-p-240,240px)] flex-1 p-4 compact:flex compact:flex-col`}>
-          <h3 id="profile-honors" className="mb-4 flex items-center gap-3 font-georgia text-2xl font-bold italic text-[#ffe1a0] compact:text-3xl [text-shadow:0_1px_0_#321604]"><span aria-hidden="true" className="text-[#e8ae50]">⚑</span>Danh hiệu<span aria-hidden="true" className="h-px flex-1 bg-gradient-to-r from-[#d99a42] to-transparent" /><span aria-label={`Sở hữu: ${ownedHonorCount}`} className="inline-flex shrink-0 items-baseline gap-1 text-[length:var(--ui-p-22,22px)] not-italic font-medium compact:relative compact:-top-[var(--ui-p-3,3px)] compact:items-center compact:leading-none compact:text-[length:var(--ui-p-28,28px)]"><span>Sở hữu:</span><span className="font-number text-[20px] lining-nums tabular-nums compact:text-[1em] compact:leading-none">{ownedHonorCount}</span></span>{editable && <button type="button" aria-label="Mở danh hiệu" onClick={() => { setSelectedHonor(null); setHonorsOpen(true) }} className={`${buttonInteraction} grid size-7 shrink-0 place-items-center rounded-md p-0 text-[#f1bd58] hover:bg-[#f3dba71a] hover:text-[#ffe8ad]`}><svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" /></svg></button>}</h3>
-          <div className="relative h-[var(--ui-p-220,220px)] overflow-hidden compact:h-auto compact:min-h-0 compact:flex-1" aria-label="Danh hiệu đã chọn để hiển thị" onMouseEnter={() => setPreviewHonorCarouselPaused(true)} onMouseLeave={() => setPreviewHonorCarouselPaused(false)}>
+        </section> : <section ref={previewHonorRegionRef} onMouseEnter={() => { previewHonorAnimationRef.current?.pause(); setPreviewHonorCarouselPaused(true) }} onMouseLeave={() => setPreviewHonorCarouselPaused(false)} aria-labelledby="profile-honors" className={`${panel} min-h-[var(--ui-p-240,240px)] flex-1 p-4 compact:flex compact:flex-col desktop:flex desktop:flex-col desktop:pt-[12px]`}>
+          <h3 id="profile-honors" className="mb-4 flex items-center gap-3 font-georgia text-2xl font-bold italic text-[#ffe1a0] compact:text-3xl [text-shadow:0_1px_0_#321604]"><span aria-hidden="true" className="text-[#e8ae50]">⚑</span>Danh hiệu<span aria-hidden="true" className="h-px flex-1 bg-gradient-to-r from-[#d99a42] to-transparent" />{desktopDemoHonors.length > 0 && <span className="shrink-0 text-sm not-italic text-[#d9b978]">+{desktopDemoHonors.length} mẫu</span>}<span aria-label={`Sở hữu thật: ${ownedHonorCount}`} className="inline-flex shrink-0 items-baseline gap-1 text-[length:var(--ui-p-22,22px)] not-italic font-medium compact:relative compact:-top-[var(--ui-p-3,3px)] compact:items-center compact:leading-none compact:text-[length:var(--ui-p-28,28px)]"><span>Sở hữu:</span><span className="font-number text-[20px] lining-nums tabular-nums compact:text-[1em] compact:leading-none">{ownedHonorCount}</span></span>{editable && <button data-ui-tab-sound type="button" aria-label="Mở danh hiệu" onClick={() => { setSelectedHonor(null); setHonorsOpen(true) }} className={`${buttonInteraction} grid size-7 shrink-0 place-items-center rounded-md p-0 text-[#f1bd58] hover:bg-[#f3dba71a] hover:text-[#ffe8ad]`}><svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" /></svg></button>}</h3>
+          <div className={`relative h-[var(--ui-p-220,220px)] overflow-hidden desktop:min-h-[calc(var(--ui-p-220,220px)+12px)] desktop:flex-1 compact:h-auto compact:min-h-0 compact:flex-1 ${previewHonorPages.length === 0 ? 'desktop:static' : ''}`} aria-label="Danh hiệu đã chọn để hiển thị">
             {previewHonorPages.length > 0 ? <div ref={previewHonorTrackRef} className="flex h-full w-full">
               {previewHonorPages.map((page, pageIndex) => <div key={pageIndex} role="group" aria-label={`Trang danh hiệu ${pageIndex + 1} / ${previewHonorPages.length}`} aria-hidden={!visiblePreviewHonorPages.includes(pageIndex)} inert={!visiblePreviewHonorPages.includes(pageIndex)} className="grid h-full w-full shrink-0 grid-cols-3 grid-rows-3 content-start gap-x-3 gap-y-3">
                 {page.map((honor, pageSlotIndex) => <ProfileHonorPreviewBadge key={honor.id} honor={honor} onSelect={(selected, trigger) => {
                   const badge = trigger.getBoundingClientRect()
+                  const dialogBounds = dialogRef.current?.getBoundingClientRect()
                   const side = pageSlotIndex % 3 < 2 ? 'right' : 'left'
+                  const viewportAnchorX = side === 'right' ? badge.right + 15 : badge.left - 15
+                  const anchorX = rankingCloseLayout.compact || !dialogBounds
+                    ? viewportAnchorX
+                    : viewportAnchorX - dialogBounds.left
                   setSelectedHonor(selected)
-                  setPreviewDetailPosition({ side, anchorX: side === 'right' ? badge.right + 15 : badge.left - 15 })
+                  setPreviewDetailPosition({ side, anchorX, availableWidth: rankingCloseLayout.compact ? undefined : Math.max(0, side === 'right' ? window.innerWidth - viewportAnchorX : viewportAnchorX) })
                   setPreviewHonorDetailOpen(true)
                 }} />)}
               </div>)}
-            </div> : <p className="grid h-full place-items-center text-center font-cormorant text-2xl font-semibold text-[#f3d59a] compact:text-3xl">Chưa có danh hiệu</p>}
+            </div> : <p className="grid h-full place-items-center text-center font-cormorant text-2xl font-semibold text-[#f3d59a] compact:text-3xl desktop:pointer-events-none desktop:absolute desktop:inset-0 desktop:m-0">Chưa có danh hiệu</p>}
           </div>
         </section>}
         </>}
       </div>
       {googleLinkOpen && <GoogleLinkDialog onClose={()=>setGoogleLinkOpen(false)} />}
       {renameOpen && canRename && <ProfileRenameDialog name={ownName} onSave={profilePersistence.rename} onClose={()=>setRenameOpen(false)} />}
-      {!avatarCustomizationOpen && !locationPickerOpen && <footer className="relative mt-4 flex shrink-0 items-center justify-between gap-3">{showAccountActions && !account?.linked ? <button type="button" className={`${goldButton} compact:min-w-[var(--ui-p-240,240px)] compact:px-8 compact:py-4 compact:text-2xl`} onClick={()=>account?setGoogleLinkOpen(true):onPrimaryAction()}>{primaryActionLabel}</button> : viewOtherProfileInfo ? <button type="button" className={goldButton} onClick={() => setViewOtherProfileInfo(false)}>Quay lại</button> : <span />}<button type="button" autoFocus className={`${goldButton} compact:min-w-[var(--ui-p-240,240px)] compact:px-8 compact:py-4 compact:text-2xl`} onClick={showAccountActions ? () => { setLogoutError(''); logoutDialogRef.current?.showModal() } : onClose}>{showAccountActions ? 'Đăng xuất' : 'Thoát'}</button></footer>}
+      {linkRequiredOpen && <NoticeOverlay onDismiss={()=>setLinkRequiredOpen(false)} className={confirmationDialogOverlay}><section role="alertdialog" aria-modal="true" aria-labelledby="rename-link-required-title" className={confirmationDialogFrame} onKeyDown={event=>{if(event.key==='Escape')setLinkRequiredOpen(false)}}><h2 id="rename-link-required-title" className={confirmationDialogTitle}>Liên kết tài khoản</h2><p className={confirmationDialogDescription}>Bạn cần liên kết tài khoản để đổi tên.</p><div className={confirmationDialogActions}><button type="button" autoFocus className={confirmationCancelButton} onClick={()=>setLinkRequiredOpen(false)}>Hủy</button><button type="button" className={confirmationAcceptButton} onClick={()=>{setLinkRequiredOpen(false);setGoogleLinkOpen(true)}}>Liên kết</button></div></section></NoticeOverlay>}
+      {!avatarCustomizationOpen && !locationPickerOpen && <footer className="relative mt-4 flex shrink-0 items-center justify-between gap-3">{!isOwnProfile && viewOtherProfileInfo ? <button type="button" data-ui-selection-sound className={`${goldButton} compact:min-w-[var(--ui-p-240,240px)] compact:px-8 compact:py-4 compact:text-2xl`} onClick={() => setViewOtherProfileInfo(false)}>Quay lại</button> : showAccountActions && !account?.linked ? <button type="button" data-ui-selection-sound className={`${goldButton} compact:min-w-[var(--ui-p-240,240px)] compact:px-8 compact:py-4 compact:text-2xl`} onClick={()=>account?setGoogleLinkOpen(true):onPrimaryAction()}>{primaryActionLabel}</button> : <span />}<button type="button" data-ui-selection-sound autoFocus className={`${goldButton} compact:min-w-[var(--ui-p-240,240px)] compact:px-8 compact:py-4 compact:text-2xl`} onClick={showAccountActions ? () => { setLogoutError(''); logoutDialogRef.current?.showModal() } : onClose}>{showAccountActions ? 'Đăng xuất' : 'Thoát'}</button></footer>}
     </div>
     {['top-0 left-0', 'top-0 right-0 -scale-x-100', 'bottom-0 left-0 -scale-y-100', 'bottom-0 right-0 -scale-x-100 -scale-y-100'].map(position => <svg key={position} aria-hidden="true" viewBox="0 0 90 90" className={`pointer-events-none absolute size-[var(--ui-p-76,76px)] ${position}`} fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M7 79V20Q7 7 21 7h58M16 66V26q0-10 12-10h37M14 47c40 7 6-48 38-34 14 7-5 25-13 21S44 6 62 9M21 74c-8-24 22-9 19-28" stroke="#64320f" strokeWidth="11"/><path d="M7 79V20Q7 7 21 7h58M16 66V26q0-10 12-10h37M14 47c40 7 6-48 38-34 14 7-5 25-13 21S44 6 62 9M21 74c-8-24 22-9 19-28" stroke="#d8a34e" strokeWidth="6"/><path d="M7 74V20Q7 7 21 7h52M16 42c26 4 10-30 27-29" stroke="#ffe1a0" strokeWidth="2"/></svg>)}
 
-    {profileActionFeedback && <NoticeOverlay onDismiss={() => setProfileActionFeedback(null)} className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 p-5"><section role="alertdialog" aria-modal="true" aria-label="Thông báo" className={`${mobileNoticePanelStyle} ${panel} w-full max-w-[var(--ui-p-380,380px)] p-5 text-center text-[#ffe3a2] compact:w-[min(360px,calc(100vw-48px))] compact:max-w-none compact:rounded-[14px] compact:p-[20px] compact:[&>p]:mb-[20px] compact:[&>p]:text-[18px] compact:[&>p]:leading-relaxed compact:[&_button]:min-h-[46px] compact:[&_button]:min-w-[120px] compact:[&_button]:text-[18px]`}><p className="mb-5 text-lg">{profileActionFeedback}</p><button type="button" autoFocus className={`${mobileNoticeButtonStyle} ${goldButton}`} onClick={() => setProfileActionFeedback(null)}>Đóng</button></section></NoticeOverlay>}
+    {profileActionFeedback && <NoticeOverlay onDismiss={() => setProfileActionFeedback(null)} className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 p-5"><section role="alertdialog" aria-modal="true" aria-label="Thông báo" className={oneChoiceNoticePanel}><p className="mb-5 text-lg">{profileActionFeedback}</p><button type="button" autoFocus className={oneChoiceNoticeButton} onClick={() => setProfileActionFeedback(null)}>Đóng</button></section></NoticeOverlay>}
     {friendship.removalName && <MessagesFriendRemovalConfirmation name={friendship.removalName} skip={friendship.skipConfirmation} onSkipChange={friendship.setSkipConfirmation} onCancel={friendship.cancelRemoval} onConfirm={friendship.confirmRemoval} />}
     </div>}
 
-    <dialog ref={logoutDialogRef} aria-label="Xác nhận đăng xuất" className={`${panel} m-auto w-[min(420px,calc(100vw-24px))] p-6 text-center text-[#ffe3a2] backdrop:bg-black/60`}>
-      <p className="m-0 mb-6 font-heading text-2xl font-semibold">Bạn có chắc muốn đăng xuất?</p>
+    <dialog ref={logoutDialogRef} aria-label="Xác nhận đăng xuất" className={`${confirmationDialogFrame} m-auto backdrop:bg-black/60`}>
+      <h2 className={confirmationDialogTitle}>Xác nhận đăng xuất</h2>
+      <p className={confirmationDialogDescription}>Bạn có chắc muốn đăng xuất?</p>
       {logoutError && <p role="alert" className="mb-4">{logoutError}</p>}
-      <div className="flex justify-center gap-3"><button type="button" autoFocus className={`${goldButton} min-w-0! flex-1`} onClick={() => logoutDialogRef.current?.close()}>Hủy</button><button type="button" className={`${goldButton} min-w-0! flex-1`} onClick={confirmLogout}>Đồng ý</button></div>
+      <div className={confirmationDialogActions}><button type="button" autoFocus className={`${confirmationCancelButton} min-w-0! flex-1 px-4 py-2 text-lg`} onClick={() => logoutDialogRef.current?.close()}>Hủy</button><button type="button" className={`${confirmationAcceptButton} min-w-0! flex-1 px-4 py-2 text-lg`} onClick={confirmLogout}>Đồng ý</button></div>
     </dialog>
     {sentFeedback.notice}
-    {previewHonorDetailOpen && selectedHonor && previewDetailPosition && <HonorDetailPopover honor={selectedHonor} standalonePosition={previewDetailPosition} onBack={closePreviewHonorDetail} />}
+    {previewHonorDetailOpen && selectedHonor && previewDetailPosition && <HonorDetailPopover honor={selectedHonor} standalonePosition={previewDetailPosition} onBack={() => setPreviewHonorDetailOpen(false)} />}
   </dialog>
 }
 

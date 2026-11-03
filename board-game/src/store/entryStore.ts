@@ -3,7 +3,7 @@ import { ENTRY_STORAGE_KEY } from '../lib/guestIdentity'
 import type { GuestEntry } from '../lib/guestIdentity'
 import { useSessionStore } from './sessionStore'
 import { accountApi } from '../services/accountApi'
-import { loadAccountData } from '../services/accountSession'
+import { loadAccountData, clearAccountHistoryCache } from '../services/accountSession'
 import { socket } from '../services/socket'
 import axios from 'axios'
 import { errorMessage } from '../services/api'
@@ -63,6 +63,7 @@ export const useEntryStore = create<{
     const entry = get().entry
     try{if (entry) localStorage.setItem(ENTRY_STORAGE_KEY, JSON.stringify({ ...entry, signedOut: true }))}catch{/* Session already revoked by the backend. */}
     set({ entry: null,restoreError:'' })
+    clearAccountHistoryCache()
     useSessionStore.setState({account:null})
   },
 }))

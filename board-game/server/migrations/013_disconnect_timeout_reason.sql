@@ -1,0 +1,1 @@
+ALTER TABLE matches DROP CHECK ck_matches_reason, ADD CONSTRAINT ck_matches_reason CHECK (finish_reason IS NULL OR finish_reason IN ('capture','checkmate','stalemate','timeout','resign','draw','leave','disconnect_timeout','server_abort'));

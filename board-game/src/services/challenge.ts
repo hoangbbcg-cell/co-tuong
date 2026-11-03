@@ -14,14 +14,14 @@ export async function publishChallengePresence() {
   const reply = await socket.timeout(8000).emitWithAck('presence:update', challengeProfile())
   if (!reply.ok) throw new Error(reply.error)
 }
-export async function sendChallenge(name: string, id?: string) {
+export async function sendChallenge(name: string, id?: string, accountId?: string) {
   // Machine opponents cannot receive an online request.
   if (name.startsWith('Máy') || name.startsWith('Pikafish') || name.startsWith('Ông Hoàng')) {
     throw new Error('Không thể gửi lời mời So tài đến người máy.')
   }
   if (!useChallengeCooldownStore.getState().start()) throw new Error('Vui lòng chờ 5 giây trước khi mời chơi tiếp.')
   await publishChallengePresence()
-  const reply = await socket.timeout(8000).emitWithAck('challenge:send', { name, id })
+  const reply = await socket.timeout(8000).emitWithAck('challenge:send', { name, id, accountId })
   if (!reply.ok) throw new Error(reply.error)
 }
 export async function replyChallenge(id: string, accepted: boolean, blockMinutes?: 5 | 10) {

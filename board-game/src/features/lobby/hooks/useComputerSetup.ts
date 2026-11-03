@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSessionStore } from '../../../store/sessionStore'
 import { useGameStore } from '../../../store/gameStore'
-import { pikafishApi } from '../../../services/pikafish'
+import { fairyStockfishApi } from '../../../services/fairyStockfish'
 import { errorMessage } from '../../../services/api'
+import { playBoardEntryActionSound } from '../../../lib/uiActionSound'
 
 export function useComputerSetup() {
   const name = useSessionStore(state => state.name)
   const [side, setSide] = useState<'red' | 'black' | 'random'>('red')
   const level = useSessionStore(state => state.computerLevel)
-  const engine = 'pikafish' as const
+  const engine = 'fairy' as const
   const setLevel = (next: number) => {
     if (Number.isInteger(next) && next >= 1 && next <= 10) useSessionStore.setState({ computerLevel: next })
   }
@@ -33,9 +34,10 @@ export function useComputerSetup() {
       const humanSide = side === 'random' ? (Math.random() < .5 ? 'red' : 'black') : side
       const computerEngine = engine
       try {
-        await pikafishApi.ready(controller.signal)
+        await fairyStockfishApi.ready(controller.signal)
         if (controller.signal.aborted || useSessionStore.getState().screen !== 'computer') return
         useGameStore.getState().reset(performance.now())
+        playBoardEntryActionSound()
         useSessionStore.getState().joinLocal()
         useSessionStore.setState({ mode: 'computer', humanSide, computerEngine, computerLevel: level })
       } catch (error) {

@@ -1,3 +1,4 @@
+export function isEnergyError(message: string) { return message.startsWith('Không đủ năng lượng') }
 export const MAX_ENERGY = 5
 export const ENERGY_RECOVERY_MS = 7 * 60 * 1000
 export function recoverEnergy(energy: number, recoveryAt: number | null, now: number) {

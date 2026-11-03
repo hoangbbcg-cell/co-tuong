@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HOVANG V6 Audio Diagnostic</title>
+<style>
+body { font: 16px Arial; background:#171717; color:white; padding:24px; max-width:720px; margin:auto }
+button { padding:15px; margin:6px 4px; font-size:16px; cursor:pointer }
+pre { white-space:pre-wrap; word-break:break-word; background:#282828; padding:16px }
+</style>
+</head>
+<body>
+<h2>HOVANG - Clock Audio Diagnostic V6.3</h2>
+<p>Bat loa va bam tung nut de kiem tra.</p>
+<button id="html">1. Test MP3</button>
+<button id="web">2. Test Web Audio</button>
+<button id="beep">3. Test am thanh tao san</button>
+<button id="copy">Copy ket qua</button>
+<pre id="log"></pre>
+<script>
+const logEl = document.getElementById('log');
+const url = '/src/assets/audio/hovang-clock-tick-v6.mp3';
+let audio;
+let ctx;
+function log(s) {
+  logEl.textContent += new Date().toLocaleTimeString() + ' | ' + s + '\n';
+}
+function errorText(e) { return String(e?.message || e); }
+async function context() {
+  ctx ||= new AudioContext();
+  await ctx.resume();
+  log('AudioContext: ' + ctx.state + ', sampleRate=' + ctx.sampleRate);
+  return ctx;
+}
+async function loadBuffer(c) {
+  const r = await fetch(url, {cache:'no-store'});
+  log('HTTP status: ' + r.status);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const data = await r.arrayBuffer();
+  log('MP3 bytes: ' + data.byteLength);
+  const b = await c.decodeAudioData(data);
+  log('Decoded duration: ' + b.duration.toFixed(3) + ' s');
+  let sum=0, peak=0, n=0;
+  for(let ch=0;ch<b.numberOfChannels;ch++) {
+    const samples=b.getChannelData(ch);
+    for(let i=0;i<samples.length;i++) {
+      const v=Math.abs(samples[i]);
+      sum+=v*v; peak=Math.max(peak,v); n++;
+    }
+  }
+  log('RMS: '+Math.sqrt(sum/Math.max(n,1)).toFixed(6)+
+      ' | Peak: '+peak.toFixed(6));
+  return b;
+}
+document.getElementById('html').onclick=async()=>{
+  try {
+    audio?.pause();
+    audio=new Audio(url);
+    audio.volume=1;
+    await audio.play();
+    log('HTMLAudio: PLAYING, muted='+audio.muted);
+    audio.onended=()=>log('HTMLAudio: ENDED');
+    audio.onerror=()=>log('HTMLAudio: ERROR code='+audio.error?.code);
+  } catch(e) {log('HTMLAudio ERROR: '+errorText(e))}
+};
+document.getElementById('web').onclick=async()=>{
+  try {
+    const c=await context();
+    const b=await loadBuffer(c);
+    const s=c.createBufferSource();
+    const gain=c.createGain();
+    gain.gain.value=1;
+    s.buffer=b;
+    s.connect(gain).connect(c.destination);
+    s.onended=()=>log('WebAudio: ENDED');
+    s.start();
+    log('WebAudio: STARTED');
+  } catch(e) {log('WebAudio ERROR: '+errorText(e))}
+};
+document.getElementById('beep').onclick=async()=>{
+  try {
+    const c=await context();
+    const o=c.createOscillator();
+    const g=c.createGain();
+    o.frequency.value=800;
+    g.gain.value=0.15;
+    o.connect(g).connect(c.destination);
+    o.start();
+    o.stop(c.currentTime+0.25);
+    log('Generated beep: STARTED');
+  } catch(e) {log('Beep ERROR: '+errorText(e))}
+};
+document.getElementById('copy').onclick=async()=>{
+  try {
+    await navigator.clipboard.writeText(logEl.textContent);
+    log('Copied');
+  } catch(e) {
+    log('Copy failed: '+errorText(e));
+  }
+};
+log('Diagnostic ready');
+log('URL: '+url);
+</script>
+</body>
+</html>

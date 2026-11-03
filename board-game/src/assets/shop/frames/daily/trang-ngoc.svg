@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>Viền trắng ngọc</title>
+  <defs><linearGradient id="rim" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#fffbeb"/><stop offset=".32" stop-color="#ada790"/><stop offset=".62" stop-color="#fffbeb"/><stop offset="1" stop-color="#ada790"/></linearGradient></defs>
+  <circle cx="256" cy="256" r="222" fill="none" stroke="#ada790" stroke-width="34"/>
+  <circle cx="256" cy="256" r="222" fill="none" stroke="url(#rim)" stroke-width="28"/>
+  <circle cx="256" cy="256" r="238" fill="none" stroke="#fff4c7" stroke-width="3"/>
+  <circle cx="256" cy="256" r="207" fill="none" stroke="#fff4c7" stroke-width="3"/>
+  <circle cx="256" cy="256" r="233" fill="none" stroke="#fffbeb" stroke-width="2" opacity=".75"/>
+  <circle cx="256" cy="256" r="211" fill="none" stroke="#ada790" stroke-width="2"/>
+  <path d="M47 192q-10 28-10 64m428-64q10 28 10 64" fill="none" stroke="#fff4c7" stroke-width="2" opacity=".75"/>
+  <g fill="url(#rim)" stroke="#fff4c7" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M230 33c1-29 51-29 52 0-3 28-49 28-52 0Z"/><circle cx="256" cy="32" r="15"/><path d="m239 46-10 7m44-7 10 7M249 19q-8 2-7 11" fill="none"/></g>
+  <g transform="translate(256 478)" stroke="#fff4c7" stroke-width="2" stroke-linejoin="round">
+    <path d="M-26-2q12 14 26 9Q14 12 26-2M-20 4q8 11 20 9Q12 15 20 4" fill="none"/>
+    <path d="m0-12 9 11-9 11-9-11Z" fill="url(#rim)"/>
+  </g>
+</svg>

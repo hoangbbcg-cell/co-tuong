@@ -1,3 +1,4 @@
+import { MATCH_INTRO_MS } from '../src/game/moves/actions'
 import { describe, expect, it } from 'vitest'
 import { RoomService } from '../server/services/roomService'
 import { RoomRepository } from '../server/repositories/roomRepository'
@@ -11,7 +12,7 @@ describe('Cấu hình thời gian khi tạo bàn', () => {
     service.join(id, 'black', 'Đen')
     service.command('red', { type: 'ready' })
     service.command('black', { type: 'ready' })
-    now = 1300 + seconds * 1000 - 1
+    now = MATCH_INTRO_MS + seconds * 1000 - 1
     service.tick()
     expect(service.roomFor('red')?.game.phase).toBe('playing')
     now++

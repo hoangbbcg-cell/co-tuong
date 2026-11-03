@@ -43,7 +43,7 @@ export function usePikafishHint(game: GameState, humanSide: Side, enabled: boole
         && next.humanSide === humanSide && next.enabled && next.revision === revision
     }
     try {
-      const move = await pikafishApi.move([], 600_000, 10, controller.signal, positionFen(game.board, humanSide), 700)
+      const move = await pikafishApi.move([], 600_000, 10, controller.signal, positionFen(game.board, humanSide), 800, 800)
       if (!current()) return
       const { from, to } = move
       if (game.board[from.row]?.[from.col]?.side !== humanSide

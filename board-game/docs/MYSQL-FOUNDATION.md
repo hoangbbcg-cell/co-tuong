@@ -70,3 +70,5 @@ CLI → migration/smoke repository → pool. UserService → UserRepository đã
 Elo/rank/sao frontend hiện hành giữ nguyên; rank/sao derive, không lưu bảng riêng. Chưa có OAuth/session/token hoặc cơ chế xác minh linked_at. Chưa chuyển profile/social/chat/history/positions/localStorage sang DB, chưa seed honors, chưa giao dịch cập nhật Elo/tài nguyên hoặc lưu trận tự động. Không tin Elo/kết quả/linked flag từ client. JSON cần validate bằng engine/service lúc tích hợp; DB chỉ bảo đảm JSON hợp lệ, không xác minh luật cờ. Messages cần service kiểm tra 300 ký tự, membership đang hoạt động và block; FK chỉ bảo đảm membership tồn tại. Ledger không tự cập nhật balance: service tương lai phải transaction và kiểm tra idempotency/version. Chưa có thanh toán/quảng cáo/gói năng lượng.
 
 Khi backend HTTP bắt đầu dùng pool phải nối closeMysqlPool vào shutdown; hiện pool chỉ được CLI hoặc service gọi chủ động, không mở khi import. Runtime phòng/presence/hàng chờ/socket tiếp tục RAM. Không lưu PNG, binary engine hoặc NNUE vào DB.
+
+

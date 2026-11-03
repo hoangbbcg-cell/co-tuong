@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>Viền nâu gỗ</title>
+  <defs><linearGradient id="rim" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#b98759"/><stop offset=".32" stop-color="#4f2d19"/><stop offset=".62" stop-color="#b98759"/><stop offset="1" stop-color="#4f2d19"/></linearGradient></defs>
+  <circle cx="256" cy="256" r="222" fill="none" stroke="#4f2d19" stroke-width="34"/>
+  <circle cx="256" cy="256" r="222" fill="none" stroke="url(#rim)" stroke-width="28"/>
+  <circle cx="256" cy="256" r="238" fill="none" stroke="#e8c18c" stroke-width="3"/>
+  <circle cx="256" cy="256" r="207" fill="none" stroke="#e8c18c" stroke-width="3"/>
+  <circle cx="256" cy="256" r="233" fill="none" stroke="#b98759" stroke-width="2" opacity=".75"/>
+  <circle cx="256" cy="256" r="211" fill="none" stroke="#4f2d19" stroke-width="2"/>
+  <path d="M47 192q-10 28-10 64m428-64q10 28 10 64" fill="none" stroke="#e8c18c" stroke-width="2" opacity=".75"/>
+  <g fill="url(#rim)" stroke="#e8c18c" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M227 20c-15-2-18 20-6 25 10 4 18-10 9-13-8-3-8 11-1 11h53c15 0 13-25 1-25-12 0-12 18-1 18 8 0 6-10-1-8" fill="none" stroke-width="4"/><path d="M235 25h36m-33 13h34" fill="none"/></g>
+  <g transform="translate(256 478)" stroke="#e8c18c" stroke-width="2" stroke-linejoin="round">
+    <path d="M-26-2q12 14 26 9Q14 12 26-2M-20 4q8 11 20 9Q12 15 20 4" fill="none"/>
+    <path d="m0-12 9 11-9 11-9-11Z" fill="url(#rim)"/>
+  </g>
+</svg>

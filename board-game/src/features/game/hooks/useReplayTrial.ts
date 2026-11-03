@@ -2,21 +2,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { GameState, Move, Position, Side } from '../../../types/game'
 import { getLegalMoves } from '../../../game/rules'
 import { applyMoveWithResult } from '../../../game/moves/actions'
-import { pikafishApi } from '../../../services/pikafish'
+import { fairyStockfishApi } from '../../../services/fairyStockfish'
 import { errorMessage } from '../../../services/api'
 import { positionFen } from '../../../game/state/customPosition'
 import { toUci } from '../../../game/moves/uci'
 import { candidateRepetition } from '../../../game/rules/repetition'
 import { PIECE_MOVE_DURATION_MS } from '../moveAnimation'
 
-interface Trial { states: GameState[]; step: number; animation: Move | null; moveOnlySound: boolean }
+interface Trial { states: GameState[]; step: number; animation: Move | null }
 function createTrial(source: GameState | undefined): Trial | null {
   if (!source) return null
   const initial = structuredClone(source)
   initial.phase = 'playing'; initial.result = null
   initial.lastClockUpdate = 0; initial.turnElapsed = 0
   initial.remainingTime = { red: 600_000, black: 600_000 }
-  return { states: [initial], step: 0, animation: null, moveOnlySound: false }
+  return { states: [initial], step: 0, animation: null }
 }
 
 export function useReplayTrial(source: GameState | undefined, humanSide: Side, recordingId?: string, startImmediately = false, machineImmediately = false) {
@@ -46,7 +46,7 @@ export function useReplayTrial(source: GameState | undefined, humanSide: Side, r
       if (!current || current.animation) return current
       const result = applyMoveWithResult(current.states[current.step], move, 0)
       if (result.rejection) return current
-      return { states: [...current.states.slice(0, current.step + 1), result.game], step: current.step + 1, animation: move, moveOnlySound: false }
+      return { states: [...current.states.slice(0, current.step + 1), result.game], step: current.step + 1, animation: move }
     })
     setSelected(null)
   }, [])
@@ -72,7 +72,7 @@ export function useReplayTrial(source: GameState | undefined, humanSide: Side, r
           if (!state.lastMove) throw new Error('Thiếu nước đi trong nhánh thử.')
           return toUci(state.lastMove)
         })
-        const move = await pikafishApi.move(history, 600_000, 10, controller.signal, positionFen(initial.board, initial.currentTurn), 700)
+        const move = await fairyStockfishApi.move(history, 600_000, 10, controller.signal, positionFen(initial.board, initial.currentTurn))
         if (controller.signal.aborted) return
         if (applyMoveWithResult(game, move, 0).rejection) throw new Error('Ông Hoàng trả về nước đi không hợp lệ.')
         commit(move)
@@ -86,11 +86,11 @@ export function useReplayTrial(source: GameState | undefined, humanSide: Side, r
     const timer = window.setTimeout(() => setTrial(current => current && { ...current, animation: null }), PIECE_MOVE_DURATION_MS)
     return () => window.clearTimeout(timer)
   }, [trial?.animation])
-  const seek = (step: number) => { setPaused(true); setSelected(null); setTrial(current => current && { ...current, animation: null, step: Math.max(0, Math.min(current.states.length - 1, step)), moveOnlySound: true }) }
-  const reset = () => { setPaused(false); setSelected(null); setTrial(current => current && { states: [current.states[0]], step: 0, animation: null, moveOnlySound: true }) }
+  const seek = (step: number) => { setPaused(true); setSelected(null); setTrial(current => current && { ...current, animation: null, step: Math.max(0, Math.min(current.states.length - 1, step)) }) }
+  const reset = () => { setPaused(false); setSelected(null); setTrial(current => current && { states: [current.states[0]], step: 0, animation: null }) }
   const back = () => {
     if (!trial || trial.step === 0) return
     seek(trial.step - 1)
   }
-  return { revision: trial?.states, active: !!trial, game, animation: trial?.animation ?? null, moveOnlySound: trial?.moveOnlySound ?? false, selected, moves, select, toggle, back, step: trial?.step ?? 0, total: (trial?.states.length ?? 1) - 1, seek, reset, machine, error, thinking, retry: () => setAttempt(value => value + 1), toggleMachine: () => { setPaused(false); setSelected(null); setMachine(value => !value) } }
+  return { revision: trial?.states, active: !!trial, game, animation: trial?.animation ?? null, selected, moves, select, toggle, back, step: trial?.step ?? 0, total: (trial?.states.length ?? 0) - 1, seek, reset, machine, error, thinking, retry: () => setAttempt(value => value + 1), toggleMachine: () => { setPaused(false); setSelected(null); setMachine(value => !value) } }
 }

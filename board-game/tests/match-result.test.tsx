@@ -8,12 +8,37 @@ import { createGame } from '../src/game/state/initial'
 import type { GameState, Side } from '../src/types/game'
 
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
+it('spectators hear victory after the same completion gates, without receiving a result popup', () => {
+  const initial = { ...props(playing), side: null, waitForCheckmate: true, audioComplete: false }
+  const hook = renderHook(useMatchResult, { initialProps: initial })
+  hook.rerender({ ...initial, game: ended('red', 'checkmate') })
+  expect(hook.result.current.spectatorVictoryReady).toBe(false)
+  act(() => hook.result.current.complete())
+  expect(hook.result.current.spectatorVictoryReady).toBe(false)
+  hook.rerender({ ...initial, game: ended('red', 'checkmate'), audioComplete: true })
+  expect(hook.result.current.spectatorVictoryReady).toBe(true)
+  expect(hook.result.current.outcome).toBeNull()
+  hook.rerender({ ...initial, game: playing })
+  expect(hook.result.current.spectatorVictoryReady).toBe(false)
+})
+
+it('does not play spectator victory when entering an already finished match', () => {
+  const hook = renderHook(useMatchResult, { initialProps: { ...props(ended('red', 'timeout')), side: null } })
+  expect(hook.result.current.spectatorVictoryReady).toBe(false)
+})
+it('clears the previous seat result without remounting the room', () => {
+  const hook = renderHook(useMatchResult, { initialProps: { ...props(playing), roomKey: 'room:self,old' } })
+  hook.rerender({ ...props(ended('red', 'timeout')), roomKey: 'room:self,old' })
+  expect(hook.result.current.outcome).toBe('win')
+  hook.rerender({ ...props(ended('red', 'timeout')), roomKey: 'room:self,new' })
+  expect(hook.result.current.outcome).toBeNull()
+})
 const playing: GameState = { board: [], currentTurn: 'red', phase: 'playing', remainingTime: { red: 600000, black: 600000 }, lastClockUpdate: 0, turnElapsed: 0, result: null, lastMove: null }
 
 it.each(['button', 'img', 'dialog'])('locks dismissal for one second, then closes from %s', target => {
   let now = 100
   vi.spyOn(performance, 'now').mockImplementation(() => now)
-  Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: vi.fn() })
+  Object.defineProperty(HTMLDialogElement.prototype, 'show', { configurable: true, value: vi.fn() })
   const close = vi.fn()
   const view = render(<MatchResultDialog outcome="win" onClose={close} />)
   const dialog = view.container.querySelector('dialog')!
@@ -28,8 +53,28 @@ it.each(['button', 'img', 'dialog'])('locks dismissal for one second, then close
   fireEvent.click(element)
   expect(close).toHaveBeenCalledTimes(1)
 })
+
+it('renders the result as a non-modal viewport overlay without a dimming backdrop', () => {
+  Object.defineProperty(HTMLDialogElement.prototype, 'show', { configurable: true, value: vi.fn() })
+  const view = render(<MatchResultDialog outcome="win" onClose={() => {}} />)
+  const dialog = view.container.querySelector('dialog')!
+  expect(HTMLDialogElement.prototype.show).toHaveBeenCalled()
+  expect(dialog.className).toContain('fixed')
+  expect(dialog.className).toContain('pointer-events-none')
+  expect(dialog.className).not.toContain('backdrop:bg-black')
+})
 const ended = (winner: Side | null, reason: 'checkmate' | 'timeout' | 'draw' = 'checkmate'): GameState => ({ ...playing, phase: 'finished', result: { winner, reason } })
 const props = (game: GameState, side: Side | null = 'red', enabled = true) => ({ game, side, enabled, roomKey: 'one', waitForCheckmate: game.result?.reason === 'checkmate' })
+it('shows a departure handoff once in the persistent room, then clears it on another seat change', () => {
+  const hook = renderHook(useMatchResult, { initialProps: { ...props(playing), roomKey: 'room:self,old', initialResultSide: undefined as Side | undefined } })
+  const finished: GameState = { ...playing, phase: 'finished', result: { winner: 'red', reason: 'leave' } }
+  hook.rerender({ ...props(finished), roomKey: 'room:self', initialResultSide: 'red' })
+  expect(hook.result.current.outcome).toBe('win')
+  hook.rerender({ ...props(finished), roomKey: 'room:self,new', initialResultSide: undefined })
+  expect(hook.result.current.outcome).toBeNull()
+  hook.rerender({ ...props(finished), roomKey: 'room:self', initialResultSide: undefined })
+  expect(hook.result.current.outcome).toBeNull()
+})
 
 it('shows the tracked winner after an opponent departure remount', () => {
   const game: GameState = { ...playing, phase: 'finished', result: { winner: 'red', reason: 'leave' } }
@@ -166,4 +211,45 @@ it('still completes after one browser animation is canceled, waiting for all oth
     if (previous) Object.defineProperty(Element.prototype, 'animate', previous)
     else Reflect.deleteProperty(Element.prototype, 'animate')
   }
+})
+
+it('keeps the result when seats change and clears only on own Ready', () => {
+  const initial = { ...props(playing), ready: false }
+  const hook = renderHook(useMatchResult, { initialProps: initial })
+  hook.rerender({ ...initial, game: ended('red','timeout') })
+  expect(hook.result.current.outcome).toBe('win')
+  hook.rerender({ ...initial, game: { ...playing, phase: 'ready' }, side: null })
+  expect(hook.result.current.outcome).toBe('win')
+  hook.rerender({ ...initial, game: { ...playing, phase: 'ready' }, side: 'black' })
+  expect(hook.result.current.outcome).toBe('win')
+  hook.rerender({ ...initial, game: { ...playing, phase: 'ready' }, ready: true })
+  expect(hook.result.current.outcome).toBeNull()
+})
+
+it('tracks a playing participant even when the server retains the ready flag during play', () => {
+  const initial = { ...props(playing), ready: true }
+  const hook = renderHook(useMatchResult, { initialProps: initial })
+  hook.rerender({ ...initial, game: ended('red', 'timeout'), ready: false })
+  expect(hook.result.current.outcome).toBe('win')
+})
+
+it('new arrivals never get the prior result or spectator fanfare, seated or watching', () => {
+  const initial = props({...playing,phase:'ready'}, null)
+  const hook = renderHook(useMatchResult,{initialProps:initial})
+  hook.rerender({...initial,game:ended('red','timeout'),side:'red'})
+  expect(hook.result.current.outcome).toBeNull()
+  expect(hook.result.current.spectatorVictoryReady).toBe(false)
+})
+
+it('shows the next-game countdown above the still-open result dialog', () => {
+  Object.defineProperty(HTMLDialogElement.prototype, 'show', { configurable: true, value: vi.fn() })
+  const view=render(<MatchResultDialog outcome="win" onClose={()=>{}} readyCountdown={30}/>)
+  const countdown = view.getByLabelText('Đếm ngược ván tiếp theo')
+  expect(countdown.textContent).toBe('30')
+  expect(countdown.className).toContain('bg-transparent')
+  expect(countdown.className).toContain('p-0')
+  expect(countdown.className).not.toContain('border')
+  expect(countdown.textContent).not.toMatch(/[A-Za-zÀ-ỹ]/)
+  view.rerender(<MatchResultDialog outcome="win" onClose={()=>{}} readyCountdown={29}/>)
+  expect(view.getByLabelText('Đếm ngược ván tiếp theo').textContent).toBe('29')
 })

@@ -1,4 +1,14 @@
+- 2026-10-27: Theo ảnh user, thông báo hành động trong Thông tin LAPTOP (ví dụ người chơi offline) dùng kiểu mobile: nền nâu phẳng/viền kem, nút vàng vuông nhẹ, rộng360px tối đa viewport−48px, chữ18px/padding20px. NoticeOverlay vẫn giữa viewport; dùng chung cho mọi profileActionFeedback, không đổi logic. Build/typecheck PASS; dist xác nhận style mới; chưa browser QA.
+
 # Mô hình tài khoản Guest và đã liên kết
+
+- 2026-10-27: Copy ID fallback đồng bộ trong click trước Clipboard API để không mất user activation khi API async bị chặn. Chép đúng số trên hồ sơ; build/typecheck PASS, chưa browser QA.
+
+- 2026-10-27: Sửa copy ID dùng đúng chuỗi số render ở PlayerInfoCard; chỉ cho bấm khi ID hợp lệ, tăng độ tin cậy textarea fallback sau Clipboard API. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user sửa nút sao chép ID trong hồ sơ: Clipboard API kèm fallback textarea/select, bỏ tooltip inline và báo kết quả bằng gợi ý nổi dùng chung (thành công/thất bại). Không đổi giá trị ID hoặc quyền tài khoản. Typecheck/build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, địa chỉ dài trong PlayerInfoCard dùng truncate/ellipsis thật, bấm toàn dòng địa chỉ để mở đầy đủ và bấm lại thu gọn. Close event của dialog reset expandedAddress để mở lại luôn gọn; địa chỉ ngắn không bật toggle. Dùng card chung mobile/laptop/hồ sơ chính-người khác/tùy chỉnh, giữ dữ liệu địa chỉ và avatar. Regression toggle/close1/1 PASS; build/typecheck PASS; dist index-ZgtnvGwY.js xác nhận cập nhật; chưa browser QA.
 
 Cập nhật Google Sign-In thật đã triển khai/migration004: xem [GOOGLE-SIGN-IN.md](GOOGLE-SIGN-IN.md). Những ghi chú Google chưa triển khai phía dưới là trạng thái lịch sử trước thay đổi này.
 
@@ -97,3 +107,14 @@ Chọn quốc gia trước; Việt Nam chọn thêm tỉnh/thành và xã/phư�
 - 2026-10-24: Theo user, giữ khung tên/Elo cạnh avatar cố định khi mở chỉnh avatar MOBILE: preview PlayerInfoCard dùng cùng chiều cao270/translateY-28 như hồ sơ, thay-20 gây nhảy8logical. Mở nút× DialogCloseButton chung trên tùy chỉnh avatar; bấm quay lại hồ sơ, không tự lưu avatar; nút hồ sơ vẫn đóng dialog. Giữ avatar geometry/desktop. Build/typecheck PASS; dist cập nhật; chưa browser QA.
 
 - 2026-10-26: Theo user, nềnmờ thôngbáo/xácnhận phải phủ toànviewport kểcả ngoài khunggame. Thêm NoticeOverlay dùng native dialog.showModal top-layer, fixedinset0/100vw×100dvh/maxnone để thoátclipping/transform khungcha nhưng kếthừatoken. Ápdụng MessagesFriendRemovalConfirmation dùngchung Hồsơ/Chat/thànhviênnhóm, feedbackHồsơ vàfeedbackBạnbè cả2viewport. Giữnộidung/nút/callback, EscapegọiHủy (pendingkhôngđóng); stopPropagationcancel/close để khôngđóng/resetdialogcha. Build/typecheck PASS,distcậpnhật; chưa browserQA. Chỉ mởphạmvilớpphủthôngbáo tasknày, geometryavatar/cácbảng giữkhóa.
+
+
+Ghi chú giao diện 2026-10-28: dòng địa chỉ trong thẻ hồ sơ tiếp tục hiển thị; khi hồ sơ chưa chọn địa chỉ, UI hiển thị “Chưa chọn địa chỉ”. Thay đổi padding khung không làm thay đổi địa chỉ lưu hoặc quy tắc chỉ lưu một lần.
+
+- 2026-10-28: Theo user, bộ chọn địa chỉ LAPTOP đồng bộ bố cục/tương tác với mobile: nút quay lại dạng icon 56px, danh sách quốc gia dọc ưu tiên Việt Nam rồi Trung Quốc, ẩn dòng lưu ý; cần click lần hai cùng quốc gia/tỉnh để chuyển bước/lưu. Giữ API, xác thực, quy tắc lưu một lần. Build PASS; chưa browser QA.
+
+- 2026-10-28: Theo user, bút đổi tên trong hồ sơ chính hiện cho mọi tài khoản chưa đổi tên, kể cả Guest chưa liên kết. Bấm bút ở Guest mở hộp thoại hai lựa chọn: cần liên kết tài khoản để đổi tên; Hủy hoặc Liên kết (mở GoogleLinkDialog). Tài khoản linked tiếp tục form đổi tên hiện hành; backend vẫn enforce quyền đổi một lần.
+- 2026-10-28: Đính chính phạm vi bút hồ sơ: bút đổi tên và bút chọn địa chỉ chỉ hiển thị trong hồ sơ chính mở từ HomePage. Các hồ sơ từ Chọn Bàn, trận đấu, Lịch sử, Tin nhắn và nơi khác không hiện nút sửa; quốc kỳ đã chọn vẫn hiển thị. Quyền/luồng backend giữ nguyên.
+- 2026-10-28: Bốn tab tùy chỉnh Chọn avatar/Chọn viền/Skin/Hiệu ứng phát customization-tab.mp4 khi click (cả laptop/mobile); preload qua uiActionSound và tôn trọng Tắt tiếng. Không đổi state/geometry avatar hoặc bố cục.
+
+- 2026-10-29: Theo user cả laptop/mobile: bút sửa tên và chọn địa chỉ chỉ xuất hiện ở màn Thông tin chính theo quyền sẵn có; không render trong preview Tùy chỉnh avatar. ProfileDialog chặn nameEditControl/editControl khi avatarCustomizationOpen, gỡ wrapper hidden/compact:contents để không còn nút ẩn trong DOM/focus. Không đổi quyền đổi tên/địa chỉ hoặc avatar geometry.

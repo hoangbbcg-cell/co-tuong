@@ -1,0 +1,25 @@
+/*
+ * HOVANG: Prevent browser text selection across game UI.
+ * Editable fields remain selectable for typing and copying.
+ */
+
+body,
+body * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Preserve normal selection and editing inside form fields. */
+input,
+textarea,
+[contenteditable="true"],
+[contenteditable=""],
+[role="textbox"],
+input *,
+textarea *,
+[contenteditable="true"] *,
+[contenteditable=""] *,
+[role="textbox"] * {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}

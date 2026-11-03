@@ -1,3 +1,7 @@
+- 2026-10-27: Theo user, riêng popup So tài LAPTOP chữ Không hiển thị lại12→14px; cụm tên/muốn so tài nâng4px. Mobile giữ nguyên. Build/typecheck PASS; dist xác nhận; chưa browser QA.
+
+- 2026-10-27: Theo user, popup nhận So tài LAPTOP rộng320→360px/padding12→16, nội dung20px; tên dùng cùng font/cỡ với chữ muốn so tài, số trong tên1em. Avatar riêng popup48→60px; viền/danh hiệu/sao giữ component và tỷ lệ chung, bật optimize-contrast cho ảnh/background riêng desktop để cải thiện sampling. Nút nhận/từ chối64×34; mobile giữ nguyên. Build/typecheck PASS; dist xác nhận; chưa browser QA độ nét, chưa khẳng định hết mờ.
+
 # Rendering ảnh UI nhỏ
 
 - 2026-10-24: Theo user, máy MOBILE nâng riêng icon bánh răng3px; radio Chọn bên dùng màu/viền/checked như desktop (Đỏ red, còn lại vàng), tiêu đề căn trái,3lựa chọn justify-between/gap20. Khoảng giữa các cụm setup20px (gap5), Luyện cờ giữ mt-auto/artwork/vị trí cuối. Desktop giữ nguyên. Build/typecheck PASS; dist cập nhật; chưa browser QA.
