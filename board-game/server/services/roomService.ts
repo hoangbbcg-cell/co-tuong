@@ -34,6 +34,7 @@ export class RoomService {
   private queueRotations = new Map<string, { result: GameState['result']; deadline: number | null; completedPlayers: Set<string> }>()
   private takebackDeadlines = new Map<string, number>()
   private rematchWaits = new Map<string, { matchId: string; pair: string; notBefore: number; completed: Set<string> }>()
+  private takebackStateChanges = new Set<string>()
   private readyWaits = new Map<string, { pair: string; since: number; readyPlayer: string | null; readySince: number | null }>()
   private energyNotices = new Map<string, Set<string>>()
   private histories = new Map<string, GameState[]>()
@@ -225,6 +226,7 @@ export class RoomService {
     if (room.game.phase === 'finished') room.drawOffer = null
     this.append(room, '', 'Yêu cầu đi lại đã hết hạn.', true)
     this.save(room)
+    this.takebackStateChanges.add(room.id)
     return true
   }
   private captureCompletedMatch(room: RoomSnapshot) {
@@ -420,6 +422,7 @@ export class RoomService {
   }
   join(id: unknown, playerId: string, name: unknown, password?: unknown, asViewer: unknown = false, accountId?: string, invitedByOwner?: string): RoomSnapshot {
     const room = this.get(textInput(id, 64))
+    this.expireTakebackOffer(room, this.now())
     if (typeof name !== 'string') throw new RoomError('Tên người chơi không hợp lệ.')
     const nameError = playerNameError(name)
     if (nameError) throw new RoomError(nameError)
@@ -517,7 +520,7 @@ export class RoomService {
     room.takebackOffer = null
     this.rotateQueueAfterFinishedGame(room)
     this.updateReadyWait(room)
-    if (!room.players.length && !room.viewers?.length) { this.rematchWaits.delete(room.id); this.repository.delete(room.id); this.histories.delete(room.id); this.repetitionNoticeDeadlines.delete(room.id) }
+    if (!room.players.length && !room.viewers?.length) { this.rematchWaits.delete(room.id); this.takebackDeadlines.delete(room.id); this.takebackStateChanges.delete(room.id); this.repository.delete(room.id); this.histories.delete(room.id); this.repetitionNoticeDeadlines.delete(room.id) }
     else this.save(room)
     return room
   }
@@ -678,6 +681,7 @@ export class RoomService {
     if (room.game.phase === 'finished') {
       room.drawOffer = null
       room.takebackOffer = null
+      this.takebackDeadlines.delete(room.id)
     }
     this.rotateQueueAfterFinishedGame(room)
     this.updateReadyWait(room, now)
@@ -848,12 +852,13 @@ export class RoomService {
   tick(): RoomSnapshot[] {
     const changed: RoomSnapshot[] = []
     for (const room of this.repository.all()) {
+      const takebackStateChanged = this.takebackStateChanges.delete(room.id)
       if (room.game.phase !== 'playing') {
         this.takebackDeadlines.delete(room.id)
         const beforeGame = room.game
         this.rotateQueueAfterFinishedGame(room)
         const readinessChanged = this.updateReadyWait(room)
-        if (beforeGame !== room.game || readinessChanged || this.energyNotices.has(room.id)) { this.save(room); changed.push(room) }
+        if (beforeGame !== room.game || readinessChanged || takebackStateChanged || this.energyNotices.has(room.id)) { this.save(room); changed.push(room) }
         continue
       }
       const now = this.now()
@@ -866,6 +871,7 @@ export class RoomService {
         this.rotateQueueAfterFinishedGame(room, now)
         this.updateReadyWait(room, now)
         this.save(room)
+        this.takebackStateChanges.delete(room.id)
         changed.push(room)
         continue
       }
@@ -892,6 +898,7 @@ export class RoomService {
       this.rotateQueueAfterFinishedGame(room)
       this.updateReadyWait(room, now)
       this.save(room)
+        this.takebackStateChanges.delete(room.id)
       changed.push(room)
     }
     return changed

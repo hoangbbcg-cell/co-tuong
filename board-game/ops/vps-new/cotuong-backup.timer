@@ -1,10 +1,10 @@
 [Unit]
-Description=Twice-daily local Co Tuong test database backup
+Description=Daily local Co Tuong test database backup at 03:00 Vietnam time
 
 [Timer]
-OnCalendar=*-*-* 02,14:15:00
-RandomizedDelaySec=10m
-Persistent=true
+OnCalendar=*-*-* 03:00:00 Asia/Ho_Chi_Minh
+AccuracySec=1s
+Persistent=false
 Unit=cotuong-local-backup.service
 
 [Install]

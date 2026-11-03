@@ -18,7 +18,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(() => service.reaction('viewer', { targetSide: 'red', targetId: 'a', reaction: '<script>' })).toThrow()
   })
   const move = { type: 'move', move: { from: { row: 6, col: 0 }, to: { row: 5, col: 0 } } }
-  const start = () => { service.command('a', { type: 'ready' }); service.command('b', { type: 'ready' }); now += 31_000; service.tick(); base = now }
+  const start = () => { service.command('a', { type: 'ready' }); service.command('b', { type: 'ready' }); base = now }
   it('cấp mã phòng thật riêng và giữ cùng mã qua danh sách, người tham gia và reset', () => {
     const first = service.roomFor('a')!
     const created = service.create('Phòng thứ hai')
@@ -40,7 +40,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
   it.each([0, -3, 7, '5', null])('từ chối thời gian không hợp lệ %s', minutes => {
     expect(() => service.create('Sai giờ', minutes)).toThrow('Thời gian không hợp lệ')
   })
-  it('giữ phòng có khán giả dù không còn người ngồi chơi', () => {
+  it('đưa người xem sớm nhất lên ghế trống khi người ngồi rời phòng', () => {
     const room = service.create('Còn khán giả')
     service.join(room.id, 'player-a', 'Người A')
     service.join(room.id, 'player-b', 'Người B')
@@ -48,7 +48,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
     service.leave('player-a')
     service.leave('player-b')
 
-    expect(service.list().find(item => item.id === room.id)).toMatchObject({ players: 0, viewerCount: 1 })
+    expect(service.list().find(item => item.id === room.id)).toMatchObject({ players: 1, viewerCount: 0 })
   })
   it('đưa người thua về View thường sau hiệu ứng+2s và cho người đầu lên bàn', () => {
     service.join(id, 'viewer-1', 'Khán giả 1')
@@ -149,7 +149,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(joined.players.map(player => player.id)).toEqual(['a', 'b'])
     expect(joined.viewers).toContainEqual(expect.objectContaining({ id: 'c', name: 'Khách' }))
     expect(() => service.command('c', { type: 'ready' })).toThrow()
-    expect(service.command('b', { type: 'ready' }).game.phase).toBe('ready')
+    expect(service.command('b', { type: 'ready' }).game.phase).toBe('playing')
     now += 31_000; service.tick()
     expect(service.roomFor('a')!.game.phase).toBe('playing')
   })
@@ -276,7 +276,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
     const ready = service.command('a', { type: 'ready' })
     const started = service.command('b', { type: 'ready' })
     expect(ready.takebackOffer).toBeNull()
-    expect(started.game.phase).toBe('ready')
+    expect(started.game.phase).toBe('playing')
     now += 31_000; service.tick()
     expect(started.game.phase).toBe('playing')
     now += 21_300
@@ -289,7 +289,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(room.game.phase).toBe('ready')
     expect(room.players.find(player => player.id === 'a')?.ready).toBe(true)
     room = service.command('b', { type: 'ready' })
-    expect(room.game.phase).toBe('ready')
+    expect(room.game.phase).toBe('playing')
     now += 31_000; service.tick()
     expect(room.game.phase).toBe('playing')
     expect(service.leave('a')?.game.result).toEqual({ winner: 'black', reason: 'leave' })

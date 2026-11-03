@@ -1,0 +1,11 @@
+[Unit]
+Description=Record a critical local alert when the Co Tuong backup run fails
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/logger --priority daemon.crit --tag cotuong-backup-alert -- 'The scheduled database and media backup did not complete; inspect cotuong-local-backup.service and preserve all partial backup files.'
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
