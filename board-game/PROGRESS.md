@@ -1,4 +1,439 @@
+- 2026-10-28: Theo ảnh user, riêng Tạo nhóm LAPTOP: overlay mờ phủ viewport bằng fixed; popup nới giới hạn80/88% lên90/94%; dải thành viên đã chọn chia4 cột, vòng tròn giới hạn theo chiều cao để không méo/tràn; hai nút cuối rộng70%; ba icon nhóm thu1.15em→0.9em. Mobile giữ kích thước. Build/typecheck cần xác nhận; chưa browser QA.
+- 2026-10-28: Đính chính phạm vi Tạo nhóm LAPTOP: dùng cùng cây giao diện SocialDialogFrame và nội dung form/danh sách/thành viên đã chọn như MOBILE, gồm nguồn bạn bè đã chấp nhận từ socialStore. Giữ nguyên khung popup width/height desktop; thao tác tạo/xem hồ sơ/chọn bạn vẫn nối callback hiện có. Build/typecheck cần xác nhận; chưa browser QA.
+- 2026-10-28: Theo user, khung Tạo nhóm LAPTOP đổi từ border-image PNG sang cùng viền CSS của SocialDialogFrame dùng trên mobile; giữ kích thước, tọa độ/nội dung laptop và toàn bộ nhánh mobile. Build/typecheck cần xác nhận; chưa browser QA.
+- 2026-10-28: Đính chính viền Tùy chọn Tin nhắn LAPTOP: dùng trực tiếp cùng lớp border/gradient/inset-shadow của khung Thông tin trong ProfileDialog; không dùng frame PNG hay góc SVG riêng. Giữ width/height popup và nội dung; nền body nằm trong viền. Build/typecheck cần xác nhận; chưa browser QA.
+- 2026-10-28: Theo yêu cầu, Tùy chọn Tin nhắn LAPTOP bỏ khung riêng được scale chồng lên; dùng nền body như MOBILE và tái dùng khung Tin nhắn cha. Kích thước/vị trí popup giữ nguyên; mobile giữ nguyên. Build/typecheck cần xác nhận, chưa browser QA.
+- 2026-10-27: Theo user, ẩn riêng lỗi tải inbox Không tải được tin nhắn. phía đáy trên LAPTOP; mobile đã ẩn trước đó. Các lỗi khác và cơ chế tải/retry giữ nguyên. Build/typecheck PASS, dist cập nhật.
+
+- 2026-10-27: Theo user options chat LAPTOP avatar200→180logical, tên34→40logical theo width894; camera nhóm đi theo avatar mới. Form Biệt danh thay đúng dòng Biệt danh tại x47/y487/w800/h90 bằng các dòng khác; Xem thông tin giữ hiện khi sửa desktop, mobile giữ UI cũ. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, tùy chọn chat riêng LAPTOP đồng bộ mobile: Xem thông tin/Biệt danh/Chặn/Xóa/Báo cáo mỗi dòng full800logical, cao90, bắt đầu385/nhịp102; bỏ hai ô nhỏ cạnh nhau và mốc cũ. Dùng renderer icon/chữ/nền dòng chung hiện có, hành vi và mobile giữ nguyên. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user cả mobile/laptop, tên trong dòng Xem thành viên/Tất cả/Trưởng-phó/Đã chặn/Thêm thành viên/Thêm phó cách avatar thêm4px bằng margin tên cục bộ; không đổi avatar/kích thước dòng và khoảng cách nút. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user riêng LAPTOP Xem thành viên và các tab liên quan: avatar user50→64logical, tên32logical theo width894 (gồm blocked/pending/invite/deputy/leaders), heading Thành viên(số)/tiêu đề tab36logical. Dùng biến cục bộ member section, mobile/geometry phần khác giữ nguyên. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, options laptop nền dưới nâu đặc#281205 như mobile, che hoa văn trong nhưng giữ viền khung. Gap nút giảm12→8logical (nhịp102→98/cao90), chữ dòng22→28/icon34→42/tên28→34 theo scale width894; mobile giữ nguyên. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, options Tin nhắn LAPTOP căn giữa viewport bằng overlay fixed; trang Cài đặt và Thành viên (gồm các tab/subpage) dùng cùng khung SocialDialogFrame giữ viền3%, không đè khung bằng nền opaque full. Desktop dùng cùng renderer dòng OptionRowBackground/icon/chữ HTML như mobile và scale token theo width/894; mobile giữ bố cục hiện hành. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user phóng options nhóm laptop thêm: rộng min(90% dialog,(viewportH−48)×894/1008), cao theo đúng tỷ lệ894:1008. Chuẩn hóa nút desktop như mobile: y385/487/589/691/793, cao90/gap12logical; bỏ offset owner91 cộng trùng, member cùng nhịp, không đổi mobile. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, thời gian dòng inbox laptop đổi sang nâu#76552e như mobile. Bỏ nhánh mobile render MessagesCreateGroupButton cũ; dùng chung header search+bánh răng SettingsIcon44px mobile/50token desktop, menu Tạo nhóm giữ callback thật và khóa layout mobile. Menu đóng pointerdown ngoài và reset khi dialog đổi open. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Tin nhắn laptop: search giảm padding16→8/gap12→4 để placeholder dịch trái; bảng options mở rộng (giới hạn cao96%/rộng92%), dùng SocialDialogFrame cùng khung Tin nhắn thay ảnh frame cũ; back desktop tròn38px; các dòng group xếp liên tục91logical từ388 (owner có thêm dòng Settings), bỏ khoảng trống cũ. Icon lời mời giữ kích thước vuông52×52 để luôn tròn. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: User xác nhận khôi phục Tin nhắn laptop bảng nền giấy sáng/từng dòng kem trước lúc lỗi. Khôi phục ô tìm ngang+bánh răng/Tạo nhóm, hai tab Tất cả/Lời mời (hook/API lời mời thật), row90px/gap4/chữ24 và21, overlay chọn đen10%, avatar header78%/tênlight, nới ngang120logical trong viewport. Giữ khungchat/padding hiện có và X chung. Build/typecheck PASS, dist cập nhật; chưa browser QA; phục hồi bố cục theo yêu cầu, không khẳng định toàn bộ logic của phiên bản file đã mất được phục hồi.
+
+- 2026-10-27: Sửa khung Tin nhắn laptop bị trộn sau khôi phục file: dialog/surface cùng layout.width×scale và layout.height×scale, nội dung flex1 đúng lòng khung, bỏ X cũ trùng. Khôi phục sidebar giấy/row90px và nối settings chatDisabled/deputyChatAllowed/onSetChat thật qua API để build lại. Build/typecheck PASS, dist cập nhật; chưa browser QA. Không khẳng định đã phục hồi toàn bộ thay đổi MessagesDialog đã mất.
+
+- 2026-10-27: Theo user, hoàn tác riêng dịch chuyển nút X compact/mobile, từ translate(32,-34) về translate(16,-18); laptop giữ translate(32,-34). Build chưa chạy do lỗi typecheck MessagesDialog đã ghi nhận.
+
+- 2026-10-27: Theo user, mobile chat tăng gap avatar–bubble phía người kia thêm3px (gap15px); bubble tin nhắn của mình chừa thêm3px mép phải. Desktop giữ nguyên. Chưa build được do restored MessagesDialog thiếu tích hợp group chat controls; xem trạng thái hiện tại trong task.
+
+- 2026-10-27: Theo user chỉnh mobile chat: gap avatar–bubble giảm18→16px; bubble tin nhắn gửi của mình inset phải3px khỏi viền. Desktop giữ nguyên. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo ảnh user, tăng gap avatar người gửi–bong bóng chat mobile từ12px lên18px; laptop giữ12px, gửi/nhận logic không đổi. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user, tên người trong dòng inbox laptop tăng22→24px theo scale, nội dung tin nhắn preview19→21px; header chat tên font-normal→light. Giữ chiều cao90px và mobile. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Đính chính theo user: dòng inbox laptop giữ90px, tin nhắn preview bên trong tăng17→19px theo scale; tên header hạ medium→normal. Mobile giữ nguyên. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user, tên hội thoại header dùng font-medium thay bold; dòng inbox laptop tăng90→100px theo scale. Mobile giữ nguyên. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user, avatar header chat laptop thu tiếp10% (hiện78% size token66, mobile34px giữ). Bao toàn pane chat bằng customizationListPanel cùng token khung chọn avatar (bo10, viền nâu, nền nâu mờ, shadow trong); khung này bao cả nền/header/tin nhắn/composer. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user, avatar hội thoại trong header Tin nhắn thu12% riêng laptop (66→58px tương đương), mobile giữ34px. Dòng đang chọn laptop dùng overlay đen nhẹ 12% và viền vàng mảnh; compact giữ messageSelectionHighlight. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user, khung chat laptop hạ mép trên thêm10px và giảm chiều cao tương ứng10px, giữ đáy/nền tới viền. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Tin nhắn LAPTOP bù chính xác chiều cao header SocialDialogFrame (titleWidth×360/2166−62scale−14scale) bằng marginTop âm/tăng height pane để sát viền trên, giữ đáy. Nút X chung dịch thêm phải10/lên10px: translate32,-34. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo ảnh user, pane chat Tin nhắn LAPTOP mở đến viền trong khung lớn: bù padding phải/đáy2×spacing của SocialDialogFrame bằng marginRight âm và tăng chiều cao tương ứng. Nền/header/composer cùng phủ tới viền; mobile giữ nguyên. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user nền Tin nhắn phủ full chiều cao: SVG image chatFrame preserveAspectRatio=none để ảnh phủ crop ở mọi tỷ lệ. Nút X chung DialogCloseButton dịch phải/lên thêm6px (translate22,-24 thay16,-18), áp dụng mọi bảng dùng component cả laptop/mobile; kích thước giữ nguyên. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Tin nhắn LAPTOP nới ngang120logical (chặn trong viewport24px), gap inbox8→4scale/lề20→6scale. Ẩn thông báo lỗi gửi phía đáy theo user. Chat crop ảnh viewBox30 45 820 910 bỏ viền baked, phủ đen45% cả trạng thái trống và hội thoại. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user, hạ cả khung và dãy tab Danh hiệu LAPTOP thêm10px (khung top64→74px, tab81→91px trong quy đổi wrapper); nút back laptop28→34px, mobile giữ28px. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Đính chính hạ tab Danh hiệu LAPTOP: tab thực tế là các button absolute compact:hidden, không phải nav hidden/compact:flex. Tăng offset top26→81px trong phép quy đổi wrapper để dịch đúng55px; hoàn tác chỉnh nhầm nav/mobile. Khung giữ top64px. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Thông tin → Danh hiệu cả điện thoại/laptop thêm MessagesBackButton dùng chung Tin nhắn (28px), góc trên trái ngang tâm nút Ẩn; bấm về Thông tin người chơi. Typecheck/build PASS, dist index-BRr6FbNI.js có nút mới; chưa browser QA.
+
+- 2026-10-27: Theo user, đồng bộ khoảng cách các thẻ Đã lưu laptop với Ranking: row-gap8px×scale dialog. Mobile giữ7px như cũ. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo ảnh user, Lịch sử > Đã lưu laptop không ép hai dòng vào chiều cao panel: list dùng hàng max-content, mỗi thẻ đủ cao theo title/user/metadata/ghi chú và overflow-y-auto cuộn xuống. Giữ layout một hàng title/meta; bàn giữ tỷ lệ theo chiều cao thẻ ban đầu. Mobile markup/height policy unchanged. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Đính chính sau user: bỏ ép chiều cao cố định title/meta laptop; giữ title/meta mỗi phần trên một hàng và kích thước chữ, cho grid row tự tăng nếu nội dung cần. Parent list đã overflow-y-auto nên cuộn xuống khi thẻ dài; mini bàn giữ kích thước mount cố định. Mobile giữ nguyên. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, thêm dải gradient + bóng mép trái giống dòng Xếp hạng cho từng dòng Lịch sử > Đã lưu ở cả laptop/điện thoại. Mobile scale dải theo1.5×rowScale như Ranking; không đổi khung, kích thước hoặc nội dung dòng. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: Ổn định layout sau khi tăng tên/metadata Đã lưu laptop: tiêu đề khóa 1 dòng ellipsis, vùng cao32px×scale; metadata tăng16px theo scale (tối thiểu15), icon17–18px, vùng cao24px×scale để không kéo giãn grid/card/bàn. Điện thoại giữ nguyên. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Đính chính theo user: không dùng chung khung dòng Xếp hạng cho Bạn bè/Lịch sử laptop và hoàn tác chiều cao138px. Bạn bè trở lại row90px/nền-gradient-border cũ; Đã chơi Lịch sử trở lại 8 hàng auto-height/khung cũ. Chỉ thêm dải gradient + shadow mép trái y hệt Ranking; giữ gap8px×scale đã chốt và FriendRowShade nâu. Mobile không đổi. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: Theo user, đồng bộ dòng Bạn bè và Lịch sử Đã chơi LAPTOP trực tiếp với Xếp hạng qua socialPlayerRowClass/getSocialRowStyle/socialPlayerListClass: cao138px×scale, bo/nền/viền và gap8px×scale. FriendRow giữ lớp nâu quanh danh hiệu/nút; mobile giữ nguyên. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: Theo user, Lịch sử > Đã lưu laptop tăng tên ván20→23px theo scale; metadata số nước/lượt đi tăng lên18px theo scale (tối thiểu15px) và icon theo dòng. Điện thoại giữ nguyên. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, đồng bộ gap dòng Đã chơi Lịch sử và các danh sách Bạn bè với Xếp hạng bằng --social-row-gap=8px×scale; Lịch sử giữ 8 hàng bằng cách trừ tổng gap56px. Bạn bè LAPTOP căn hàng header tab Danh sách/Thêm bạn cùng cao56px để vị trí search và đầu danh sách cố định khi đổi hai tab; điện thoại không đổi. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: Theo user mobile Đã lưu: bỏ border/background/padding của textarea ghi chú để không có khung con. Khi đang sửa tên/ghi chú, pointerdown dấu tích giữ focus bàn phím; click tiếp tục gọi lưu, editor chỉ đóng sau API thành công. Mobile và desktop cùng hành vi lưu; desktop style ghi chú giữ nguyên. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user riêng LAPTOP: tên Xếp hạng22→24px, Đã chơi Lịch sử21→23px, Bạn bè22→24px; trạng thái Xếp hạng19→21px và Bạn bè19→21px, tất cả theo scale dialog. Điện thoại giữ nguyên; không đổi cỡ trạng thái Lịch sử. Build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-27: Theo user, khôi phục FriendRowShade nâu ở dòng Bạn bè laptop để bao danh hiệu và nút Mời chơi; giữ khung dòng90px và nội dung/cột đã chốt. Mobile không đổi. npm.cmd run build PASS; dist cập nhật; chưa browser QA. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: User làm rõ mẫu dòng Bạn bè laptop: chỉ lấy khung dòng (nền/viền/bo góc/shadow) từ Xếp hạng; giữ kích thước/cột/nội dung Bạn bè cũ, cao90px theo scale. Bỏ dải trái và nền nhấn cột đã thêm nhầm; mobile/lời mời không đổi. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: Theo user laptop/mobile, ghi chú Đã lưu tự mở hết trong khi sửa, lưu thành công mới thu về giới hạn dòng đang có. Lịch sử reset Đã chơi khi mở/đóng (X/Escape/native close/open attribute), unmount phần Đã lưu để bỏ draft tên/ghi chú, trạng thái mở/xác nhận/tooltip; không tự lưu draft. Dọn toast và chặn phản hồi lưu Đã chơi phiên cũ hiện toast sau đóng. Regression lifecycle2/2 PASS (TEMP workspace tránh ENOENT cache), typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo ảnh user, danh sách Bạn bè LAPTOP dùng khung dòng socialPlayerRowClass/getSocialRowStyle theo mẫu dòng Xếp hạng: chiều cao138×scale, bo góc/nền/viền, dải nhấn trái và vùng rank được tô nền; thao tác và thông tin bạn bè giữ. Lời mời giữ dòng90px cũ; mobile không đổi. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: Theo user, Bạn bè laptop bỏ khung/nền riêng của ul để các dòng nằm trực tiếp trên nền giấy; chuyển nền/viền bo từng dòng sang socialPlayerRowClass theo kiểu điện thoại, giữ cột nội dung và thao tác desktop. Mobile không đổi. npm.cmd run build PASS; dist cập nhật; chưa browser QA. npm.cmd run build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-27: Theo user, ghi chú Đã lưu laptop thu gọn tối đa2dòng và ellipsis khi dài hơn; click mở đầy đủ/click lại thu. Mobile giữ3dòng. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user riêng Đã lưu laptop: tên ván20px theo scale, ghi chú20px thay22/loại padding dọc9.5/nhích nhãn và nội dung lên. Đọc thu3dòng có ellipsis, click mở hết/click lại thu. Sửa giữ chiều cao đang hiển thị, nội dung có sẵn không tự nở; chỉ tăng khi số dòng thực tăng. Mini bàn lấy kích thước ban đầu theo scale, không quan sát chiều cao dòng nữa nên ghi chú không phóng bàn. Mobile giữ nguyên. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, hover tab con chưa chọn của Bạn bè laptop dùng lớp phủ đen rất nhẹ thay cho xám/giảm opacity; tab đang chọn giữ nguyên glow, không hover. Mobile giữ nguyên. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: Đính chính hover Bạn bè laptop theo user: tab đã chọn không có hiệu ứng hover, giữ nguyên hiệu ứng click/glow; chỉ tab chưa chọn mới mờ/xám khi rê chuột. Mobile giữ nguyên. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: Theo user riêng Bạn bè laptop, hover ba tab con giữ nguyên glow/tab effect đang chọn, chỉ giảm opacity và xám nhẹ; bỏ hover brightness sáng gây mất cảm giác selected. Mobile không đổi. npm.cmd run build PASS; dist cập nhật; chưa browser QA. npm.cmd run build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, ghi chú laptop tăng chiều cao thêm5px (padding dọc7→9.5px) và chữ tăng7px (15→22px theo scale), gồm nhãn/nội dung/sửa; mobile giữ nguyên. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: Theo user thêm shop avatar tuần 6 ảnh:9 PNG gốc lưu trong `src/assets/shop/avatars/weekly/`, 4 thường +5 Tây Du Ký; tuần đầu chốt5 thường+1 Tây Du Ký random, các tuần tiếp random5 thường+1 Tây Du Ký, ổn định giữa client bằng bộ chọn xác định theo tuần. Route/cửa hàng tuần và xác thực mua nối; loại avatar mới khỏi phiên chợ ngày; không cần migration database. Typecheck/build PASS; dist có đủ9 PNG; chưa áp dụng migration, chưa browser/API QA.
+
+- 2026-10-27: Theo ảnh user, cụm quân giữa hai người trong Đã lưu/Ván đấu laptop căn giữa theo bề ngang riêng của cụm avatar+tên (không căn toàn ô thông tin), đồng thời giữ trung điểm dọc giữa hai hàng. Mobile giữ nguyên.
+
+- 2026-10-27: Theo user riêng Bạn bè LAPTOP: filter tab con đang chọn bỏ nền gradient vàng, chuyển sang hiệu ứng sáng/rực nhẹ như mobile giữ nền idle chung. Hai ô tìm kiếm laptop (Danh sách/Thêm bạn) đổi font Heading nghiêng sang Arial thường cùng mobile, placeholder body thường. Không sửa FriendsDialog mobile. npm.cmd run build PASS; dist được cập nhật; chưa browser QA.
+
+- 2026-10-27: Đính chính quân cờ giữa hai người trong lịch sử đã lưu laptop: vùng hai user dùng justify-content:space-between để người đầu ở trên, cụm quân cờ ở trung điểm dọc và người sau ở dưới trong ô thông tin; mobile giữ nguyên. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, cụm quân cờ giữa hai người trong dòng Đã lưu/Ván đấu laptop được đặt vào hàng riêng căn giữa vùng thông tin; mobile giữ cách hiển thị cũ. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Đính chính vị trí con trỏ ghi chú: khi laptop sửa ghi chú đã có nội dung, đặt con trỏ cuối nội dung; ghi chú trống đặt đầu. Mobile giữ vị trí con trỏ cuối như trước. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, riêng ghi chú trong Đã lưu/Ván đấu laptop, bấm bút mở nhập ngay trong khung ghi chú hiện có (không vẽ khung textarea lồng), con trỏ đặt đầu nội dung; mobile giữ khung và vị trí con trỏ cũ. Build cần chạy sau chỉnh.
+
+- 2026-10-27: Đính chính phần mini bàn Đã lưu laptop: bỏ trần chiều ngang; ResizeObserver lấy toàn bộ chiều cao trong khung dòng (trừ padding 7px mỗi mép) rồi tính rộng theo tỷ lệ bàn 1134:1296 để bàn phủ kín chiều cao. Khoảng cách nội dung ngang15px, avatar là vùng duy nhất mở hồ sơ, mobile giữ nguyên. npm.cmd run build PASS; dist cập nhật; chưa browser QA. Build cần chạy sau chỉnh.
+
+- 2026-10-27: Theo user, riêng Lịch sử > Đã lưu/Ván đấu LAPTOP, mini bàn tự căn theo chiều cao dòng và cách vùng thông tin 15px; trần rộng 30% danh sách. Chỉ avatar mở hồ sơ, tên và phần khác không mở; điện thoại giữ nguyên. Sửa selector kiểm tra thứ tự người chơi theo nút avatar sau khi tách vùng bấm. Build PASS, dist cập nhật; không chạy test hoặc browser QA.
+
+- 2026-10-27: Theo user riêng Đã lưu/Ván đấu LAPTOP: miniBoard178→224scale (cap30%list), grid bàncol1/span4row; title trên cùng col2–3 cạnh bàn, user48/name25scale thay34/21, khungnamefitcontent không kéo dài. Metadata và ghi chú chỉcol2–3 dưới user, không dưới bàn. Nút Xem đổi ▶ Xem lại151×52scale/chữ19 giống Đã chơi; thùngrác36×40/icon24px. Mobile giữ markup/geometry cũ, initialboard178 giữ. Typecheck/build PASS; dist cập nhật; chưa browser QA.
 # Tiến độ
+
+- 2026-10-28: Sửa riêng khung ngoài Vị trí tùy chỉnh LAPTOP: max-width canvas trừ240px để giữ lề120px mỗi bên dù global canvas ép width100%. Mobile và luật/quân giữ nguyên. Build/typecheck PASS, dist xác nhận max-width; chưa browser QA.
+
+- 2026-10-27: Tăng độ nét khi thu nhỏ ảnh avatar phiên chợ tuần bằng nội suy optimize-contrast; giữ nguyên PNG gốc. Build cần xác nhận.
+
+- 2026-10-27: Đính chính vùng cần thu là biển “Cửa Hàng” trên header Shop laptop: rộng180px; khôi phục vùng MarketHeading31dvh. Build cần xác nhận.
+
+- 2026-10-27: Tăng chữ tab lọc Shop laptop lên18px; mobile giữ14px. Chờ build xác nhận.
+
+- 2026-10-27: Shop LAPTOP tab lọc đồng bộ nền/viền/glow/hover/click với mobile; vùng tiêu đề chợ thu31→24dvh. Build/typecheck cần xác nhận.
+
+- 2026-10-27: Đính chính Tin nhắn LAPTOP: khung về đúng khổ các SocialDialogFrame chung; hai pane và nội dung co theo lòng khung. Build/typecheck cần xác nhận sau chỉnh.
+
+- 2026-10-27: Tin nhắn LAPTOP đồng bộ khung chung/tiêu đề/nút đóng, ô tìm kiếm và nền giấy/dòng hội thoại theo Xếp hạng; giao diện điện thoại và luồng tin nhắn giữ nguyên. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Đổi thứ tự copy ID: thử execCommand đồng bộ ngay lúc click, sau đó Clipboard API; khắc phục mất user activation khi chờ API rồi mới fallback. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Sửa lần nữa nút copy ID: truyền trực tiếp số đang hiển thị, validate chuỗi số, clipboard API + fallback textarea/focus/select. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Nút sao chép ID hồ sơ dùng Clipboard API + fallback textarea/select, xóa nhãn inline cạnh icon, dùng gợi ý nổi chung báo kết quả. Không đổi ID. Typecheck/build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Đã sửa phân nhóm Shop tuần theo4 ảnh user: Tây Du Ký42/38/45/46; thường39/40/41/43/44. Bộ chọn trả đủ6 ảnh (5 thường+1 random Tây Du Ký), tên38 Đường Tăng/46 Sa Tăng. Typecheck/build PASS, dist cập nhật; chưa browser QA. Thay phân nhóm sai trước đó.
+
+- 2026-10-27: Giới hạn2bên LAPTOP Chọn bàn/Đấu với máy lề120px/border5, giữ mobile; typecheck/build PASS, dist cập nhật, chưa browser QA.
+
+- 2026-10-27: Theo user hoàn tác bỏ khung full màn hình LAPTOP: useHomeLayout về lề ngang120px/dọc6px và scale cũ, Home/Shop khôi phục border/shadow/viền trang trí; GamePage/CustomPositionPage về wcalc100%-240px/hcalc100dvh-12px và khung cũ. Ranking vẫn kích thước ban đầu, mobile giữ nguyên. npm.cmd run build PASS; dist cập nhật; chưa browser QA. Typecheck/build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: User đính chính full màn hình là bỏ khung giới hạn ngoài LAPTOP, không phóng Ranking. Hoàn tác riêng viewport Ranking về layout cũ. Home/Shop qua useHomeLayout rộng/cao viewport desktop, giữ content scale cũ; bỏ viền/shadow giới hạn ngoài. GamePage/CustomPositionPage desktop wfull/hdvh/border0/shadownone như trang Chọn bàn; màn chọn bàn/chơi máy vốn full giữ. Compact giữ nguyên. Typecheck/build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user dấu+ chọn danh hiệu LAPTOP tăng nút28px thật, neo top0/left0 góc trên trái từng ô danh hiệu (thay offset3%/2%, clamp22–30logical). Glyph92%/tick/hànhvi giữ; mobile22px/neo cũ giữ. Build/typecheck PASS; dist xác nhận nút+28px góc trái; chưa browser QA.
+
+- 2026-10-27: Theo user tăng nút Ẩn Danh hiệu LAPTOP: nhãn20px, switch48×26px/knob18px/left3px/travel22px. Dùng HonorHiddenToggle chung catalog/chi tiết cho đồng bộ; mobile13px/30×18/knob12 giữ nguyên. Build/typecheck PASS; dist xác nhận switch48×26 desktop; chưa browser QA.
+
+- 2026-10-27: Theo user sau lượt chỉnh Ranking, riêng Xếp hạng LAPTOP mở rộng theo viewport như Chọn bàn: rộng innerWidth-12/lề6px, cao innerHeight-12-trừ50scale chừa biển tiêuđề trên; neo dialog left6/top6+title. Giữ scale nội dung và mobile, không đổi useRankingLayout chung để tránh ảnh hưởng bảng khác. Typecheck/build PASS, dist cập nhật; chưa browser QA. Khóa lại phạm vi sau task.
+
+- 2026-10-27: Theo user nâng nhóm tab Danh hiệu LAPTOP: tab đầu cách mép trên khung10px thật, các tab sau giữ offset tương đối cũ (category.top-13%). Quy đổi tọa độ Shell sang wrapper108.7087%/top-3.5035%; mobile giữ. Build/typecheck PASS; dist xác nhận neo tab cách trên10px; chưa browser QA.
+
+- 2026-10-27: User đính chính bỏ giao diện dòng ngang vừa phục hồi; Đã lưu/Ván đấu LAPTOP dùng cùng MobileSavedMatchRow với điện thoại: tiêu đề sửa được, miniBoard, hai người/cặpquân, nút Xem, metadata/ghi chú sửa được, thùng rác góc phải. Desktop giữ avatar34×scale và tên21×scale theo ngữ cảnh trước, mini178×scale; hai hàng tối thiểu/giãn nội dung, compact giữ nguyên. Giữ savedAt mới nhất đầu, xác nhận xóa/thời gian lưu/chức năng. Build/typecheck PASS; dist cập nhật; chưa browser QA. Quy tắc này thay lượt phục hồi dòng ngang, khóa lại phạm vi.
+
+- 2026-10-27: Theo user LAPTOP khung tab Danh hiệu dịch trái13px từ vịtrí hiện tại (leftborder5+36→+23), padding tab ngang7→12px mỗi bên; lefttab=border5+35,width20%-24px quyđổi wrapper1.060029. Mobile giữ. Build/typecheck PASS; dist xác nhận padding12/offset mới; chưa browser QA.
+
+- 2026-10-27: User xác nhận khôi phục Đã lưu/Ván đấu LAPTOP về dòng ngang: ngày giờ endedAt, hai người/kết quả, cặp quân, Xem lại, thùng rác; 8slot như Đã chơi, bỏ miniBoard/tiêu đề/metadata haihàng desktop. HistoryPlayer tách component dùng chung giữ nguyên markup Đã chơi. Mobile giữ MobileSavedMatchRow/miniBoard/thùngrác góc phải. Thứ tự savedAt giảm dần cả hai, giữ xác nhận xóa/thời gian lưu/replay; Thế cờ không đổi. Build/typecheck PASS; dist cập nhật; chưa browser QA. Khóa lại phạm vi.
+
+- 2026-10-27: Theo user khung tab Danh hiệu LAPTOP dịch phải20px thật (leftborder5+16→+36), tab căn giữa trong khung với padding ngang7px. Tọa độ tab quy đổi wrapper106.0029%/offset-3.0747% về Shell: left=(3.0747%+border5+43px)/1.060029,width=(20%-14px)/1.060029. Mobile/vịtrídọc giữ. Build/typecheck PASS; dist xác nhận tọa độ tab mới; chưa browser QA.
+
+- 2026-10-27: User đính chính muốn hoàn tác giao diện dòng Đã lưu laptop, không phải thứ tự. Khôi phục sort savedAt giảm dần cho ván/thế cảmobile/laptop; giữ contextmenu Đã chơi/padding10. Chờ xác định bố cục cũ cần phục hồi vì HEAD cũng là miniBoard2hàng. Build PASS, dist cập nhật; giao diện chưa sửa.
+
+- 2026-10-27: Theo ảnh user sửa khung tab Danh hiệu LAPTOP bị tràn: chuyển background panel ra khỏi wrapper âm/phóng106%×108.7% về cùng hệ tọa độ HonorsDialogShell, neo left/top/bottom=border5token+padding16px đúng viền trong Shell. Mép trên chạm viền trong, đáy nằm trong khung, width20%; tab/vùngbấm/mobile giữ. Build/typecheck PASS; dist xác nhận neo khung tab trong Shell; chưa browser QA.
+
+- 2026-10-27: Theo user hoàn tác thứ tự Đã lưu riêng laptop về reverse mảng như trước lượt sort mới nhất; áp dụng ván/thế, compact giữ sort savedAt giảm dần. Đã chơi laptop contextMenuOnly trong usePressToRevealDelete: chuột phải mở Lưu ván cờ, chuột trái giữ không mở; mobile giữ200ms. Bảng Lưu ván cờ padding10px thật qua prop HistoryHoldNotice, tooltip thời gian giữ padding cũ. Bấm ngoài đóng/lưu/API giữ. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user bỏ khung/nền/viền bao danh sách danh hiệu, chỉ giữ khung tab dùng customizationListPanel. Laptop khung tab kéo dọc vùng nội dung top10.5%→bottom5% của layout nội bộ (sát khoảng header/đáy khung ngoài); mobile khung tab wfull vùng nội dung, giữ lướt ngang. Không đổi danh hiệu/data/selection. Build/typecheck PASS; dist xác nhận chỉ khung tab mới; chưa browser QA.
+
+- 2026-10-27: Theo user cả điện thoại/laptop Lịch sử mới nhất lên đầu: Đã chơi sort endedAt giảm dần, Đã lưu ván sort savedAt giảm dần (legacy thiếu timestamp fallback endedAt), Thế cờ sort savedAt giảm dần. Bỏ reverse theo thứ tự mảng để API/local đều thống nhất, filter tạo mảng mới không mutate store. Build/typecheck PASS; dist xác nhận; chưa browser QA.
+
+- 2026-10-27: Theo user cảmobile/laptop catalog Danh hiệu thêm2khung riêng bao nhóm tab và danh sách danh hiệu, cùng customizationListPanel token với lưới avatar/viền (nâu#1c0d07aa/viền#9f6025/bo10/shadowinset). Desktop2khung cạnh nhau top12%/cao80%, compact giữ tab ngang trên/danh hiệu dưới với padding8. Giữ data/selection/thứtự/avatar. Build/typecheck PASS; dist xác nhận2khung danh hiệu/token chung; chưa browser QA.
+
+- 2026-10-27: Sửa replay autoplay/nút Phát: timeout ổn định theo recordingId, snapshot qua ref; đổi ván reset, cuối ván Phát chạy từ đầu. Regression2/2 PASS; build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user LAPTOP Chọn viền5cột/3hàng, mobile4cột ôvuông giữ. Catalog Danh hiệu laptop bỏ sprite nền sidebar cắt gây lệch/icon cụt; mỗi category button tự chứa artwork riêng hiện có và selectionframe neo tương đối như mobile, giữ tọa độ/thứ tự/luồng chọn. Bỏ phong cảnh thừa nằm trong sprite sidebar. Mobile không đổi. npm.cmd run build PASS; dist cập nhật; chưa browser QA. Build/typecheck PASS; dist xác nhận tab artwork riêng; chưa browser QA.
+
+- 2026-10-27: Theo ảnh user thêm viền khung trong như Ranking cho History/Friends LAPTOP: DesktopSocialLandscape chung thêm lớp pointer-eventsnone inset16×scale, border3×scale màu#d39a42, roundedxl và shadow cùng khung trong SocialDialogFrame. Dùng cùng các nhánh desktop đang render, không đổi geometry nội dung/avatar/mobile. Build/typecheck PASS; dist xác nhận viền; chưa browser QA; khóa lại phạm vi.
+
+- 2026-10-27: Theo user riêng Tùy chỉnh avatar LAPTOP nâng card tên/Elo thêm8px bằng top cục bộ preview, nâng4tab và đầu danh sách12px bằng marginbottom-12 ở section preview. Flex danh sách nhận thêm12px chiều cao, footer giữ neo; không đổi geometry avatar/Thông tin/mobile. Build/typecheck PASS; dist xác nhận offset preview desktop; chưa browser QA.
+
+- 2026-10-27: Theo ảnh user sửa nền tối History/Friends LAPTOP: bỏ background100%auto lấy vùng đỉnh tối của artwork; DesktopSocialLandscape dùng đúng object-cover/object-center, opacity80%, height170 và inset27 theo geometry Ranking. Nền là lớp absolute trực tiếp khung ngoài, không phụ thuộc padding nội dung. Khung giấy tăng ngang bằng padding24 thay36, đáy24 thay28 theo scale; compact giữ nguyên. Build/typecheck PASS, dist cập nhật; chưa browser QA. Thay các phương án nền trước, khóa lại phạm vi.
+
+- 2026-10-27: User báo nền vẫn chưa full. Tìm đúng nhánh FriendsDialog desktop dùng DesktopFriendsDialog, không dùng FriendsDialogFrame. History và DesktopFriendsDialog chuyển phong cảnh lên background khung ngoài (100% auto, center top, khôngrepeat), bỏ ảnh con có inset/height giới hạn; FriendsDialogFrame đồng bộ cùng token để tránh lệch khi dùng lại. Mobile giữ nguyên. Thay hoàn toàn cách offset-9/-25 trước đó; khóa lại phạm vi nền. Build/typecheck PASS; kiểm tra nhánh render thực tế và dist; chưa browser QA trực tiếp.
+
+- 2026-10-27: Đính chính theo hai ảnh user: nền cần phủ tới trên/ngang là PHONG CẢNH, không phải giấy. History/Friends laptop dùng chung getDesktopSocialLandscapeStyle: inset tương đương Ranking27px từ khung, bù padding content36/52 bằng left-right-9/top-25 và cao170 theo scale. Gỡ nền giấy full-content thêm nhầm lượt trước; giấy danh sách giữ. Compact không đổi, phạm vi nền khóa lại. Build/typecheck PASS; dist xác nhận offsets chung; đối chiếu geometry source với ảnh, chưa browser QA trực tiếp.
+
+- 2026-10-27: Theo user riêng Xếp hạng LAPTOP làm rõ danh hiệu/sao: RankingRankBadge dùng sharpen convolution nhẹ bảo toàn alpha + contrast1.12 với ảnh nguồn HD hiện có; lớp sao bỏ translate nửa pixel, tọa độ snap nguyên từ token cũ, giữ kích thước/mốc trong sai số làmtròn. compact prop giữ nhánh render cũ khôngfilter; các màn khác giữ. Typecheck/build PASS; dist xác nhận feConvolveMatrix, chưa browser QA độ nét.
+
+- 2026-10-27: Theo user thu riêng Hủy/Sử dụng Tùy chỉnh avatar MOBILE về cao36px/chữ16/line20/paddingy6/cụmmax280/gap10 như trước; laptop giữ44px/chữ18/cụm360. Build/typecheck PASS; dist xác nhận nút compact36px; chưa browser QA.
+
+- 2026-10-27: Theo user hoàn tác riêng Chọn avatar MOBILE về4cột/ôvuông/hàngmaxcontent/cuộn theo nội dung như trước lần ép3hàng. Chọn viền MOBILE đồng bộ cùng4cột/ôvuông/maxcontent, không ép chiều cao3hàng theo viewport. Laptop avatar5×3/viền4×3 và nút44px giữ. Build/typecheck PASS; dist xác nhận lưới mobile maxcontent; chưa browser QA.
+- 2026-10-27: Theo ảnh/user, nền giấy History phủ toàn vùng nội dung bên trong khung laptop, gồm cả sau tab; làm tương tự nền Xếp hạng. Áp dụng cùng nền full-content cho FriendsDialogFrame laptop; lớp phong cảnh giữ nằm trên nền. Compact/mobile và nội dung không đổi. Build/typecheck PASS; dist cập nhật; chưa browser QA. Mở phạm vi nền laptop History/Friends cho task này rồi khóa lại.
+
+- 2026-10-27: Theo user Chọn avatar mobile4cột×3hàng theo vùng viewport, desktop5cột×3hàng; bỏ compact maxcontent/aspectsquare ép hàng theo rộng, ảnh tròn fit theo cao và maxwidth. Hai nút Hủy/Sử dụng chung mobile/laptop tăng36→44px/chữ16→18/cụmmax280→360/gap12. Chọn viền4×3 giữ. Build/typecheck PASS; dist xác nhận nút44px/lưới mới; chưa browser QA.
+- 2026-10-27: Theo user đồng bộ riêng Lịch sử LAPTOP: hai tab Đã chơi/Đã lưu dùng chung sprite bốn trạng thái đã dùng trên mobile; lớp phong cảnh đẩy lên/đặt theo Xếp hạng (top2, inset8, cao170). Nội dung/data và compact không đổi. Build/typecheck PASS, dist xác nhận; chưa browser QA. Khóa lại layout sau task.
+
+- 2026-10-27: Sửa theo ảnh user Tùy chỉnh avatar: section preview desktop bỏ h190 cố định thành minheight190 để PlayerInfoCard chung tự tăng theo nội dung, ID nằm trong nền; previewPanel dùng nguyên sizeClass Thông tin, không h270/selfcenter riêng. Giữ geometry avatar. Chọn viền mobile+laptop4cột/3hàng trước cuộn (desktop gap8/2gap16, compact gap12/2gap24). Build/typecheck PASS; dist xác nhận lưới viền3hàng mới; chưa browser QA.
+
+- 2026-10-27: Theo user chỉLAPTOP thu×thêm64/48→56/42×scale; đối chiếu mobile neo top24/right28×scale+translate16,-18, desktop chuẩn hóa cùngmốc trong DialogCloseButton (bỏ lệch riêng Messages). Compact90/68/vịtrígiữnguyên; scrollbargiữ. Typecheck/build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user LAPTOP Tùy chỉnh avatar dùng PlayerInfoCard chung với Thông tin, đồng bộ minheight190/selfstretch/translateY-21 thay h185/selfcenter/-30; giữ chiều rộng ngữ cảnh và geometry avatar. Scene desktop cao238 và fade dọc black65%→transparent100% như Thông tin; bỏ overlay ngang chia nửa nền. Compact giữ height270/selfcenter/-28 và fade cũ. Build/typecheck PASS; dist xác nhận preview card mới; chưa browser QA.
+- 2026-10-27: Theo user thu hẹp nút Mời chơi trong Xếp hạng LAPTOP từ173px xuống158px theo scale, giữ chiều cao/icon/nhãn; mobile không đổi. Build PASS, dist xác nhận; chưa browser QA, không chạy test cho spacing.
+
+- 2026-10-27: Theo user LAPTOP nâng section Thắng/Thua lên12px thật bằng margin-top âm, giải phóng khoảng dưới; tăng minheight nội dung Danh hiệu thêm12px và khung flex nhận khoảng trống, giữ chữ empty giữa toàn khung. Giữ cỡ chữ/số hiện tại, mobile không đổi. Build/typecheck PASS; dist xác nhận offset desktop mới; chưa browser QA.
+
+- 2026-10-27: User sửa riêng LAPTOP: thumb cuộn trắng thay xám, giữ700ms sau scroll rồi giảm alpha dần500ms, scroll lại hủyfade/hiện ngay; desktop dialog hook chỉ>800px. Nút×desktop90/68→64/48×scale; compact90/68 giữ nguyên. Typecheck/build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo ảnh/user chỉnh riêng Xếp hạng LAPTOP: nền nâu bao Elo nới trái/phải mỗi bên5px thật bằng inset span, giữ artwork Elo/kích thước cột/điểm; vương miện top1 nâng4px thật bằng marginTop-4. Cả2tab, compact không đổi. Build/typecheck PASS,dist cập nhật; chưa browser QA, không chạy test cho spacing; khóa lại phạm vi.
+
+
+- 2026-10-27: User mở riêng LAPTOP đồng bộ nút×/thanh cuộn cho các bảng khung: DialogCloseButton desktop dùng cùng90/68×scale, bo12px cố định/translate16,-18 như compact; thay×riêng Bạn bè desktop/Tin nhắn bằng component chung, Ranking/History/Profile/Honors đã dùng chung. Giá trị compact không đổi. Hook useDesktopDialogScrollbars chỉ viewport>800/dialog, thumb xám#999 khi scroll/tựẩn800ms, CSS desktop scoped dialog trong index.html; mobile giữ nguyên. npm.cmd run build PASS; dist cập nhật; chưa browser QA. Typecheck/build PASS (lần đầu Vite crash, chạy lại thành công), dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user LAPTOP tăng chữ Thắng/Thua18→24px và số24→30px; giữ ô thống kê cao thêm24px. Hoàn tác tăng30px minheight của khung/vùng danh hiệu về240/220logical trước đó, giữ căn giữa empty/header/copy đã chỉnh. Mobile giữ nguyên. Build/typecheck PASS; dist xác nhận chữ thống kê mới; chưa browser QA.
+
+- 2026-10-27: Theo3ảnh user chỉnh LAPTOP: tăng hai ô thống kê Cờ Tướng/Cờ Úp thêm24px thật; empty danh hiệu căn giữa toàn khung section (container con static riêng khi trống), pointer-eventsnone không chặn nút header; icon copy ID bỏ translateY-6px trên desktop để ngang dòng ID. Mobile giữ nguyên. Build/typecheck PASS; dist xác nhận chiều cao thống kê mới; chưa browser QA.
+
+- 2026-10-27: Theo user chỉnh riêng Xếp hạng LAPTOP: header dùng inset đo thực scrollbar+padding danh sách như compact để Hạng/Người chơi/Elo/Thao tác cùng cột dòng bên dưới; giữ khoảng user15px và nhãn căn mép tên. Nền nâu bao Elo cao calc100%+6px và bo ranking5 như mobile, artwork/điểm giữ. Nút invite desktop dùng socialActionButton/socialActionStyle + icon crop friend-invite-button đúng mẫu Bạn bè laptop, đủ chữ Mời chơi và giữ challenge ID/cooldown; compact giữ RankingViewButton chữ Mời như cũ. Không sửa UI Bạn bè/mobile/avatar. Build/typecheck PASS,dist cập nhật; chưa browser QA, không chạy test cho thay đổi trình bày. Khóa lại phạm vi sau task.
+
+
+- 2026-10-27: Theo user chỉnh Thông tin LAPTOP: nền scene fade dọc black65%→transparent100% hòa khung nâu như mobile; khung danh hiệu tăng minheight30px thật, dùng flex dọc để vùng nội dung giãn theo khung; paddingtop16→12px đưa Danh hiệu/Sở hữu lên4px. Chưa có danh hiệu desktop absolute inset0/grid center trong vùng nội dung. Compact giữ nguyên. Build/typecheck PASS; dist xác nhận style desktop mới; chưa browser QA.
+
+- 2026-10-27: User mở riêng Xếp hạng LAPTOP: cụm user sau cột hạng thêm padding trái15px thật, nhãn Người chơi căn trái theo mép tên bằng cùng avatar84/gap20/margin2+15px; áp dụng cả2tab. Nhánh compact không thêm style nên điện thoại giữ nguyên. Giữ kích thước avatar/khung và cột Elo/thao tác. Build/typecheck PASS,dist cập nhật; chỉnh spacing không chạy tests, chưa browser QA; khóa lại phạm vi sau task.
+
+
+- 2026-10-27: Theo user thu nhẹ số Bạn bè/Theo dõi/Lượt thích cả mobile/laptop còn93% cỡ trước, vẫn cùng font nhãn. PlayerInfoCard mobile padding ngang6→9px thật, padding đáy tăng3px so với py2, padding trên giữ. Desktop padding giữ; card chung đồng bộ hồ sơ/preview. Build/typecheck PASS; dist xác nhận cỡ số93% và padding mobile mới; chưa browser QA.
+
+- 2026-10-27: Theo user, số hàng Bạn bè/Theo dõi/Lượt thích PlayerInfoCard trên laptop và mobile bỏ font-number, kế thừa cùng font với nhãn chữ. Giữ cỡ/độ đậm/khoảng cách/căn hàng và số Elo/ID khác; đồng bộ card chung. Build/typecheck PASS; dist xác nhận số không còn font-number; chưa browser QA.
+
+- 2026-10-27: Theo user bắt đầu chỉnh UI LAPTOP, điện thoại giữ nguyên. PlayerInfoCard hàng Bạn bè/Theo dõi/Lượt thích desktop căn trái và gap8px thật giữa các mục, vùng đo fit dùng cùng gap8 để nhãn ẩn đúng. Compact giữ justify-between/gap3 cũ, không đổi avatar/cỡ chữ/dữ liệu; đồng bộ card chung hồ sơ/preview. Build/typecheck PASS; dist xác nhận class desktop căn trái/gap8; chưa browser QA.
+
+- 2026-10-27: Sửa tiếp theo phản hồi user: chat mobile chỉ kích hoạt bàn phím sau pointerdown trực tiếp input. Input readonly khi chưa chạm hoặc sau blur; chạm input bỏ readonly ngay trong gesture. Pointerdown ngoài input trong Chat blur và khóa lại input; bỏ preventDefault giữ focus của icon, mở/đóng panel cũng blur. Thay quy tắc giữ focus cũ. Build/typecheck PASS; dist cập nhật có readonly gate; chưa QA bàn phím điện thoại thật.
+
+- 2026-10-27: User xác nhận chat trong trận chỉ bật bàn phím khi bấm ô nhập. useChat bỏ focus tự động khi gửi tin/gợi ý và chọn emoji; vẫn cập nhật caret mà không focus, giữ cơ chế tránh mất focus khi đang gõ. Icon Chat ngoài bàn vẫn mở panel như cũ. Áp dụng hook chung mobile/laptop, không đổi socket/nội dung. Build/typecheck PASS; dist cập nhật; chưa browser/bàn phím thiết bị thật QA.
+
+- 2026-10-27: Theo user, Xem thành viên hiện icon người+dấu cộng Thêm bạn vào nhóm cho mọi vai trò gồm member/deputy/owner, mobile+laptop. Thành viên thường được mở/giữ trang invite (không bị guard tab quản trị đưa về Tất cả); các tab/quyền quản trị giữ nguyên. Backend add đã cho thành viên đang tham gia gửi lời mời, vẫn chặn người bị block và giữ consent/duyệt hiện có. Thay quy tắc ẩn icon mời với member trước đây. Build/typecheck PASS; dist cập nhật và xác nhận icon mời; chưa browser/2client QA.
+
+- 2026-10-27: User báo trong trận vẫn bị dịch khi kéo sau lượt khóa viewport CSS. Thêm useGameViewportLock chỉ gắn khi GamePage mount (online/máy/replay/trial), touchmove nonpassive ngăn pan/bounce ở vùng không cuộn hoặc mép danh sách; cho cuộn đúng hướng trong panel thực sự scrollable, giữ đa chạm/select/range và thao tác tap. Listener trên document để bao phủ chat/view portal, dọn đầy đủ khi rời GamePage. gameScreen fixed/inset0/overflowhidden/overscrollnone, không đổi geometry/avatar/bố cục trong bàn. Regression3/3 PASS (mặt bàn/chạm mép/cuộn chat/đa chạm/cleanup), build/typecheck PASS, dist cập nhật. Chưa kiểm tra iOS/Android/keyboard thật nên chưa khẳng định hết mọi trường hợp dịch màn hình.
+
+
+- 2026-10-27: Theo user, menu Cài đặt Tin nhắn chứa Tạo nhóm đóng khi pointerdown ngoài cụm menu/nút bánh răng, áp dụng chuột và chạm mobile/laptop. Bấm trong menu giữ xử lý hiện có, bánh răng vẫn toggle; listener capture chỉ tồn tại khi mở và được dọn. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user cố định màn hình toàn project, không cho kéo cả trang lên/xuống. index.html neo body fixed/inset0, html/body rộng-cao100%, root hfull/minh0/overflowhidden/gridrowminmax0-1fr; html overscrollnone và các vùng overflow-y-auto/scroll có overscroll-y-contain để cuộn danh sách không lan ra nền. Giữ cuộn bên trong Lịch sử/Bạn bè/Tin nhắn/Shop và xử lý input/bàn phím hiện có, không touch-actionnone hay preventDefault toàn trang. Admin main chuyển sang vùng cuộn nội bộ hfull/overflow-y-auto để không cắt nội dung quản trị khi root khóa. Mở riêng viewport ngoài trong task này, không đổi avatar/bố cục màn con. Build/typecheck PASS, dist index.html/CSS xác nhận fixed-body/root và overscroll containment; chỉnh CSS/HTML không chạy test logic. Chưa browser/điện thoại/keyboard thực QA.
+
+
+- 2026-10-27: Theo user, mỗi lần mở/đóng Tin nhắn đặt menu Cài đặt chứa Tạo nhóm về đóng bằng theo dõi thuộc tính open của dialog. Danh sách hội thoại trống hiện Danh sách tin nhắn trống căn giữa ngang/dọc vùng list mobile/laptop; tìm kiếm không có kết quả hiện Không tìm thấy tin nhắn. Giữ luồng tạo nhóm/API. Build/typecheck PASS; dist xác nhận thông báo trống mới; chưa browser QA.
+
+- 2026-10-27: User chốt đã bắt đầu trận là được tính/lưu, không cần đi nước đầu. ContentRepository.history trả cả playing/finished có started_at, trạng thái chưa kết thúc dùng initial_state hiện có (0 nước), không đọc final_state null; timestamp hiển thị fallback started_at. Bookmark chấp nhận playing nếu actor là người tham gia theo DB, finished giữ quyền cũ; chưa bắt đầu vẫn chặn, không nhận board/kết quả client. RecordedMatch thêm startedAt và recordedMatchStarted chung cho saved/played: cho playing có mốc bắt đầu hoặc finished, loại ready; local played upsert cùng ID khi kết thúc thay vì nhân đôi/giữ bản cũ. Mở Lịch sử tải lại history+saved theo account hiện tại; Đã chơi/Đã lưu hiển thị Đang đấu khi chưa có kết quả. Bookmark là tham chiếu nên khi ván kết thúc API trả kết quả/moves đầy đủ của cùng ván. Không migration/thay Elo/vàng/năng lượng. Regression repository+saved-history+store+match-saving23/23 PASS; build/typecheck PASS, dist cập nhật. Bổ sung integration assertion bắt đầu0nước/bookmark trước kết thúc nhưng chưa chạy MySQL integration hoặc browser live; backend cần nạp code mới, không restart/deploy trong task.
+
+
+- 2026-10-27: User nhắc Lưu ván cờ phải lưu đúng ván trong Đã chơi và báo thông báo gợi ý đôi lúc lệch. Sửa HistoryHoldNotice portal vào chính dialog sở hữu (thay body cho popup tương tác), giữ popover top-layer để escape clipping nhưng không rơi ngoài modal/inert; áp dụng cả tooltip Đã lưu. InviteSentNotice chung portal vào dialog gần nhất hoặc body khi ngoài dialog, dùng popover manual fixed50%/50%, insetauto/margin0/widthmax và transform căn giữa có sẵn trước paint; useLayoutEffect mở/animate để không nhảy góc ban đầu và không lệch theo transform khung cha. Giữ font18/nền/bay48/fade1300, dữ liệu/khóa layout còn lại. Regression saved-history+store15/15 PASS, gồm lưu bằng store thật đúng ID/hiện trong Đã lưu/portal đúng modal/căn giữa ban đầu cảmobile+laptop; build/typecheck PASS, dist cập nhật. Chưa browser hoặc MySQL live QA; không khẳng định đã đo vị trí pixel thực.
+
+
+- 2026-10-27: Theo user, bấm Lưu ván cờ trong ô nhấn giữ Đã chơi gọi savedMatchesStore.save hiện có, thành công mới đóng ô và hiện thông báo gợi ý Đã lưu qua useInviteSentNotice (cùng mẫu Thêm bạn/Theo dõi). Lỗi hiện thông báo không thể lưu và giữ ô để thử lại; pending khóa nút/ref chống gọi lặp. Icon và chữ đều nằm trong nút bấm, giữ khung vàng dùng chung; click action không bị chặn bởi click thả sau giữ. Regression history10/10 PASS gồm pending/không báo thành công sớm/lỗi/thử lại/mobile+laptop; build/typecheck PASS, dist cập nhật; chưa browser/API live QA.
+
+
+- 2026-10-27: User đính chính riêng Đã chơi: giữ200ms hiện ô lưu, thả tay vẫn giữ, bấm trong ô không mất, chỉ pointerdown bên ngoài mới đóng (đổi tab/đóng dialog vẫn dọn); cuộn không tự đóng. HistoryHoldNotice thêm onDismiss tùy chọn với listener ngoài và pointer-events riêng; Đã lưu giữ thả ẩn như đã chốt. Regression history8/8 PASS gồm release/inside/outside/scroll/tab và tooltip Đã lưu; build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+
+- 2026-10-27: User đính chính nhấn giữ Đã chơi lấy cả icon lưu và khung nút vàng trong ván đấu. Dùng PositionIcon(save) trong gameUtilityButton chung, chữ Lưu ván cờ bên cạnh; biểu tượng không nhận pointer để không ngắt giữ. Giữ200ms/neo trên10px/thả ẩn. Build/typecheck PASS,dist cập nhật; chỉnh trình bày nhỏ không chạy lại test, chưa browser QA.
+
+
+- 2026-10-27: Theo user đồng bộ chiều cao Mời chơi/Kết bạn/Đã gửi/Hủy/Chấp nhận/Từ chối trong Bạn bè MOBILE theo nút Kết bạn: chung friendActionHeight=118×dialog scale, bỏ giới hạn108 và chiều cao phụ thuộc hàng của cụm lời mời. Laptop giữ khóa; giữ chiều rộng/font/avatar/hành vi. Phạm vi chiều cao mobile khóa lại sau task. Build/typecheck PASS; dist cập nhật và xác nhận bundle có chiều cao118 chung; chưa browser QA.
+
+- 2026-10-27: Theo user, dòng Đã chơi nhấn giữ200ms hiện icon PositionIcon(save) đúng icon lưu ván trong trận + chữ Lưu ván cờ; cùng HistoryHoldNotice với thời gian lưu ở Đã lưu, top-layer/căn giữa theo điểm bấm/mép dưới cách10px thật. Thả tay/nhả chuột/hủy/rời dòng/cuộn/đổi tab/đóng ẩn ngay, chặn click sau giữ mở profile/replay. Bấm icon hoặc chữ Lưu ván cờ gọi luồng lưu hiện có; thành công hiện thông báo gợi ý Đã lưu, lỗi không báo thành công. Mobile/laptop cùng hành vi, giữ avatar/bố cục. Regression history8/8 PASS; build/typecheck PASS, dist cập nhật; chưa browser QA. Mở riêng phản hồi nhấn giữ Đã chơi task này rồi khóa lại.
+
+
+- 2026-10-27: Theo user, tooltip thời gian lưu Đã lưu chỉ hiện trong lúc giữ, thả tay/nhả chuột ẩn ngay; hủy pointer/rời dòng cũng ẩn. Vẫn chặn click sau giữ để không mở profile/replay ngoài ý muốn; contextmenu không bật lại tooltip. Hook thêm tùy chọn riêng Đã lưu ván, Thế cờ giữ hành vi cũ. Regression history6/6 PASS gồm release/contextmenu sau release; build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+
+- 2026-10-27: Theo user, thùng rác Đã lưu/Ván đấu mobile+laptop mở thông báo Xác nhận với tên ván và Hủy/Đồng ý (tái dùng mẫu xác nhận chung, nền mờ toàn viewport). Chỉ Đồng ý mới gọi remove/API; pending khóa nút/chống gọi lặp, lỗi giữ thông báo để thử lại, thành công mới đóng. Nhấn thùng rác dọn tooltip thời gian lưu. Phạm vi mở riêng xác nhận rồi khóa lại. Regression history6/6 PASS gồm Hủy/Đồng ý/lỗi/thử lại cả2viewport; build/typecheck PASS, dist cập nhật; chưa browser/API live QA.
+
+
+- 2026-10-27: Theo user chỉnh thông báo thời gian lưu: giữ200ms thay500ms, neo giữa theo tọa độ bấm và mép dưới cao hơn điểm bấm10px thật. Dùng popover manual ở top-layer để không bị cắt bởi dòng/danh sách/scale dialog. Chỉ Đã lưu ván dùng200ms; consumer Thế cờ giữ500ms. Regression history4/4 PASS xác nhận mốc199/200ms, tọa độ, cuộn hủy và chặn click sau giữ; build/typecheck PASS, dist cập nhật. Chưa browser QA; khóa lại phạm vi.
+
+
+- 2026-10-27: Theo user, Lịch sử/Đã lưu nhấn giữ dòng ván 500ms hiện ngày giờ lưu (mobile/laptop), cuộn/di chuyển/đổi dòng/đóng dọn thông báo, chặn click thả sau giữ. API saved history trả savedAt từ saved_matches.saved_at sẵn có; local ghi savedAt khi lưu, bản legacy thiếu mốc báo chưa có thông tin, không dùng endedAt làm thời gian lưu. Tên ván font-black→font-bold, mobile bỏ stroke0.2px cả input/hiển thị đồng độ đậm; không đổi tên người/avatar/bố cục. Phạm vi mở riêng task này rồi khóa lại. Regression saved-history/store7/7 PASS (TEMP workspace khắc phục ENOENT cache môi trường); npm.cmd run build/typecheck PASS, dist index-DQUkWA7D.js xác nhận thông báo. Chưa browser/MySQL live QA; backend cần nạp code mới, không restart/deploy.
+
+
+- 2026-10-27: Theo user, địa chỉ dài trong PlayerInfoCard dùng truncate/ellipsis thật, bấm toàn dòng địa chỉ để mở đầy đủ và bấm lại thu gọn. Close event của dialog reset expandedAddress để mở lại luôn gọn; địa chỉ ngắn không bật toggle. Dùng card chung mobile/laptop/hồ sơ chính-người khác/tùy chỉnh, giữ dữ liệu địa chỉ và avatar. Regression toggle/close1/1 PASS; build/typecheck PASS; dist index-ZgtnvGwY.js xác nhận cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, hủy lời mời kết bạn cũng hiện thông báo gợi ý “Đã hủy lời mời kết bạn” cùng toast Thêm bạn, chỉ sau thành công. Đồng bộ Bạn bè mobile/desktop và hook useMessageFriendship chung Hồ sơ/Tin nhắn; nút Hủy Bạn bè await API, lỗi không báo thành công. Giữ UI/quan hệ/chấp nhận/xóa bạn. Build/typecheck PASS; dist index-B57buT0P.js xác nhận cập nhật; chưa browser/API QA.
+
+- 2026-10-27: User đặt tên kiểu toast đang dùng cho Thêm bạn là “thông báo gợi ý”. Theo dõi/Bỏ theo dõi trong ProfileDialog dùng cùng useInviteSentNotice/sentFeedback sau API thành công: “Đã theo dõi”/“Đã bỏ theo dõi”, nền nâu/chữ18px/giữa/bay48px-mờ1300ms mobile+laptop; lỗi giữ phản hồi lỗi, không báo thành công. Không đổi layout/quyền/quan hệ. Build/typecheck PASS; dist index-D6e8x6as.js xác nhận cập nhật; chưa browser/API QA.
+
+- 2026-10-27: Mở rộng hover pause carousel ra toàn vùng Danh hiệu và dừng ngay; cấp Tỉnh/Xã thêm dòng2 chú thích theo địa chỉ hồ sơ, đúng thứ hạng. Test địa phương+profile3/3 PASS; chưa browser QA hoặc dữ liệu giải đấu thực.
+
+- 2026-10-27: Phóng thêm nút dấu+ trong catalog Danh hiệu, mobile22px thật/desktopclamp22–30logical.
+
+- 2026-10-27: Thu vùng chữ Chú thích/Cách nhận danh hiệu vào trong viền thêm, giữ cuộn dọc và cỡ chữ.
+
+- 2026-10-27: Tăng dấu+ chọn hiển thị danh hiệu lên92% vòng nút, nét3 để rõ hơn.
+
+- 2026-10-27: Nới khoảng◆–chữ trong chi tiết danh hiệu bằng em; đồng bộ cỡ nút Ẩn trong popup với nút ngoài catalog.
+
+- 2026-10-27: Giới hạn vùng chữ chi tiết danh hiệu trong khung artwork; nội dung dài cuộn dọc, chống flex-shrink làm đè/tràn chữ.
+
+- 2026-10-27: Tăng nhẹ chữ Đã sao chép trong bảng Thông tin từ text-xs lên text-sm.
+
+- 2026-10-27: Hạ icon địa chỉ2px; tăng chữ phần mô tả/cách nhận danh hiệu ở cả popup ngoài Thông tin và mục Danh hiệu dùng component chung.
+
+- 2026-10-27: Theo user, máy trong Vị trí tùy chỉnh và Đánh thử luôn Fairy mạnh nhất: usePositionEditor chốt computerEngine=fairy/computerLevel10 khi vào, useReplayTrial gọi fairyStockfishApi.move level10 với FEN gốc+history nhánh riêng thay Pikafish/700ms. Cấp Đấu với máy thường giữ lựa chọn1–10; máy trong trial vẫn mặc định tắt, không tự đi khi vào. Giữ cancel/reset/replay/socket cô lập và Gợi ý hiện tại. Replay-trial3/3 PASS xác nhận Fairy10/history/cancel; typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Dịch riêng icon địa chỉ bảng Thông tin lên3px.
+
+- 2026-10-27: Thu nhỏ riêng Hủy/Sử dụng Tùy chỉnh avatar còn36px/chữ16px, cụm tối đa280px, giữ mẫu màu và bo góc.
+
+- 2026-10-27: Theo user, Fairy cấp1–6 tăng dần: depth1–6, Skill0/3/6/10/14/18, tỷ lệ random nước hợp lệ85/65/45/25/12/4%; random sau replay/validatehistory+abort và lọc lặp cấm. Cấp7–10 cùng engine NNUE fullstrength Skill20/MultiPV1/LimitStrengthfalse, go movetime tối đa800ms thay depth7–10; giới hạn RAM/CPU/clock/cancel giữ. Không đổi UI/PvP/Pikafish/Cờ Úp khác engine. Tests3PASS/1SKIP (240ply gated không chạy); native smoke cấp1/6/7/10 đều trả legal951–1817ms gồm startup, UCI xác nhận options. Typecheck/build PASS; dist cập nhật. Chưa đo Elo/đấu kiểm định độ khó hoặc browser; backend cần nạp code mới, không restart/deploy.
+
+- 2026-10-27: Đồng bộ nút Hủy/Sử dụng của Tùy chỉnh avatar với mẫu thông báo2lựa chọn dùng chung; giữ hành vi hủy/lưu/chọn đã áp dụng.
+
+- 2026-10-27: Theo user, Chọn Bàn/Tạo bàn thay dấu×dínhảnh bị kéo dọc bằng nút SVG viewBox vuông/aspect-square, giữ tâm/vùng đóng và pending. Picker tỉnh giữ Tất cả đầu tiên, tỉnh sắp số bàn có người giảm dần rồi người chơi giảm dần, hòa theo tênvi. Tăng tên36→40desktop/mobile10.5→12cqw và số28→32desktop/mobile9→10.5cqw, giới hạn cqh tương ứng. Không đổi profile province/API. Build/typecheck PASS; dist index-BOVf4z1L.js xác nhận cập nhật; chưa browser QA.
+
+- 2026-10-27: Tăng số trong hai ô Elo bảng Thông tin lên28logical, giữ icon và kích thước ô.
+
+- 2026-10-27: Đổi padding hai bên PlayerInfoCard thành6px, tăng nhẹ số hàng Bạn bè/Theo dõi/Lượt thích lên26/mobile28logical.
+
+- 2026-10-26: PlayerInfoCard chỉnh padding hai bên khung còn4px, giữ padding dọc/nội dung.
+
+- 2026-10-26: Giữ khung PlayerInfoCard chung cho Thông tin và preview Tùy chỉnh avatar; thu padding/gap nội dung để nằm gọn, không giảm kích thước tên/Elo/chữ/số/icon.
+
+
+- 2026-10-26: Nới khoảng cách chữ–số hàng Bạn bè/Theo dõi/Lượt thích thêm4px và tăng số một nấc; logic co nhãn giữ.
+
+- 2026-10-26: Thu hàng Bạn bè/Theo dõi/Lượt thích nhẹ; tăng icon địa chỉ và cờ quốc gia theo yêu cầu.
+
+- 2026-10-26: Tăng nhãn Bạn bè/Theo dõi/Lượt thích, bỏ icon tim; nếu hẹp tự ẩn chữ giữ số. Chỉnh cắt ngang địa chỉ bằng overflow-x-clip và tăng line-height/padding để hiện đủ nét chữ.
+
+- 2026-10-26: Theo user hoàn tác thêm1lượt Xem thành viên, về trước task đồng bộ Tin nhắn: nền nâu đặc#281205, bỏ nền/hoa văn mới và dòng kem/gap6slot, khôi phục dòng nâu chia8/đường phân cách cũ ở thành viên/trưởngphó/thêm/chặn/duyệt. Giữ chức năng quản lý/lời mời độc lập. Typecheck/build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-26: Giữ Bạn bè/Theo dõi/Lượt thích cùng1hàng theo user; thiếu chỗ tự ẩn nhãn, tăng số26/mobile28, giữ thứ tự/tooltip/aria. Không xuống dòng.
+
+- 2026-10-26: Theo user hoàn tác lượt nền giấy sáng Xem thành viên: khôi phục nền nâu/hoa văn compact và conversation-list-frame desktop, màu chữ/tab trước đó; compact giữ dòng inbox kem6slot, desktop dòng nâu8slot như trước lượt đổi giấy. Giữ các thay đổi chức năng độc lập. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-26: User đính chính Xem thành viên theo ảnh Xếp hạng: nền giấy sáng history-parchment-background+overlay#fff4dc52 chung Ranking, bỏ nền nâu/hoa văn. Các dòng tất cả/trưởngphó/thêm/chặn/chờduyệt dùng socialPlayerRowClass màu kem và inbox6slot/gap trên cả mobile/laptop; chữ tên/tiêu đề/tab màu nâu dễ đọc. Giữ avatar/chức năng/quyền. Typecheck/build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-26: Chỉnh Thông tin theo user: tên lên nhẹ, giãn Elo/các dòng dưới, tăng chữ hàng Bạn bè; Xã viết X., địa chỉ dài có nút … mở đầy đủ xuống dòng; khối tự tăng chiều cao để không đè thống kê. Chưa browser QA.
+
+- 2026-10-26: Theo user, Xem thành viên dùng nền Tin nhắn: compact gradient nâu/hoa văn SocialDialogFrame, desktop conversation-list-frame. Các dòng thành viên/trưởngphó/phongphó/thêm bạn/chặn/chờduyệt dùng messagesInboxRowStyle/ListStyle + socialPlayerRowClass trên compact,6slot/gap8scale; desktop giữ dòng inbox chia8/viềnnâu. Avatar/role/menu/quyền/API giữ. Typecheck/build PASS; dist cập nhật, chưa browser QA.
+
+- 2026-10-26: Theo user, bảng Thông tin hiển thị Tp. thay Thành phố/TP., tăng nhẹ chữ địa chỉ và ID qua PlayerInfoCard dùng chung. Không thay dữ liệu địa chỉ đã lưu.
+
+- 2026-10-26: Theo user, chấp nhận lời mời nhóm mà API pendingApproval=true tiếp tục chờ chủ nhóm duyệt và hiện toast Chờ duyệt bay lên qua useInviteSentNotice; chưa đưa vào inbox/cấp membership. Chấp nhận vào ngay vẫn im lặng. Backend giữ join_request hiện có. Typecheck/build PASS; dist xác nhận Chờ duyệt, chưa browser QA.
+
+- 2026-10-26: Theo user, Lời mời nhóm bỏ dòng status phía trên; từ chối dùng useInviteSentNotice toast Đã từ chối giữa màn/baymất như kết bạn, chấp nhận thành công im lặng. onChanged truyền groupId chỉ khi đã vào thực sự (pendingApproval không đưa lên), reload inbox đưa nhóm mới nhận lên đầu bằng mốc nhận theo account trong phiên dialog, giữ qua poll; tin mới hơn có thể lên trước. Lỗi API dùng toast, không status dòng. Typecheck/build PASS; dist cập nhật; chưa browser QA, thứ tự nhận chưa lưu qua reload trang.
+
+- 2026-10-26: Theo user, gửi lời mời nhóm lặp vẫn được nhưng người nhận chỉ1dòng/nhóm và badge đếm1. DB hiện có PRIMARY KEY(conversation_id,user_id)+upsert không nhân bản; useGroupInvitations select gộp conversationId cho list/badge. Tăng icon Chấp nhận16→22px/max10cqw, Từ chối dùng SVG× cùngsize thay ký tự; giảm gap/font nhẹ để chữ vừa nút, giữ kích thước nút/dòng. Group-invitations11/11 PASS gồm resend upsert2lần; typecheck/build PASS; dist cập nhật, chưa browser/MySQL QA.
+
+- 2026-10-26: User đổi riêng Tạo nhóm: createConversation thêm ngay creator(owner)+tất cả người được chọn(member) trong cùng transaction, không INSERT conversation_invitations khi tạo. Thêm thành viên vào nhóm đã có vẫn giữ luồng lời mời/consent. Không migration hay chuyển lời mời cũ. Group-invitations10/10 PASS (regression mới xác nhận3membership/0invitation); typecheck/build PASS, dist cập nhật. Chưa HTTP/MySQL/browser QA; backend đang chạy cần nạp code mới, không restart/deploy.
+
+- 2026-10-26: Theo user, avatar dòng lời mời lấy avatarUrl nhóm thật, fallback đúng create-group/avatar.png thay avatar người. Hai nút nhận/từ chối tăng vùng48→56%/cao34→42mobile40→48desktop, font theo container để gọn trong khung. Chữ ‹ Lời mời thay MessagesBackButton chung như chat, hiện cả khi trống. Giữ dòng/API/badge. Typecheck/build PASS; dist cập nhật, chưa browser QA.
+
+- 2026-10-26: Bỏ nút Quay lại dưới trái bảng Thông tin người khác theo ảnh user; giữ Thoát/× và phần nội dung.
+
+- 2026-10-26: Theo user, bấm dòng Lời mời vào nhóm mới mở nội dung, ẩn dòng danh mục khi mở. Trống hiển thị câu Chưa có lời mời vào nhóm căn giữa ngang/dọc vùng list. Có lời mời dùng cùng chiều cao/nền dòng inbox, chỉ avatar+tên nhóm, bỏ câu người mời; nút Chấp nhận/Từ chối dùng khung socialActionStyle/secondary Friends và icon thêm bạn. Có nút về Lời mời khi list có dữ liệu. Giữ API consent/cache/badge. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-26: Theo user, Xem lại từ Lịch sử/Đã chơi cũng được chuyển ngay sang Đánh thử, không cần lưu ván/thế trước. Gỡ trialAllowed/save guard trong GamePage và luôn truyền toggle cho controls desktop; mobile/Space dùng cùng callback. Giữ snapshot trial độc lập và dữ liệu lịch sử gốc. Thay quy tắc bắt lưu trước đó. Typecheck/build PASS; dist index-jqKm3lQG.js xác nhận cập nhật; chưa browser QA.
+
+- 2026-10-26: User yêu cầu bật lại icon chuyển Xem lại/Đánh thử ở tất cả nơi đã có. GamePage.toggleTrial bỏ chặn compact bằng thông báo Chức năng đang được cải tiến; mobile bấm icon hoặc Space dùng cùng toggle thật desktop. Icon dưới Board nhận trial.active để đổi nhãn Về xem lại/Đánh thử đúng trạng thái; giữ điều kiện lưu ván/thế trước khi thử, nhánh snapshot riêng/cancel/reset và vị trí icon. Desktop vốn hoạt động giữ nguyên; không thêm nút vào PvP thật. Replay-trial3/3 PASS; typecheck/build PASS, dist index-CUprs0AC.js xác nhận cập nhật; chưa browser QA.
+
+- 2026-10-26: Đính chính theo user: Lời mời vào nhóm dùng icon danh bạ trắng vẽ SVG native trên nền tròn xanh nước biển gradient, group-invitation-icon.svg; không dùng ảnh chụp đính kèm. Giữ kích thước/khung tròn/dòng/badge. Typecheck/build PASS; dist có icon mới, chưa browser QA.
+
+- 2026-10-26: Theo user, dòng Lời mời vào nhóm dùng chính ảnh đính kèm group-invitation-user.png, MessagesGroupAvatar bọc tròn/viền như inbox. Avatar dòng danh mục và lời mời40→52px (giới hạn theo dòng); avatar inbox50→56token/mobile72→84cqh. Giữ nguyên chiều cao/gap các dòng, logic lời mời/badge. Typecheck/build PASS; dist cập nhật, chưa browser QA.
+
+- 2026-10-26: Sửa nút Đã hiểu ở thông báo Chơi Với Máy/Luyện cờ: bỏ kích thước vuông ép chữ xuống dòng trên mobile, thêm min-width/whitespace-nowrap. Giữ khung và callback đóng.
+
+- 2026-10-26: Theo user, Gợi ý ván máy/từ Vị trí tùy chỉnh dùng thinkMs800/responseBudgetMs800: server trừ validation/UCI startup khỏi ngân sách, dự phòng250ms trả kết quả, riêng hint dùng1thread/hash16MB để giảm khởi tạo; vẫn Pikafishlevel10/bestmove/validatelegal/cancel, không đổi cấu hình máy10cấp. Board arrow z2 dưới piecesz4 (trướcz10), xanh lá#76ad59 theo ảnh, thân22→34/head60→88logical. Đo engine thật ngoài sandbox965/994ms; cold trong sandbox có lần4085ms, chưa đạt bảo đảm tổng0.8s do khởi động/NNUE. Không timeout giả hay nước dự phòng. Hint5/5+Pikafish8/8+inputbudget1/1 PASS; typecheck/build PASS, dist index-h_bvtec1.js xác nhận. Chưa browser QA; backend cần nạp code mới.
+
+- 2026-10-26: Theo user, Tin nhắn/Lời mời đổi nhãn tab Lời mời vào nhóm thành1dòng danh sách cùng messagesInboxRowStyle/nền như Tin nhắn, avatar nhóm/chữ trái và badge đỏ sốlượng bênphải; bấm dòng mở/thu lời mời bên dưới. Tab Lời mời dưới có badge góc trênphải. MessagesInvitationBadge chung hiện>0/99+, số thật từ useGroupInvitations query cache riêngaccount/poll5s luôn khi sidebar mở, cập nhật ngay khi phản hồi; không còn tab loại lời mời. Giữ API/consent/phânquyền. Typecheck/build PASS; dist xác nhận hook/badge, chưa browser QA.
+
+- 2026-10-26: Theo user, bỏ SVG chevron ngoài cùng trong mục Tạo nhóm vì asset action-row-blank đã chứa mũi tên. Tin nhắn và Lời mời vào nhóm MOBILE dùng messagesInboxRowStyles chung: khoảng cách round(8×scale) và slot6dòng như Xếp hạng, row gradient/viền/bo góc chung. Nội dung Tin nhắn giữ chiều cao7slot cũ trong hàng mới để không phóng avatar/chữ theo cqh; avatar lời mời giữ40px. Chỉ sửa trình bày, giữ API/consent. Build/typecheck PASS; dist index-BeLjnGiC.js xác nhận cập nhật; chưa browser QA.
+
+- 2026-10-26: Theo user, mục Tạo nhóm trong Cài đặt Tin nhắn dùng ảnh action-row-blank chung dòng tùy chọn nhóm: nền nâu/viền vàng/hoa văn, icon nhóm vàng trái và chevron vàng phải. Menu rộng240px/max viewport-48px, dòng cao50px/chữ18px. Giữ callback tạo nhóm. Build/typecheck PASS; dist index-2uwhOlim.js xác nhận cập nhật; chưa browser QA.
+
+- 2026-10-26: User chốt kết thúc xem thử nhận thưởng: xóa HOME_REWARD_PREVIEW/PREVIEW_REWARDS/chữ Xem thử, Home chỉ visible khi có pending thưởng thật, Xác nhận ack đồ đang hiện; không mở lại mỗi lần về Home. RewardItemTile/RewardPreviewDialog dùng chung Home và MatchResultDialog: ô vuông/hình lớn/số bên dưới4px/hàng ngang, bấm xem lớn không đóng bảng kết quả. Trong trận giữ khung thắng/thua/mốc vùng thưởng, chỉ hiện vàng/Elo khác0 từ props thật; giữ dấu trừ Elo nếu thua, không thay thưởng/backend. Match-result14/14 PASS; typecheck/build PASS, dist có giao diện mới/không demo, chưa browser QA.
+
+- 2026-10-26: Theo user, Cài đặt Tin nhắn chỉ hiện icon bánh răng giống Cài đặt nhóm, dùng SettingsIcon chung giữ nguyên artwork; bỏ chữ/khung nút riêng, đặt bên phải ô tìm kiếm trong cùng một hàng mobile/desktop. Hai tab dưới cùng Tất cả/Lời mời giảm padding dọc10→4px và khoảng trên8→4px. Build/typecheck PASS; dist index-Ba1-eWvx.js xác nhận cập nhật; chưa browser QA.
+
+- 2026-10-26: Theo user, chữ số trong tên vật phẩm nhận thưởng dùng lining-nums/tabular-nums để cùng đường chân/cao chữ, giữ font-heading/cỡ hiện tại. Đồng bộ số lượng thưởng tại ô và preview cùng kiểu số thẳng. Chỉ HomeRewardNotifications; typecheck/build PASS, dist xác nhận class mới; chưa browser QA.
+
+- 2026-10-26: User chốt dùng hình Elo HD v2 hiện tại và áp dụng cho toàn project. XIANGQI_ELO_ICON tại lib/eloArtwork.ts dùng chung elo-home-hd-v2.png cho Home mobile/laptop, Xếp hạng, PlayerInfoCard/Thông tin, PlayerCard trong trận và MatchResultDialog, popup thưởng/preview. Chỉ đổi icon Elo Cờ Tướng; kích thước/bố cục/điểm/sao/quân bàn cờ/Elo Cờ Úp giữ nguyên. Yêu cầu này mở phạm vi ảnh Elo tại các màn vốn khóa trong task. Typecheck/build PASS; dist có asset/bundle mới, đã đối chiếu7nơi dùng/chưa browser QA.
+
+- 2026-10-26: User chốt Tin nhắn: bỏ nút Tạo nhóm trực tiếp, Cài đặt nằm bên phải và chứa mục Tạo nhóm; dưới cùng sidebar có Tất cả/Lời mời. Lời mời có tab Lời mời vào nhóm, dữ liệu DB/poll5s, Đồng ý/Từ chối. Tạo nhóm chỉ cấp membership cho creator, bạn được chọn nhận invitation; Thêm thành viên cũng chỉ gửi invitation. Người nhận đồng ý mới tạo membership; nếu nhóm bật duyệt và người mời không phải owner thì sau consent mới tạo join_request chờ owner, chưa đọc/gửi được. Từ chối không vào nhóm. Backend lọc recipient từ cookie auth, khóa conversation/transaction, kiểm tra inviter còn active/không bị chặn và owner còn tồn tại; dissolve dọn invitations. Migration012_group_invitations mới,001–011 giữ nguyên; đã apply1bước MySQL local+verifySchema PASS. Tests invitation10/admin18/moderation12/chat9/migration5 =54 PASS khi chạy riêng từng file (Vitest chạy chung lỗi cache SSR/ENOENT, no-isolate xung đột mocks). Typecheck/build PASS, dist cập nhật; chưa browser/2client QA; không restart/deploy, backend đang chạy cần nạp code mới.
+
+- 2026-10-26: User yêu cầu tạo Elo gần hình cũ hơn. Home chuyển elo-home-hd-v2.png, built-in imagegen tham chiếu trực tiếp red-general.png và yêu cầu bám nét chữ/viền mảnh/màu vàng ngà-đỏ; đã xem ảnh kết quả, giữ ảnh độ phân giải cao không filterblur. Ô thưởng/preview dùng cùng v2; ảnh trận giữ nguyên. Prompt/source tại assets/game-result/elo-home-hd-v2.md. Build/typecheck PASS, dist chứa v2; chưa browser QA.
+
+- 2026-10-26: User báo Elo vẫn mờ/răng cưa sau Gaussian. Gỡ SmoothEloArtwork/filter/useId; Home dùng elo-home-hd-v1.png1270×1239 dựng nét lại bằng built-in imagegen từ chính red-general.png60×62 (đồng vàng ngà/chữ đỏ/vòng đỏ/viền vàng), không dùng biến thể source-cut quân cờ. Cả ô thưởng và preview dùng cùng ảnh nét cao, không blur. Nguồn/prompt: assets/game-result/elo-home-hd-v1.md. Giữ ảnh trong trận; typecheck/build PASS, dist có asset mới; đã xem ảnh nguồn/kết quả, chưa browser QA.
+
+- 2026-10-26: Theo user, ẩn dòng “đang suy nghĩ” và đặt stop deadline search Fairy tối đa800ms/lượt; vẫn giữ cấp depth, nước đi/luật và trạng thái lỗi khác. Fairy level10 trả nước hợp lệ; thời gian request tổng đo1.8s do khởi động process/UCI. Typecheck/build PASS; xem `docs/FAIRY-STOCKFISH-INTEGRATION.md`.
+
+- 2026-10-26: Chuẩn bị CD migration MySQL tự động cho Deploy manual trên master: exact-SHA push CI gate giữ nguyên; `cotuong_app` verify trước/sau với quyền DML, migrator credential đọc từ file VPS riêng mode0600 (không GitHub/SCP), migration chỉ sau backup mới local+cloud đã verify; journal thứ tự/checksum và `db:verify` bắt buộc. Migration lỗi dừng service, không publish/rollback code/restore DB; code rollback chỉ theo input tương thích. Thêm regression harness cho backup/migration lỗi, thành công và rollback không tương thích. SQL 006–010 rà soát: các cột thêm mặc định giữ bản cũ, bảng mới rỗng, 010 giữ `owner/member` theo CHECK cũ và mở `deputy`. Chưa truy cập VPS, xác minh account/grants/password production hay deploy. CI sau commit/push cần báo kết quả.
+
+- 2026-10-26: User yêu cầu làm mịn Elo thưởng Home nhưng giữ chính hình chiến thắng. SmoothEloArtwork dùng nguyên red-general.png 60×62 trong SVG, browser nội suy auto + Gaussian0.28 đơn vị nguồn, padding1px tránh cắt mép; áp dụng cả ô thưởng và preview lớn. Không thay artwork/bảng kết quả trận; Cờ Úp nguồn lớn giữ nguyên. Typecheck/build PASS; dist xác nhận feGaussianBlur0.28; chưa browser QA.
+
+- 2026-10-26: Theo user, đổi nhãn hiển thị của Fairy-Stockfish ở thiết lập, tên đối thủ và trạng thái đang nghĩ thành “Ông Hoàng”; engine backend vẫn Fairy-Stockfish. Chưa đổi engine/gameplay.
+
+- 2026-10-26: Theo user, Tin nhắn → Nhóm → Thêm thành viên dùng cùng bố cục dòng Thành viên: avatar, SocialPlayerName, chiều cao 1/8 viewport, font/padding/đường phân cách/scrollbar; nút + riêng gửi lời mời, avatar mở thông tin. Giữ lọc bạn accepted chưa trong nhóm và API. Typecheck/build PASS; dist index-BAadv2uf.js xác nhận cập nhật; chưa browser QA.
+
+- 2026-10-26: User chốt Elo thưởng Home phải dùng chính hình trong bảng chiến thắng: import assets/pieces/red-general.png cho Cờ Tướng và history/history-hidden-user.png cho Cờ Úp, cùng MatchResultDialog. Bỏ dùng bản source-cut/HD/phóng lại khác hình; giữ browser antialias imageRendering:auto. Typecheck/build PASS; dist cập nhật, chưa browser QA.
+
+- 2026-10-26: Đính chính icon Elo trong popup thưởng Home: giữ đúng đồng Elo đỏ trên nền vàng ngà (đồ họa gốc red-general-source-cut-v1), không dùng biến thể quân cờ mới red-general-source-cut-v1-hd. Tạo bản phóng 4× bằng nội suy bicubic chất lượng cao để giảm răng cưa khi xem lớn; chỉ popup thưởng Home dùng asset mới, không đổi icon Elo trận/xếp hạng. npm.cmd run build/typecheck PASS; dist chứa red-general-elo-smooth-4x-BPB_WDjw.png và bundle mới; chưa browser QA.
+
+- 2026-10-26: Chơi Với Máy chuyển mặc định/duy nhất hiển thị sang Fairy-Stockfish 220722 LB; backend UCI `/api/fairy-stockfish` xác thực lịch sử/nước theo game rules, rank Fairy1–10 đổi về game0–9, dùng xiangqi + kiểm tra NNUE runtime. Giữ service/Pikafish binaries/NNUE cho replay/hints, bỏ API/source/HOVANG local sau checkpoint `board-game/.checkpoints/fairy-migration-hovang-backup-20261026/HOVANG-backup-before-fairy-removal.zip` (SHA256 `97FEDF32CF1A34D1EF16C8CCD118BFF59E113516E89248A792C6CD9FA12BA112`). Test engine thật 240 ply + resignation, HTTP ready/move cho Đỏ+Đen PASS; hồi quy computer/position/Pikafish 40 PASS/1 SKIP; typecheck/build PASS, dist có Fairy. Binary Windows local/ignored; Linux cần binary native qua `FAIRY_STOCKFISH_PATH`. Chưa browser QA hoặc chạy Linux. Xem `docs/FAIRY-STOCKFISH-INTEGRATION.md`.
+
+- 2026-10-26: Theo user, bảng nhận thưởng Home chỉ1hàng ngang/flexnowrap/wmax/scrollX+touchpanx, không xuống dòng. Bấm ô mở RewardPreview kiểu Shop (khung nâu/ảnh lớn/title/Đóng/Escape/bấmngoài), không xác nhận/đóng thưởng bên dưới. Icon Elo riêng popup dùng ảnh red-general-source-cut-v1-hd thay bản nhỏ, objectcontain/antialias browser; không sửa icon/trận. Typecheck/build PASS; dist cập nhật; chưa browser QA lướt/preview.
+
+- 2026-10-26: Theo user xem thử, HOME_REWARD_PREVIEW=true: mỗi lần screen chuyển vềhome (kể cả mở đầu) hiện bảng nhận5món mẫu avatar16/vàng1000/Elo20/danhhiệu cct5/viền4. Xác nhận chỉ đóng preview, không ghi nhận/xóa pendingthật hay cộngđồ/vàng/Elo/DB; lần vềhome kếtiếp hiện lại. Nhãn Xem thử, tắt cờ để trở lại thông báo thật. Typecheck/build PASS; dist index-BIjlCtvu.js xác nhận preview-avatar; chưa browser QA.
+
+- 2026-10-26: Theo user, hai nút×/✓ trong lời mời thu chiều cao36desktop/38mobile→30px, dấu32→28px để vừa; giữ ngang56/64. Chữ Không hiển thị lại tăng11→12px, ôtick14px/khung2/3/callback giữ. Typecheck/build PASS, dist xác nhận30px; chưa browser QA.
+
+- 2026-10-26: Theo user, Home thêm popup nhận đồ từ ảnh85b40e21: ô vuông đồngcỡ cho danh hiệu/avatar/viền/vàng/Elo, số tài nguyên ngoài ô bên dưới4px/icon88%. Resource-only giữ vùng18/56/64/16% như trận; không sửa MatchResultDialog. Hook quan sát profile/APIhonors5s→homeRewardsStore baseline/pending localStorage riêngaccount, firstload chỉbaseline, xác nhận xóa pendingđanghiện; gold/Elo bỏ khi game/replay hoặc played tăng để tránh lặp thưởng trận. Đồ mới chờHome. Snapshot-based/chưa ledgerthôngbáoserver/ackchưađồngbộthiếtbị; xem docs/HOME-REWARDS.md. Build/typecheck PASS; dist index-DJG3nU5R.js + asset; chưa browser/API QA, không DB/restart/deploy.
+
+- 2026-10-26: Theo user thu rõ thông báo nhận Mời chơi/So tài: avatar76→48px (danhhiệu/khung theo), câu22→16px, nhãn Không hiển thị lại14→11px/checkbox18→14px. Thông báo mobile rộng2/3viewport, desktopmin320/2/3viewport, padding12px/gap12/mravatar16 thay32; cụm nhãn+tick rộng2/3khung cănphải. ×✓/logicblock5phút/thời hạn giữ. Typecheck/build PASS, dist xác nhận66.667vw; chưa browser QA.
+
+- 2026-10-26: Theo user sửa thông báo nhận Mời chơi/So tài: bỏ dòng tên riêng phía trên, chỉ giữ câu “Tên muốn so tài.” tăng22px cảmobile/laptop (override compact p18), căn giữa dọc cạnhavatar. Thu nhãn Không hiển thị lại20→14px và checkbox28→18px, giữcụmcănphải/gap8/logic5phút/×✓/avatar. Typecheck/build PASS, dist xác nhận22px; chưa browser QA.
+
+- 2026-10-26: User yêu cầu lại khoảng dưới tìm Bạn bè MOBILE bằng khoảng trên với3tabcon. Lượt mb4 trước chưa tính ui-p48/60 đã scale1.5 còn ui-p4 khôngscale1.5. Sửa marginbottom=var60-var48-2var4, nên hai khoảng thực đều gap14-top4; áp dụng Danh sách/Thêm bạn và trừ cùng reserve trong phép fit6hàng. Giữ vị trí/cỡ ô tìm/phần trên/avatar/laptop. Typecheck/build PASS, dist xác nhậncalc; chưa browser QA.
+
+- 2026-10-26: Theo user, mọi nút gửi Kết bạn dùng toast Đã gửi như Mời chơi/Không đủ tiền: useInviteSentNotice nềnnâu/chữ18px/giữa/bay48px-mờ1300ms. Bạn bè Thêm bạn mobile/laptop bỏ subsystemtoastxanh/fontload/timer500ms, dùng cùng notice đang có choMời chơi. Hồ sơ và MessagesMemberFriendButton nối onSent cho useMessageFriendship; hội thoại đã dùng sentNotice giữ. Chỉ hiện sau request thành công, không hiện khi accept/hủy/xóa/lỗi. Giữ API/quan hệ/nút/layout/khóa avatar. Typecheck/build PASS, dist cập nhật; chưa browser/API QA.
+
+- 2026-10-26: Theo user, mua không đủ vàng hiển thị toast “Không đủ tiền” dùng useInviteSentNotice như Đã gửi lời mời: giữa màn hình/nền nâu/chữ18px/bay48px rồi mờ trong1300ms, không nút×/không nền phủ. Áp dụng Shop mobile/laptop, chỉ nhận đúng lỗi thiếu vàng backend; các lỗi khác và giao dịch giữ nguyên. Bỏ popup thiếu tiền cũ/timer2s. Typecheck/build PASS, dist có toast; chưa browser/API QA.
+
+- 2026-10-26: User yêu cầu khung/chữ/hai nút thực sự cùng cỡ Shop và độmờ như thông báo hiện tại. Phát hiện getCrispUiLayout kế thừa --spacing/--text khiến class chung vẫn bịthu. confirmationDialogFrame reset tokenspacing/text/radius vàpadding24px; title30desktop/24mobile, mô tả20/18px, buttons44px/chữ18/gap12, mt24px cố định. Dùng chung toàn bộ xác nhận gồm Shop; bo8 giữ. Lớp phủ60%đen/khôngblur; Shop bỏbackdropblur/65→60, Chặn/Xóa chat/Tắt thông báo/địa chỉ chuyển NoticeOverlay phủfullviewport chung như Xóa bạn, Escape đóng đúngform. Một nút giữ nguyên. Typecheck/build PASS, dist xác nhậnpxfixed/overlay; chưa browser QA.
+
+- 2026-10-26: Theo user, các thông báo2lựa chọn dùng khung Xác nhận mua Shop làm chuẩn. Tách confirmationDialogStyles dùng chung khung/màu/nền/viền/bóng, rộngmin440px/90vw, title3xl/mobile2xl và nội dungxl/mobilelg, actions2cột. Áp dụng xác nhận chung Xóa bạn/phong chức/xóa thành viên/rời/giải tán/chuyển khóa, Chặn/Bỏ chặn/Xóa chat/Tắt thông báo, Đăng xuất, thiết lập địa chỉ, reset Đánh thử và Shop; thêm tiêu đề Xác nhận ở hộp trước chỉ có câu hỏi. Bỏ kích thước240px/épchữ18 riêng của cặp xác nhận để theo Shop. Hai nút bo16→8px qua tokenchung (Tạo nhóm cũng dùng token), giữ nâu/vàng/callback/pending. Thông báo một lựa chọn giữ nguyên mẫu cũ. Typecheck/build PASS, dist xác nhận tokenkhung/bo8; chưa browser QA.
+
+- 2026-10-26: Theo user, thông báo có2lựa chọn dùng khung nút Hủy/Tạo nhóm MOBILE: Hủy nâu gradient#61300e→#2a1005/viền#c98b31/chữkem; Đồng ý vàng gradient#ffe68b/#f2ab24/#c47412/viền#ffe08b/chữnâu. Tách confirmationButtonStyles chia sẻ với2nút Tạo nhóm; áp dụng xác nhận chung Xóa bạn/phong chức/xóa thành viên/rời nhóm, Chặn/Bỏ chặn/Xóa chat/Tắt thông báo, Đăng xuất, thiết lập địa chỉ, reset Đánh thử và xác nhận muaShop cả2viewport. Giữ panel/nội dung/callback/pending/layout; nút thông báo một lựa chọn Đóng/Đã hiểu giữ nguyên mobileNoticeButtonStyle. Không đổi nút trong các form nhập tên/địa chỉ. Typecheck/build PASS, dist xác nhận2gradient; chưa browser QA.
+
+- 2026-10-26: User hoàn tác riêng icon trong nút Tìm: Bạn bè trở lại kínhlúp32/stroke3.5/size36mobile,31desktop; Chọn Bàn trở lại kínhlúp24/r6.5/stroke2/size16; màu nâu kế thừa nút. SearchButtonIcon chia sẻ mẫu Bạn bè. Giữ khung vàng580e9677, các icon trong ô tìm vẫn mẫu Tin nhắn, không hoàn tác thay đổi khác. Typecheck/build PASS, dist xác nhận icon cũ; chưa browser QA.
+
+- 2026-10-26: Theo user, nhạc chỉ phát trong game, bỏ bảng media Android/Chrome. useHomeMusic chuyển HTMLAudioElement/new Audio sang BackgroundMusicPlayer dùng AudioContext/AudioBufferSourceNode trực tiếp, không MediaSession/media element. Giữ3bài/thứtự/nghỉ4giây/player xuyênmàn/toggle và preference; tạm dừng context khi document hidden, tiếp tục cùng source khi visible, visibility listener thuộc singleton kể cả trang không mount hook. Decode bất đồng bộ khóa version để tắt/ẩn không phát muộn; chỉ giữ buffer bài hiện tại. Tests nhạc+GameSounds12/12 PASS; typecheck/build PASS, dist có decoder mới/không new Audio. Chưa kiểm chứng bảng hệ thống trên Android thật, cần tải lại trang để giải phóng player cũ.
+
+- 2026-10-26: User báo icon nút Tìm chưa đồng bộ: hình đã chung nhưng còn cỡ36/31/16 và màu nâu riêng. SearchButton tự render SearchIcon size var(--ui-p-24,24px)/màu#e5b45d đúng Tin nhắn; bỏ icon children và override svg36 tại các nút Bạn bè mobile/laptop/Chọn Bàn. Giữ chữ/khung/nút/logic. Typecheck/build PASS, dist xác nhận mẫu dùng chung; chưa browser QA.
+
+- 2026-10-26: Theo user, toàn bộ icon tìm kiếm dùng mẫu Tin nhắn: SearchIcon chung SVG24/circle10,10,r7/path m15 15 7 7/stroke2. Thay tại ô/nút Tìm Bạn bè mobile/laptop, Chọn Bàn, tìm hội thoại, tìm bạn Tạo nhóm và tìm thành viên. Giữ kích thước/màu theo ngữ cảnh và logic tìm; không đổi layout/avatar. Typecheck/build PASS, dist cập nhật; đã rà không còn mẫu kínhlúp cũ, chưa browser QA.
+
+- 2026-10-26: Theo user, Bạn bè MOBILE tăng khoảng cách từ khung tìm kiếm xuống danh sách thêm var(--ui-p-4) để bằng khoảng cách từ3bộlọc phía trên xuống khung tìm (gap14/top-4; form48+10.2/art70.2 khiến khoảng dưới thiếu4). Áp dụng form Danh sách/Thêm bạn, giữ desktop và avatar/hàng. Typecheck/build PASS, dist xác nhận compact margin-bottom; chưa browser QA.
 
 - 2026-10-26: Theo user, SearchButton dùng asset580e9677-60e1-44a8-9fd5-45ef04444b44.png thay khung CSS vàng ở Bạn bè/Chọn Bàn cả mobile/laptop. Căn background theo vùng artwork(124,159)-(1650,725) trong ảnh1774×887 để khung phủ đúng nút, không sửa ảnh nguồn; chữ/icon nâu#2b1909 để rõ trên nền vàng. Giữ sizing từng nơi/submit/disabled/logic tìm. Typecheck/build PASS, dist có asset và import; chưa browser QA.
 
@@ -265,6 +700,9 @@
 ## Việc cần làm sau
 
 - Home: bổ sung Nhiệm vụ và Hòm thư ở bên phải (user ghi nhớ ngày 2026-10-24). Chưa triển khai; mặc định mobile.
+- Xã hội/Luyện cờ: thêm theo dõi người chơi trong Bạn bè và thông báo hoạt động của người được theo dõi trong phần Luyện cờ (ghi backlog ngày 2026-10-28). Chưa triển khai; loại hoạt động, cài đặt thông báo, quyền riêng tư và vị trí hiển thị cần chốt lúc làm.
+- Bộ sưu tập: nhóm avatar, khung avatar, hiệu ứng và skin thành bộ; sở hữu đủ bộ sẽ nhận thêm dấu ấn hồ sơ. Chưa triển khai; danh sách bộ/điều kiện hoàn thành/phần thưởng cần chốt lúc làm.
+- Thông tin hồ sơ: bổ sung hiển thị skin, ghi chú cá nhân và liên kết mạng xã hội. Chưa triển khai; xác minh liên kết, quyền riêng tư và giới hạn ghi chú cần chốt lúc làm.
 
 
 - 2026-10-24: Theo user, áp dụng ComputerActionButton chung cho2nút Vị trí tùy chỉnh/Đấu ngay MOBILE; thay ảnh chữ gộp bằng SVG/icon vector/chữ HTML co theo container như laptop. Giữ hàng cao48px/2cột/gap12, callback/disabled/busy. Build/typecheck PASS; dist cập nhật; chưa browser QA.
@@ -1258,15 +1696,15 @@
 
 - 2026-09-26: Ô chat hẹp 10px và cao thêm 10px. Thu ba gợi ý thành popup mở từ icon bong bóng cạnh icon mặt cười; từng gợi ý thấp hơn trước và popup rộng hơn khung 3px. Cập nhật regression mở popup rồi gửi gợi ý. Typecheck/build PASS.
 
-- 2026-09-26: Làm lại ô chat theo ảnh tham chiếu: khung xanh đậm viền vàng, ba gợi ý Chào bạn!/Nước đi hay!/Chúc bạn chơi vui! dạng nút có icon hội thoại và mũi tên; ô nhập bo tròn, nút gửi hình máy bay giấy. Giữ lịch sử tin, gửi nhanh, emoji, thu gọn/mở rộng và responsive. Cập nhật UI regression theo gợi ý luôn hiển thị khi mở chat. Build cần chạy.
+- 2026-09-26: Làm lại ô chat theo ảnh tham chiếu: khung xanh đậm viền vàng, ba gợi ý Chào bạn!/Nước đi hay!/Chúc bạn chơi vui! dạng nút có icon hội thoại và mũi tên; ô nhập bo tròn, nút gửi hình máy bay giấy. Giữ lịch sử tin, gửi nhanh, emoji, thu gọn/mở rộng và responsive. Cập nhật UI regression theo gợi ý luôn hiển thị khi mở chat. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
 
 - 2026-09-26: Chụp hình dùng Blob chuẩn bị nền ở idle sau mỗi thay đổi board và sau khi animation kết thúc; Blob mới lưu trong ref, Blob hợp lệ trước đó vẫn dùng trong lúc bản mới đang tạo. Click chỉ tạo Object URL/tải ngay, không gọi html-to-image hoặc cập nhật state khi thành công. pixelRatio 1; ghi Performance measure và console cho thời gian tạo Blob/click-to-download. Typecheck/build PASS; chưa có số đo runtime trong browser.
 
 - 2026-09-26: Chụp hình dùng Blob chuẩn bị nền ở idle sau mỗi thay đổi board và sau khi animation kết thúc; Blob mới lưu trong ref, Blob hợp lệ trước đó vẫn dùng trong lúc bản mới đang tạo. Click chỉ tạo Object URL/tải ngay, không gọi html-to-image hoặc cập nhật state khi thành công. pixelRatio 1; ghi Performance measure và console cho thời gian tạo Blob/click-to-download. Typecheck/build PASS; chưa đo số liệu thực tế trong browser.
 
-- 2026-09-26: Nút Chụp hình chụp trực tiếp `#gameScreen` bằng html-to-image `toBlob` ở pixelRatio 2, tạo Object URL và tự tải `co-tuong-[timestamp].png`, sau đó thu hồi URL. Không mở chọn vùng/preview/tab mới; dùng ref chống bấm lặp để thao tác không cập nhật state/re-render bàn cờ; thêm thông báo lỗi asset CORS. Build cần chạy.
+- 2026-09-26: Nút Chụp hình chụp trực tiếp `#gameScreen` bằng html-to-image `toBlob` ở pixelRatio 2, tạo Object URL và tự tải `co-tuong-[timestamp].png`, sau đó thu hồi URL. Không mở chọn vùng/preview/tab mới; dùng ref chống bấm lặp để thao tác không cập nhật state/re-render bàn cờ; thêm thông báo lỗi asset CORS. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
 
-- 2026-09-26: Tối ưu tiếp nút chụp ảnh: chuẩn bị sẵn CSS font ngay khi vào bàn và tái sử dụng lúc chụp, đồng thời xuất ở đúng kích thước màn hình (pixelRatio 1) để giảm thời gian dựng PNG khi bấm. Build cần chạy.
+- 2026-09-26: Tối ưu tiếp nút chụp ảnh: chuẩn bị sẵn CSS font ngay khi vào bàn và tái sử dụng lúc chụp, đồng thời xuất ở đúng kích thước màn hình (pixelRatio 1) để giảm thời gian dựng PNG khi bấm. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
 
 - 2026-09-26: Chụp màn hình bắt đầu ngay trong thao tác bấm: preload html-to-image khi mở bàn cờ, bỏ chờ fonts.ready và gọi dựng ảnh trước khi cập nhật trạng thái nút đang chụp. Giữ pixelRatio 1.5; build cần chạy.
 
@@ -3884,3 +4322,270 @@ pm.cmd run build (typecheck + Vite) PASS; dist/assets/index-Cgh9GUJJ.js đã c�
 - 2026-10-26: CI GitHub Actions PR #5 run 40275314056 (HEAD `f5ce3c2c8b881412fb5d73ea611e5fd4f6fc81a8`) báo 58 diagnostic TypeScript; nguyên nhân là các module nguồn đang được import và asset/migration/test liên quan tồn tại local nhưng chưa được theo dõi trong Git. `dailyShop.ts` không bị `.gitignore` loại; import và casing đúng. Đã chọn stage 76 file nguồn/tài nguyên runtime/migration/regression test cần thiết; không stage HOVANG source/binary, không đổi thuật toán/game logic. Bản clean checkout của đúng SHA với các file bổ sung: typecheck PASS, full tests 447 PASS/26 SKIP/0 FAIL, build PASS; run CI gốc dừng ở typecheck nên chưa chạy test/build. Chưa commit/push/merge/deploy.
 
 - 2026-10-26: CI PR #5 run 40277641337 xanh typecheck/full suite nhưng Disposable MySQL integration phát hiện 4 Shop tests dùng fixture đã lỗi thời (giá cũ500 và mua trực tiếp món không thuộc phiên chợ); Shop hiện dùng6 món mỗi ngày,3000 vàng/món. Không đổi nghiệp vụ: tests lấy sản phẩm thật từ /shop/daily bằng tài khoản xác thực, kiểm tra giá3000 và giữ auth/tamper/idempotency/concurrency/insufficient-funds/rollback assertions. Disposable MySQL 8.0.45 migrate lần1/lần2, verify, smoke và 4 file integration PASS 20/20; full suite PASS 456/21 skip trên477, typecheck PASS. build PASS; không dùng DB production/HOVANG, không deploy.
+
+- 2026-10-26: Theo user, Xem thành viên bỏ khung/nền nút tab: Tất cả/Trưởng và phó nhóm/Đã chặn là tab ngang lướt, line dưới chung và tab chọn đổi chữ+gạch vàng. Duyệt thành viên tách một dòng toàn ngang dưới tab, tiêu đề Thành viên(số) xuống dưới dòng duyệt. Header back trái, icon thêm bạn vào nhóm+tìm kiếm phải; tìm bật input lọc tên trong danh sách đang xem, thêm mở danh sách mời hiện có. Giữ API/quyền/geometryavatar. Build/typecheck PASS,dist xác nhận2control mới; chưa browserQA.
+
+- 2026-10-26: Theo user, Xem thành viên/Thêm bạn cùng fullwidth/fullheight vàpadding20 như trang Cài đặt, bỏ inset3/6% và viềnpanel riêng. Dòng Duyệt thêm iconngười+dấutích vàng theo iconthêmngười; bỏsố/mũitên, chỉhiệnchấmbáođỏ10px khi pendingMembers.length>0, aria cósốchờ. Build/typecheck PASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, header thành viên thu iconTìm/Thêm28→24px, đảo thứtự Tìmtrái/Thêmphải. Ô tìm bật ngaybêntráiiconTìm trongcùnghàngheader, dùng messagesFriendsField/Input mẫuTìmBạnbè (gradientnâu/viềninsetvàng/font), cao36px/co theo vùngtrống; bỏhànginputriêng. Giữlọctên/luồngmời. Build/typecheck PASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, header thành viên cố định cao36px để mởôTìm khôngdịchUI; inputkhôngautofocus, mởXemthànhviên resetsearchđóng/rỗng. Sốcounttiêuđề dùngNumberTextcompact/normal nhỏ0.9em nhưsốtên. Duyệt mởtrangriêngtrongcùngkhung, ẩntab/dòngđiềuhướnggốc, cóswitchbật/tắt vàdanh sáchchờ, backvềTấtcả. TabTrưởng-phó bỏdòngDuyệt, thayThêmphónhóm mởchọnthànhviênthường gọiAPIpromotehiệncó;backvềTrưởng-phó. Build/typecheck PASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theoảnhuser, chữ Xóa toàn bộ tin nhắn? MOBILE dùng cùngfontbody/cỡ18px với dònggiảithích để nhìnđồngcỡ (trướcCormorantnhỏthịgiác), giữnguyênbold. Desktopgiữfontcũ. Build/typecheck PASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, phầnthànhviên/duyệt khônghiện lỗi Thao tác quá nhanh (chỉẩnmessageUI,giữratelimitserver). Menu...vàng thêmPhongtrưởngnhóm. Phong/Gỡphó từmenuhoặcThêmphó đều mởxácnhận; phongtrưởng cảnhbáomấtquyền/vềmember, chỉgọitransfer sauĐồngý. TáidùngAPItransactionowner→member/target→owner và cậpnhậtroles/creatorName ngayđểẩnquyềnquảntrịcũ. Build/typecheck PASS,distxácnhận; regressiongroup-administration18/18PASS; chưa browserQA.
+
+- 2026-10-26: Theo user, Thêm phó nhóm dùng row cùng avatar/tên/font/chiều cao1/8 như Thành viên, avatar mởprofile và+ mởconfirmphong; khôngsửa geometryavatar. TabĐãchặn bỏdòngDuyệt, chỉTấtcả giữ. KiểmtraChặn phát hiện polling dùngchunghạnmứcIP600/phút vớiwrites trongkhiUIẩn429: táchread/write bucket,cùnggiữ600/phút mỗi nhóm, khôngbỏratelimit. Thêmversionguard dữliệugroup đểphản hồipollcũkhôngghiđè blockedlist sauvừachặn/bỏchặn. HTTPregression xácnhậnhết600GETvẫnPATCHblockthànhcông1/1PASS; moderation12/12PASS. Build/typecheck PASS,distxácnhận. Chưa2client/browser/DBthậtQA,khôngrestartdeploy; backendcầnnạpcodecontroller mới.
+
+- 2026-10-26: Theo user, dấu+Thêmphó đổiSVG34px/nút40px thayglyph24/nút32 để rõ/lớnhơn. Đối chiếuluồng: pickerphóchỉlấymembershiệntạirolemember; pickerThêmthànhviênchỉfriendsaccepted vàchưacótrongnhóm, giữlọcsearch. Build/typecheckPASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, dấu+Thêmphó SVG34→30px giữnguyênvùngbấm40. Người bịchặn cóbadge nềntrònxám/cùngkíchthước-vịtríkeyvàng vàdấu/đỏ#ff5555, dùngcomponentBlockedMemberBadge tạiTấtcả/Trưởng-phó/Đãchặn/Thêmphó. Trạngtháiblockedưu tiênhiệnbadge/ thaykey, rolethậtkhôngđổi; bỏchặntrảbadgekeynếucó. Giữavatar geometry. Build/typecheckPASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, badgeblocked dấu/đỏ dùngSVGfullsize/pathchạm gầnmépvòngtròn thayicon13px. BỏiconThêmthànhviên ởtrangoptionsngoài (ảnhuser). Thànhviênthường chỉxemTấtcả vàtìm, ẩnTrưởng-phó/Đãchặn vàiconmời trongbảng; khi mấtrole tựvềTấtcả. Vàng/bạc giữtabquảnlý vàiconThêm trongXemthànhviên. ChỉđổiUItheouser, backendluậtchặn/mờiđãchốtgiữ. Build/typecheckPASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: User thu dấu/blocked vềcùngiconkeyvàng: SVG13logical thayfullsize, vòngbadge20/vịtrí/path/màu giữ. Build/typecheckPASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, các dòng options (Xóa chat/Báo cáo/Rời/Cài đặt) dùngfontnumber/cỡui-p22/normal nhưXemthànhviên để đồngcỡthịgiác. Đổi tên nhóm chuyển thànhiconbút cạnhtênchỉowner, mởformmax80/APIrenamehiệncó; bỏhàngĐổitên/Chuyểnkhóa/Duyệt khỏiCàiđặt (phongtrưởng vàduyệt trongThànhviênvẫngiữ). Càiđặt chỉTắttinnhắnnhóm, dưới cóline vàGiảitánởcuốidanh sáchđượcnânglên, bỏảnhrowmũitênriêngGiảitán/giữtrashđỏ.
+- Tắttinnhắnnhóm mởtrangtrongkhungcũ với2checkbox Tắt tin nhắn nhóm/Khóa bạc có thể nhắn. Serverkhóachatkhibật: ownerluônđượcgửi, memberbịchặn, deputy chỉđượckhioptionbạc=true; individualblockedvẫnbịchặn. Text/ảnhđềudùngsendchung/ảnhlỗidọnfile, vẫnchoxemtin. Flagsmặcđịnhfalse,persistDB,owner-onlymutation+validatebool/transactionlock. Migration011_group_chat_controls đãapply1bướclocal+verifySchemaPASS,001–010khôngsửa. Pollversionguard tránhphảnhồicũđèswitchsauvừalưu.
+- Kiểm chứng group-chat-controls9/9 vàgroup-moderation12/12PASS; typecheck/buildPASS,distcậpnhật; chưa browser/2clientQA,khôngrestartdeploy/backendcầnnạpcode mới.
+
+- 2026-10-26: Theo user, Giảitánnhóm trởlại dạnghàngcókhungnâuviềnvàng/cùngcao90logical/mobile50 nhưcáchàngsettings, giữchữiconđỏ/linephâncách/khôngmũitên. DướinhãncheckboxTắttinnhắnnhóm thêmghichú14pxmàukem: Người dùng trong nhóm sẽ không thể gửi tin nhắn. Build/typecheckPASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, núttrongoptionsnhóm/thànhviên/càiđặt bấmkhôngnháy: tắtWebKittaphighlighttrongphạmvi, disabledkhôngđổiopacity, giữkeyboardfocus/chốngbấmlặp. Checkboxduyệt/tắtchat/quyềnbạc hiểnthịngaygiátrịvừachọn trongkhiAPIpending, lỗihoànlạigiátrịserver; khôngcònchớptrạngtháicũtrướclưuxong. Build/typecheckPASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: User đính chínhnháyởôcheckbox. Thay3ôduyệt/tắtchat/quyềnbạc bằngGroupCheckbox: inputnativeẩn, phầnô/dấutíchluôngiữDOM/khônganimation, disabledkhiAPIpendingkhôngđổiappearance. Giữoptimisticcheck/rollbacklỗi; bổsungversionguardchoonSetApprovalchặnphảnhồipollcũ. Regression2/2PASS xácnhậncheckedtrue/visibleboxgiữnguyênquaAPIpending/rerenderpropscũ/hoàntất. Build/typecheckPASS,distxácnhận; chưa browserQA, khôngkhẳngđịnhQAvisual.
+
+- 2026-10-26: Theo user, tênnhómdướiavatar căn giữa độc lập, bútabsolute bênphảitên+8px khôngchiếmwidth/tácđộngtâm; tênquádài truncatechừakhoảngbút. FormĐổitên dùngconfirmationDialogFrame/Title/Actions vàCancel/Accept chung2lựachọn Hủy/Đồngý, ônhập60px/min60/wfullthay44px. Giữavatar/APIpending/validate80. Build/typecheckPASS,distxácnhận; chưa browserQA.
+
+
+
+
+
+
+- 2026-10-27: Theo user, tăng nhẹ chữ Ghi chú ở Đã lưu/Ván đấu laptop từ13 lên15px theo dialog scale, gồm chế độ đọc và sửa; mobile giữ13px.
+
+- 2026-10-27: Theo user, thu chiều cao ba tab con lọc Bạn bè LAPTOP 66→56px theo scale; đồng bộ chiều cao wrapper để các tab lớn/điện thoại không đổi. npm.cmd run build PASS; dist cập nhật; chưa browser QA. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: Chọn Bàn laptop bỏ Cúp/Bạn bè, tăng ô tìm/nút Tìm; mobile giữ nguyên. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-28: Mobile Tin nhắn đã khôi phục hai tab Tất cả/Lời mời, tab lời mời nối dữ liệu và badge hiện có. Build cập nhật dist.
+- 2026-10-28: Bấm danh hiệu trong bảng Nhận được mở preview và bảng thông tin danh hiệu đồng thời, cạnh nhau trên laptop/xếp dọc compact. Tái dùng catalog và HonorDetailPopover, không tự xác nhận thưởng. Build/typecheck PASS; chưa browser QA.
+- 2026-10-28: Theo user thu artwork danh hiệu trong preview nhận thưởng xuống58% vùng xem, tương ứng vùng danh hiệu trong bảng thông tin bên cạnh. Build/typecheck PASS; chưa browser QA.
+- 2026-10-28: Đính chính yêu cầu trước: giữ artwork preview cỡ ban đầu; bảng nhận danh hiệu rộng480px căn giữa viewport, bảng thông tin đặt bên phải cách16px, rộng tối đa54dvh như popover hồ sơ và giới hạn theo khoảng trống màn hình. Compact xếp dọc. Thay quy tắc thu artwork58%. Chưa browser QA.
+- 2026-10-28: Laptop Tin nhắn: sidebar dùng cùng mốc mép trên với khung chat, nâng cả tìm kiếm/cài đặt; tăng chiều cao sidebar bù phần nâng nên khung danh sách cao hơn, giữ vị trí hai tab dưới. Mobile giữ nguyên. Chưa browser QA.
+- 2026-10-28: Theo user cải thiện độ nét avatar Tin nhắn: dùng image-rendering -webkit-optimize-contrast cục bộ ở MessageAccountAvatar (ảnh và sprite background) và MessagesGroupAvatar để giảm mềm nét khi thu nhỏ; giữ nguyên nguồn/kích thước/vị trí/khung. Chưa browser QA độ nét.
+- 2026-10-28: User xác nhận chỉnh thanh nhập tin nhắn dưới cùng: mobile thanh66→54px/ô44→36px, nút ảnh cùng kích thước36px bằng ô nhập. Laptop dùng cùng field inset như mobile, thanh64logical/ô và nút ảnh44logical; giữ chức năng gửi/emoji/ảnh. Chưa browser QA.
+- 2026-10-28: Theo ảnh user chỉnh form Biệt danh trên laptop: ô nhập cao70%→80% hàng và nút Hủy/OK cũng cao80% để khớp ô. Nhánh uiScale/mobile giữ nguyên kích thước44/40px. Chưa browser QA.
+- 2026-10-28: User tăng riêng nút Hủy/OK của form Biệt danh laptop: min-width54px, padding ngang12px, chữ18 logical. Mobile form giữ nguyên44px/16px. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-28: Nút Báo cáo trong Tùy chọn hội thoại mở thông báo dạng hộp thoại một lựa chọn “Đóng” với nội dung “Tính năng đang phát triển”, dùng chung desktop/mobile; thay toast tự tắt. Chưa browser QA.
+- 2026-10-28: Đính chính phạm vi nút X của bảng Tùy chọn hội thoại: gỡ X riêng vừa thêm trên mobile, laptop vẫn giữ X; mobile dùng nút quay lại hiện có. Thay ghi chú 2026-10-28 về X dùng chung.
+- 2026-10-28: Theo user, mọi chế độ dùng Board đều phát cue âm thanh tương ứng: Chơi với máy phát intro khi bắt đầu; replay và bàn thử phát tiếng đi/ăn/chiếu/chiếu bí khi phát hoặc tua. Bỏ cờ chỉ phát tiếng đi quân; không phát cảnh báo clock ở chế độ không có clock. Giữ nguyên công tắc Tắt tiếng chung. Regression âm thanh/computer/replay 15/15 PASS; typecheck/build PASS, dist cập nhật; chưa browser/audio QA.
+- 2026-10-28: Đính chính quy tắc âm thanh theo user: mọi chế độ dùng Board phát âm thanh theo sự kiện. Chơi với máy phát intro khi bắt đầu; replay/bàn thử phát cue nước đi, ăn quân, chiếu và chiếu bí khi duyệt nước. Mở ván lưu sẵn ở nước cuối không tự phát lại chiếu bí; không phát cảnh báo clock nếu không có clock. Tôn trọng Tắt tiếng. Regression âm thanh/computer/replay 15/15 PASS; typecheck/build PASS, dist cập nhật; chưa browser/audio QA.
+- 2026-10-28: Theo ảnh user, Vị trí tùy chỉnh LAPTOP thay nút Đấu ngay asset rồng bằng ComputerActionButton màu đỏ giống nút ở thiết lập máy; giữ vị trí dưới khay, callback/disabled/busy. Mobile giữ markup đang dùng. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-28: Theo user, nút Đấu ngay LAPTOP ở Vị trí tùy chỉnh rộng80% so với khay và căn giữa; chữ riêng nút tăng lên8cqw. Điện thoại giữ nguyên. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-28: Theo user, tăng chiều cao nút Đấu ngay LAPTOP ở Vị trí tùy chỉnh khoảng22% (aspect-ratio 440/82→440/100), giữ rộng80%/chữ8cqw; mobile không đổi. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-28: User tăng chữ/icon nút Đấu ngay laptop ở Vị trí tùy chỉnh: chữ9cqw, icon14cqw; padding/gap7/3cqw để vừa trong nút. Kích thước nút và mobile giữ nguyên. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-28: Theo user, nút quay lại tròn laptop dùng chung MessagesBackButton giảm38→34px, icon giữ cùng tỷ lệ; điện thoại28px giữ nguyên. Component dùng xuyên các khung trên project nên đồng bộ mọi vị trí. Typecheck/build cần xác nhận; chưa browser QA.
+- Kiểm chứng nút Back laptop: npm.cmd run build/typecheck PASS, dist cập nhật component MessagesBackButton; chưa browser QA.
+- 2026-10-28: Đính chính user: yêu cầu thu nhỏ là dấu × DialogCloseButton laptop, không phải mũi tên MessagesBackButton. Khôi phục MessagesBackButton laptop38px; DialogCloseButton dùng chung laptop giảm56/42→52/38px, compact90/68×scale giữ nguyên. Áp dụng tất cả dialog dùng chung. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-28: Theo ảnh user, laptop mở Thông tin danh hiệu cạnh bên phải khung hồ sơ, cách15px. Tọa độ popover chuyển từ viewport sang tọa độ cục bộ hộp thoại; chiều rộng giới hạn phần viewport còn trống để không bị cắt. Mobile giữ kiểu xếp dọc/neo giữa. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+- 2026-10-28: Theo user, dấu X bảng Thông tin danh hiệu trong preview nhận thưởng chỉ ẩn panel chi tiết; preview Danh hiệu nhận được vẫn mở ở laptop/điện thoại. Nút Đóng preview vẫn đóng toàn bộ. Build/typecheck PASS; chưa browser QA.
+- 2026-10-28: User đính chính vị trí Thông tin danh hiệu LAPTOP: neo theo chính badge danh hiệu vừa bấm với gap15px, giống catalog Danh hiệu; nếu mép phải thiếu chỗ thì hiện phía trái theo cột. Chuyển tọa độ viewport sang hệ của hộp thoại hồ sơ và giới hạn rộng theo khoảng trống phía tương ứng. Mobile giữ xếp dọc. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-28: Hồ sơ laptop: padding ngang khung thông tin +5px; giữ dòng địa chỉ và hiển thị “Chưa chọn địa chỉ” khi hồ sơ chưa có địa chỉ. Không thay dữ liệu tài khoản. Build PASS; chưa browser QA.
+- 2026-10-28: Đính chính hành vi dấu X trong bảng nhận danh hiệu: X của panel Thông tin danh hiệu chặn sự kiện nổi bọt và chỉ ẩn panel; khung Nhận được giữ mở trên laptop/mobile. Nút Đóng trong preview vẫn đóng toàn bộ. Build/typecheck PASS; chưa browser QA.
+- 2026-10-28: Sửa lần nữa luồng X chi tiết danh hiệu: trạng thái ẩn panel được nâng lên HomeRewardNotifications, độc lập với state chọn/đóng RewardPreview; X chỉ tắt thông tin, khung nhận thưởng vẫn mở. Chưa browser QA, cần xác nhận trên dev server sau HMR.
+
+- 2026-10-28: Theo user, bộ chọn địa chỉ LAPTOP đồng bộ bố cục/tương tác với mobile: nút quay lại dạng icon 56px, danh sách quốc gia dọc ưu tiên Việt Nam rồi Trung Quốc, ẩn dòng lưu ý; cần click lần hai cùng quốc gia/tỉnh để chuyển bước/lưu. Giữ API, xác thực, quy tắc lưu một lần. Build PASS; chưa browser QA.
+- 2026-10-28: Đính chính sau lỗi còn thoát Home: preview item không còn mở native dialog lồng bên trong dialog nhận thưởng. Dùng lớp phủ div trong dialog cha; X chi tiết chỉ ẩn panel qua state cha, Escape khi preview đang mở đóng preview trước và không xác nhận/đóng thưởng. Chưa browser QA.
+- 2026-10-28: Theo ảnh user, tăng nhãn “34 tỉnh/thành” trong bước chọn tỉnh từ16px lên18px; nút Hủy và Tiếp/Lưu địa chỉ trong VietnamAddressPicker có cursor-pointer. Thông báo nhắc thiết lập địa chỉ ở Chọn Bàn giữ nguyên. Build PASS; chưa browser QA.- 2026-10-28: Đính chính luồng Danh hiệu trong ProfileDialog: X của HonorDetailPopover quay lại danh sách catalog bằng onBack/setSelectedHonor(null), giữ nguyên bảng Thông tin người chơi; không gọi onDismiss/đóng ProfileDialog. Thay quy tắc 2026-10-27 về X chi tiết đóng toàn bộ. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-28: Theo user, bút đổi tên trong hồ sơ chính hiện cho mọi tài khoản chưa đổi tên, kể cả Guest chưa liên kết. Bấm bút ở Guest mở hộp thoại hai lựa chọn: cần liên kết tài khoản để đổi tên; Hủy hoặc Liên kết (mở GoogleLinkDialog). Tài khoản linked tiếp tục form đổi tên hiện hành; backend vẫn enforce quyền đổi một lần.
+- 2026-10-28: Đính chính vị trí nút Back catalog Danh hiệu: dịch sang trái thêm10 logical px so với vị trí gốc trên laptop. Compact/điện thoại và các Back khác giữ nguyên.
+- 2026-10-28: Đính chính phạm vi bút hồ sơ: bút đổi tên và bút chọn địa chỉ chỉ hiển thị trong hồ sơ chính mở từ HomePage. Các hồ sơ từ Chọn Bàn, trận đấu, Lịch sử, Tin nhắn và nơi khác không hiện nút sửa; quốc kỳ đã chọn vẫn hiển thị. Quyền/luồng backend giữ nguyên.
+- 2026-10-28: Theo user, nhãn cột “Thao tác” trong Xếp hạng compact/mobile dịch sang phải5px; laptop giữ nguyên.
+- 2026-10-28: Đính chính bôi chọn: nội dung dòng Lịch sử > Đã lưu đặt select-none để chạm/nhấn giữ không highlight xanh; ô nhập tên/ghi chú vẫn select-text. Tooltip thời gian giữ laptop +20px và điện thoại +40px so với điểm bấm.
+- 2026-10-28: Đính chính sau kiểm tra user: Lịch sử > Đã lưu laptop đặt bàn cờ absolute tại góc trên trái với kích thước cố định theo rowBoardWidth; giữ min-height thẻ theo kích thước bàn ban đầu. Ghi chú mở rộng làm thẻ cao hơn nhưng không dịch bàn cờ. Điện thoại giữ nguyên.
+- 2026-10-28: Đính chính màu khung tên Lịch sử > Đã lưu: khung vàng theo chủ sở hữu ván (bản thân), khung xanh cho đối thủ; hoàn toàn không phụ thuộc kết quả thắng/thua. Laptop/điện thoại cùng cách thể hiện; History Đã chơi giữ nguyên.
+- 2026-10-28: Đính chính theo ảnh: nút chuyển Xem lại/Đánh thử laptop đặt giữa ReplayControls (left50%, translateX−50%), dưới cột điều khiển tại top220px; cột giữ cao220px để neo ổn định khi đổi trạng thái. Compact tự cao và giữ luồng cũ.- 2026-10-28: Bạn bè > Bạn Facebook: khi danh sách lọc trống, hiện “Đang phát triển” căn giữa nền danh sách trên laptop và điện thoại. Danh sách Facebook có dữ liệu vẫn render như cũ.
+
+- 2026-10-28: Theo user, mở khóa riêng cho task và bo các dòng Bạn bè laptop giống dòng Xếp hạng (radius10px theo scale, viền đầy đủ). Không đổi kích thước/dữ liệu/layout khác, mobile giữ nguyên; khóa laptop trở lại sau task. npm.cmd run build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-28: Theo yêu cầu tiếp nối cho tab Lời mời Bạn bè LAPTOP, khoảng cách giữa hai nhóm Lời mời đã nhận/đã gửi dùng cùng --social-row-gap (8px theo scale) như các dòng trong tab khác; danh sách con giữ gap chung, mobile không đổi. Mở khóa riêng phạm vi tab này trong task; khóa laptop trở lại sau task. Build cần xác nhận.
+- Build verification for 2026-10-28 invitation spacing adjustment: npm.cmd run build PASS (typecheck and Vite build); dist updated. Browser visual QA not performed.
+- 2026-10-28: Theo ảnh user, tab Lời mời Bạn bè LAPTOP: tiêu đề Lời mời đã nhận dùng vùng cố định cao56px và cùng khung đỏ/vị trí như Gợi ý cho bạn; phần danh sách và nút giữ nguyên, mobile không đổi. Mở khóa riêng tiêu đề trong task này; khóa laptop trở lại sau task. Build cần xác nhận.
+- Build verification for laptop received-invites header: npm.cmd run build PASS (typecheck and Vite); dist updated. No browser visual QA.
+- 2026-10-28: Theo ảnh user, riêng nút Tìm của tab Danh sách Bạn bè LAPTOP thu rộng170→152 logical px theo scale để mép phải thẳng với dòng kết quả bên dưới. Ô nhập, nút Tìm tab Thêm bạn và mobile giữ nguyên. Mở khóa riêng phạm vi nút này trong task; khóa laptop trở lại sau task. Build cần xác nhận.
+- Build verification for laptop friend-list search button width: npm.cmd run build PASS (typecheck and Vite); dist updated. Browser visual QA not performed.
+- 2026-10-28: Theo user, Bạn bè LAPTOP lấy chiều ngang ô tìm+nút Tìm trong tab Danh sách làm chuẩn: nút Tìm cố định152px theo scale ở cả Danh sách và Thêm bạn; các dòng kết quả trong cả hai danh sách chiếm đủ bề ngang tương ứng. Mobile giữ nguyên. Mở khóa riêng độ rộng hàng và control tìm trong task này; khóa laptop trở lại sau task. Build cần xác nhận.
+- Kiểm chứng thay đổi chiều ngang dòng/nút Tìm Bạn bè LAPTOP (2026-10-28): npm.cmd run build PASS (typecheck và Vite), dist cập nhật; chưa browser QA.
+
+- 2026-10-28: Đính chính theo ảnh user: các dòng gợi ý trong tab Thêm bạn laptop phải kéo đến mép phải của nút Tìm (không theo toàn bộ chiều ngang ô nhập+nút). Mở rộng riêng vùng danh sách để bù padding phải và scrollbar gutter, canh mép dòng bằng mép nút Tìm; mobile và các tab khác giữ nguyên. Mở khóa riêng chiều rộng danh sách Thêm bạn trong task này; khóa laptop trở lại sau task. Build cần xác nhận.
+- Kiểm chứng đính chính chiều ngang dòng gợi ý Bạn bè LAPTOP (2026-10-28): npm.cmd run build PASS (typecheck/Vite), dist cập nhật; chưa browser QA.
+
+- 2026-10-28: Theo ảnh user, tab Lời mời Bạn bè trên laptop và điện thoại thêm khoảng14px theo scale giữa mỗi khung tiêu đề đỏ (Lời mời đã nhận/Đã gửi lời mời) với danh sách ngay dưới, đồng bộ nhịp giữa tiêu đề và trường/danh sách ở hai tab kia. Không đổi phân bổ chiều cao giữa hai nhóm hay nội dung. Mở khóa riêng spacing tab Lời mời trong task này; khóa lại sau task. Build cần xác nhận.
+- Kiểm chứng khoảng cách tiêu đề đỏ–danh sách trong tab Lời mời (laptop/điện thoại): npm.cmd run build PASS (typecheck và Vite), dist cập nhật; chưa browser QA.
+
+
+- 2026-10-28: Đính chính theo user: yêu cầu trước là gap GIỮA CÁC DÒNG trong hai danh sách Lời mời đã nhận/Đã gửi, không phải gap khung đỏ–danh sách. Gỡ gap14px giữa tiêu đề và list ở mobile/laptop; đặt rowGap rõ ràng theo --social-row-gap = 8px×scale ở cả hai viewport, đồng bộ các tab danh sách khác. Build cần xác nhận.
+- Kiểm chứng đính chính gap dòng tab Lời mời (mobile/laptop): npm.cmd run build PASS (typecheck/Vite), dist cập nhật; chưa browser QA.
+
+- 2026-10-28: Theo user, lấy chiều dài dòng tab Thêm bạn làm chuẩn cho dòng ở Danh sách và hai nhóm Lời mời. Laptop dùng chung friendRowsWidthStyle cho cả bốn list (bù padding phải + scrollbar gutter để mép dòng trùng); điện thoại vốn dùng chung friendListClass/row sizing nên giữ nguyên. Đây là chỉnh tiếp dựa trên phạm vi mở khóa các lượt Bạn bè gần nhất. Build cần xác nhận.
+- Build verification for shared friend row width (Danh sách/Lời mời from Thêm bạn): npm.cmd run build PASS (typecheck/Vite), dist updated; chưa browser QA.
+- 2026-10-28: Theo user, khoảng cách dòng-trên-dòng chuẩn (rowGap --social-row-gap = 8px×scale) được áp dụng giữa khung tiêu đề đỏ và dòng đầu tiên ở cả hai nhóm Lời mời đã nhận/Đã gửi, laptop và điện thoại. Khoảng này đồng nhất với gap giữa các dòng bên dưới; không đổi chiều cao/dữ liệu. Build cần xác nhận.
+- Kiểm chứng spacing giữa tiêu đề đỏ và dòng đầu tab Lời mời ở mobile/laptop: npm.cmd run build PASS (typecheck/Vite), dist cập nhật; chưa browser QA.
+- 2026-10-28: Laptop game UI set to one centered 1493×731 logical canvas based on the user’s 1536×864 display screenshot (game viewport approximately1253×698). Whole interface scales uniformly to screen size, fit is constrained by browser viewport and remaining horizontal space is centered; mobile ≤800px stays unchanged. Implemented DesktopCanvas + common desktop viewport dimensions and native dialog scaling. Build verification pending; browser visual QA unavailable.
+- 2026-10-28: Fixed laptop entry/navigation appearing blank after global scaling. Root cause: the scaled canvas itself was also the clipping/fixed-position containing block, so viewport-sized screens and overlays could extend outside its bounds. DesktopCanvas now uses an unscaled viewport wrapper to center a separate 1493×731 transformed canvas; full-screen content stays inside that canvas. Build pending; browser QA unavailable.
+- 2026-10-28: Laptop scale theo chiều cao viewport/731, bỏ giới hạn screen ratio/fit ngang; Home desktop dùng toàn chiều cao. Nội dung và chiều ngang cùng tỷ lệ, căn giữa. Build đang kiểm chứng.
+- Kiểm chứng: npm.cmd run build PASS (TypeScript + Vite); dist index-CIj9Gp3G.js xác nhận canvas mới. Chưa browser QA.
+- 2026-10-28: Home laptop tiện ích vàng dịch phải3px; giảm gap hai khung năng lượng/vàng4px theo scale, giữ nội dung bên trong. Build đang chạy.
+- Kiểm chứng Home laptop header: npm.cmd run build PASS; dist CSS xác nhận left13px. Chưa browser QA.
+- 2026-10-28: Hai khung năng lượng/vàng Home laptop thu3% quanh tâm cùng nội dung. Build đang kiểm chứng.
+- Kiểm chứng thu3% tài nguyên Home laptop: npm.cmd run build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-28: Sửa X Thông tin danh hiệu mở từ badge trong hồ sơ: callback chỉ setPreviewHonorDetailOpen(false), không gọi onClose của ProfileDialog. Áp dụng laptop/mobile; giữ bảng Thông tin người chơi. Build cần xác nhận.- 2026-10-28: Đồng bộ âm thanh nút X với hai nút thông báo qua bộ nhận diện click uiActionSound dùng chung, gồm X ký tự/ảnh/SVG; giữ muted và bỏ disabled/backdrop. Build đang kiểm chứng.
+
+- Kiểm chứng sửa X chi tiết danh hiệu hồ sơ: npm.cmd run build PASS (typecheck/Vite), dist cập nhật; chưa browser QA.- Kiểm chứng âm thanh X: npm.cmd run build PASS (TypeScript/Vite), dist xác nhận nhận diện X mới. Chưa nghe kiểm tra trực tiếp trên trình duyệt.
+- 2026-10-28: Gán âm thanh thông báo cho các nút Back toàn app qua nhận diện aria-label chung. Build đang kiểm chứng.
+- Kiểm chứng âm thanh Back: npm.cmd run build PASS; dist xác nhận nhận diện Back mới. Chưa nghe thử trực tiếp trên trình duyệt.
+- 2026-10-28: Bổ sung tiếng click cho X trên artwork Thông tin danh hiệu bằng nhận diện aria-label; trước đó bộ nhận diện bỏ sót hitbox trống. Build đang kiểm chứng.
+- Kiểm chứng X Thông tin danh hiệu: npm.cmd run build PASS; dist xác nhận nhận diện âm thanh mới; chưa nghe thử browser.
+- 2026-10-28: Thay HTMLAudio MP4 seek/play từng click bằng AudioBuffer giải mã sẵn để giảm trễ X/Back/nút thông báo. Build đang kiểm chứng.
+- Kiểm chứng giảm trễ UI audio: npm.cmd run build PASS, dist chứa AudioContext interactive/decodeAudioData. Chưa đo độ trễ/nghe thử trên thiết bị thực.
+
+- 2026-10-28: Sửa khung màn bàn cờ laptop bị cắt sau scale canvas: GamePage dùng h-full của canvas và main calc(100%-12px), thay dvh bị scale hai lần. Compact giữ h-dvh. Build cần xác nhận.
+- Kiểm chứng khung GamePage laptop: npm.cmd run build PASS (typecheck/Vite), dist cập nhật; chưa browser QA.
+- 2026-10-28: Sửa tiếp viền hai bên GamePage laptop: calc kích thước phải có khoảng trắng quanh phép trừ; dùng h calc(100% - 12px), w calc(100% - 240px), max-width theo viewport chia scale canvas trừ24px để viền luôn nằm trong vùng nhìn thấy. Compact giữ nguyên. Build cần xác nhận.
+- Kiểm chứng sửa viền ngang GamePage: npm.cmd run build PASS (typecheck/Vite), dist cập nhật; chưa browser QA.- 2026-10-28: Thêm duy trì audio render stream im lặng giữa các click khi visible/unmuted để giảm cold-start sau idle; cleanup hidden/muted/unmount. Build đang kiểm chứng.
+- Kiểm chứng audio sau idle: npm.cmd run build PASS, dist xác nhận buffer im lặng/visibility lifecycle; chưa nghe hoặc đo latency sau idle trên thiết bị thực.
+- 2026-10-28: Tích hợp MP3 user cung cấp: âm1 victory-fanfare tại kết quả thắng sau gate hoàn tất chiếu bí hình+audio; âm2 home-reward-received chỉ khi bảng thưởng Home mở. Hook Web Audio preload/cancel/muted; không phát âm2 trong trận. Test celebration3 + match-result14 PASS; move-sound7 PASS khi chạy lại riêng sau lỗi temp ENOENT ở lượt song song đầu. Build đang chạy lại sau sửa type test.
+- Kiểm chứng cuối: npm.cmd run build PASS (typecheck/Vite); dist có cả MP3 victory-fanfare và home-reward-received. Chưa browser/audio QA trực tiếp; không phát sinh phần thưởng hoặc giao dịch DB thử.
+- Lượt chạy gộp cuối: celebration3 + match-result14 PASS, move-sound không load do temp ENOENT lặp lại của Vitest; riêng move-sound đã7/7 PASS ở lượt độc lập trước đó. Không ghi nhận lượt gộp là PASS.
+- 2026-10-28: Tắt hai intro audio clips khi chuyển/bắt đầu bàn; animation, delay khai cuộc và âm thanh sự kiện nước cờ giữ nguyên. Regression test cập nhật; đang chạy test/build.
+- Kiểm chứng bỏ audio chuyển bàn: npm.cmd run build PASS; tests/move-sound.test.tsx 7/7 PASS; dist cập nhật. computer.test chạy chung gặp lỗi môi trường Vitest temp ENOENT nên không tính PASS; browser/audio QA chưa thực hiện.
+- 2026-10-28: Đính chính theo user: khôi phục âm thanh intro khi vào/bắt đầu bàn thông thường; chỉ bỏ cue tại thao tác chuyển vào/ra chế độ Đánh thử của replay, giữ cue cho các nước đi sau đó. Regression riêng cho silent transition; build/test đang xác nhận.
+- Kiểm chứng đính chính âm thanh chuyển bàn thử: intro bàn thường đã khôi phục; chỉ cue phát do đổi mode xem lại↔Đánh thử bị bỏ. tests/move-sound.test.tsx 8/8 PASS; npm.cmd run build PASS, dist cập nhật. Chưa browser/audio QA trực tiếp.
+- 2026-10-28: Sửa chuyển Đánh thử về xem thường vẫn còn tiếng: stopAll tại frame đổi mode để ngắt tiếng đang chạy, đồng thời bỏ cue frame chuyển. Intro lúc bắt đầu bàn bình thường giữ. Build/test đang kiểm chứng.
+- Kiểm chứng fix ngắt âm thanh khi rời bàn thử: tests/move-sound.test.tsx 8/8 PASS; npm.cmd run build PASS, dist cập nhật. Chưa browser QA để nghe trực tiếp.
+- 2026-10-28: Thêm defeat-fanfare.mp4 của user làm tiếng khi thua; âm thắng/thua khởi chạy theo cùng thời điểm khi popup kết quả hiện, theo outcome tương ứng. Âm thưởng Home không đổi. Test/build đang kiểm chứng.
+- 2026-10-28: Theo user, khi thua phát defeat-fanfare.mp4 đồng thời cùng tiếng thắng hiện có; khi thắng chỉ tiếng thắng. Build/test đang chạy xác nhận.
+- 2026-10-28: Âm thanh MP4 user cung cấp phát khi mở Xem lại/Đã lưu/Đã lưu thế và khi Đấu ngay từ Vị trí tùy chỉnh hoặc Chơi với máy; dùng buffer Web Audio preload chung và tôn trọng Tắt tiếng. Nút Lưu ván cờ đơn thuần không phát cue vào bàn. Typecheck/build PASS; dist chứa board-entry-58OLPeGx.mp4; chưa browser QA.
+- 2026-10-28: Gắn hai MP4 user cung cấp: tiếng đặt quân cho click/kéo thả hợp lệ ở Vị trí tùy chỉnh, tiếng tab cho Chọn avatar/Chọn viền/Skin/Hiệu ứng cả laptop/mobile. Preload Web Audio/tôn trọng mute; guard môi trường không hỗ trợ AudioContext. Position-editor 10/11 PASS; ca còn lại mong cấp6 nhưng quy tắc hiện tại cố định cấp10, không sửa gameplay/test ngoài scope. Build/typecheck PASS sau guard; dist xác nhận position-place-Byp9bcvJ.mp4/customization-tab-D68CGmqp.mp4; chưa nghe thử trên browser.
+
+- 2026-10-28: Theo user, nút thông báo một lựa chọn Đóng/Đã hiểu/Xác nhận/OK dùng chung ui-action-confirmation với dấu X. Nhận diện trong dialog/alertdialog, bỏ qua form nhập và nút disabled; tôn trọng muted và capture listener chung tránh phát hai lần.
+- Kiểm chứng âm thanh nút thông báo một lựa chọn: build/typecheck PASS, dist xác nhận matcher mới; chưa browser/audio QA.
+- 2026-10-28: Sửa phản hồi mất tiếng Vị trí tùy chỉnh: tách âm nguồn MP4 thành WAV PCM, bỏ113ms im lặng đầu; thêm preload khi vào editor và retry prepare khi đặt quân. Windows decode xác nhận có tín hiệu (peak12295/32768); duration362ms. Placement click/kéo thả3/3 PASS; build/typecheck PASS; dist xác nhận asset WAV. Chưa nghe thử browser vì browser automation bị tắt.
+- 2026-10-28: Đính chính âm thanh theo user: clip mới position-remove.wav dùng khi BỎ quân khỏi bàn (kéo ngoài/chuột phải/Xóa quân), còn đặt/chuyển hợp lệ dùng asset đi quân (2).wav của bàn đấu. Preload cả hai khi vào editor, tôn trọng mute. Typecheck/build PASS; dist xác nhận cue bỏ quân mới; placement/drag3/3 PASS; chưa nghe thử browser.
+
+- 2026-10-28: Theo user, nút tab Danh hiệu (mọi nhóm) và công tắc Ẩn, 2 tab Xếp hạng, 2 tab Đã chơi/Đã lưu Lịch sử, cùng 3 tab Bạn bè phát customization-tab.mp4 qua UI action audio preload chung; áp dụng FriendsDialog mobile và DesktopFriendsDialog laptop. Tôn trọng Tắt tiếng; không đổi hành vi/bố cục.
+- Kiểm chứng tab audio: npm.cmd run build PASS (typecheck/Vite), dist chứa marker data-ui-tab-sound; chưa browser/audio QA.
+- 2026-10-28: Theo phản hồi tiếng mở bàn Lịch sử/Đấu máy bị mất, đổi runtime clip board-entry.mp4→board-entry.wav cùng nguồn, bỏ268ms im lặng đầu và retry preload theo gesture. Các handler Xem lại/Đã lưu/Mở thế/Đấu ngay máy/Đấu ngay vị trí dùng helper chung giữ nguyên. Typecheck/build PASS; WAV có tín hiệu peak11038/32768 và được tham chiếu trong dist. Chưa nghe trực tiếp browser.
+
+- 2026-10-28: Theo user, dùng customization-tab.mp4 cho 3 filter tab Bạn bè (Tất cả/Đang online/Bạn Facebook) cả laptop/mobile; tab quản lý nhóm và duyệt checkbox/nút ✓, chấp nhận/từ chối lời mời trong Tin nhắn; 3 tab bên trái + 3 tab giữa Cửa hàng; và mọi nút/checkbox tương tác hiện dấu ✓ (avatar/khung, Tắt nhạc/Tắt tiếng, chấp nhận so tài, tỉnh/quốc gia/xã). Marker data-ui-selection-sound qua listener chung, tôn trọng muted, không phát cho dấu ✓ chỉ trang trí.
+- Kiểm chứng âm thanh selection bổ sung: npm.cmd run build/typecheck PASS, dist index-ZlXjosJc.js cập nhật và có marker; chưa browser/audio QA.
+
+- Xác nhận build cuối sau khi bổ sung âm thanh nút ✓ So tài: npm.cmd run build PASS, dist/assets/index-Dkd77jxl.js có data-ui-selection-sound; chưa browser/audio QA.
+
+- 2026-10-28: Theo ảnh user, công tắc khóa/mật khẩu trong CreateRoomForm phát customization-tab.mp4 qua data-ui-selection-sound như các switch/tab khác; không đổi trạng thái, style hay hành vi khóa. npm.cmd run build/typecheck PASS, dist xác nhận marker; chưa browser/audio QA.
+
+- 2026-10-28: Theo ảnh user, nút loa Bật/Tắt nhạc dùng HomeIcon sound/muted ở Chọn Bàn và Chơi với Máy phát customization-tab.mp4 qua data-ui-selection-sound, đồng nhất nút trong HomeSettings; giữ trạng thái nhạc/mute. Build/typecheck PASS, dist index-CQaFuEd5.js xác nhận marker; chưa browser/audio QA.
+
+- 2026-10-28: Theo user, chọn Cấp 1–10 và phe Đỏ/Đen/Ngẫu nhiên trong Thiết lập máy phát customization-tab.mp4 qua marker UI selection chung, cả laptop/mobile; trạng thái muted được tôn trọng, không đổi hình thức hoặc lựa chọn. Build bị chặn ở typecheck bởi lỗi đang có trong server/app.ts (dòng51 res chưa khai báo) và lỗi TS2306 import roomController; chưa cập nhật dist hoặc browser/audio QA.
+
+- 2026-10-28: Theo user, ở Vị trí tùy chỉnh nút Đổi bên Đỏ/Đen phát âm thanh X ui-action-confirmation; công tắc Đi tiên laptop/mobile phát customization-tab.mp4. Cả hai dùng helper chung, tôn trọng muted, không đổi hành vi chọn.
+- Build bị chặn ban đầu do res.locals tham chiếu sai trong Socket.IO middleware; bỏ đúng dòng không hợp lệ (middleware HTTP riêng gán roomCreatorId), sau đó npm.cmd run build PASS, dist/assets/index-CyaaqtrX.js cập nhật. Chưa browser/audio QA.
+
+- 2026-10-28: User báo không nghe âm thanh nút Đổi bên/Đi tiên. Nguyên nhân helper bỏ click khi buffer chưa tải/giải mã; uiActionSound nay chuẩn bị buffer theo yêu cầu và phát sau khi sẵn sàng, hủy request cũ khi có thao tác mới/tắt tiếng, giữ guard nguồn đang phát. Build PASS; dist/assets/index-CwOHFXPE.js cập nhật; chưa browser/audio QA.
+
+- 2026-10-28: User changed global selection/tab audio: every UI location that previously played customization-tab.mp4 now plays ui-action-confirmation.mp4, including tab markers, direct AvatarCustomization tab calls and Đi tiên switch. Existing mute handling/readiness retained; position move/remove/board sounds unaffected. 
+pm.cmd run build PASS, dist/assets/index-wzik3Hsg.js; no browser/audio QA.
+- 2026-10-28: Căn bảng Bạn đã hết năng lượng giữa viewport bằng overlay native dialog fullviewport/zoom1 và grid center; section giữ scale laptop hiện tại. Countdown/hai nút/luồng năng lượng giữ nguyên. Build/typecheck PASS, dist xác nhận; chưa browser QA.
+
+- 2026-10-28: Theo user, khôi phục customization-tab.mp4 có chọn lọc cho: mở/sửa Thông tin và Danh hiệu, chọn avatar/viền/skin/hiệu ứng, bút chỉnh trong Đã lưu, tab/tìm/thao tác Bạn bè, danh sách/emoji/đổi tên/ảnh nhóm/nút tích Tin nhắn, tab và nút Mua Cửa hàng, mọi role=switch và nút âm thanh, chọn thời gian bàn/nhanh, cấp và phe Chơi với máy. Marker data-ui-tab-sound, tôn trọng muted và phát sau preload; các vùng khác tiếp tục âm thanh X. Không đổi UI/nghiệp vụ. npm.cmd run build PASS; dist index-BWqCwhvL.js có cả hai asset; chưa browser/audio QA.
+- 2026-10-28: Sửa nháy phòng khi người chơi vào/ra: nguyên nhân GamePage key theo cặp ghế làm remount toàn màn. Đổi key theo room ID, tách presentationKey cho reset audio/animation/selection/repetition/result. Giữ bảng thắng do đối thủ rời một lần và loại popup cũ sau lần ghế đổi tiếp. Test DOM identity qua player/viewer vào-ra và đổi phòng, hook clear kết quả/handoff, audio/entrance27/27 PASS; typecheck/build PASS, dist xác nhận; chưa browser/2thiết bị QA. Không sửa backend hoặc geometry UI.
+
+- 2026-10-28: Đính chính theo user: các tab chính Bạn bè (Danh sách/Thêm bạn/Lời mời) và bộ lọc Tất cả/Đang online/Bạn Facebook tiếp tục dùng âm thanh nút X (data-ui-selection-sound) cả laptop/mobile. Nút Tìm và thao tác kết bạn/mời chơi/nhắn tin vẫn dùng customization-tab.mp4. npm.cmd run build PASS, dist index-_fB5uf6T.js; chưa browser/audio QA.
+
+- 2026-10-29: Theo user, Home avatar, avatar được chọn và nút mở avatar trong Hồ sơ dùng tiếng X (ui-action-confirmation). Bốn tab Chọn avatar/Chọn viền/Skin/Hiệu ứng cũng dùng tiếng X. Các dòng Tùy chọn Tin nhắn (gồm Biệt danh/Đổi tên nhóm, cài đặt, thành viên, báo cáo/xóa/rời nhóm) dùng tiếng X. Hai nút Tắt nhạc nền/Tắt tiếng giữ customization-tab.mp4. Chọn cấp/phe Chơi với máy và Đổi bên/Đi tiên Vị trí tùy chỉnh dùng tiếng X; marker X được ưu tiên cả trên role=switch để chỉ phát một cue. Không đổi UI/nghiệp vụ. npm.cmd run build PASS (typecheck/Vite), dist/assets/index-BLC7QUjs.js; chưa browser/audio QA.
+
+- 2026-10-29: Cập nhật mapping âm thanh theo ảnh: ô danh sách avatar/viền và dòng Lời mời Tin nhắn, hai bút Đã lưu, nút Mua dùng tiếng tab; Thoát/Quay lại Hồ sơ, tab Lịch sử/Bạn bè/Tin nhắn/Cửa hàng, Tìm, thùng rác và sáu nút chọn/lọc bàn dùng tiếng X. Phóng thông báo một lựa chọn trong Tùy chọn Tin nhắn laptop lên khung520px/min-height180px/chữ24px, nút120×44/chữ22. Chưa browser/audio QA.
+- Kiểm chứng mapping âm thanh và thông báo 2026-10-29: npm.cmd run build PASS (TypeScript/Vite, exit0); dist/assets/index-CQzan5Qb.js chứa hai marker âm thanh và kích thước thông báo mới. Chưa browser/audio QA.
+
+- 2026-10-29: Theo user, tiếng X áp dụng Liên kết/Đăng xuất Hồ sơ, ResourceAddButton (+năng lượng/vàng), nút mở hồ sơ/avatar người khác, sáu thao tác Hồ sơ, toàn bộ nút tiện ích vàng Home và bốn mode Home cả laptop/mobile. Tin nhắn: mở Cài đặt/các mục bên trong, kết bạn/ba chấm, mở emoji/ảnh/gửi, Hủy/OK biệt danh, toàn bộ nút/menu/tab/checkbox Tùy chọn nhóm và Tạo nhóm dùng tiếng X; chỉ từng emoji trong bảng chọn giữ tiếng tab. Giữ âm tab của danh sách hội thoại/lời mời và các vùng đã chốt khác; chỉ thay âm thanh.
+- Kiểm chứng âm thanh các nút 2026-10-29: npm.cmd run build PASS (TypeScript/Vite, exit0), dist/assets/index-yvbb1XDV.js chứa marker X/tab; emoji lựa chọn và danh sách hội thoại giữ marker tab, menu nhóm đã chuyển X. Chưa browser/audio QA.
+- 2026-10-29: Đổi luật năng lượng theo user, xem docs/ENERGY-RULES.md. Sau ván ưu tiên thay người hết năng lượng khi có queue, không ai queue giữ ghế; thông báo riêng và không autoqueue người bị thay. Hết năng lượng vẫn vào xem phòng/mở các mục khác; chặn Home CờTướng/CờÚp, queue/Ready và tạo phòng kể cả fallback/So tài cần tạo mới. Bao phủ bàn khóa, hồi tự nhiên/vô hạn, cache sau charge, thông báo UI và guard server. 10suite61/61 PASS; TypeScript/Vite build PASS, dist index-yvbb1XDV.js xác nhận gate/thông báo mới. Chưa browser/hai thiết bị/MySQL thật; backend cần nạp mã mới, không tự restart/deploy production.
+
+- 2026-10-29: Theo user, chọn mốc thời gian Tạo bàn (phút/giây) và Chơi nhanh dùng tiếng X; thao tác mở select/dropdown giữ tiếng tab. Select native Tạo bàn phát tab ở pointerdown và X ở change, bỏ marker click tab để tránh tiếng tab ghi đè lúc chọn.
+- Kiểm chứng âm thanh chọn thời gian: npm.cmd run build PASS (TypeScript/Vite, exit0), dist/assets/index-DA9sB4t8.js đã cập nhật; chưa browser/audio QA.
+- 2026-10-29: Thêm lại khung xem lớn danh hiệu nhận được theo ảnh user: bỏ điều kiện ẩn frame khi details có giá trị trong RewardPreviewDialog. Khôi phục border/nền/padding kiểu Shop, giữ popup thông tin bên cạnh và hành vi đóng/nhận thưởng. Build/typecheck PASS, dist xác nhận; chưa browser QA.
+- 2026-10-29: Gán tiếng X cho6tab nhóm Danh hiệu ở cả2renderer laptop/mobile và nút Ẩn dùng chung. Marker selection được ưu tiên trước role=switch để tránh phát2tiếng. Typecheck/build PASS; dist cập nhật; chưa browser/audio QA.
+- 2026-10-29: Gán tiếng tab cho mọi checkbox native/rolecheckbox, cả khi nằm trong dòng markerX. GroupCheckbox và nút+/tick chọn danh hiệu được đồng bộ. Chặn phát từ click nhãn trung gian và checkbox disabled để không hai tiếng; giữ switch Ẩn tiếngX. Regression ưu tiên/disabled/labelforward/switch4/4 PASS; build/typecheck PASS, dist xác nhận; chưa browser/audio QA.
+- 2026-10-29: Gán tiếng X cho công tắc Bàn khóa và2nút Hủy/Tạo bàn ở footer CreateRoomForm. Đủ3marker selection; build/typecheck PASS, dist xác nhận; chưa browser/audio QA.
+- 2026-10-29: Đồng bộ2nút Vị trí tùy chỉnh/Đấu ngay Chơi với máy sang tiếngX, cả2renderer laptop/mobile. Chặn audio intro trận của computer Fairy/Pikafish để chỉ dùng cue mở bàn board-entry.wav khi vào, giữ intro online/basic. Regression intro explicit/automatic suppression và move cues + computer16/16 PASS; build/typecheck PASS, dist xác nhận; chưa browser/audio QA.
+- 2026-10-29: Gán tiếngX cho nút/banner Luyện cờ ở cả2bản qua marker selection chung. Giữ callback thông báo hiện tại. Build/typecheck PASS, dist xác nhận; chưa browser/audio QA.
+- 2026-10-29: Ẩn nút Xếp/Thoát hàng độc lập theo menu ba gạch MOBILE; chỉ View mở danh sách mới thấy queue controls. Sửa wrapper compact:hidden trong GamePage, giữ desktop/backend. Test room-users-panel1/1 PASS; typecheck/build PASS, dist xác nhận; chưa browser QA.
+- 2026-10-29: Sửa promote từ View theo user: đủ2ghế vẫn thay người đang ngồi khác chủ bất kể Ready, giữ side cho người lên; người cũ xuống viewer queued=false. Giữ nhánh ghế trống, chặn playing và energy0; ghi tin hệ thống, reset ready/board như moderation cũ. 3suite33/33 PASS; typecheck/build PASS, dist tái tạo (backend-only logic); chưa browser/2thiết bị QA. Backend cần nạp mã mới, không tự restart/deploy.
+- 2026-10-29: Sửa2yêu cầu user: RoomTableGrid nhãn tên/thời gian laptop dùng font-body như mobile, giữ size/layout; Back đang đấu cả2bản mở LeaveRoomDialog2nút Hủy/Rời bàn và cảnh báo giữa Khi rời bàn, bạn sẽ thua ván đấu. useGame guard người chơi thực/phaseplaying, confirm mới gọi leave cũ, không pause/đổi luật server; dọn popup cũ khi finish/đổi ghế, replay/viewer/chưa đấu không hỏi. Tests leave-confirmation/replay-isolation/leave-session/computer19/19 PASS. Typecheck/Vite build cuối PASS; dist index-BXo2br4x.js chứa cảnh báo mới; chưa browser/thiết bị thật QA.
+
+- 2026-10-29: Theo user, bảng emoji Tin nhắn laptop/mobile giữ mở sau mỗi lần chọn để chèn liên tiếp; nút mở khi bảng đang mở cũng không đóng. Chỉ pointerdown ngoài bảng và nút mở mới đóng; bỏ đóng khi input nhận focus do code đặt lại con trỏ. Giữ âm X ở nút mở, âm tab từng emoji và giới hạn300 ký tự.
+- 2026-10-29: Chỉnh MOBILE preview danh hiệu vừa nhận theo user: thu khung chính66vw/cap320px, title18/padding12; info44vw/cap220px/chữ12, neoabsolute left58% và giữa dọc để chồng cạnh phải. Overlay căn giữa, info không tham gia flow nên khung chính giữ tâm khi mở/đóng info. Desktop/preview vật phẩm khác giữ nguyên. Typecheck/build PASS, dist xác nhận hai kích thước mới; chưa browser/thiết bị thật QA.
+- Kiểm chứng giữ mở bảng emoji: npm.cmd run build PASS (TypeScript/Vite, exit0), dist/assets/index-B5iR6G8u.js cập nhật. Chưa browser/touch QA.
+
+- 2026-10-29: Theo user, Xin thua cả laptop/mobile dùng ResignDialog native NoticeOverlay hai lựa chọn Hủy/Đồng ý theo style xác nhận chung, thay window.confirm. Chỉ Đồng ý gửi resign hiện có; Hủy/Escape/bấm nền đóng, không kết thúc ván. Không pause đồng hồ; đóng/dọn xác nhận khi kết thúc hoặc đổi phiên ghế, chặn xác nhận cũ/người xem/replay. 14/14 kiểm tra leave-confirmation + replay-game-isolation PASS (TEMP trong workspace để tránh ENOENT sandbox); npm.cmd run build PASS, dist/assets/index-D7s1gTl0.js cập nhật. Chưa browser/thiết bị thật QA.
+
+- 2026-10-29: Theo ảnh user, tooltip Hồi năng lượng dùng NumberText chung để chữ số đếm phút/giây có font-number/lining-nums/tabular-nums thẳng hàng, cùng cỡ và semibold, không giảm opacity. Đồng bộ Home laptop/mobile, giữ chữ/bố cục/logic hồi năng lượng.
+- Kiểm chứng font số hồi năng lượng: npm.cmd run build PASS (TypeScript/Vite), dist/assets/index-YDhhxkCs.js cập nhật; chưa browser QA.
+- 2026-10-29: Đổi theo user mới MOBILE nhận danh hiệu: info lớn giữa viewport chỉ hiện khi chạm/giữ, mở tức thì tại pointerdown và ẩn khi thả/hủy/mấtcapture/blur. Cả tile nhận thưởng và preview artwork đều hỗ trợ; khung chính giữ giữa, desktop/vật phẩm khác không đổi. Thay info nhỏ cạnh phải của lượt trước, khôi phục chữ16. Regression received-honor-press6/6 PASS, TypeScript/Vite build PASS, dist xác nhận86vw/56dvh và marker hold; chưa browser/điện thoại thật QA.
+
+- 2026-10-29: Theo user, trong bàn cờ laptop/mobile: Lưu ván, menu3gạch, phóng to, Bạn bè, View, xếp/thoát hàng, mở chat/avatar/biểu cảm/gợi ý/gửi dùng tiếng X qua marker chung. Từng emoji và từng câu gợi ý trong chat bàn dùng tiếng tab. Nút loa giữ âm tab đã chốt; không đổi UI hoặc gameplay.
+- Kiểm chứng âm bàn cờ: npm.cmd run build PASS (TypeScript/Vite), dist/assets/index-CBn1xe0p.js cập nhật; chưa nghe thử browser.
+
+- 2026-10-29: Theo user, chat trong bàn cờ laptop/mobile không đóng bảng emoji sau khi chọn emoji. useChat.emoji chỉ chèn ký tự/đặt lại con trỏ, giữ picker hiện tại; hành vi bấm ngoài/Escape/gửi và âm thanh giữ nguyên.
+- Kiểm chứng giữ bảng emoji chat bàn: npm.cmd run build PASS (TypeScript/Vite), dist/assets/index-GwVFgyvL.js cập nhật; chưa browser/touch QA.
+
+- 2026-10-29: Theo user, mọi ô lựa chọn tỉnh/thành và Tất cả trong popup Chọn tỉnh của Chọn Bàn dùng tiếng X (data-ui-selection-sound), cả laptop/mobile.
+- Kiểm chứng âm chọn tỉnh: npm.cmd run build PASS (TypeScript/Vite), dist/assets/index-DLNd20ID.js cập nhật; chưa nghe thử browser.
+
+- 2026-10-29: Theo user, artwork danh hiệu trong nhận thưởng Home và preview nhận thưởng bỏ badge con mắt/lượt phong tặng phía trên cả laptop/mobile. ReceivedHonorArtwork truyền showCount=false qua HonorCatalogBadge/AwardedHonorBadge; mặc định catalog/hồ sơ vẫn giữ bộ đếm.
+- Kiểm chứng bỏ mắt nhận danh hiệu: npm.cmd run build PASS (TypeScript/Vite), dist/assets/index-iOlacHhl.js xác nhận showCount=false; chưa browser QA.
+
+- 2026-10-29: Sửa thiếu bảng Nhận được trên điện thoại dù đã có danh hiệu: homeRewardsStore trước bỏ qua snapshot đầu và union mã đã thấy khiến gỡ/cấp lại không tạo receipt. Thêm honorReceiptsInitialized để đồng bộ một lần danh hiệu thực đang sở hữu ở thiết bị mới/cache cũ (kể cả desktop); không nhân đôi pending. Sau Xác nhận/reload/về Home không lặp. Lưu snapshot sở hữu mới nhất, loại pending danh hiệu đã gỡ; nhận lại sau khi quan sát snapshot không sở hữu tạo thông báo mới. Chỉ tạo thông báo từ dữ liệu API, không cấp vật phẩm/đổi DB. Chuyển cache cũ có thể hiển thị lại danh hiệu đang sở hữu một lần vì chưa có marker mới. 5/5 regression PASS, npm.cmd run build PASS (TypeScript/Vite); dist/assets/index-CHXZet0D.js xác nhận marker mới. Chưa QA điện thoại thật.
+
+- 2026-10-29: Theo user, mọi nút Cài lại dùng tiếng đi quân. Hai nút Cài lại laptop/mobile của Vị trí tùy chỉnh gọi reset chung ở usePositionEditor, phát playPositionMoveActionSound một lần; dùng asset đi quân (2).wav đã preload, tuân thủ Tắt tiếng. Không đổi thao tác reset.
+
+- 2026-10-29: Hoàn tất yêu cầu căn giữa nhận thưởng mobile: native dialog Nhận được phủ viewport100vw×100dvh/grid center, artwork giữ min(92vw,70dvh) ở khung con, desktop giữ layout. Chặn confirm khi preview đang mở và bỏ cancel nổi bọt từ dialog con. RewardPreviewDialog chỉ đóng bằng chạm nền nếu chính pointerdown bắt đầu trên nền; bỏ click chuyển đích khi preview vừa mở để không mất bảng do cùng cú chạm. Đóng/Escape preview vẫn hoạt động. 7/7 reward-gesture/receipt tests PASS; npm.cmd run build PASS, dist/assets/index-DoQC6Z7T.js cập nhật; chưa QA điện thoại thật/âm thanh.
+- Kiểm chứng tiếng Cài lại: npm.cmd run build PASS (TypeScript/Vite); dist/assets/index-DoQC6Z7T.js cập nhật; chưa nghe thử browser.
+
+- 2026-10-30: Theo user, bảng xem lớn vật phẩm trong Nhận được trên MOBILE cố định ngang, không vuốt lệch sang hai bên. RewardPreviewDialog khóa overflow-x/overscroll-x và chỉ cho pan dọc, giới hạn wrapper theo viewport; áp dụng component preview dùng chung Home/trong trận. Giữ luồng chạm/giữ thông tin danh hiệu và đóng preview. npm.cmd run build PASS (TypeScript/Vite), dist/assets/index-DjDWAhjn.js xác nhận lớp khóa cuộn mới; chưa QA vuốt trên điện thoại thật.
+
+- 2026-10-30: Theo user, Mời chơi/So tài kiểm tra bàn hiện tại của người gửi: đủ2ghế thì báo gợi ý Bàn đã đầy. và không gửi lời mời. Khi Đồng ý lời mời cũ, server kiểm tra lại bàn người gửi tại thời điểm đó trước busy/Ready và trước rời phòng/chuyển ghế; bàn đầy thì giữ nguyên phòng/ghế, không đưa người nhận xuống khán giả hoặc đánh dấu cặp mời. Thông báo gợi ý chung qua useInviteSentNotice ở Bạn bè/Hồ sơ/lời mời nhận, cả laptop/mobile. Hai suite challenge/cooldown12/12 PASS; npm.cmd run build PASS (TypeScript/Vite), dist xác nhận thông báo. Chưa browser/hai thiết bị QA; backend cần nạp mã mới, không tự restart/deploy.
+
+## SECURITY-1.4-REGRESSION-20261030
+
+- Phạm vi: quyền chỉnh sửa/xóa dữ liệu cá nhân và quản trị nhóm.
+- Content ownership: 4/4 unit tests PASS.
+- Group ownership: 13/13 unit tests PASS.
+- Related security regression: 75/75 tests PASS.
+- TypeScript: npm run typecheck PASS.
+- MySQL QA: migration/schema/smoke PASS.
+- MySQL integration: 32/32 tests PASS.
+- Tổng lượt kiểm thử regression: 107/107 PASS.
+- Chưa xác nhận toàn bộ hệ thống không có lỗ hổng.
+- Không thay đổi source nghiệp vụ, VPS hoặc production.
+- Tiếp theo: Security 1.5 - tổng kiểm tra API, Socket.IO, xác thực và phân quyền.
+
+
+- 2026-10-30: Security 1.5 hoàn thành trên LOCAL: xác thực và phân quyền API/Socket.IO, thu hồi phiên khi logout, thay thế phiên Google, giới hạn tốc độ chung Socket.IO và riêng Lobby, chống cập nhật Lobby sau disconnect. Kiểm thử Socket.IO tập trung, MySQL integration và TypeScript PASS. Chưa deploy/restart VPS; chưa QA trình duyệt thực tế.
+## Performance 2.2 - Session Store Optimization
+- Status: PASS (2026-10-30).
+- Optimized: ChallengeNotifications.tsx, useChat.ts, useLobby.ts.
+- TypeScript: PASS.
+- Focused regression tests: 57/57 PASS.
+- Manual gameplay verification: PASS.
+- Next: 2.3 - API polling, CPU and RAM optimization.
+
+## Performance 2.3 - API Polling Optimization
+- Status: PASS (2026-10-30).
+- Optimized: honors, honor grants, ranking, home reward polling.
+- TypeScript: PASS.
+- Regression tests: 62/62 PASS.
+- Manual verification: PASS.
+- Next: 2.4 - Multiplayer performance testing.

@@ -19,10 +19,10 @@ export function HomeSettings({ music, onError, placement = 'below', buttonClassN
   }, [open])
   const row = 'flex w-full items-center gap-3 whitespace-nowrap rounded px-3 py-3 text-left text-[#ffe535] hover:bg-[#805100]'
   return <div ref={root} className="relative" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }}>
-    <button type="button" className={buttonClassName} aria-label="Cài đặt" title="Cài đặt" aria-expanded={open} onClick={() => setOpen(value => !value)}><HomeIcon name="settings" /></button>
+    <button type="button" data-ui-selection-sound className={buttonClassName} aria-label="Cài đặt" title="Cài đặt" aria-expanded={open} onClick={() => setOpen(value => !value)}><HomeIcon name="settings" /></button>
     {open && <div role="group" aria-label="Cài đặt âm thanh" className={`absolute right-0 z-50 min-w-[235px] rounded border-2 border-[#d8ac35] bg-[#30271e] p-1 shadow-xl ${placement === 'above' ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
-      <button type="button" className={row} aria-pressed={!music.playing} onClick={() => void music.toggle().catch(onError)}><HomeIcon name={music.playing ? 'sound' : 'muted'} /><span className="flex-1">Tắt nhạc nền</span><span aria-hidden="true">{!music.playing ? '✓' : ''}</span></button>
-      <button type="button" className={row} aria-pressed={muted} onClick={toggleMuted}><HomeIcon name="music" /><span className="flex-1">Tắt tiếng</span><span aria-hidden="true">{muted ? '✓' : ''}</span></button>
+      <button type="button" data-ui-tab-sound className={row} aria-pressed={!music.playing} onClick={() => void music.toggle().catch(onError)}><HomeIcon name={music.playing ? 'sound' : 'muted'} /><span className="flex-1">Tắt nhạc nền</span><span aria-hidden="true">{!music.playing ? '✓' : ''}</span></button>
+      <button type="button" data-ui-tab-sound className={row} aria-pressed={muted} onClick={toggleMuted}><HomeIcon name="music" /><span className="flex-1">Tắt tiếng</span><span aria-hidden="true">{muted ? '✓' : ''}</span></button>
     </div>}
   </div>
 }

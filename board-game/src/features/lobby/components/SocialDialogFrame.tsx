@@ -15,6 +15,13 @@ export function getSocialRowStyle(scale: number, compact: boolean): CSSPropertie
   } as CSSProperties
 }
 
+export function DesktopSocialLandscape({ scale }: { scale: number }) {
+  return <>
+    <div aria-hidden="true" className="pointer-events-none absolute rounded-xl border-solid border-[#d39a42] shadow-[0_0_0_2px_#48220e,inset_0_0_18px_#160904]" style={{ inset: Math.round(16 * scale), borderWidth: Math.round(3 * scale) }} />
+    <div aria-hidden="true" className="pointer-events-none absolute overflow-hidden rounded-[9px] opacity-80 shadow-[inset_0_0_18px_8px_#241107]" style={{ left: Math.round(27 * scale), right: Math.round(27 * scale), top: Math.round(27 * scale), height: Math.round(170 * scale) }}><img src={socialHeaderLandscape} alt="" className="size-full object-cover object-center" /></div>
+  </>
+}
+
 export function SocialDialogFrame({ layout, titleImage, titleCrop, titleId, title, onClose, contentStyle, hideTitle = false, showTitleText = false, overlayTitle = false, hideClose = false, children }: {
   layout: { width: number; height: number; scale: number; compact?: boolean }
   hideTitle?: boolean

@@ -32,7 +32,7 @@ export function useHonorGrants(targetName?:string) {
       const data=(await accountApi.request.get<{endorsements:{code:string;count:number;granted:number}[]}>(`/honors/${user.id}`)).data
       if(active){setGrants(current=>({...current,[recipientKey(targetName)]:data.endorsements.filter(e=>Number(e.granted)===1).map(e=>e.code)}));setCounts(current=>({...current,[recipientKey(targetName)]:Object.fromEntries(data.endorsements.map(e=>[e.code,Number(e.count)]))}))}
     }
-    void load().catch(()=>{});const timer=setInterval(()=>{void load().catch(()=>{})},5000);return()=>{active=false;clearInterval(timer)}
+    void load().catch(()=>{});let pending=false;const refresh=async()=>{if(pending||document.visibilityState==='hidden')return;pending=true;try{await load()}catch{}finally{pending=false}};const timer=setInterval(()=>{void refresh()},5000);const onVisible=()=>{if(document.visibilityState==='visible')void refresh()};document.addEventListener('visibilitychange',onVisible);return()=>{active=false;clearInterval(timer);document.removeEventListener('visibilitychange',onVisible)}
   },[account?.id,targetName])
   useEffect(() => {
     if(account)return
@@ -51,7 +51,8 @@ export function useHonorGrants(targetName?:string) {
       const user=(await accountApi.search(name)).find(u=>u.name===name)
       if(!user)throw new Error('Không tìm thấy người chơi.')
       const profile=(await accountApi.request.get<{endorsements:{code:string;granted:number}[]}>(`/honors/${user.id}`)).data
-      const granting=!profile.endorsements.some(e=>e.code===honorId&&Number(e.granted)===1)
+      if (profile.endorsements.some(e=>e.code===honorId&&Number(e.granted)===1)) return true
+      const granting=true
       await accountApi.request.put('/honors/endorse',{targetId:user.id,code:honorId,enabled:granting})
       setGrants(current=>({...current,[recipientKey(name)]:granting?[...(current[recipientKey(name)]??[]),honorId]:(current[recipientKey(name)]??[]).filter(id=>id!==honorId)}))
       return granting
@@ -60,7 +61,8 @@ export function useHonorGrants(targetName?:string) {
     const current = loadGrants()
     const key = recipientKey(name)
     const ids = current[key] ?? []
-    const granting = !ids.includes(honorId)
+    if (ids.includes(honorId)) return true
+    const granting = true
     const next = { ...current, [key]: granting ? [...ids, honorId] : ids.filter(id => id !== honorId) }
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
     setGrants(next)

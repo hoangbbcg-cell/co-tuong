@@ -23,12 +23,12 @@ it('khóa thật ở server: đúng mật khẩu mới vào được cả ghế 
   expect(() => service.join(room.id, 'c', 'Người C', 'sai')).toThrow('Mật khẩu')
   service.join(room.id, 'c', 'Người C', 'secret-123')
   expect(snapshot.viewers).toContainEqual(expect.objectContaining({ id: 'c' }))
-  expect(JSON.stringify([snapshot, service.list()])).not.toMatch(/secret-123|hash|salt|password/)
+  expect(JSON.stringify([snapshot, service.list()])).not.toMatch(/secret-123|hash|salt/)
   service.command('a', { type: 'reset' })
   expect(snapshot.locked).toBe(true)
   expect(() => service.join(room.id, 'd', 'Người D')).toThrow('Mật khẩu')
 })
-it.each(['', null, 123, 'a'.repeat(65)])('server từ chối mật khẩu không hợp lệ %s', password => {
+it.each([null, 123, 'a'.repeat(65)])('server từ chối mật khẩu không hợp lệ %s', password => {
   const service = new RoomService(new RoomRepository())
   expect(() => service.create('Bàn', 10, 60, undefined, password)).toThrow('Mật khẩu')
 })

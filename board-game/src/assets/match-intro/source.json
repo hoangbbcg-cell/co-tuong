@@ -1,0 +1,22 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-11-02",
+  "brief": "Faithful separate layers from reference. Preserve materials/colors/motifs. True transparent backgrounds, no text/checkerboard. Reconstructed occluded geometry.",
+  "layers": [
+    {
+      "name": "emblem",
+      "prompt": "Extract/reconstruct ONLY the circular gold/bronze ring, four diamond compass ornaments, dark shield with gold central diamond and gold laurel leaves BEHIND the swords. Remove BOTH swords entirely and faithfully reconstruct the portions hidden by them. Keep the ring and shield at the exact original position and relative size on a square canvas matching reference. The black stone INSIDE the shield is artwork and must remain opaque. The open spaces between shield/ring and all outside the ring must be truly transparent, no dark background, no smoke, no broad glow.",
+      "source": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a19a74-65fc-7ce3-bdd1-cc97ffd09daa\\exec-49ed658f-6ac3-4d8a-b713-0ae5b41c63c8.png"
+    },
+    {
+      "name": "sword-left",
+      "prompt": "Extract ONLY the sword whose BLACK HANDLE is at TOP LEFT and SILVER BLADE POINT at BOTTOM RIGHT. Remove the other sword, shield, ring, all ornaments and background. Faithfully reconstruct occluded blade portions. Preserve exact gold guard, black wrapped handle, silver blade, diagonal angle and exact position and size on full square canvas as original. ONE sword only. Transparent background everywhere except this sword.",
+      "source": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a19a74-65fc-7ce3-bdd1-cc97ffd09daa\\exec-22428b8b-f73b-44b0-bd88-2968bd97293a.png"
+    },
+    {
+      "name": "sword-right",
+      "prompt": "Extract ONLY the sword whose BLACK HANDLE is at TOP RIGHT and SILVER BLADE POINT at BOTTOM LEFT. Remove the other sword, shield, ring, all ornaments and background. Faithfully reconstruct occluded blade portions. Preserve exact gold guard, black wrapped handle, silver blade, diagonal angle and exact position and size on full square canvas as original. ONE sword only. Transparent background everywhere except this sword.",
+      "source": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a19a74-65fc-7ce3-bdd1-cc97ffd09daa\\exec-5e525e8b-f751-4662-aee5-425b023067b2.png"
+    }
+  ]
+}

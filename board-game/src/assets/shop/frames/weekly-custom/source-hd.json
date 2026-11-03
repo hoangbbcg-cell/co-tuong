@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-02",
+  "tool": "built-in image_gen",
+  "size": [
+    1254,
+    1254
+  ],
+  "prompt": "Edit target: the attached existing circular game avatar border. Restoration/upscale only: faithfully reconstruct this EXACT same design at high resolution (at least 1024x1024), sharp clean detailed edges and materials. Preserve exact silhouette, ring thickness, center opening, ornament count, positions, colors, gold/metal ribbons, gemstones, flowers/waves/clouds/flames as applicable. No redesign, no new motifs, no text, no portrait. Both central hole and outside must be genuinely transparent alpha. Remove colored extraction specks/halos and any baked checkerboard; checkerboard is not artwork. Maintain composition and proportions of original. Output one isolated border PNG only.",
+  "files": [
+    {
+      "name": "vien-ho-ly",
+      "source": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a19a74-65fc-7ce3-bdd1-cc97ffd09daa\\exec-81e13ca8-a4e0-4f98-8c02-1a7e06724728.png"
+    },
+    {
+      "name": "vien-thien-ton",
+      "source": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a19a74-65fc-7ce3-bdd1-cc97ffd09daa\\exec-a95607bc-e41f-476c-943b-c22d4b87e3fc.png"
+    },
+    {
+      "name": "vien-sa-tang",
+      "source": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a19a74-65fc-7ce3-bdd1-cc97ffd09daa\\exec-988181d8-4e08-4a1c-ae0f-3467630b4f63.png"
+    },
+    {
+      "name": "vien-bach-long",
+      "source": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a19a74-65fc-7ce3-bdd1-cc97ffd09daa\\exec-8c0f852f-f8e7-4362-9fe7-87fe35413d63.png"
+    },
+    {
+      "name": "vien-hac-lang",
+      "source": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a19a74-65fc-7ce3-bdd1-cc97ffd09daa\\exec-a4192e9a-5b3d-4789-b31f-ccd11c48fb8c.png"
+    },
+    {
+      "name": "vien-bach-ho",
+      "source": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a19a74-65fc-7ce3-bdd1-cc97ffd09daa\\exec-1781e524-ef43-46a0-a4c1-94e2802b0ce7.png"
+    }
+  ],
+  "qa": "All six visually reviewed against originals; center and top-left alpha0. Reconstruction preserves main design, not pixel-identical; no browser QA."
+}

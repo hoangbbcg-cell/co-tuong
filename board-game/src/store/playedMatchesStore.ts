@@ -1,7 +1,8 @@
 import { create } from 'zustand'
+import { recordedMatchStarted } from '../lib/recordedMatchStarted'
 import type { RecordedMatch } from '../types/recordedMatch'
 
-interface PlayedEntry extends RecordedMatch { owner: string; isOnline: true }
+interface PlayedEntry extends RecordedMatch { owner: string; isOnline: true; serverAccountId?: string }
 const storageKey = 'xiangqi-played-matches-v1'
 function expiresAt(endedAt: number) {
   const date = new Date(endedAt)
@@ -16,7 +17,7 @@ const stillFresh = (item: PlayedEntry, now = Date.now()) => Number.isFinite(item
 function read(): PlayedEntry[] {
   try {
     const data: unknown = JSON.parse(localStorage.getItem(storageKey) ?? '[]')
-    const items = Array.isArray(data) ? data.filter((item): item is PlayedEntry => !!item && typeof item === 'object' && item.isOnline === true && typeof item.id === 'string' && typeof item.owner === 'string' && Array.isArray(item.states) && item.states.at(-1)?.phase === 'finished' && stillFresh(item)) : []
+    const items = Array.isArray(data) ? data.filter((item): item is PlayedEntry => !!item && typeof item === 'object' && item.isOnline === true && typeof item.id === 'string' && typeof item.owner === 'string' && Array.isArray(item.states) && recordedMatchStarted(item) && stillFresh(item)) : []
     if (Array.isArray(data) && items.length !== data.length) localStorage.setItem(storageKey, JSON.stringify(items))
     return items
   } catch { return [] }
@@ -28,7 +29,7 @@ function scheduleExpiry(entries: PlayedEntry[]) {
   if (!Number.isFinite(nextExpiry)) return
   expiryTimer = setTimeout(() => {
     const fresh = usePlayedMatches.getState().entries.filter(item => stillFresh(item))
-    try { localStorage.setItem(storageKey, JSON.stringify(fresh)) } catch { /* Keep the in-memory history usable. */ }
+    try { localStorage.setItem(storageKey, JSON.stringify(fresh.filter(item => !item.serverAccountId))) } catch { /* Keep the in-memory history usable. */ }
     usePlayedMatches.setState({ entries: fresh })
     scheduleExpiry(fresh)
   }, Math.min(Math.max(1, nextExpiry - Date.now()), 2_147_000_000))
@@ -36,10 +37,11 @@ function scheduleExpiry(entries: PlayedEntry[]) {
 export const usePlayedMatches = create<{ entries: PlayedEntry[]; record: (owner: string, match: RecordedMatch) => void }>((set, get) => ({
   entries: read(),
   record: (owner, match) => {
-    if (match.states.at(-1)?.phase !== 'finished' || (owner !== match.redName && owner !== match.blackName) || !stillFresh({ ...match, owner, isOnline: true })) return
-    if (get().entries.some(item => item.owner === owner && item.id === match.id)) return
-    const entries = [...get().entries, { ...structuredClone(match), owner, isOnline: true as const }]
-    localStorage.setItem(storageKey, JSON.stringify(entries))
+    if (!recordedMatchStarted(match) || (owner !== match.redName && owner !== match.blackName) || !stillFresh({ ...match, owner, isOnline: true })) return
+    const previous = get().entries.find(item => item.owner === owner && item.id === match.id)
+    if (previous?.states.at(-1)?.phase === 'finished') return
+    const entries = [...get().entries.filter(item => item.owner !== owner || item.id !== match.id), { ...structuredClone(match), owner, isOnline: true as const }]
+    localStorage.setItem(storageKey, JSON.stringify(entries.filter(item => !item.serverAccountId)))
     set({ entries })
     scheduleExpiry(entries)
   },

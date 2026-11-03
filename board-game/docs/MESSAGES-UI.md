@@ -1,4 +1,116 @@
+- 2026-10-28: Theo user, Tin nhắn MOBILE > Lời mời dùng cùng chiều cao dòng tab Tất cả: (100%−36px)/7, gap6px. Icon tròn Lời mời vào nhóm và avatar nhóm72cqh theo container dòng như avatar Tất cả, bỏ inline52px cố định của icon. Laptop giữ nguyên. Build/typecheck PASS; dist xác nhận; chưa browser QA.
+- 2026-10-28: Theo user, Tin nhắn > Lời mời LAPTOP đồng bộ giao diện với mobile: dòng “Lời mời vào nhóm” và các invitation dùng chung socialPlayerRowClass/thẻ parchment, khoảng cách laptop4×scale, chiều cao dòng90×scale; avatar52×scale, nút nhận/từ chối48×scale. Mobile giữ nguyên layout7slot/gap6/72cqh/42px. Luồng API/cache/badge/consent không đổi.
+- 2026-10-28: Đính chính tab Lời mời laptop: danh sách dùng padding phải như tab Tất cả để cùng chiều rộng hàng; chữ tiêu đề/tên và trạng thái rỗng/lỗi dùng màu nâu #251506 như mobile. Không đổi giao diện mobile.
+- Kiểm chứng lượt chỉnh này: syntax transpile component qua esbuild; npm.cmd run build chưa hoàn tất vì typecheck báo lỗi JSX ở DesktopFriendsDialog.tsx dòng231/264 (ngoài phạm vi); dist chưa được cập nhật.
+
+- 2026-10-27: Theo user, ẩn riêng lỗi tải inbox Không tải được tin nhắn. phía đáy trên LAPTOP; mobile đã ẩn trước đó. Các lỗi khác và cơ chế tải/retry giữ nguyên. Build/typecheck PASS, dist cập nhật.
+
+- 2026-10-27: Theo user options chat LAPTOP avatar200→180logical, tên34→40logical theo width894; camera nhóm đi theo avatar mới. Form Biệt danh thay đúng dòng Biệt danh tại x47/y487/w800/h90 bằng các dòng khác; Xem thông tin giữ hiện khi sửa desktop, mobile giữ UI cũ. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, tùy chọn chat riêng LAPTOP đồng bộ mobile: Xem thông tin/Biệt danh/Chặn/Xóa/Báo cáo mỗi dòng full800logical, cao90, bắt đầu385/nhịp102; bỏ hai ô nhỏ cạnh nhau và mốc cũ. Dùng renderer icon/chữ/nền dòng chung hiện có, hành vi và mobile giữ nguyên. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user cả mobile/laptop, tên trong dòng Xem thành viên/Tất cả/Trưởng-phó/Đã chặn/Thêm thành viên/Thêm phó cách avatar thêm4px bằng margin tên cục bộ; không đổi avatar/kích thước dòng và khoảng cách nút. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user riêng LAPTOP Xem thành viên và các tab liên quan: avatar user50→64logical, tên32logical theo width894 (gồm blocked/pending/invite/deputy/leaders), heading Thành viên(số)/tiêu đề tab36logical. Dùng biến cục bộ member section, mobile/geometry phần khác giữ nguyên. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, options laptop nền dưới nâu đặc#281205 như mobile, che hoa văn trong nhưng giữ viền khung. Gap nút giảm12→8logical (nhịp102→98/cao90), chữ dòng22→28/icon34→42/tên28→34 theo scale width894; mobile giữ nguyên. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, options Tin nhắn LAPTOP căn giữa viewport bằng overlay fixed; trang Cài đặt và Thành viên (gồm các tab/subpage) dùng cùng khung SocialDialogFrame giữ viền3%, không đè khung bằng nền opaque full. Desktop dùng cùng renderer dòng OptionRowBackground/icon/chữ HTML như mobile và scale token theo width/894; mobile giữ bố cục hiện hành. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user phóng options nhóm laptop thêm: rộng min(90% dialog,(viewportH−48)×894/1008), cao theo đúng tỷ lệ894:1008. Chuẩn hóa nút desktop như mobile: y385/487/589/691/793, cao90/gap12logical; bỏ offset owner91 cộng trùng, member cùng nhịp, không đổi mobile. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, thời gian dòng inbox laptop đổi sang nâu#76552e như mobile. Bỏ nhánh mobile render MessagesCreateGroupButton cũ; dùng chung header search+bánh răng SettingsIcon44px mobile/50token desktop, menu Tạo nhóm giữ callback thật và khóa layout mobile. Menu đóng pointerdown ngoài và reset khi dialog đổi open. Build/typecheck PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Tin nhắn laptop: search giảm padding16→8/gap12→4 để placeholder dịch trái; bảng options mở rộng (giới hạn cao96%/rộng92%), dùng SocialDialogFrame cùng khung Tin nhắn thay ảnh frame cũ; back desktop tròn38px; các dòng group xếp liên tục91logical từ388 (owner có thêm dòng Settings), bỏ khoảng trống cũ. Icon lời mời giữ kích thước vuông52×52 để luôn tròn. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: User xác nhận khôi phục Tin nhắn laptop bảng nền giấy sáng/từng dòng kem trước lúc lỗi. Khôi phục ô tìm ngang+bánh răng/Tạo nhóm, hai tab Tất cả/Lời mời (hook/API lời mời thật), row90px/gap4/chữ24 và21, overlay chọn đen10%, avatar header78%/tênlight, nới ngang120logical trong viewport. Giữ khungchat/padding hiện có và X chung. Build/typecheck PASS, dist cập nhật; chưa browser QA; phục hồi bố cục theo yêu cầu, không khẳng định toàn bộ logic của phiên bản file đã mất được phục hồi.
+
+- 2026-10-27: Sửa khung Tin nhắn laptop bị trộn sau khôi phục file: dialog/surface cùng layout.width×scale và layout.height×scale, nội dung flex1 đúng lòng khung, bỏ X cũ trùng. Khôi phục sidebar giấy/row90px và nối settings chatDisabled/deputyChatAllowed/onSetChat thật qua API để build lại. Build/typecheck PASS, dist cập nhật; chưa browser QA. Không khẳng định đã phục hồi toàn bộ thay đổi MessagesDialog đã mất.
+
+- 2026-10-27: Theo user, mobile chat tăng gap avatar–bubble phía người kia thêm3px (gap15px); bubble tin nhắn của mình chừa thêm3px mép phải. Desktop giữ nguyên. Chưa build được do restored MessagesDialog thiếu tích hợp group chat controls; xem trạng thái hiện tại trong task.
+
+- 2026-10-27: Theo user chỉnh mobile chat: gap avatar–bubble giảm18→16px; bubble tin nhắn gửi của mình inset phải3px khỏi viền. Desktop giữ nguyên. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo ảnh user, tăng gap avatar người gửi–bong bóng chat mobile từ12px lên18px; laptop giữ12px, gửi/nhận logic không đổi. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user, tên người trong dòng inbox laptop tăng22→24px theo scale, nội dung tin nhắn preview19→21px; header chat tên font-normal→light. Giữ chiều cao90px và mobile. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Đính chính theo user: dòng inbox laptop giữ90px, tin nhắn preview bên trong tăng17→19px theo scale; tên header hạ medium→normal. Mobile giữ nguyên. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user, tên hội thoại header dùng font-medium thay bold; dòng inbox laptop tăng90→100px theo scale. Mobile giữ nguyên. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user, avatar header chat laptop thu tiếp10% (hiện78% size token66, mobile34px giữ). Bao toàn pane chat bằng customizationListPanel cùng token khung chọn avatar (bo10, viền nâu, nền nâu mờ, shadow trong); khung này bao cả nền/header/tin nhắn/composer. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user, avatar hội thoại trong header Tin nhắn thu12% riêng laptop (66→58px tương đương), mobile giữ34px. Dòng đang chọn laptop dùng overlay đen nhẹ 12% và viền vàng mảnh; compact giữ messageSelectionHighlight. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user, khung chat laptop hạ mép trên thêm10px và giảm chiều cao tương ứng10px, giữ đáy/nền tới viền. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Tin nhắn LAPTOP bù chính xác chiều cao header SocialDialogFrame (titleWidth×360/2166−62scale−14scale) bằng marginTop âm/tăng height pane để sát viền trên, giữ đáy. Nút X chung dịch thêm phải10/lên10px: translate32,-34. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo ảnh user, pane chat Tin nhắn LAPTOP mở đến viền trong khung lớn: bù padding phải/đáy2×spacing của SocialDialogFrame bằng marginRight âm và tăng chiều cao tương ứng. Nền/header/composer cùng phủ tới viền; mobile giữ nguyên. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user nền Tin nhắn phủ full chiều cao: SVG image chatFrame preserveAspectRatio=none để ảnh phủ crop ở mọi tỷ lệ. Nút X chung DialogCloseButton dịch phải/lên thêm6px (translate22,-24 thay16,-18), áp dụng mọi bảng dùng component cả laptop/mobile; kích thước giữ nguyên. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Tin nhắn LAPTOP nới ngang120logical (chặn trong viewport24px), gap inbox8→4scale/lề20→6scale. Ẩn thông báo lỗi gửi phía đáy theo user. Chat crop ảnh viewBox30 45 820 910 bỏ viền baked, phủ đen45% cả trạng thái trống và hội thoại. Build/typecheck PASS; chưa browser QA.
+
+- 2026-10-27: Theo user chỉnh Tin nhắn LAPTOP: nội dung hai cột flex đầy lòng khung, sidebar32%/chat chiếm phần còn lại, search theo scale dialog, dòng inbox90px×scale thay138px; nền chat dùng conversation-chat-frame hiện có. Mobile giữ nguyên. Build/typecheck PASS; chưa browser QA.
+
 # Giao diện Tin nhắn — xem thử 2026-10-07
+
+- 2026-10-28: Đồng bộ nút Back tròn mũi tên trong các màn con laptop về `MessagesBackButton`; Tạo nhóm laptop cũng dùng component này thay ảnh back riêng, giữ callback và neo vị trí. Mobile không đổi.
+- 2026-10-28: Nút Back tròn laptop đồng nhất38px (compact28px). X desktop đồng nhất56/42px cố định bằng DialogCloseButton; compact giữ90/68×scale. Khi mở Tùy chọn Tin nhắn desktop, scrim z35 phủ khung cha kể cả X; OptionsPanel portal trực tiếp vào dialog z40 nên khung/X đang mở luôn rõ và thao tác được. X cha mờ cùng nền, không bấm được. Click ngoài không đóng bảng. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Đính chính: khung LAPTOP giữ đúng khổ SocialDialogFrame theo layout chung, không cộng 20%; nội dung hai pane được co theo phần lòng khung còn lại dưới header/padding và căn giữa. Mobile giữ nguyên.
+
+- 2026-10-27: Theo user, riêng LAPTOP dùng chung khung/biển Tin nhắn/nút đóng SocialDialogFrame như giao diện điện thoại và các dialog xã hội; bỏ hai ảnh khung pane cũ. Search dùng messagesFriendsField/Input; danh sách hội thoại phủ nền giấy và socialPlayerRowClass/getSocialRowStyle, gap8×scale giống Xếp hạng. Không đổi chat/API; mobile giữ nguyên.
+
+- 2026-10-27: Theo user chỉLAPTOP thu×thêm64/48→56/42×scale; đối chiếu mobile neo top24/right28×scale+translate16,-18, desktop chuẩn hóa cùngmốc trong DialogCloseButton (bỏ lệch riêng Messages). Compact90/68/vịtrígiữnguyên; scrollbargiữ. Typecheck/build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: User sửa riêng LAPTOP: thumb cuộn trắng thay xám, giữ700ms sau scroll rồi giảm alpha dần500ms, scroll lại hủyfade/hiện ngay; desktop dialog hook chỉ>800px. Nút×desktop90/68→64/48×scale; compact90/68 giữ nguyên. Typecheck/build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: User mở riêng LAPTOP đồng bộ nút×/thanh cuộn cho các bảng khung: DialogCloseButton desktop dùng cùng90/68×scale, bo12px cố định/translate16,-18 như compact; thay×riêng Bạn bè desktop/Tin nhắn bằng component chung, Ranking/History/Profile/Honors đã dùng chung. Giá trị compact không đổi. Hook useDesktopDialogScrollbars chỉ viewport>800/dialog, thumb xám#999 khi scroll/tựẩn800ms, CSS desktop scoped dialog trong index.html; mobile giữ nguyên. Typecheck/build PASS (lần đầu Vite crash, chạy lại thành công), dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, Xem thành viên hiện icon người+dấu cộng Thêm bạn vào nhóm cho mọi vai trò gồm member/deputy/owner, mobile+laptop. Thành viên thường được mở/giữ trang invite (không bị guard tab quản trị đưa về Tất cả); các tab/quyền quản trị giữ nguyên. Backend add đã cho thành viên đang tham gia gửi lời mời, vẫn chặn người bị block và giữ consent/duyệt hiện có. Thay quy tắc ẩn icon mời với member trước đây. Build/typecheck PASS; dist cập nhật và xác nhận icon mời; chưa browser/2client QA.
+
+- 2026-10-27: Theo user, menu Cài đặt Tin nhắn chứa Tạo nhóm đóng khi pointerdown ngoài cụm menu/nút bánh răng, áp dụng chuột và chạm mobile/laptop. Bấm trong menu giữ xử lý hiện có, bánh răng vẫn toggle; listener capture chỉ tồn tại khi mở và được dọn. Build/typecheck PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user, mỗi lần mở/đóng Tin nhắn đặt menu Cài đặt chứa Tạo nhóm về đóng bằng theo dõi thuộc tính open của dialog. Danh sách hội thoại trống hiện Danh sách tin nhắn trống căn giữa ngang/dọc vùng list mobile/laptop; tìm kiếm không có kết quả hiện Không tìm thấy tin nhắn. Giữ luồng tạo nhóm/API. Build/typecheck PASS; dist xác nhận thông báo trống mới; chưa browser QA.
+
+- 2026-10-26: Theo user hoàn tác thêm1lượt Xem thành viên, về trước task đồng bộ Tin nhắn: nền nâu đặc#281205, bỏ nền/hoa văn mới và dòng kem/gap6slot, khôi phục dòng nâu chia8/đường phân cách cũ ở thành viên/trưởngphó/thêm/chặn/duyệt. Giữ chức năng quản lý/lời mời độc lập. Typecheck/build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-26: Theo user hoàn tác lượt nền giấy sáng Xem thành viên: khôi phục nền nâu/hoa văn compact và conversation-list-frame desktop, màu chữ/tab trước đó; compact giữ dòng inbox kem6slot, desktop dòng nâu8slot như trước lượt đổi giấy. Giữ các thay đổi chức năng độc lập. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-26: User đính chính Xem thành viên theo ảnh Xếp hạng: nền giấy sáng history-parchment-background+overlay#fff4dc52 chung Ranking, bỏ nền nâu/hoa văn. Các dòng tất cả/trưởngphó/thêm/chặn/chờduyệt dùng socialPlayerRowClass màu kem và inbox6slot/gap trên cả mobile/laptop; chữ tên/tiêu đề/tab màu nâu dễ đọc. Giữ avatar/chức năng/quyền. Typecheck/build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-26: Theo user, Xem thành viên dùng nền Tin nhắn: compact gradient nâu/hoa văn SocialDialogFrame, desktop conversation-list-frame. Các dòng thành viên/trưởngphó/phongphó/thêm bạn/chặn/chờduyệt dùng messagesInboxRowStyle/ListStyle + socialPlayerRowClass trên compact,6slot/gap8scale; desktop giữ dòng inbox chia8/viềnnâu. Avatar/role/menu/quyền/API giữ. Typecheck/build PASS; dist cập nhật, chưa browser QA.
+
+- 2026-10-26: Theo user, chấp nhận lời mời nhóm mà API pendingApproval=true tiếp tục chờ chủ nhóm duyệt và hiện toast Chờ duyệt bay lên qua useInviteSentNotice; chưa đưa vào inbox/cấp membership. Chấp nhận vào ngay vẫn im lặng. Backend giữ join_request hiện có. Typecheck/build PASS; dist xác nhận Chờ duyệt, chưa browser QA.
+
+- 2026-10-26: Theo user, Lời mời nhóm bỏ dòng status phía trên; từ chối dùng useInviteSentNotice toast Đã từ chối giữa màn/baymất như kết bạn, chấp nhận thành công im lặng. onChanged truyền groupId chỉ khi đã vào thực sự (pendingApproval không đưa lên), reload inbox đưa nhóm mới nhận lên đầu bằng mốc nhận theo account trong phiên dialog, giữ qua poll; tin mới hơn có thể lên trước. Lỗi API dùng toast, không status dòng. Typecheck/build PASS; dist cập nhật; chưa browser QA, thứ tự nhận chưa lưu qua reload trang.
+
+- 2026-10-26: Theo user, gửi lời mời nhóm lặp vẫn được nhưng người nhận chỉ1dòng/nhóm và badge đếm1. DB hiện có PRIMARY KEY(conversation_id,user_id)+upsert không nhân bản; useGroupInvitations select gộp conversationId cho list/badge. Tăng icon Chấp nhận16→22px/max10cqw, Từ chối dùng SVG× cùngsize thay ký tự; giảm gap/font nhẹ để chữ vừa nút, giữ kích thước nút/dòng. Group-invitations11/11 PASS gồm resend upsert2lần; typecheck/build PASS; dist cập nhật, chưa browser/MySQL QA.
+
+- 2026-10-26: User đổi riêng Tạo nhóm: createConversation thêm ngay creator(owner)+tất cả người được chọn(member) trong cùng transaction, không INSERT conversation_invitations khi tạo. Thêm thành viên vào nhóm đã có vẫn giữ luồng lời mời/consent. Không migration hay chuyển lời mời cũ. Group-invitations10/10 PASS (regression mới xác nhận3membership/0invitation); typecheck/build PASS, dist cập nhật. Chưa HTTP/MySQL/browser QA; backend đang chạy cần nạp code mới, không restart/deploy.
+
+- 2026-10-26: Theo user, avatar dòng lời mời lấy avatarUrl nhóm thật, fallback đúng create-group/avatar.png thay avatar người. Hai nút nhận/từ chối tăng vùng48→56%/cao34→42mobile40→48desktop, font theo container để gọn trong khung. Chữ ‹ Lời mời thay MessagesBackButton chung như chat, hiện cả khi trống. Giữ dòng/API/badge. Typecheck/build PASS; dist cập nhật, chưa browser QA.
+
+- 2026-10-26: Theo user, bấm dòng Lời mời vào nhóm mới mở nội dung, ẩn dòng danh mục khi mở. Trống hiển thị câu Chưa có lời mời vào nhóm căn giữa ngang/dọc vùng list. Có lời mời dùng cùng chiều cao/nền dòng inbox, chỉ avatar+tên nhóm, bỏ câu người mời; nút Chấp nhận/Từ chối dùng khung socialActionStyle/secondary Friends và icon thêm bạn. Có nút về Lời mời khi list có dữ liệu. Giữ API consent/cache/badge. Typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-26: Đính chính theo user: Lời mời vào nhóm dùng icon danh bạ trắng vẽ SVG native trên nền tròn xanh nước biển gradient, group-invitation-icon.svg; không dùng ảnh chụp đính kèm. Giữ kích thước/khung tròn/dòng/badge. Typecheck/build PASS; dist có icon mới, chưa browser QA.
+
+- 2026-10-26: Theo user, dòng Lời mời vào nhóm dùng chính ảnh đính kèm group-invitation-user.png, MessagesGroupAvatar bọc tròn/viền như inbox. Avatar dòng danh mục và lời mời40→52px (giới hạn theo dòng); avatar inbox50→56token/mobile72→84cqh. Giữ nguyên chiều cao/gap các dòng, logic lời mời/badge. Typecheck/build PASS; dist cập nhật, chưa browser QA.
+
+- 2026-10-26: Theo user, Tin nhắn/Lời mời đổi nhãn tab Lời mời vào nhóm thành1dòng danh sách cùng messagesInboxRowStyle/nền như Tin nhắn, avatar nhóm/chữ trái và badge đỏ sốlượng bênphải; bấm dòng mở/thu lời mời bên dưới. Tab Lời mời dưới có badge góc trênphải. MessagesInvitationBadge chung hiện>0/99+, số thật từ useGroupInvitations query cache riêngaccount/poll5s luôn khi sidebar mở, cập nhật ngay khi phản hồi; không còn tab loại lời mời. Giữ API/consent/phânquyền. Typecheck/build PASS; dist xác nhận hook/badge, chưa browser QA.
+
+- 2026-10-26: Theo user, bỏ SVG chevron ngoài cùng trong mục Tạo nhóm vì asset action-row-blank đã chứa mũi tên. Tin nhắn và Lời mời vào nhóm MOBILE dùng messagesInboxRowStyles chung: khoảng cách round(8×scale) và slot6dòng như Xếp hạng, row gradient/viền/bo góc chung. Nội dung Tin nhắn giữ chiều cao7slot cũ trong hàng mới để không phóng avatar/chữ theo cqh; avatar lời mời giữ40px. Chỉ sửa trình bày, giữ API/consent. Build/typecheck PASS; dist index-BeLjnGiC.js xác nhận cập nhật; chưa browser QA.
+
+- 2026-10-26: Theo user, mục Tạo nhóm trong Cài đặt Tin nhắn dùng ảnh action-row-blank chung dòng tùy chọn nhóm: nền nâu/viền vàng/hoa văn, icon nhóm vàng trái và chevron vàng phải. Menu rộng240px/max viewport-48px, dòng cao50px/chữ18px. Giữ callback tạo nhóm. Build/typecheck PASS; dist index-2uwhOlim.js xác nhận cập nhật; chưa browser QA.
+
+- 2026-10-26: Theo user, Cài đặt Tin nhắn chỉ hiện icon bánh răng giống Cài đặt nhóm, dùng SettingsIcon chung giữ nguyên artwork; bỏ chữ/khung nút riêng, đặt bên phải ô tìm kiếm trong cùng một hàng mobile/desktop. Hai tab dưới cùng Tất cả/Lời mời giảm padding dọc10→4px và khoảng trên8→4px. Build/typecheck PASS; dist index-Ba1-eWvx.js xác nhận cập nhật; chưa browser QA.
+
+- 2026-10-26: User chốt Tin nhắn: bỏ nút Tạo nhóm trực tiếp, Cài đặt nằm bên phải và chứa mục Tạo nhóm; dưới cùng sidebar có Tất cả/Lời mời. Lời mời có tab Lời mời vào nhóm, dữ liệu DB/poll5s, Đồng ý/Từ chối. Tạo nhóm chỉ cấp membership cho creator, bạn được chọn nhận invitation; Thêm thành viên cũng chỉ gửi invitation. Người nhận đồng ý mới tạo membership; nếu nhóm bật duyệt và người mời không phải owner thì sau consent mới tạo join_request chờ owner, chưa đọc/gửi được. Từ chối không vào nhóm. Backend lọc recipient từ cookie auth, khóa conversation/transaction, kiểm tra inviter còn active/không bị chặn và owner còn tồn tại; dissolve dọn invitations. Migration012_group_invitations mới,001–011 giữ nguyên; đã apply1bước MySQL local+verifySchema PASS. Tests invitation10/admin18/moderation12/chat9/migration5 =54 PASS khi chạy riêng từng file (Vitest chạy chung lỗi cache SSR/ENOENT, no-isolate xung đột mocks). Typecheck/build PASS, dist cập nhật; chưa browser/2client QA; không restart/deploy, backend đang chạy cần nạp code mới.
+
+- 2026-10-26: Theo user, Tin nhắn → Nhóm → Thêm thành viên dùng cùng bố cục dòng Thành viên: avatar, SocialPlayerName, chiều cao 1/8 viewport, font/padding/đường phân cách/scrollbar; nút + riêng gửi lời mời, avatar mở thông tin. Giữ lọc bạn accepted chưa trong nhóm và API. Typecheck/build PASS; dist index-BAadv2uf.js xác nhận cập nhật; chưa browser QA.
 
 - 2026-10-26: Theo user, lấy ô tìm Bạn bè làm chuẩn tỷ lệ sizing/bo góc. searchFieldMetrics chung: compact H60×1.17,placeholder21/input24/radius10; desktopH56/placeholder23/radius10; font nhập min16/placeholder mobilemin14 như Friends. Áp dụng theo chiều cao ô sẵn có tại Chọn Bàn, tìm hội thoại Tin nhắn, tìm bạn Tạo nhóm; giữ vị trí/kích thước ô/chức năng/font/màu, không đổi Bạn bè desktop đang khóa. messagesFriendsField bo10px→44×10/70.2px cho mọi nơi dùng khung nâu này (kể cả nhập chat/biệt danh), cỡ chữ mặc định nonsearch16/14 giữ nguyên; search truyền CSSvars. Ô địa chỉ/quốc gia dùng khung khác không đổi. Build/typecheck PASS; dist có helper CSSvars; chưa browser/keyboard QA.
 
@@ -446,3 +558,99 @@ Bảng thành viên rộng bằng panel danh sách chat, luôn dành chỗ cho8 
 - 2026-10-26: User đổi Xem thành viên thành dãy tab ngang/lướt ngang: Tất cả → Trưởng và phó nhóm → Đã chặn → Duyệt thành viên (tab duyệt chỉ chủ nhóm). Tất cả/Trưởng-phó dùng role DB, khóa vàng owner/khóa bạc deputy và giữ avatar geometry; vàng được phong/gỡ phó trong menu..., quyền quản trị hiện chỉ owner. Bỏ Kết bạn trong danh sách/menu thành viên; menu vàng có Phong/Gỡ phó, Chặn/Bỏ chặn và Xóa khỏi nhóm ở cuối, chữ+icon Xóa cùng đỏ#ff5555 của Rời nhóm. Thêm thành viên chuyển khỏi tab sang icon người+ góc phải trên trang tùy chọn nhóm, đối diện back; danh sách mời riêng vẫn chọn bạn accepted. Cài đặt Duyệt thành viên nay mở chính tab thành viên, công tắc và danh sách chờ cùng một chỗ.
 - User xác nhận Chặn thành viên là chặn CHAT và MỜI, KHÔNG đuổi khỏi nhóm: giữ membership/quyền đọc, từ chối send(text/ảnh) và add/invite trên server; chặn chỉ trong nhóm đó, không sửa quan hệ bạn bè/chặn riêng. Tab Đã chặn lấy DB, owner có Bỏ chặn, phục hồi hai quyền mà không đổi ghế/role/membership. Owner không được chặn/phong lại chính owner; member/deputy không có quyền moderation. Migration010_group_moderation đổi CHECKrole thêmdeputy và tạo conversation_member_blocks,001–009 giữ nguyên. Đã apply2bước local+verifySchema PASS.
 - Kiểm chứng: group-administration18/18 và group-moderation12/12 PASS khi chạy từng file (chạy chung bị cache Temp ENOENT của môi trường); typecheck/build PASS, dist cập nhật. Chưa browser/2client/API live QA; không SSH/deploy/restart server.
+
+- 2026-10-26: Theo user, Xem thành viên bỏ khung/nền nút tab: Tất cả/Trưởng và phó nhóm/Đã chặn là tab ngang lướt, line dưới chung và tab chọn đổi chữ+gạch vàng. Duyệt thành viên tách một dòng toàn ngang dưới tab, tiêu đề Thành viên(số) xuống dưới dòng duyệt. Header back trái, icon thêm bạn vào nhóm+tìm kiếm phải; tìm bật input lọc tên trong danh sách đang xem, thêm mở danh sách mời hiện có. Giữ API/quyền/geometryavatar. Build/typecheck PASS,dist xác nhận2control mới; chưa browserQA.
+
+- 2026-10-26: Theo user, Xem thành viên/Thêm bạn cùng fullwidth/fullheight vàpadding20 như trang Cài đặt, bỏ inset3/6% và viềnpanel riêng. Dòng Duyệt thêm iconngười+dấutích vàng theo iconthêmngười; bỏsố/mũitên, chỉhiệnchấmbáođỏ10px khi pendingMembers.length>0, aria cósốchờ. Build/typecheck PASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, header thành viên thu iconTìm/Thêm28→24px, đảo thứtự Tìmtrái/Thêmphải. Ô tìm bật ngaybêntráiiconTìm trongcùnghàngheader, dùng messagesFriendsField/Input mẫuTìmBạnbè (gradientnâu/viềninsetvàng/font), cao36px/co theo vùngtrống; bỏhànginputriêng. Giữlọctên/luồngmời. Build/typecheck PASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, header thành viên cố định cao36px để mởôTìm khôngdịchUI; inputkhôngautofocus, mởXemthànhviên resetsearchđóng/rỗng. Sốcounttiêuđề dùngNumberTextcompact/normal nhỏ0.9em nhưsốtên. Duyệt mởtrangriêngtrongcùngkhung, ẩntab/dòngđiềuhướnggốc, cóswitchbật/tắt vàdanh sáchchờ, backvềTấtcả. TabTrưởng-phó bỏdòngDuyệt, thayThêmphónhóm mởchọnthànhviênthường gọiAPIpromotehiệncó;backvềTrưởng-phó. Build/typecheck PASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theoảnhuser, chữ Xóa toàn bộ tin nhắn? MOBILE dùng cùngfontbody/cỡ18px với dònggiảithích để nhìnđồngcỡ (trướcCormorantnhỏthịgiác), giữnguyênbold. Desktopgiữfontcũ. Build/typecheck PASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, phầnthànhviên/duyệt khônghiện lỗi Thao tác quá nhanh (chỉẩnmessageUI,giữratelimitserver). Menu...vàng thêmPhongtrưởngnhóm. Phong/Gỡphó từmenuhoặcThêmphó đều mởxácnhận; phongtrưởng cảnhbáomấtquyền/vềmember, chỉgọitransfer sauĐồngý. TáidùngAPItransactionowner→member/target→owner và cậpnhậtroles/creatorName ngayđểẩnquyềnquảntrịcũ. Build/typecheck PASS,distxácnhận; regressiongroup-administration18/18PASS; chưa browserQA.
+
+- 2026-10-26: Theo user, Thêm phó nhóm dùng row cùng avatar/tên/font/chiều cao1/8 như Thành viên, avatar mởprofile và+ mởconfirmphong; khôngsửa geometryavatar. TabĐãchặn bỏdòngDuyệt, chỉTấtcả giữ. KiểmtraChặn phát hiện polling dùngchunghạnmứcIP600/phút vớiwrites trongkhiUIẩn429: táchread/write bucket,cùnggiữ600/phút mỗi nhóm, khôngbỏratelimit. Thêmversionguard dữliệugroup đểphản hồipollcũkhôngghiđè blockedlist sauvừachặn/bỏchặn. HTTPregression xácnhậnhết600GETvẫnPATCHblockthànhcông1/1PASS; moderation12/12PASS. Build/typecheck PASS,distxácnhận. Chưa2client/browser/DBthậtQA,khôngrestartdeploy; backendcầnnạpcodecontroller mới.
+
+- 2026-10-26: Theo user, dấu+Thêmphó đổiSVG34px/nút40px thayglyph24/nút32 để rõ/lớnhơn. Đối chiếuluồng: pickerphóchỉlấymembershiệntạirolemember; pickerThêmthànhviênchỉfriendsaccepted vàchưacótrongnhóm, giữlọcsearch. Build/typecheckPASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, dấu+Thêmphó SVG34→30px giữnguyênvùngbấm40. Người bịchặn cóbadge nềntrònxám/cùngkíchthước-vịtríkeyvàng vàdấu/đỏ#ff5555, dùngcomponentBlockedMemberBadge tạiTấtcả/Trưởng-phó/Đãchặn/Thêmphó. Trạngtháiblockedưu tiênhiệnbadge/ thaykey, rolethậtkhôngđổi; bỏchặntrảbadgekeynếucó. Giữavatar geometry. Build/typecheckPASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, badgeblocked dấu/đỏ dùngSVGfullsize/pathchạm gầnmépvòngtròn thayicon13px. BỏiconThêmthànhviên ởtrangoptionsngoài (ảnhuser). Thànhviênthường chỉxemTấtcả vàtìm, ẩnTrưởng-phó/Đãchặn vàiconmời trongbảng; khi mấtrole tựvềTấtcả. Vàng/bạc giữtabquảnlý vàiconThêm trongXemthànhviên. ChỉđổiUItheouser, backendluậtchặn/mờiđãchốtgiữ. Build/typecheckPASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: User thu dấu/blocked vềcùngiconkeyvàng: SVG13logical thayfullsize, vòngbadge20/vịtrí/path/màu giữ. Build/typecheckPASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, các dòng options (Xóa chat/Báo cáo/Rời/Cài đặt) dùngfontnumber/cỡui-p22/normal nhưXemthànhviên để đồngcỡthịgiác. Đổi tên nhóm chuyển thànhiconbút cạnhtênchỉowner, mởformmax80/APIrenamehiệncó; bỏhàngĐổitên/Chuyểnkhóa/Duyệt khỏiCàiđặt (phongtrưởng vàduyệt trongThànhviênvẫngiữ). Càiđặt chỉTắttinnhắnnhóm, dưới cóline vàGiảitánởcuốidanh sáchđượcnânglên, bỏảnhrowmũitênriêngGiảitán/giữtrashđỏ.
+- Tắttinnhắnnhóm mởtrangtrongkhungcũ với2checkbox Tắt tin nhắn nhóm/Khóa bạc có thể nhắn. Serverkhóachatkhibật: ownerluônđượcgửi, memberbịchặn, deputy chỉđượckhioptionbạc=true; individualblockedvẫnbịchặn. Text/ảnhđềudùngsendchung/ảnhlỗidọnfile, vẫnchoxemtin. Flagsmặcđịnhfalse,persistDB,owner-onlymutation+validatebool/transactionlock. Migration011_group_chat_controls đãapply1bướclocal+verifySchemaPASS,001–010khôngsửa. Pollversionguard tránhphảnhồicũđèswitchsauvừalưu.
+- Kiểm chứng group-chat-controls9/9 vàgroup-moderation12/12PASS; typecheck/buildPASS,distcậpnhật; chưa browser/2clientQA,khôngrestartdeploy/backendcầnnạpcode mới.
+
+- 2026-10-26: Theo user, Giảitánnhóm trởlại dạnghàngcókhungnâuviềnvàng/cùngcao90logical/mobile50 nhưcáchàngsettings, giữchữiconđỏ/linephâncách/khôngmũitên. DướinhãncheckboxTắttinnhắnnhóm thêmghichú14pxmàukem: Người dùng trong nhóm sẽ không thể gửi tin nhắn. Build/typecheckPASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: Theo user, núttrongoptionsnhóm/thànhviên/càiđặt bấmkhôngnháy: tắtWebKittaphighlighttrongphạmvi, disabledkhôngđổiopacity, giữkeyboardfocus/chốngbấmlặp. Checkboxduyệt/tắtchat/quyềnbạc hiểnthịngaygiátrịvừachọn trongkhiAPIpending, lỗihoànlạigiátrịserver; khôngcònchớptrạngtháicũtrướclưuxong. Build/typecheckPASS,distxácnhận; chưa browserQA.
+
+- 2026-10-26: User đính chínhnháyởôcheckbox. Thay3ôduyệt/tắtchat/quyềnbạc bằngGroupCheckbox: inputnativeẩn, phầnô/dấutíchluôngiữDOM/khônganimation, disabledkhiAPIpendingkhôngđổiappearance. Giữoptimisticcheck/rollbacklỗi; bổsungversionguardchoonSetApprovalchặnphảnhồipollcũ. Regression2/2PASS xácnhậncheckedtrue/visibleboxgiữnguyênquaAPIpending/rerenderpropscũ/hoàntất. Build/typecheckPASS,distxácnhận; chưa browserQA, khôngkhẳngđịnhQAvisual.
+
+- 2026-10-26: Theo user, tênnhómdướiavatar căn giữa độc lập, bútabsolute bênphảitên+8px khôngchiếmwidth/tácđộngtâm; tênquádài truncatechừakhoảngbút. FormĐổitên dùngconfirmationDialogFrame/Title/Actions vàCancel/Accept chung2lựachọn Hủy/Đồngý, ônhập60px/min60/wfullthay44px. Giữavatar/APIpending/validate80. Build/typecheckPASS,distxácnhận; chưa browserQA.
+- 2026-10-28: Khôi phục hai tab Tin nhắn trên điện thoại: Tất cả hiển thị inbox, Lời mời hiển thị lời mời nhóm và badge; chuyển tab sẽ đóng chat đang mở để thấy lại danh sách. Dùng compact layout cho danh sách lời mời, không đổi laptop.
+- 2026-10-28: Laptop Tin nhắn: sidebar dùng cùng mốc mép trên với khung chat, nâng cả tìm kiếm/cài đặt; tăng chiều cao sidebar bù phần nâng nên khung danh sách cao hơn, giữ vị trí hai tab dưới. Mobile giữ nguyên. Chưa browser QA.
+- 2026-10-28: Theo user cải thiện độ nét avatar Tin nhắn: dùng image-rendering -webkit-optimize-contrast cục bộ ở MessageAccountAvatar (ảnh và sprite background) và MessagesGroupAvatar để giảm mềm nét khi thu nhỏ; giữ nguyên nguồn/kích thước/vị trí/khung. Chưa browser QA độ nét.
+- 2026-10-28: User xác nhận chỉnh thanh nhập tin nhắn dưới cùng: mobile thanh66→54px/ô44→36px, nút ảnh cùng kích thước36px bằng ô nhập. Laptop dùng cùng field inset như mobile, thanh64logical/ô và nút ảnh44logical; giữ chức năng gửi/emoji/ảnh. Chưa browser QA.
+- 2026-10-28: Tên trong confirm xóa bạn dùng chính NumberText compact/normal/soften=false của confirm Chặn, không bọc font riêng làm tên lệch cỡ giữa ký tự và số.
+
+- 2026-10-28: Các hộp xác nhận chung dùng ConfirmationName để tên trong mọi câu hỏi có cùng kiểu NumberText của hộp Chặn; khi ghép tên động vào nội dung thì truyền ReactNode, không nối thành string khiến tên lẫn font/cỡ số. Gồm xóa bạn, chặn thành viên, đổi vai trò, xóa thành viên, rời/giải tán nhóm và xóa ván đã lưu.
+
+- 2026-10-28: Hộp xác nhận xóa tin nhắn trên laptop/điện thoại chỉ còn câu “Tin nhắn người bên kia vẫn được giữ, chỉ xóa ở phía bạn.” dưới tiêu đề; bỏ câu hỏi lặp “Xóa toàn bộ tin nhắn?”. Giữ action.
+
+- 2026-10-28: Theo ảnh user chỉnh form Biệt danh trên laptop: ô nhập cao70%→80% hàng và nút Hủy/OK cũng cao80% để khớp ô. Nhánh uiScale/mobile giữ nguyên kích thước44/40px. Chưa browser QA.
+- 2026-10-28: Nút Báo cáo trong options chat chỉ hiển thị toast “Tính năng đang phát triển” trên cả laptop/điện thoại.
+
+- 2026-10-28: Xác nhận xóa tin nhắn trên cả hai nền hiển thị “Xóa toàn bộ tin nhắn?” phía trên câu giải thích quyền riêng tư.
+
+- 2026-10-28: Xác nhận xóa tin nhắn chỉ hiện câu giải thích “Tin nhắn người bên kia vẫn được giữ, chỉ xóa ở phía bạn.” dưới tiêu đề; bỏ dòng “Xóa toàn bộ tin nhắn?”.
+
+- 2026-10-28: User tăng riêng nút Hủy/OK của form Biệt danh laptop: min-width54px, padding ngang12px, chữ18 logical. Mobile form giữ nguyên44px/16px. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-28: Tùy chọn hội thoại có nút X góc trên phải, dùng chung DialogCloseButton cả mobile/laptop; đóng về hội thoại. Thông báo xóa tin nhắn hiện câu giải thích với dấu hỏi cuối.
+
+- 2026-10-28: Nút Báo cáo trong Tùy chọn hội thoại mở thông báo dạng hộp thoại một lựa chọn “Đóng” với nội dung “Tính năng đang phát triển”, dùng chung desktop/mobile; thay toast tự tắt. Chưa browser QA.
+- 2026-10-28: Đính chính phạm vi nút X của bảng Tùy chọn hội thoại: gỡ X riêng vừa thêm trên mobile, laptop vẫn giữ X; mobile dùng nút quay lại hiện có. Thay ghi chú 2026-10-28 về X dùng chung.
+- 2026-10-28: Theo user, nút quay lại tròn laptop dùng chung MessagesBackButton giảm38→34px, icon giữ cùng tỷ lệ; điện thoại28px giữ nguyên. Component dùng xuyên các khung trên project nên đồng bộ mọi vị trí.
+- 2026-10-28: Đính chính user: yêu cầu thu nhỏ là dấu × DialogCloseButton laptop, không phải mũi tên MessagesBackButton. Khôi phục MessagesBackButton laptop38px; DialogCloseButton dùng chung laptop giảm56/42→52/38px, compact90/68×scale giữ nguyên. Áp dụng tất cả dialog dùng chung.
+- 2026-10-28: X laptop của bảng Tùy chọn Tin nhắn dùng z100 để luôn phủ trên nội dung/lớp con; X cha giữ z30 dưới scrim. Các màn khác giữ mặc định.
+- 2026-10-28: Thông báo một lựa chọn trong Tùy chọn Tin nhắn laptop dùng nút vàng kiểu “Đã hiểu” giống thông báo Đấu với máy/Home; nội dung và hành vi đóng không đổi, mobile giữ style hiện hành.
+- 2026-10-28: Viền/avatar Tin nhắn laptop dùng image-rendering:auto để làm mịn khi thu nhỏ; bỏ optimize-contrast riêng desktop trong MessageAccountAvatar/MessagesGroupAvatar, mobile và geometry giữ nguyên.
+
+- 2026-10-28: Theo user, khôi phục customization-tab.mp4 có chọn lọc cho: mở/sửa Thông tin và Danh hiệu, chọn avatar/viền/skin/hiệu ứng, bút chỉnh trong Đã lưu, tab/tìm/thao tác Bạn bè, danh sách/emoji/đổi tên/ảnh nhóm/nút tích Tin nhắn, tab và nút Mua Cửa hàng, mọi role=switch và nút âm thanh, chọn thời gian bàn/nhanh, cấp và phe Chơi với máy. Marker data-ui-tab-sound, tôn trọng muted và phát sau preload; các vùng khác tiếp tục âm thanh X. Không đổi UI/nghiệp vụ. npm.cmd run build PASS; dist index-BWqCwhvL.js có cả hai asset; chưa browser/audio QA.
+
+- 2026-10-29: Các dòng trong bảng Tùy chọn Tin nhắn, gồm Biệt danh/Đổi tên nhóm, Cài đặt, Xem thành viên, Báo cáo, Xóa và Rời nhóm, phát tiếng dấu X qua data-ui-selection-sound; giữ luồng/hành vi hiện tại.
+
+- Kiểm chứng thay đổi âm thanh theo yêu cầu 2026-10-29: npm.cmd run build PASS (TypeScript/Vite), dist/assets/index-BLC7QUjs.js cập nhật; chưa browser/audio QA.
+
+- 2026-10-29: Hai tab Tất cả/Lời mời dùng tiếng X; dòng danh mục Lời mời vào nhóm và dòng lời mời cụ thể dùng tiếng tab. Ba thông báo một lựa chọn của Tùy chọn Tin nhắn đồng bộ laptop: khung520px/min-height180px, chữ24px, nút120×44/chữ22; mobile giữ hiện hành.
+- Kiểm chứng mapping âm thanh và thông báo 2026-10-29: npm.cmd run build PASS (TypeScript/Vite, exit0); dist/assets/index-CQzan5Qb.js chứa hai marker âm thanh và kích thước thông báo mới. Chưa browser/audio QA.
+
+- 2026-10-29: Theo user, toàn bộ nút/menu/tab/checkbox trong Cài đặt/Tùy chọn nhóm/Tạo nhóm, kết bạn/ba chấm header, Hủy/OK biệt danh, nút mở emoji/ảnh/gửi dùng tiếng X. Từng emoji bên trong picker dùng tiếng tab; danh sách hội thoại/lời mời giữ quy tắc trước. Không đổi geometry hoặc nghiệp vụ.
+- Kiểm chứng âm thanh các nút 2026-10-29: npm.cmd run build PASS (TypeScript/Vite, exit0), dist/assets/index-yvbb1XDV.js chứa marker X/tab; emoji lựa chọn và danh sách hội thoại giữ marker tab, menu nhóm đã chuyển X. Chưa browser/audio QA.
+- 2026-10-29: Mọi ô tick dùng tiếng tab theo quy tắc project. GroupCheckbox dùng marker tab; bộ xử lý chung ưu tiên checkbox trước marker X của dòng chứa nó và bỏ click nhãn trung gian để không phát hai tiếng. Giữ giao diện/state/API/disabled.
+
+- 2026-10-29: Theo user, bảng emoji Tin nhắn laptop/mobile giữ mở sau mỗi lần chọn để chèn liên tiếp; nút mở khi bảng đang mở cũng không đóng. Chỉ pointerdown ngoài bảng và nút mở mới đóng; bỏ đóng khi input nhận focus do code đặt lại con trỏ. Giữ âm X ở nút mở, âm tab từng emoji và giới hạn300 ký tự.
+- Kiểm chứng giữ mở bảng emoji: npm.cmd run build PASS (TypeScript/Vite, exit0), dist/assets/index-B5iR6G8u.js cập nhật. Chưa browser/touch QA.
+
+- 2026-11-02: Theo user, bấm ảnh đã gửi/nhận trong Tin nhắn mở ảnh lớn giữa viewport, giữ tỷ lệ và giới hạn theo màn hình; nền tối và blur. MessageImagePreview dùng native NoticeOverlay chung cả laptop/mobile; đóng bằng X, Escape hoặc bấm nền; đổi hội thoại/đóng Tin nhắn dọn ảnh. Tin chữ giữ thao tác xem giờ, không đổi upload/quyền truy cập ảnh. npm.cmd run build PASS (TypeScript/Vite); dist MessagesDialog-CBWuKVDK.js xác nhận preview. Chưa browser/điện thoại thật QA.
+
+- 2026-11-02: Theo user, bảng xác nhận hai lựa chọn LAPTOP đồng bộ kiểu MOBILE qua confirmationDialogStyles: font-body, tiêu đề24/32px bold, nội dung18/29px, nút44px/chữ18/24px. Khung/nền/nút nâu-vàng dùng chung sẵn có giữ theo mobile. Áp dụng mọi consumer gồm giải tán/rời nhóm/xóa bạn/chặn/xóa chat, đăng xuất/địa chỉ, mua Shop, rời bàn/xin thua/reset đánh thử và form dùng cùng token; không đổi callback/pending. Build TypeScript/Vite PASS; dist xác nhận token mới; chưa browser QA.
+
+- 2026-11-02: Theo user chỉnh riêng Tạo nhóm LAPTOP: tăng cao popup (chặn viewport−32px), thu font nền .043→.037 theo width và icon3mục1.08em; ô tên/tìm cao7.5% tối thiểu44px, chữ cùng18px; tên bạn bỏ font đậm/stroke riêng SocialPlayerName, tên/ID thu .9/.75em, padding dòng trên/dưới4→7px. Hai nút dùng confirmationDialogActions cùng kích thước Tùy chỉnh avatar desktop44px/chữ18/cụm360px/font-body. Vùng chọn cao20%, thẻ phủ cột thay vuông, tên16px xuống dòng, X16px căn giữa. Mobile giữ nguyên, avatar không đổi. Build TypeScript/Vite PASS; dist xác nhận thẻ mới; chưa browser QA.
+
+- 2026-11-02: Theo user, riêng Tạo nhóm LAPTOP tăng avatar thành viên đã chọn48→56px (giới hạn70cqh); tiêu đề Bạn bè cùng0.9em với Tên nhóm nên icon1.08em đi theo đúng tỷ lệ. Mobile và avatar các vị trí khác giữ nguyên. Sau chỉnh khóa lại geometry avatar cục bộ này. Build TypeScript/Vite PASS; dist MessagesDialog-CPPKJ2-V.js xác nhận; chưa browser QA.
+
+- 2026-11-02: Theo user, riêng Tin nhắn LAPTOP tăng cao thanh nhập64→76logical và ô nhập/nút ảnh44→56logical; emoji45→56logical dùng cùng composer-control-size. Mobile giữ54/36/emoji30px và nút gửi giữ nguyên. Áp dụng chung hội thoại cá nhân/nhóm. Build TypeScript/Vite PASS; dist MessagesDialog-BZjy8-jT.js xác nhận; chưa browser QA.
+
+- 2026-11-02: Theo user, căn icon nhóm cạnh tên và camera cạnh preview Ảnh trong inbox trên cả laptop/mobile. Icon nhóm dùng1em theo font dòng/self-center, bỏ top2px riêng tên. Camera thay emoji hệ điều hành bằng SVG1em trong flex items-center/gap.35em cùng chữ; hỗ trợ cả preview URL ảnh và marker 📷 Ảnh từ API. Không đổi avatar/dữ liệu/tương tác. Build TypeScript/Vite PASS; dist MessagesDialog-Aa2cEf-C.js xác nhận; chưa browser QA.
+
+- 2026-11-02: Theo user, thành viên tự rời nhóm thành công tạo thông báo bền vững trong lịch sử chat: avatar tài khoản+tên+đã rời nhóm căn giữa, chung laptop/mobile. Repository ghi message server với client_message_id group-left: +25hex (36ký tự) cùng transaction left_at/update last_message_at; send chặn prefix dành riêng, không đổi schema. API trả eventType/avatar/name theo senderId; client render riêng thay bong bóng. Không tạo sự kiện khi owner bị chặn rời hoặc thao tác lỗi; không áp dụng kick/giải tán. group-chat-controls17/17 PASS; TypeScript/Vite build PASS, dist xác nhận; chưa MySQL/browser nhiều thiết bị QA, backend cần nạp mã mới, không tự restart/deploy.
+
+- 2026-11-02: Theo user, phóng hai nút Chấp nhận/Từ chối lời mời vào nhóm trong Tin nhắn LAPTOP: cụm ngang56→64%, cao48→56logical theo scale, font clamp14–20px/7cqw, icon tối đa26px/11cqw. Mobile và callbacks/pending giữ nguyên. TypeScript/Vite build PASS; dist MessagesDialog-BoretpCW.js xác nhận; chưa browser QA.
+
+- 2026-11-02: Theo user đổi nhãn HOANGBBCG→HOVANG ở sông bàn cờ và nền trống Tin nhắn, chung laptop/mobile; đồng bộ renderer screenshot worker cũ và tài liệu nguồn asset. Giữ font/cỡ/vị trí/màu. Backup outputs/backups/hovang-label-20261102. npm.cmd run build TypeScript/Vite PASS; dist GamePage-Cd1iuuOs.js/MessagesDialog-DdalG7_j.js có HOVANG; rg xác nhận src/dist không còn HOANGBBCG. Chưa browser QA.
+- 2026-11-03: Theo user, trong luồng Chia sẻ bàn nếu draft khác nguyên dòng Mời vào bàn: HOVANG_ROOM:<roomId> thì hiện Link gửi không đúng, return trước tạo snapshot/API/sendImage và không xóa draft. Áp dụng chung laptop/mobile, cá nhân/nhóm. TypeScript PASS; chưa browser QA. Backup outputs/backups/share-invalid-draft-20261103.

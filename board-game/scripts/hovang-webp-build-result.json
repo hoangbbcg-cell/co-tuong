@@ -1,0 +1,1256 @@
+{
+  "status": "PASS",
+  "beforeBytes": 201075082,
+  "afterBytes": 56687311,
+  "savedBytes": 144387771,
+  "candidates": 207,
+  "convertedCount": 206,
+  "skippedCount": 1,
+  "quality": 88,
+  "converted": [
+    {
+      "from": "01_ha_noi-ByT8-15X.png",
+      "to": "01_ha_noi-ByT8-15X.webp",
+      "before": 115750,
+      "after": 21660
+    },
+    {
+      "from": "02_cao_bang-BSi59333.png",
+      "to": "02_cao_bang-BSi59333.webp",
+      "before": 134234,
+      "after": 26674
+    },
+    {
+      "from": "03_tuyen_quang-DiK6G8C9.png",
+      "to": "03_tuyen_quang-DiK6G8C9.webp",
+      "before": 142160,
+      "after": 28700
+    },
+    {
+      "from": "05_lai_chau-BWwOXtuT.png",
+      "to": "05_lai_chau-BWwOXtuT.webp",
+      "before": 138842,
+      "after": 27178
+    },
+    {
+      "from": "06_son_la-CiZzyJ-i.png",
+      "to": "06_son_la-CiZzyJ-i.webp",
+      "before": 144345,
+      "after": 26470
+    },
+    {
+      "from": "07_lao_cai-eLXHJaKN.png",
+      "to": "07_lao_cai-eLXHJaKN.webp",
+      "before": 147063,
+      "after": 29382
+    },
+    {
+      "from": "08_thai_nguyen-tBWtPrbx.png",
+      "to": "08_thai_nguyen-tBWtPrbx.webp",
+      "before": 133753,
+      "after": 25102
+    },
+    {
+      "from": "09_lang_son-BxZ_jlEp.png",
+      "to": "09_lang_son-BxZ_jlEp.webp",
+      "before": 156870,
+      "after": 28602
+    },
+    {
+      "from": "0ee91cbb-26f8-4bb8-bc0d-2fe1b86ad68b-D24Elh7T.png",
+      "to": "0ee91cbb-26f8-4bb8-bc0d-2fe1b86ad68b-D24Elh7T.webp",
+      "before": 2523337,
+      "after": 311940
+    },
+    {
+      "from": "10_quang_ninh-CU-kPBEb.png",
+      "to": "10_quang_ninh-CU-kPBEb.webp",
+      "before": 113393,
+      "after": 23528
+    },
+    {
+      "from": "11_bac_ninh-4OZJQPV_.png",
+      "to": "11_bac_ninh-4OZJQPV_.webp",
+      "before": 126467,
+      "after": 22726
+    },
+    {
+      "from": "12_phu_tho-BfqhE7F0.png",
+      "to": "12_phu_tho-BfqhE7F0.webp",
+      "before": 146532,
+      "after": 27024
+    },
+    {
+      "from": "13_hai_phong-BWqTeccJ.png",
+      "to": "13_hai_phong-BWqTeccJ.webp",
+      "before": 125593,
+      "after": 25014
+    },
+    {
+      "from": "14_hung_yen-D9jDiKJ_.png",
+      "to": "14_hung_yen-D9jDiKJ_.webp",
+      "before": 133581,
+      "after": 25634
+    },
+    {
+      "from": "15_ninh_binh-BiaAvIsG.png",
+      "to": "15_ninh_binh-BiaAvIsG.webp",
+      "before": 157153,
+      "after": 30404
+    },
+    {
+      "from": "16_thanh_hoa-Bfs__aen.png",
+      "to": "16_thanh_hoa-Bfs__aen.webp",
+      "before": 126979,
+      "after": 23872
+    },
+    {
+      "from": "17_nghe_an-CCltMGeH.png",
+      "to": "17_nghe_an-CCltMGeH.webp",
+      "before": 162708,
+      "after": 33972
+    },
+    {
+      "from": "189fd0e1-1168-4016-9dc0-6ec6124d03f9-DP8tDgU1.png",
+      "to": "189fd0e1-1168-4016-9dc0-6ec6124d03f9-DP8tDgU1.webp",
+      "before": 1423767,
+      "after": 398056
+    },
+    {
+      "from": "18_ha_tinh-Bg7j8l4z.png",
+      "to": "18_ha_tinh-Bg7j8l4z.webp",
+      "before": 129388,
+      "after": 23978
+    },
+    {
+      "from": "20_hue-C4e2Eob_.png",
+      "to": "20_hue-C4e2Eob_.webp",
+      "before": 131637,
+      "after": 24684
+    },
+    {
+      "from": "22_quang_ngai-xe3CjtTC.png",
+      "to": "22_quang_ngai-xe3CjtTC.webp",
+      "before": 111432,
+      "after": 23352
+    },
+    {
+      "from": "23_gia_lai-Bi-gNu6f.png",
+      "to": "23_gia_lai-Bi-gNu6f.webp",
+      "before": 132831,
+      "after": 24944
+    },
+    {
+      "from": "24f07314-e511-454e-9d58-2a50197a5a34-B3tzQq2x.png",
+      "to": "24f07314-e511-454e-9d58-2a50197a5a34-B3tzQq2x.webp",
+      "before": 1055095,
+      "after": 182016
+    },
+    {
+      "from": "24_khanh_hoa-CvqcjjRn.png",
+      "to": "24_khanh_hoa-CvqcjjRn.webp",
+      "before": 133362,
+      "after": 29214
+    },
+    {
+      "from": "25_dak_lak-BgiShWlw.png",
+      "to": "25_dak_lak-BgiShWlw.webp",
+      "before": 128574,
+      "after": 21632
+    },
+    {
+      "from": "26_lam_dong-CUsTLoiM.png",
+      "to": "26_lam_dong-CUsTLoiM.webp",
+      "before": 143949,
+      "after": 28946
+    },
+    {
+      "from": "27_dong_nai-C2R9hV1g.png",
+      "to": "27_dong_nai-C2R9hV1g.webp",
+      "before": 145721,
+      "after": 30282
+    },
+    {
+      "from": "28_tp_ho_chi_minh-ezQBIKPc.png",
+      "to": "28_tp_ho_chi_minh-ezQBIKPc.webp",
+      "before": 116761,
+      "after": 22946
+    },
+    {
+      "from": "29_tay_ninh-CGVcLULi.png",
+      "to": "29_tay_ninh-CGVcLULi.webp",
+      "before": 130712,
+      "after": 28192
+    },
+    {
+      "from": "2ddf00c5-60e9-4f2f-a241-07fb7a91a980-DIMxohcm.png",
+      "to": "2ddf00c5-60e9-4f2f-a241-07fb7a91a980-DIMxohcm.webp",
+      "before": 1037117,
+      "after": 171442
+    },
+    {
+      "from": "30_dong_thap-CSa-gHi7.png",
+      "to": "30_dong_thap-CSa-gHi7.webp",
+      "before": 129702,
+      "after": 24276
+    },
+    {
+      "from": "31_vinh_long-BVCfsaXi.png",
+      "to": "31_vinh_long-BVCfsaXi.webp",
+      "before": 122684,
+      "after": 23782
+    },
+    {
+      "from": "32_an_giang-Bzzt9s_f.png",
+      "to": "32_an_giang-Bzzt9s_f.webp",
+      "before": 133679,
+      "after": 28016
+    },
+    {
+      "from": "33_can_tho-CuptLCs7.png",
+      "to": "33_can_tho-CuptLCs7.webp",
+      "before": 120824,
+      "after": 25578
+    },
+    {
+      "from": "34_ca_mau-DPFoGVC2.png",
+      "to": "34_ca_mau-DPFoGVC2.webp",
+      "before": 138939,
+      "after": 29240
+    },
+    {
+      "from": "580e9677-60e1-44a8-9fd5-45ef04444b44-Chpb_V-U.png",
+      "to": "580e9677-60e1-44a8-9fd5-45ef04444b44-Chpb_V-U.webp",
+      "before": 1043029,
+      "after": 57866
+    },
+    {
+      "from": "6fc3cfba-04f1-4337-8430-8377074835f5-B4oAr4-T.png",
+      "to": "6fc3cfba-04f1-4337-8430-8377074835f5-B4oAr4-T.webp",
+      "before": 1227545,
+      "after": 160010
+    },
+    {
+      "from": "76991422-5c14-4970-b197-0141d169d35d-C1ok7nW-.png",
+      "to": "76991422-5c14-4970-b197-0141d169d35d-C1ok7nW-.webp",
+      "before": 1365107,
+      "after": 191138
+    },
+    {
+      "from": "85b40e21-9122-454b-918b-038bfaa7fda2-j0GE9tcf.png",
+      "to": "85b40e21-9122-454b-918b-038bfaa7fda2-j0GE9tcf.webp",
+      "before": 2035417,
+      "after": 308042
+    },
+    {
+      "from": "903174a3-cfa1-4f7c-badc-1dd24d62c991-BT1Y3ySt.png",
+      "to": "903174a3-cfa1-4f7c-badc-1dd24d62c991-BT1Y3ySt.webp",
+      "before": 492821,
+      "after": 87786
+    },
+    {
+      "from": "action-row-blank-BJNzZP2i.png",
+      "to": "action-row-blank-BJNzZP2i.webp",
+      "before": 523469,
+      "after": 30554
+    },
+    {
+      "from": "avatar-customization-title-CWIqeR9n.png",
+      "to": "avatar-customization-title-CWIqeR9n.webp",
+      "before": 1125458,
+      "after": 122696
+    },
+    {
+      "from": "b52ef10c-bb5a-4de9-800e-24e6a8d904eb-TXC0ICYw.png",
+      "to": "b52ef10c-bb5a-4de9-800e-24e6a8d904eb-TXC0ICYw.webp",
+      "before": 1590739,
+      "after": 324424
+    },
+    {
+      "from": "bac-sang-DTOV7WBo.png",
+      "to": "bac-sang-DTOV7WBo.webp",
+      "before": 231167,
+      "after": 46238
+    },
+    {
+      "from": "bach-ho-B2Qaz41Z.png",
+      "to": "bach-ho-B2Qaz41Z.webp",
+      "before": 2665980,
+      "after": 329056
+    },
+    {
+      "from": "bach-long-CTdW76Xt.png",
+      "to": "bach-long-CTdW76Xt.webp",
+      "before": 2445417,
+      "after": 266740
+    },
+    {
+      "from": "background-DAVLkUWh.png",
+      "to": "background-DAVLkUWh.webp",
+      "before": 2419793,
+      "after": 344948
+    },
+    {
+      "from": "bbceb019-6ed9-498e-aac8-30b90167f7b8-BFLZ6caf.png",
+      "to": "bbceb019-6ed9-498e-aac8-30b90167f7b8-BFLZ6caf.webp",
+      "before": 1173276,
+      "after": 161792
+    },
+    {
+      "from": "brown-card-upload-C4aCDE6w.png",
+      "to": "brown-card-upload-C4aCDE6w.webp",
+      "before": 1224385,
+      "after": 50510
+    },
+    {
+      "from": "button-frame-BmfE1xgp.png",
+      "to": "button-frame-BmfE1xgp.webp",
+      "before": 866019,
+      "after": 64102
+    },
+    {
+      "from": "cam-ho-phach-B2H2s46W.png",
+      "to": "cam-ho-phach-B2H2s46W.webp",
+      "before": 227511,
+      "after": 49986
+    },
+    {
+      "from": "cancel-upload-DzSbtk3j.png",
+      "to": "cancel-upload-DzSbtk3j.webp",
+      "before": 353298,
+      "after": 22722
+    },
+    {
+      "from": "challenge-LK99LTgn.png",
+      "to": "challenge-LK99LTgn.webp",
+      "before": 1024054,
+      "after": 108230
+    },
+    {
+      "from": "close-eOinzOm3.png",
+      "to": "close-eOinzOm3.webp",
+      "before": 1325186,
+      "after": 68878
+    },
+    {
+      "from": "concealed-back-BREArO0h.png",
+      "to": "concealed-back-BREArO0h.webp",
+      "before": 312221,
+      "after": 27108
+    },
+    {
+      "from": "confirm-upload-eLjvz1lw.png",
+      "to": "confirm-upload-eLjvz1lw.webp",
+      "before": 405310,
+      "after": 24452
+    },
+    {
+      "from": "controls-analysis-v2-a6KtBroJ.png",
+      "to": "controls-analysis-v2-a6KtBroJ.webp",
+      "before": 156818,
+      "after": 14308
+    },
+    {
+      "from": "controls-frame-v2-Bujceg15.png",
+      "to": "controls-frame-v2-Bujceg15.webp",
+      "before": 480129,
+      "after": 17192
+    },
+    {
+      "from": "controls-hint-v2-CNGelM6W.png",
+      "to": "controls-hint-v2-CNGelM6W.webp",
+      "before": 150879,
+      "after": 13374
+    },
+    {
+      "from": "controls-machine-v2-B1ql5Yra.png",
+      "to": "controls-machine-v2-B1ql5Yra.webp",
+      "before": 169164,
+      "after": 13096
+    },
+    {
+      "from": "controls-play-v2-Bqvx0YNJ.png",
+      "to": "controls-play-v2-Bqvx0YNJ.webp",
+      "before": 182380,
+      "after": 11870
+    },
+    {
+      "from": "controls-reset-v2-H5e1x1vQ.png",
+      "to": "controls-reset-v2-H5e1x1vQ.webp",
+      "before": 1110161,
+      "after": 52584
+    },
+    {
+      "from": "conversation-chat-frame-BuxLWd-L.png",
+      "to": "conversation-chat-frame-BuxLWd-L.webp",
+      "before": 2478453,
+      "after": 276054
+    },
+    {
+      "from": "create-button-blank-czKRTsU_.png",
+      "to": "create-button-blank-czKRTsU_.webp",
+      "before": 1463382,
+      "after": 173316
+    },
+    {
+      "from": "create-group-title-gold-v2-DBQBrjat.png",
+      "to": "create-group-title-gold-v2-DBQBrjat.webp",
+      "before": 872140,
+      "after": 125316
+    },
+    {
+      "from": "den-vang-BqvxaBd_.png",
+      "to": "den-vang-BqvxaBd_.webp",
+      "before": 220873,
+      "after": 48848
+    },
+    {
+      "from": "do-dong-CunixPSI.png",
+      "to": "do-dong-CunixPSI.webp",
+      "before": 240608,
+      "after": 54494
+    },
+    {
+      "from": "do-hong-DJr3HNWp.png",
+      "to": "do-hong-DJr3HNWp.webp",
+      "before": 233987,
+      "after": 48932
+    },
+    {
+      "from": "dong-co-C6QYs-Oc.png",
+      "to": "dong-co-C6QYs-Oc.webp",
+      "before": 240514,
+      "after": 50436
+    },
+    {
+      "from": "draw-dialog-Bi_V9s2N.png",
+      "to": "draw-dialog-Bi_V9s2N.webp",
+      "before": 1837767,
+      "after": 143942
+    },
+    {
+      "from": "e3aedd93-2970-4bae-86c6-4b1937e9a288-Cs3HLXGq.png",
+      "to": "e3aedd93-2970-4bae-86c6-4b1937e9a288-Cs3HLXGq.webp",
+      "before": 419535,
+      "after": 68498
+    },
+    {
+      "from": "elo-frame-kZ1VOFDI.png",
+      "to": "elo-frame-kZ1VOFDI.webp",
+      "before": 1799337,
+      "after": 122188
+    },
+    {
+      "from": "elo-home-hd-v2-CP_l4mi3.png",
+      "to": "elo-home-hd-v2-CP_l4mi3.webp",
+      "before": 1782741,
+      "after": 200586
+    },
+    {
+      "from": "emblem-x790VAV3.png",
+      "to": "emblem-x790VAV3.webp",
+      "before": 1608410,
+      "after": 308602
+    },
+    {
+      "from": "energy-icon-CkIN40cN.png",
+      "to": "energy-icon-CkIN40cN.webp",
+      "before": 529269,
+      "after": 57164
+    },
+    {
+      "from": "f1c6f373-f803-4331-a32e-b2d041c68110-BOqICE96.png",
+      "to": "f1c6f373-f803-4331-a32e-b2d041c68110-BOqICE96.webp",
+      "before": 1728324,
+      "after": 164134
+    },
+    {
+      "from": "field-upload-CemYxFAI.png",
+      "to": "field-upload-CemYxFAI.webp",
+      "before": 1386669,
+      "after": 64230
+    },
+    {
+      "from": "follow-BIUkYRHU.png",
+      "to": "follow-BIUkYRHU.webp",
+      "before": 1071523,
+      "after": 111914
+    },
+    {
+      "from": "frame-BcLhVhbU.png",
+      "to": "frame-BcLhVhbU.webp",
+      "before": 173083,
+      "after": 28912
+    },
+    {
+      "from": "friend-BbQ6rToQ.png",
+      "to": "friend-BbQ6rToQ.webp",
+      "before": 1269182,
+      "after": 123884
+    },
+    {
+      "from": "friend-section-title-frame-tight-CSSOoVU7.png",
+      "to": "friend-section-title-frame-tight-CSSOoVU7.webp",
+      "before": 416582,
+      "after": 13510
+    },
+    {
+      "from": "friends-banner-ruwZqGNA.png",
+      "to": "friends-banner-ruwZqGNA.webp",
+      "before": 1097384,
+      "after": 116404
+    },
+    {
+      "from": "gift-CfkxUJsQ.png",
+      "to": "gift-CfkxUJsQ.webp",
+      "before": 875482,
+      "after": 100756
+    },
+    {
+      "from": "gift-DJokSDQi.png",
+      "to": "gift-DJokSDQi.webp",
+      "before": 177705,
+      "after": 22618
+    },
+    {
+      "from": "grant-row-Dy-BG4de.png",
+      "to": "grant-row-Dy-BG4de.webp",
+      "before": 510642,
+      "after": 54550
+    },
+    {
+      "from": "grant-row-sparkle-BI96d6nN.png",
+      "to": "grant-row-sparkle-BI96d6nN.webp",
+      "before": 840377,
+      "after": 97922
+    },
+    {
+      "from": "heading-clock-hQOlyFit.png",
+      "to": "heading-clock-hQOlyFit.webp",
+      "before": 244687,
+      "after": 20252
+    },
+    {
+      "from": "heading-main-CA3Qfa8k.png",
+      "to": "heading-main-CA3Qfa8k.webp",
+      "before": 711435,
+      "after": 50834
+    },
+    {
+      "from": "heading-subtitle-DzqpxkpI.png",
+      "to": "heading-subtitle-DzqpxkpI.webp",
+      "before": 327901,
+      "after": 26052
+    },
+    {
+      "from": "history-banner-C-79F4rV.png",
+      "to": "history-banner-C-79F4rV.webp",
+      "before": 1095091,
+      "after": 100588
+    },
+    {
+      "from": "history-black-user-CIjmiDJk.png",
+      "to": "history-black-user-CIjmiDJk.webp",
+      "before": 1570208,
+      "after": 125800
+    },
+    {
+      "from": "history-hidden-user-BzvKPZeb.png",
+      "to": "history-hidden-user-BzvKPZeb.webp",
+      "before": 1380243,
+      "after": 99448
+    },
+    {
+      "from": "history-red-user-oHlkWeoz.png",
+      "to": "history-red-user-oHlkWeoz.webp",
+      "before": 1560253,
+      "after": 122190
+    },
+    {
+      "from": "ho-ly-DUKzNmtw.png",
+      "to": "ho-ly-DUKzNmtw.webp",
+      "before": 2567074,
+      "after": 290344
+    },
+    {
+      "from": "home-DY9VfO1p.png",
+      "to": "home-DY9VfO1p.webp",
+      "before": 2509606,
+      "after": 348752
+    },
+    {
+      "from": "hong-ngoc-x4BlVCF9.png",
+      "to": "hong-ngoc-x4BlVCF9.webp",
+      "before": 246517,
+      "after": 50314
+    },
+    {
+      "from": "hong-phan-BecWhkMZ.png",
+      "to": "hong-phan-BecWhkMZ.webp",
+      "before": 241680,
+      "after": 48668
+    },
+    {
+      "from": "honors-detail-frame-0wIcVKa2.png",
+      "to": "honors-detail-frame-0wIcVKa2.webp",
+      "before": 1912129,
+      "after": 117318
+    },
+    {
+      "from": "honors-frame-tight-DUioRpOU.png",
+      "to": "honors-frame-tight-DUioRpOU.webp",
+      "before": 2041079,
+      "after": 119582
+    },
+    {
+      "from": "honors-title-info-frame-CWbnBuBZ.png",
+      "to": "honors-title-info-frame-CWbnBuBZ.webp",
+      "before": 1136817,
+      "after": 123516
+    },
+    {
+      "from": "info-title-friends-frame-DeXb5FAF.png",
+      "to": "info-title-friends-frame-DeXb5FAF.webp",
+      "before": 1064576,
+      "after": 121810
+    },
+    {
+      "from": "info-wEJVNkUa.png",
+      "to": "info-wEJVNkUa.webp",
+      "before": 1003445,
+      "after": 98036
+    },
+    {
+      "from": "khung-thi-dau-1-EFdkpzkL.png",
+      "to": "khung-thi-dau-1-EFdkpzkL.webp",
+      "before": 1359158,
+      "after": 220924
+    },
+    {
+      "from": "khung-thi-dau-2-G7bPrcWo.png",
+      "to": "khung-thi-dau-2-G7bPrcWo.webp",
+      "before": 1217437,
+      "after": 173108
+    },
+    {
+      "from": "khung-thi-dau-3-b975mB7F.png",
+      "to": "khung-thi-dau-3-b975mB7F.webp",
+      "before": 966452,
+      "after": 139652
+    },
+    {
+      "from": "kim-thien-CvLzX1ZI.png",
+      "to": "kim-thien-CvLzX1ZI.webp",
+      "before": 2812793,
+      "after": 382878
+    },
+    {
+      "from": "lam-bac-C4L3U3cH.png",
+      "to": "lam-bac-C4L3U3cH.webp",
+      "before": 248473,
+      "after": 52032
+    },
+    {
+      "from": "landscape-background-Cfw6kJlv.png",
+      "to": "landscape-background-Cfw6kJlv.webp",
+      "before": 2823270,
+      "after": 421252
+    },
+    {
+      "from": "lao-quan-su-192-j8rYhxPo.png",
+      "to": "lao-quan-su-192-j8rYhxPo.webp",
+      "before": 112794,
+      "after": 14654
+    },
+    {
+      "from": "lao-quan-su-200-DKQsKo-i.png",
+      "to": "lao-quan-su-200-DKQsKo-i.webp",
+      "before": 121786,
+      "after": 16292
+    },
+    {
+      "from": "lao-quan-su-256-DVUBXiil.png",
+      "to": "lao-quan-su-256-DVUBXiil.webp",
+      "before": 196577,
+      "after": 24214
+    },
+    {
+      "from": "lao-quan-su-272-yZdImSJv.png",
+      "to": "lao-quan-su-272-yZdImSJv.webp",
+      "before": 220963,
+      "after": 27110
+    },
+    {
+      "from": "lao-quan-su-320-CNVpUkoX.png",
+      "to": "lao-quan-su-320-CNVpUkoX.webp",
+      "before": 302141,
+      "after": 36566
+    },
+    {
+      "from": "lao-quan-su-384-BM8ThOs4.png",
+      "to": "lao-quan-su-384-BM8ThOs4.webp",
+      "before": 431300,
+      "after": 48922
+    },
+    {
+      "from": "lao-quan-su-408-C1tba3VK.png",
+      "to": "lao-quan-su-408-C1tba3VK.webp",
+      "before": 484301,
+      "after": 55280
+    },
+    {
+      "from": "lao-quan-su-480-D9jPvluu.png",
+      "to": "lao-quan-su-480-D9jPvluu.webp",
+      "before": 662804,
+      "after": 72092
+    },
+    {
+      "from": "market-bronze-Dqy9rnI-.png",
+      "to": "market-bronze-Dqy9rnI-.webp",
+      "before": 211023,
+      "after": 31798
+    },
+    {
+      "from": "market-gold-BGiVsOWR.png",
+      "to": "market-gold-BGiVsOWR.webp",
+      "before": 206883,
+      "after": 33406
+    },
+    {
+      "from": "message-CebfAm2M.png",
+      "to": "message-CebfAm2M.webp",
+      "before": 1044446,
+      "after": 98070
+    },
+    {
+      "from": "messages-title-gold-v2-C-qyN77M.png",
+      "to": "messages-title-gold-v2-C-qyN77M.webp",
+      "before": 871229,
+      "after": 123186
+    },
+    {
+      "from": "mode-hidden-DTzqCpod.png",
+      "to": "mode-hidden-DTzqCpod.webp",
+      "before": 105123,
+      "after": 16682
+    },
+    {
+      "from": "mode-xiangqi-CkE7EBn0.png",
+      "to": "mode-xiangqi-CkE7EBn0.webp",
+      "before": 117266,
+      "after": 19206
+    },
+    {
+      "from": "move-indicator-dot-CVwkEK5e.png",
+      "to": "move-indicator-dot-CVwkEK5e.webp",
+      "before": 231477,
+      "after": 71968
+    },
+    {
+      "from": "nam-tuong-quan-192-DRIGzSbq.png",
+      "to": "nam-tuong-quan-192-DRIGzSbq.webp",
+      "before": 110156,
+      "after": 16050
+    },
+    {
+      "from": "nam-tuong-quan-200-CyNGD_ze.png",
+      "to": "nam-tuong-quan-200-CyNGD_ze.webp",
+      "before": 118982,
+      "after": 17728
+    },
+    {
+      "from": "nam-tuong-quan-256-CIuz-PRI.png",
+      "to": "nam-tuong-quan-256-CIuz-PRI.webp",
+      "before": 192060,
+      "after": 26008
+    },
+    {
+      "from": "nam-tuong-quan-272-BLwWNa6a.png",
+      "to": "nam-tuong-quan-272-BLwWNa6a.webp",
+      "before": 215783,
+      "after": 28896
+    },
+    {
+      "from": "nam-tuong-quan-320-Ew7VJsNe.png",
+      "to": "nam-tuong-quan-320-Ew7VJsNe.webp",
+      "before": 294947,
+      "after": 37820
+    },
+    {
+      "from": "nam-tuong-quan-384-JYskVDZj.png",
+      "to": "nam-tuong-quan-384-JYskVDZj.webp",
+      "before": 421009,
+      "after": 51674
+    },
+    {
+      "from": "nam-tuong-quan-408-B7_TBnsF.png",
+      "to": "nam-tuong-quan-408-B7_TBnsF.webp",
+      "before": 472795,
+      "after": 57674
+    },
+    {
+      "from": "nam-tuong-quan-480-CEjnw7eQ.png",
+      "to": "nam-tuong-quan-480-CEjnw7eQ.webp",
+      "before": 647217,
+      "after": 75544
+    },
+    {
+      "from": "nau-go-RhHaPGaI.png",
+      "to": "nau-go-RhHaPGaI.webp",
+      "before": 229337,
+      "after": 46226
+    },
+    {
+      "from": "ngoc-bich-B8s-EW5J.png",
+      "to": "ngoc-bich-B8s-EW5J.webp",
+      "before": 248552,
+      "after": 49812
+    },
+    {
+      "from": "nu-kiem-khach-192-czkvwC11.png",
+      "to": "nu-kiem-khach-192-czkvwC11.webp",
+      "before": 115512,
+      "after": 16490
+    },
+    {
+      "from": "nu-kiem-khach-200-Cvk9Rals.png",
+      "to": "nu-kiem-khach-200-Cvk9Rals.webp",
+      "before": 124933,
+      "after": 18000
+    },
+    {
+      "from": "nu-kiem-khach-256-k2sb9plm.png",
+      "to": "nu-kiem-khach-256-k2sb9plm.webp",
+      "before": 201701,
+      "after": 26748
+    },
+    {
+      "from": "nu-kiem-khach-272-BBtN4zn3.png",
+      "to": "nu-kiem-khach-272-BBtN4zn3.webp",
+      "before": 226727,
+      "after": 29686
+    },
+    {
+      "from": "nu-kiem-khach-320-D3vt0vDI.png",
+      "to": "nu-kiem-khach-320-D3vt0vDI.webp",
+      "before": 310377,
+      "after": 38460
+    },
+    {
+      "from": "nu-kiem-khach-384-AgJzqKRP.png",
+      "to": "nu-kiem-khach-384-AgJzqKRP.webp",
+      "before": 442726,
+      "after": 53044
+    },
+    {
+      "from": "nu-kiem-khach-408-DZSNMfia.png",
+      "to": "nu-kiem-khach-408-DZSNMfia.webp",
+      "before": 496956,
+      "after": 59328
+    },
+    {
+      "from": "nu-kiem-khach-480-BIL2xABe.png",
+      "to": "nu-kiem-khach-480-BIL2xABe.webp",
+      "before": 680383,
+      "after": 77638
+    },
+    {
+      "from": "ong-hoang-avatar-full-BJ5iKP_V.png",
+      "to": "ong-hoang-avatar-full-BJ5iKP_V.webp",
+      "before": 1086065,
+      "after": 132290
+    },
+    {
+      "from": "ong-hoang-stars-CJ3-tCGU.png",
+      "to": "ong-hoang-stars-CJ3-tCGU.webp",
+      "before": 114832,
+      "after": 21774
+    },
+    {
+      "from": "ong-hoang-title-59n9_LdQ.png",
+      "to": "ong-hoang-title-59n9_LdQ.webp",
+      "before": 829781,
+      "after": 87930
+    },
+    {
+      "from": "panel-no-count-D2r6jipQ.png",
+      "to": "panel-no-count-D2r6jipQ.webp",
+      "before": 2735288,
+      "after": 229402
+    },
+    {
+      "from": "phong-tang-1-160LIgtz.png",
+      "to": "phong-tang-1-160LIgtz.webp",
+      "before": 799819,
+      "after": 106572
+    },
+    {
+      "from": "phong-tang-2-C0-SjYor.png",
+      "to": "phong-tang-2-C0-SjYor.webp",
+      "before": 484844,
+      "after": 68454
+    },
+    {
+      "from": "phong-tang-3-lI1uSqTI.png",
+      "to": "phong-tang-3-lI1uSqTI.webp",
+      "before": 424168,
+      "after": 54670
+    },
+    {
+      "from": "phong-tang-4-CGPWU-So.png",
+      "to": "phong-tang-4-CGPWU-So.webp",
+      "before": 423209,
+      "after": 50536
+    },
+    {
+      "from": "phong-tang-5-DR8xopRZ.png",
+      "to": "phong-tang-5-DR8xopRZ.webp",
+      "before": 314896,
+      "after": 27806
+    },
+    {
+      "from": "province-card-BIRTkqBo.png",
+      "to": "province-card-BIRTkqBo.webp",
+      "before": 320213,
+      "after": 26392
+    },
+    {
+      "from": "province-picker-frame-Ba4luVlL.png",
+      "to": "province-picker-frame-Ba4luVlL.webp",
+      "before": 1997859,
+      "after": 142816
+    },
+    {
+      "from": "purchased-BvyD5jhV.png",
+      "to": "purchased-BvyD5jhV.webp",
+      "before": 535473,
+      "after": 86248
+    },
+    {
+      "from": "queue-join-swapped-B0P6AIqi.png",
+      "to": "queue-join-swapped-B0P6AIqi.webp",
+      "before": 612452,
+      "after": 62824
+    },
+    {
+      "from": "queue-leave-swapped-Bkt75peQ.png",
+      "to": "queue-leave-swapped-Bkt75peQ.webp",
+      "before": 679655,
+      "after": 62262
+    },
+    {
+      "from": "rank-bronze-v2-CSdh4b08.png",
+      "to": "rank-bronze-v2-CSdh4b08.webp",
+      "before": 444880,
+      "after": 57240
+    },
+    {
+      "from": "rank-gold-v2-u8PsLob5.png",
+      "to": "rank-gold-v2-u8PsLob5.webp",
+      "before": 439769,
+      "after": 58752
+    },
+    {
+      "from": "rank-plain-frame-1oug29d8.png",
+      "to": "rank-plain-frame-1oug29d8.webp",
+      "before": 313664,
+      "after": 35356
+    },
+    {
+      "from": "rank-silver-v2-DTU1Wz8P.png",
+      "to": "rank-silver-v2-DTU1Wz8P.webp",
+      "before": 424721,
+      "after": 53688
+    },
+    {
+      "from": "rank-star-Cg9NDGcI.png",
+      "to": "rank-star-Cg9NDGcI.webp",
+      "before": 746189,
+      "after": 136166
+    },
+    {
+      "from": "ranking-hidden-tab-user-CjbHZXGa.png",
+      "to": "ranking-hidden-tab-user-CjbHZXGa.webp",
+      "before": 1564701,
+      "after": 178962
+    },
+    {
+      "from": "ranking-title-transparent-GBD7pyuK.png",
+      "to": "ranking-title-transparent-GBD7pyuK.webp",
+      "before": 1137105,
+      "after": 129170
+    },
+    {
+      "from": "ranking-xiangqi-tab-user-WfsrpnlX.png",
+      "to": "ranking-xiangqi-tab-user-WfsrpnlX.webp",
+      "before": 1495828,
+      "after": 167380
+    },
+    {
+      "from": "ready-avatar-ribbon-D8xP2A-q.png",
+      "to": "ready-avatar-ribbon-D8xP2A-q.webp",
+      "before": 1521220,
+      "after": 98898
+    },
+    {
+      "from": "red-card-upload-CA5TbU-G.png",
+      "to": "red-card-upload-CA5TbU-G.webp",
+      "before": 945152,
+      "after": 67236
+    },
+    {
+      "from": "remove-friend-9tW64Evp.png",
+      "to": "remove-friend-9tW64Evp.webp",
+      "before": 2187613,
+      "after": 155146
+    },
+    {
+      "from": "replay-flip-DBD6dOA2.png",
+      "to": "replay-flip-DBD6dOA2.webp",
+      "before": 249658,
+      "after": 72090
+    },
+    {
+      "from": "room-code-frame-B5XNkXP8.png",
+      "to": "room-code-frame-B5XNkXP8.webp",
+      "before": 2544101,
+      "after": 240594
+    },
+    {
+      "from": "scene-background-BNu6T-cZ.png",
+      "to": "scene-background-BNu6T-cZ.webp",
+      "before": 1997138,
+      "after": 200506
+    },
+    {
+      "from": "social-header-landscape-7X_wlvi_.png",
+      "to": "social-header-landscape-7X_wlvi_.webp",
+      "before": 1858044,
+      "after": 103140
+    },
+    {
+      "from": "stand-up-BWjLGCD0.png",
+      "to": "stand-up-BWjLGCD0.webp",
+      "before": 1879264,
+      "after": 177980
+    },
+    {
+      "from": "sword-left-2rttt7ho.png",
+      "to": "sword-left-2rttt7ho.webp",
+      "before": 604841,
+      "after": 113216
+    },
+    {
+      "from": "sword-right-BF5wzFZ6.png",
+      "to": "sword-right-BF5wzFZ6.webp",
+      "before": 606535,
+      "after": 122680
+    },
+    {
+      "from": "tab-active-DiKqrnFd.png",
+      "to": "tab-active-DiKqrnFd.webp",
+      "before": 441713,
+      "after": 29374
+    },
+    {
+      "from": "tab-idle-v2-Euwim2N8.png",
+      "to": "tab-idle-v2-Euwim2N8.webp",
+      "before": 2149954,
+      "after": 133362
+    },
+    {
+      "from": "table-player-blue-DQMKDUw6.png",
+      "to": "table-player-blue-DQMKDUw6.webp",
+      "before": 547591,
+      "after": 59888
+    },
+    {
+      "from": "table-player-red-BlSkdsbQ.png",
+      "to": "table-player-red-BlSkdsbQ.webp",
+      "before": 491127,
+      "after": 53642
+    },
+    {
+      "from": "takeback-accept-6l-ueFHN.png",
+      "to": "takeback-accept-6l-ueFHN.webp",
+      "before": 190683,
+      "after": 17346
+    },
+    {
+      "from": "takeback-decline-SIoVEbEr.png",
+      "to": "takeback-decline-SIoVEbEr.webp",
+      "before": 189562,
+      "after": 15452
+    },
+    {
+      "from": "takeback-dialog-Ckc2UxCB.png",
+      "to": "takeback-dialog-Ckc2UxCB.webp",
+      "before": 2191964,
+      "after": 236192
+    },
+    {
+      "from": "tay-du-duong-tang-_b_4LfnD.png",
+      "to": "tay-du-duong-tang-_b_4LfnD.webp",
+      "before": 3010318,
+      "after": 427060
+    },
+    {
+      "from": "tay-du-hac-lang-UU6vtQJM.png",
+      "to": "tay-du-hac-lang-UU6vtQJM.webp",
+      "before": 2317638,
+      "after": 213130
+    },
+    {
+      "from": "tay-du-thien-ton-B9WTjp0m.png",
+      "to": "tay-du-thien-ton-B9WTjp0m.webp",
+      "before": 3127857,
+      "after": 459862
+    },
+    {
+      "from": "tay-du-ton-ngo-khong-XJRE3vgi.png",
+      "to": "tay-du-ton-ngo-khong-XJRE3vgi.webp",
+      "before": 2573182,
+      "after": 329578
+    },
+    {
+      "from": "tay-du-tru-bat-gioi-BA9xQAXy.png",
+      "to": "tay-du-tru-bat-gioi-BA9xQAXy.webp",
+      "before": 2555690,
+      "after": 300494
+    },
+    {
+      "from": "tim-thach-DD2Znr08.png",
+      "to": "tim-thach-DD2Znr08.webp",
+      "before": 244688,
+      "after": 52164
+    },
+    {
+      "from": "tim-vang-CIzIx-Ll.png",
+      "to": "tim-vang-CIzIx-Ll.webp",
+      "before": 236754,
+      "after": 52958
+    },
+    {
+      "from": "training-banner-DBk-JxdZ.png",
+      "to": "training-banner-DBk-JxdZ.webp",
+      "before": 1555348,
+      "after": 102852
+    },
+    {
+      "from": "trang-ngoc-ByKtCb4Q.png",
+      "to": "trang-ngoc-ByKtCb4Q.webp",
+      "before": 237293,
+      "after": 46120
+    },
+    {
+      "from": "vang-chanh-c9pqjuPn.png",
+      "to": "vang-chanh-c9pqjuPn.webp",
+      "before": 243718,
+      "after": 50596
+    },
+    {
+      "from": "vang-kim-DPZxOAwd.png",
+      "to": "vang-kim-DPZxOAwd.webp",
+      "before": 235588,
+      "after": 52076
+    },
+    {
+      "from": "vien-bach-ho-Bh_JKOJP.png",
+      "to": "vien-bach-ho-Bh_JKOJP.webp",
+      "before": 917054,
+      "after": 246508
+    },
+    {
+      "from": "vien-bach-long-Bhw1QoNk.png",
+      "to": "vien-bach-long-Bhw1QoNk.webp",
+      "before": 992314,
+      "after": 198494
+    },
+    {
+      "from": "vien-hac-lang-DlmX261J.png",
+      "to": "vien-hac-lang-DlmX261J.webp",
+      "before": 1011580,
+      "after": 203944
+    },
+    {
+      "from": "vien-ho-ly-D5-G7UXC.png",
+      "to": "vien-ho-ly-D5-G7UXC.webp",
+      "before": 1075932,
+      "after": 228750
+    },
+    {
+      "from": "vien-sa-tang-D0RyxbK0.png",
+      "to": "vien-sa-tang-D0RyxbK0.webp",
+      "before": 1195868,
+      "after": 283204
+    },
+    {
+      "from": "vien-thien-ton-mtjM_RUH.png",
+      "to": "vien-thien-ton-mtjM_RUH.webp",
+      "before": 869767,
+      "after": 181994
+    },
+    {
+      "from": "vien_03_do-RRCwIaM2.png",
+      "to": "vien_03_do-RRCwIaM2.webp",
+      "before": 107772,
+      "after": 32476
+    },
+    {
+      "from": "vien_08_xanh_ngoc-BrV4PrKH.png",
+      "to": "vien_08_xanh_ngoc-BrV4PrKH.webp",
+      "before": 114201,
+      "after": 34208
+    },
+    {
+      "from": "vien_09_tim-UVCESv4E.png",
+      "to": "vien_09_tim-UVCESv4E.webp",
+      "before": 116163,
+      "after": 33392
+    },
+    {
+      "from": "viewer-card-frame-tight-CbjRYoAx.png",
+      "to": "viewer-card-frame-tight-CbjRYoAx.webp",
+      "before": 1103996,
+      "after": 52230
+    },
+    {
+      "from": "waiting-card-frame-tight-DvNpcdc9.png",
+      "to": "waiting-card-frame-tight-DvNpcdc9.webp",
+      "before": 1176341,
+      "after": 66714
+    },
+    {
+      "from": "xanh-dem-C1xWKg8s.png",
+      "to": "xanh-dem-C1xWKg8s.webp",
+      "before": 236333,
+      "after": 55242
+    },
+    {
+      "from": "xanh-duong-BHsQ7ptd.png",
+      "to": "xanh-duong-BHsQ7ptd.webp",
+      "before": 238754,
+      "after": 50294
+    },
+    {
+      "from": "xanh-la-CRxmau4G.png",
+      "to": "xanh-la-CRxmau4G.webp",
+      "before": 231000,
+      "after": 50922
+    },
+    {
+      "from": "xanh-ngoc-1b7LHCLo.png",
+      "to": "xanh-ngoc-1b7LHCLo.webp",
+      "before": 258719,
+      "after": 50002
+    }
+  ],
+  "skipped": [
+    {
+      "file": "hovang-shortcut-512.png",
+      "reason": "No static reference"
+    }
+  ],
+  "browserQA": "PENDING",
+  "networkMB": "NOT MEASURED"
+}

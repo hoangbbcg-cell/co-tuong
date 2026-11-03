@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { mobileDialogHeight, mobileDialogMargin } from '../../../lib/mobileDialogHeight'
+import { getAppViewportSize } from '../../../lib/desktopCanvas'
 
 const width = 740
 const height = 850
@@ -9,8 +10,9 @@ const avatarHeight = 780
 function measure() {
   // Keep the profile frame tied to the layout viewport. The visual viewport
   // shrinks when a mobile keyboard opens, which used to resize/jump this dialog.
-  const availableWidth = window.innerWidth
-  const availableHeight = window.innerHeight
+  const viewport = getAppViewportSize()
+  const availableWidth = viewport.width
+  const availableHeight = viewport.height
   const getScale = (contentWidth: number, contentHeight: number, margin = 32) => Math.max(0.1, Math.min(0.85, (availableWidth - margin) / contentWidth, (availableHeight - 32) / contentHeight))
   const profile = getScale(width, height, mobileDialogMargin(availableWidth, availableHeight))
   const compactAvatar = availableWidth <= 800
@@ -28,10 +30,10 @@ function measure() {
 
 export function useProfileLayout() {
   const [scales, setScales] = useState(measure)
-  const stableHeight = useRef(window.innerHeight)
+  const stableHeight = useRef(getAppViewportSize().height)
   useEffect(() => {
     const resize = () => {
-      const nextHeight = window.innerHeight
+      const nextHeight = getAppViewportSize().height
       const focusedInput = document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement
       if (focusedInput && nextHeight < stableHeight.current - 120) return
       stableHeight.current = nextHeight

@@ -2,7 +2,7 @@ import { AVATAR_COUNT, FRAME_COUNT } from '../../src/lib/shopCosmetics'
 import { randomUUID } from 'node:crypto'
 import { playerNameError } from '../../src/lib/playerName'
 import type { ChallengeProfile } from '../../src/types/challenge'
-import { CHALLENGE_BLOCKED_MESSAGE, CHALLENGE_SEND_COOLDOWN_MS } from '../../src/types/challenge'
+import { CHALLENGE_BLOCKED_MESSAGE, CHALLENGE_SEND_COOLDOWN_MS, CHALLENGE_TABLE_FULL_MESSAGE } from '../../src/types/challenge'
 import { ChallengeRepository } from '../repositories/challengeRepository'
 import { RoomError, RoomService } from './roomService'
 
@@ -31,12 +31,16 @@ export class ChallengeService {
     }
     return profile
   }
-  send(senderId: string, target: { id?: string; name: string }) {
+  send(senderId: string, target: { id?: string; accountId?: string; name: string }) {
+    if ((this.rooms.roomFor(senderId)?.players.length ?? 0) >= 2) throw new RoomError(CHALLENGE_TABLE_FULL_MESSAGE)
+    if (!this.rooms.roomFor(senderId)) this.rooms.requireEnergy(senderId)
     const sender = this.available(senderId)
     if (!target || typeof target.name !== 'string' || target.name.length > 24) throw new RoomError('Người chơi không hợp lệ.')
     const matches = [...this.repository.profiles].filter(([id, profile]) => id !== senderId && profile.name === target.name.trim())
-    const targetId = target.id || (matches.length === 1 ? matches[0][0] : undefined)
-    if (!targetId || targetId === senderId) throw new RoomError(matches.length > 1 ? 'Tên người chơi bị trùng. Hãy mở hồ sơ từ phòng của người đó.' : 'Người chơi không còn trực tuyến.')
+    if (target.accountId !== undefined && (typeof target.accountId !== 'string' || !target.accountId || target.accountId.length > 128)) throw new RoomError('Người chơi không hợp lệ.')
+    const accountMatches = target.accountId ? [...this.repository.profiles.keys()].filter(id => id !== senderId && this.repository.identities.get(id) === `account:${target.accountId}`) : []
+    const targetId = target.accountId ? accountMatches.at(-1) : target.id || (matches.length === 1 ? matches[0][0] : undefined)
+    if (!targetId || targetId === senderId) throw new RoomError(!target.accountId && matches.length > 1 ? 'Tên người chơi bị trùng. Hãy mở hồ sơ từ phòng của người đó.' : 'Người chơi không còn trực tuyến.')
     const blocks = this.repository.blocks.get(targetId)
     const senderKey = this.repository.identities.get(senderId) ?? `socket:${senderId}`
     if ((this.repository.sendCooldowns.get(senderKey) ?? 0) > Date.now()) throw new RoomError('Vui lòng chờ 5 giây trước khi mời chơi tiếp.')
@@ -51,6 +55,7 @@ export class ChallengeService {
     this.repository.invites.set(invite.id, invite)
     return { invite, replaced }
   }
+  inviteSenderId(targetId: string, inviteId: string) { const invite = this.repository.invites.get(inviteId); return invite?.targetId === targetId ? invite.senderId : undefined }
   reply(targetId: string, input: { id: string; accepted: boolean; blockMinutes?: 5 | 10 }) {
     const invite = this.repository.invites.get(input?.id)
     if (!invite || invite.targetId !== targetId || typeof input.accepted !== 'boolean') throw new RoomError('Lời mời không còn hợp lệ.')
@@ -62,6 +67,7 @@ export class ChallengeService {
       this.repository.blocks.set(targetId, blocks)
     }
     if (!input.accepted) { this.repository.invites.delete(invite.id); return { invite, room: null, previousRooms: [] } }
+    if ((this.rooms.roomFor(invite.senderId)?.players.length ?? 0) >= 2) throw new RoomError(CHALLENGE_TABLE_FULL_MESSAGE)
     // Recheck both players at acceptance; they may have readied/started since delivery.
     const sender = this.available(invite.senderId), target = this.available(targetId)
     const nameError = playerNameError(sender.name) || playerNameError(target.name)
@@ -69,12 +75,14 @@ export class ChallengeService {
     // Resolve the destination at acceptance, using the sender's current room.
     const senderRoom = this.rooms.roomFor(invite.senderId)
     const targetRoom = this.rooms.roomFor(targetId)
+    if (!senderRoom) { this.rooms.requireEnergy(invite.senderId); this.rooms.requireEnergy(targetId) }
     const destination = senderRoom ?? this.rooms.create(`So tài: ${sender.name} · ${target.name}`.slice(0, 40))
-    if (destination.locked && targetRoom?.id !== destination.id) throw new RoomError('Bàn đang khóa. Hãy vào từ Chọn Bàn và nhập mật khẩu.')
+    const ownerInvite = senderRoom?.ownerId === invite.senderId
+    if (destination.passwordRequired && !ownerInvite && targetRoom?.id !== destination.id) throw new RoomError('Bàn đang khóa. Hãy vào từ Chọn Bàn và nhập mật khẩu.')
     const previousRooms = targetRoom && targetRoom.id !== destination.id
       ? [this.rooms.leave(targetId)!] : []
     if (!senderRoom) this.rooms.join(destination.id, invite.senderId, sender.name)
-    const room = this.rooms.join(destination.id, targetId, target.name)
+    const room = this.rooms.join(destination.id, targetId, target.name, undefined, false, undefined, ownerInvite ? invite.senderId : undefined)
     this.rooms.markInvitedPair(room.id, invite.senderId, targetId)
     this.repository.invites.delete(invite.id)
     return { invite, room, previousRooms }

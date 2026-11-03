@@ -19,7 +19,19 @@ export const SHOP_AVATAR_DEFINITIONS = [
   { index: 35, slug: 'bao-lam', name: 'Bảo Lâm' },
   { index: 36, slug: 'chu-tuoc', name: 'Chu Tước' },
   { index: 37, slug: 'huyen-vu', name: 'Huyền Vũ' },
+  { index: 38, slug: 'kim-thien', name: 'Đường Tăng' },
+  { index: 39, slug: 'bach-long', name: 'Bạch Long' },
+  { index: 40, slug: 'bach-ho', name: 'Bạch Hổ' },
+  { index: 41, slug: 'ho-ly', name: 'Hồ Ly' },
+  { index: 42, slug: 'tay-du-ton-ngo-khong', name: 'Tôn Ngộ Không' },
+  { index: 43, slug: 'tay-du-hac-lang', name: 'Hắc Lang' },
+  { index: 44, slug: 'tay-du-thien-ton', name: 'Thiên Tôn' },
+  { index: 45, slug: 'tay-du-tru-bat-gioi', name: 'Trư Bát Giới' },
+  { index: 46, slug: 'tay-du-duong-tang', name: 'Sa Tăng' },
 ] as const
+
+export const WEEKLY_SHOP_STANDARD_AVATARS = [39, 40, 41, 43, 44] as const
+export const WEEKLY_SHOP_JOURNEY_AVATARS = [42, 38, 45, 46] as const
 
 export const SHOP_FRAME_DEFINITIONS = [
   { index: 7, slug: 'do-hong', name: 'Viền đỏ hồng' },
@@ -42,7 +54,15 @@ export const SHOP_FRAME_DEFINITIONS = [
   { index: 24, slug: 'xanh-dem', name: 'Viền xanh đêm' },
   { index: 25, slug: 'vang-chanh', name: 'Viền vàng chanh' },
   { index: 26, slug: 'nau-go', name: 'Viền nâu gỗ' },
+  { index: 27, slug: 'vien-ho-ly', name: 'Viền Hồ Ly' },
+  { index: 28, slug: 'vien-thien-ton', name: 'Viền Thiên Tôn' },
+  { index: 29, slug: 'vien-sa-tang', name: 'Viền Sa Tăng' },
+  { index: 30, slug: 'vien-bach-long', name: 'Viền Bạch Long' },
+  { index: 31, slug: 'vien-hac-lang', name: 'Viền Hắc Lang' },
+  { index: 32, slug: 'vien-bach-ho', name: 'Viền Bạch Hổ' },
 ] as const
 
 export const AVATAR_COUNT = 18 + SHOP_AVATAR_DEFINITIONS.length
 export const FRAME_COUNT = 7 + SHOP_FRAME_DEFINITIONS.length
+
+export const WEEKLY_SHOP_FRAMES = [27, 28, 29, 30, 31, 32] as const

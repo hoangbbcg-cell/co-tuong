@@ -1,3 +1,5 @@
+import { confirmationDialogFrame, confirmationDialogTitle, confirmationDialogDescription, confirmationDialogActions } from '../../../lib/confirmationDialogStyles'
+import { confirmationCancelButton, confirmationAcceptButton } from '../../../lib/confirmationButtonStyles'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
@@ -16,7 +18,7 @@ import resetButton from '../../../assets/history/controls-reset-v2.png'
 import replayFlipIcon from '../../../assets/history/replay-flip.png'
 
 function ArtworkButton({ src, children, className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { src: string }) {
-  return <button type="button" {...props} className={`${buttonInteraction} group relative m-0 overflow-hidden border-0 bg-transparent p-0 leading-none shadow-none disabled:cursor-default disabled:opacity-100 ${className}`}>
+  return <button type="button" data-ui-selection-sound {...props} className={`${buttonInteraction} group relative m-0 overflow-hidden border-0 bg-transparent p-0 leading-none shadow-none disabled:cursor-default disabled:opacity-100 ${className}`}>
     <img src={src} alt="" className={`pointer-events-none m-0 block size-full border-0 p-0 ${props.disabled ? 'brightness-[0.35]' : ''}`} />{children}
   </button>
 }
@@ -30,11 +32,11 @@ function NavigationButton({ forward = false, disabled, onClick }: { forward?: bo
 }
 export function ReplayModeButton({ active, onClick, className = '' }: { active: boolean; onClick: () => void; className?: string }) {
   const label = active ? 'Về xem lại' : 'Đánh thử'
-  return <button type="button" aria-label={label} title={`${label} (Space)`} aria-keyshortcuts="Space" aria-pressed={active} onClick={onClick} className={`${buttonInteraction} m-0 h-fit w-fit border-0 bg-transparent p-0 leading-none shadow-none ${className}`}><img src={replayFlipIcon} alt="" className="m-0 block h-auto w-[84px] border-0 p-0 compact:w-[52px]" /></button>
+  return <button type="button" data-ui-selection-sound aria-label={label} title={`${label} (Space)`} aria-keyshortcuts="Space" aria-pressed={active} onClick={onClick} className={`${buttonInteraction} m-0 h-fit w-fit border-0 bg-transparent p-0 leading-none shadow-none ${className}`}><img src={replayFlipIcon} alt="" className="m-0 block h-auto w-[84px] border-0 p-0 compact:w-[52px]" /></button>
 }
 function ToolArtworkButton({ src, busy = false, className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { src: string; busy?: boolean }) {
   const hint = props['aria-label'] === 'Gợi ý'
-  return <button type="button" {...props} aria-busy={busy || undefined} className={`group relative m-0 h-fit cursor-pointer border-0 bg-transparent p-0 leading-none shadow-none ${busy ? 'scale-[0.94]' : hint ? 'active:scale-[0.94]' : ''} ${className}`}>
+  return <button type="button" data-ui-selection-sound {...props} aria-busy={busy || undefined} className={`group relative m-0 h-fit cursor-pointer border-0 bg-transparent p-0 leading-none shadow-none ${busy ? 'scale-[0.94]' : hint ? 'active:scale-[0.94]' : ''} ${className}`}>
     <img src={src} alt="" className={`pointer-events-none m-0 block h-auto w-full border-0 p-0 ${busy ? 'brightness-[0.35]' : hint ? 'group-active:brightness-[0.35]' : ''}`} />
     {!busy && <span aria-hidden="true" className={`pointer-events-none absolute inset-0 hidden bg-[#ffe08b]/[0.08] group-hover:block ${hint ? 'group-active:opacity-0' : ''}`} style={{ maskImage: `url(${src})`, maskSize: '100% 100%', maskRepeat: 'no-repeat' }} />}
   </button>
@@ -43,7 +45,7 @@ export function ReplayControls({ playback, trial, onToggleMode, onNotice, onHint
   const [confirmReset, setConfirmReset] = useState(false)
   const practice = trial?.active ? trial : null
   const history = practice ?? playback
-  return <nav aria-label={practice ? 'Điều khiển đánh thử' : 'Điều khiển xem lại'} className="relative z-20 flex w-[220px] shrink-0 flex-col items-center compact:w-full compact:max-w-[220px]">
+  return <nav aria-label={practice ? 'Điều khiển đánh thử' : 'Điều khiển xem lại'} className="relative z-20 flex h-[220px] w-[220px] shrink-0 flex-col items-center compact:h-auto compact:w-full compact:max-w-[220px]">
     <ControlFrame>
       {!practice && <ArtworkButton src={playButton} title="Phát / Tạm dừng (Enter)" aria-keyshortcuts="Enter" onClick={playback.toggle} className="h-[45.6px] w-full hover:brightness-110">
         <span className="absolute inset-0 flex items-center justify-center gap-2 font-heading text-lg text-[#ffe5a6]">
@@ -65,8 +67,8 @@ export function ReplayControls({ playback, trial, onToggleMode, onNotice, onHint
       {[{ label: 'Phân tích', image: analysisButton }, { label: 'Gợi ý', image: hintButton }].map(item => <ToolArtworkButton key={item.label} src={item.image} busy={item.label === 'Gợi ý' && hintThinking} aria-label={item.label} title={item.label === 'Gợi ý' && onHint ? 'Gợi ý nước đi bằng Ông Hoàng' : 'Đang phát triển'} onClick={() => item.label === 'Gợi ý' && onHint ? onHint() : onNotice?.('Đang phát triển')} className="w-full" />)}
       <ToolArtworkButton src={resetButton} aria-label="Reset thế thử ban đầu" title="Reset thế thử ban đầu (↑ / ↓)" aria-keyshortcuts="ArrowUp ArrowDown" onClick={() => setConfirmReset(true)} className="w-full" />
     </div>}
-    {confirmReset && practice && createPortal(<div className="fixed inset-0 z-[1200] grid place-items-center bg-black/60 p-4"><section role="alertdialog" aria-modal="true" aria-labelledby="trial-reset-question" className="w-full max-w-sm rounded-2xl border-2 border-[#d5a657] bg-[radial-gradient(ellipse_at_top,#85502466,transparent_70%),linear-gradient(145deg,#482910,#201007)] p-6 text-center text-[#ffe5ac] shadow-[inset_0_0_0_3px_#3b1d0b,0_14px_40px_#0009]" onKeyDown={event => { event.stopPropagation(); if (event.key === 'Escape') setConfirmReset(false) }}><p id="trial-reset-question" className="text-lg">Bạn có muốn hoàn tác về thế cờ ban đầu không?</p><div className="mt-5 flex justify-center gap-4"><button type="button" autoFocus onClick={() => setConfirmReset(false)} className={`${buttonInteraction} rounded border border-[#c99044] bg-[#4a3020] px-5 py-2`}>Hủy</button><button type="button" onClick={() => { setConfirmReset(false); practice.reset() }} className={`${buttonInteraction} rounded border border-[#ffe08b] bg-[linear-gradient(#ffe39b,#dba644)] px-5 py-2 font-bold text-[#39200c]`}>Đồng ý</button></div></section></div>, document.body)}
-    {onToggleMode && <ReplayModeButton active={!!practice} onClick={onToggleMode} className={practice ? 'mt-[20px]' : 'mt-[50px] compact:mt-[4px]'} />}
-    {practice?.error && <><span role="alert" className="mt-2 text-center text-xs text-[#ffe5a6]">{practice.error}</span><button type="button" className={`${buttonInteraction} mt-2 h-10 w-full rounded-md border ${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.text}`} onClick={practice.retry}>Thử lại</button></>}
+    {confirmReset && practice && createPortal(<div className="fixed inset-0 z-[1200] grid place-items-center bg-black/60 p-4"><section role="alertdialog" aria-modal="true" aria-labelledby="trial-reset-question" className={confirmationDialogFrame} onKeyDown={event => { event.stopPropagation(); if (event.key === 'Escape') setConfirmReset(false) }}><h2 id="trial-reset-question" className={confirmationDialogTitle}>Xác nhận hoàn tác</h2><p className={confirmationDialogDescription}>Bạn có muốn hoàn tác về thế cờ ban đầu không?</p><div className={confirmationDialogActions}><button type="button" autoFocus onClick={() => setConfirmReset(false)} className={`${confirmationCancelButton} px-5 py-2`}>Hủy</button><button type="button" onClick={() => { setConfirmReset(false); practice.reset() }} className={`${confirmationAcceptButton} px-5 py-2`}>Đồng ý</button></div></section></div>, document.body)}
+    {onToggleMode && <ReplayModeButton active={!!practice} onClick={onToggleMode} className={`desktop:absolute desktop:left-1/2 desktop:top-[220px] desktop:z-[80] desktop:-translate-x-1/2 ${practice ? 'compact:mt-[20px]' : 'compact:mt-[4px]'}`} />}
+    {practice?.error && <><span role="alert" className="mt-2 text-center text-xs text-[#ffe5a6]">{practice.error}</span><button type="button" data-ui-selection-sound className={`${buttonInteraction} mt-2 h-10 w-full rounded-md border ${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.text}`} onClick={practice.retry}>Thử lại</button></>}
   </nav>
 }

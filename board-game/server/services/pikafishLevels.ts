@@ -15,9 +15,9 @@ export const PIKAFISH_LEVELS = {
   5: { search: { type: 'nodes', value: 16000 }, maxMoveTime: 350, threads: 1, hash: 32 },
   6: { search: { type: 'nodes', value: 40000 }, maxMoveTime: 500, threads: 1, hash: 64 },
   7: { search: { type: 'nodes', value: 100000 }, maxMoveTime: 700, threads: 1, hash: 64 },
-  8: { search: { type: 'nodes', value: 200000 }, maxMoveTime: 1000, threads: 2, hash: 128 },
-  9: { search: { type: 'nodes', value: 400000 }, maxMoveTime: 1500, threads: 2, hash: 128 },
-  10: { search: { type: 'movetime', value: 2500 }, maxMoveTime: 2500, threads: 4, hash: 128 },
+  8: { search: { type: 'nodes', value: 200000 }, maxMoveTime: 1000, threads: 2, hash: 64 },
+  9: { search: { type: 'nodes', value: 400000 }, maxMoveTime: 1500, threads: 2, hash: 64 },
+  10: { search: { type: 'movetime', value: 2500 }, maxMoveTime: 2500, threads: 4, hash: 64 },
 } as const satisfies Record<number, PikafishLevelProfile>
 
 export interface UciOption { type: string; min?: number; max?: number }

@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import type { GameState, Side } from '../../../types/game'
 
 /** Result faces belong to the players who occupied the seats when the game ended. */
-export function useResultFaces(game: GameState, roomKey: string, seats: string) {
+export function useResultFaces(game: GameState, roomKey: string, seats: string, onComplete?: () => void) {
+  const completion = useRef(onComplete)
+  completion.current = onComplete
   const playingSeats = useRef<{ roomKey: string; seats: string } | null>(null)
   const [visible, setVisible] = useState<{ roomKey: string; seats: string; winner: Side } | null>(null)
   const winner = game.result?.winner
@@ -20,7 +22,7 @@ export function useResultFaces(game: GameState, roomKey: string, seats: string) 
     const previous = playingSeats.current
     if (!previous || previous.roomKey !== roomKey || previous.seats !== latestSeats.current) return
     setVisible({ roomKey, seats: latestSeats.current, winner })
-    const timer = window.setTimeout(() => setVisible(null), 5000)
+    const timer = window.setTimeout(() => { setVisible(null); completion.current?.() }, 5000)
     return () => window.clearTimeout(timer)
   }, [roomKey, game.phase, winner, reason])
 

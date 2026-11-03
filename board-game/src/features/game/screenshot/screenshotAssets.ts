@@ -1,5 +1,5 @@
 import background from '../../../assets/backgrounds/home.png'
-import board from '../../../assets/boards/banco-inner-clean-v1.png'
+import board from '../../../assets/boards/banco-inner-clean-v1.webp'
 import avatar from '../../../assets/icons/avatar.svg'
 import avatarFallback from '../../../assets/computer-setup/avatar.png'
 import blackAdvisor from '../../../assets/pieces/codo-coden-v2/black-advisor-codo-coden-v2.png'
@@ -18,7 +18,7 @@ import redRook from '../../../assets/pieces/codo-coden-v2/red-rook-codo-coden-v2
 import redSoldier from '../../../assets/pieces/codo-coden-v2/red-soldier-codo-coden-v2.png'
 import moveMarker from '../../../assets/icons/move-indicator-dot.png'
 import eloFrame from '../../../assets/player/elo-frame.png'
-import nameFrame from '../../../assets/player/name-frame.png'
+import nameFrame from '../../../assets/player/name-frame.webp'
 import type { ScreenshotAssetUrls } from './screenshot.types'
 
 export const screenshotAssetUrls: ScreenshotAssetUrls = {

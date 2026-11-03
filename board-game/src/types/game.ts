@@ -36,6 +36,6 @@ export interface GameState {
   remainingTime: Record<Side, number>
   lastClockUpdate: number
   turnElapsed: number
-  result: { winner: Side | null; reason: 'capture' | 'checkmate' | 'stalemate' | 'timeout' | 'resign' | 'draw' | 'leave' } | null
+  result: { winner: Side | null; reason: 'capture' | 'checkmate' | 'stalemate' | 'timeout' | 'resign' | 'draw' | 'leave' | 'disconnect_timeout' } | null
   lastMove: Move | null
 }

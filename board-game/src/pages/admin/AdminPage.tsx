@@ -1,3 +1,5 @@
+import { HovangLoadingOverlay } from '../../components/HovangLoadingOverlay'
+﻿import { generateUUID } from '../../lib/generateUUID'
 import { useState } from 'react'
 import { useAdmin } from '../../features/admin/useAdmin'
 import { ADMIN_AVATARS, ADMIN_FRAMES } from '../../types/admin'
@@ -10,7 +12,7 @@ export function AdminPage() {
   const admin = useAdmin()
   const [password, setPassword] = useState('')
   const [query, setQuery] = useState('')
-  return <main className="min-h-dvh bg-[#17110d] p-5 font-sans text-[#f8e9cd]">
+  return <main className="h-full min-h-0 w-full overflow-y-auto overscroll-y-contain bg-[#17110d] p-5 font-sans text-[#f8e9cd]">
     <div className="mx-auto max-w-6xl space-y-5">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#745433] pb-4">
         <h1 className="text-2xl font-bold">Quản trị Cờ Tướng</h1>
@@ -32,7 +34,7 @@ export function AdminPage() {
           {admin.target ? <AdminEditor key={`${admin.target.profile.id}:${admin.target.audit[0]?.id ?? ''}`} target={admin.target} catalog={admin.catalog} busy={admin.loading} onApply={admin.apply} /> : <p>Chọn người chơi để xem và chỉnh tài khoản.</p>}
         </div>
       </>}
-      {admin.loading && <p role="status">Đang xử lý...</p>}
+      {admin.loading && <HovangLoadingOverlay label="Đang xử lý" fullscreen />}
     </div>
   </main>
 }
@@ -48,7 +50,7 @@ function AdminEditor({ target, catalog, busy, onApply }: { target: AdminUser; ca
   const [code, setCode] = useState('avatar-0')
   const [equip, setEquip] = useState(true)
   const choices = action === 'avatar' ? ADMIN_AVATARS : action === 'frame' ? ADMIN_FRAMES : catalog.map(item => ({ code: item.code, name: item.title }))
-  const send = (command: Omit<Extract<AdminChange, { action: 'resources' }>, 'reason' | 'requestId'> | Omit<Exclude<AdminChange, { action: 'resources' }>, 'reason' | 'requestId'>) => onApply({ ...command, reason, requestId: crypto.randomUUID() })
+  const send = (command: Omit<Extract<AdminChange, { action: 'resources' }>, 'reason' | 'requestId'> | Omit<Exclude<AdminChange, { action: 'resources' }>, 'reason' | 'requestId'>) => onApply({ ...command, reason, requestId: generateUUID() })
   return <section className="min-w-0 space-y-5">
     <h2 className="text-xl font-bold">{p.displayName} · ID {p.publicId}</h2>
     <label className="block">Lý do chỉnh sửa<input className={`${input} mt-1`} value={reason} onChange={event => setReason(event.target.value)} minLength={3} maxLength={300} placeholder="Ví dụ: Cấp tài nguyên kiểm thử" /></label>
@@ -68,3 +70,4 @@ function AdminEditor({ target, catalog, busy, onApply }: { target: AdminUser; ca
     <section className="space-y-2"><h3 className="text-lg font-semibold">Lịch sử chỉnh sửa gần nhất</h3>{target.audit.map(log => <details key={log.id} className="rounded border border-[#745433] p-3"><summary>{new Date(log.createdAt).toLocaleString('vi-VN')} · {log.action} · {log.reason}</summary><pre className="mt-2 overflow-auto whitespace-pre-wrap text-sm">{JSON.stringify({ trước: log.before, sau: log.after }, null, 2)}</pre></details>)}</section>
   </section>
 }
+

@@ -8,3 +8,11 @@ id = "test-secret-do-not-upload"
 description = "Blocks synthetic secret markers used to verify the pre-push hook."
 regex = '''TEST_SECRET_DO_NOT_UPLOAD_[A-Za-z0-9_-]{4,}'''
 keywords = ["TEST_SECRET_DO_NOT_UPLOAD_"]
+
+[allowlist]
+description = "Exact public localStorage identifiers; not credentials"
+regexTarget = "secret"
+regexes = [
+  '''^hovang\.shortcut\.invite\.decision\.v1$''',
+  '''^xiangqi-saved-positions-v1$''',
+]

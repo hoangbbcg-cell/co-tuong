@@ -17,13 +17,32 @@ vi.mock('../src/pages/computer/CustomPositionPage', () => ({ CustomPositionPage:
 vi.mock('../src/features/game/components/EnergyNotice', () => ({ EnergyNotice: () => null }))
 import { App } from '../src/app/App'
 afterEach(() => { cleanup(); useSessionStore.setState({ screen: 'home', room: null }) })
-it('hands off a departure win once, never on a subsequent entry or seat change', () => {
+it('keeps the room screen mounted through player and viewer arrivals and departures', async () => {
+  const self = { id: 'self', name: 'Self', side: 'red' as const, ready: false }
+  const opponent = { id: 'other', name: 'Other', side: 'black' as const, ready: false }
+  const room: RoomSnapshot = { id: 'stable-room', name: 'Room', players: [self], game: createGame(), messages: [], drawOffer: null }
+  useSessionStore.setState({ screen: 'game', mode: 'online', room })
+  render(<App />)
+  const original = await screen.findByTestId('result')
+  act(() => useSessionStore.setState({ room: { ...room, players: [self, opponent] } }))
+  expect(screen.getByTestId('result')).toBe(original)
+  act(() => useSessionStore.setState({ room }))
+  expect(screen.getByTestId('result')).toBe(original)
+  act(() => useSessionStore.setState({ room: { ...room, viewers: [{ id: 'viewer', name: 'Viewer', queued: false }] } }))
+  expect(screen.getByTestId('result')).toBe(original)
+  act(() => useSessionStore.setState({ room }))
+  expect(screen.getByTestId('result')).toBe(original)
+  act(() => useSessionStore.setState({ room: { ...room, id: 'different-room' } }))
+  expect(screen.getByTestId('result')).not.toBe(original)
+})
+it('hands off a departure win once, never on a subsequent entry or seat change', async () => {
   const game = { ...createGame(), phase: 'playing' as const }
   const self = { id: 'self', name: 'Self', side: 'red' as const, ready: true }
   const opponent = { id: 'other', name: 'Other', side: 'black' as const, ready: true }
   const room: RoomSnapshot = { id: 'room', name: 'Room', players: [self, opponent], game, messages: [], drawOffer: null }
   useSessionStore.setState({ screen: 'game', mode: 'online', room })
   render(<App />)
+  await screen.findByTestId('result')
   const finished = { ...game, phase: 'finished' as const, result: { winner: 'red' as const, reason: 'leave' as const } }
   const ended = { ...room, players: [self], game: finished, lastCompletedMatch: { id: 'match', endedAt: 1, redName: 'Self', blackName: 'Other', states: [game, finished] } }
   act(() => useSessionStore.setState({ room: ended }))

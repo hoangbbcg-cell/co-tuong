@@ -1,22 +1,71 @@
+import { usePhonePortrait } from './usePhonePortrait'
+import { HovangLoadingOverlay } from '../components/HovangLoadingOverlay'
+import { useDesktopDialogScrollbars } from './useDesktopDialogScrollbars'
+import { HomeRewardNotifications } from '../features/lobby/components/HomeRewardNotifications'
+
 import { ChallengeNotifications } from './ChallengeNotifications'
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
-import { GamePage } from '../pages/game/GamePage'
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+
 import { useRoomConnection } from './useRoomConnection'
 import { useEnergyRecovery } from './useEnergyRecovery'
 import { useSessionStore } from '../store/sessionStore'
 import { HomePage } from '../pages/home/HomePage'
-import { ShopPage } from '../pages/shop/ShopPage'
-import { RoomSelectionPage } from '../pages/rooms/RoomSelectionPage'
-import { ComputerPage } from '../pages/computer/ComputerPage'
-import { CustomPositionPage } from '../pages/computer/CustomPositionPage'
+
+
+
+
 import { EnergyNotice } from '../features/game/components/EnergyNotice'
 import { useSavedMatches } from '../store/savedMatchesStore'
 import { socket } from '../services/socket'
 import type { Side } from '../types/game'
+import { isUiCheckboxLabelClick, isConfirmationActionButton, isUiSelectionAction, isUiTabAction, playConfirmationActionSound, playCustomizationTabActionSound, prepareConfirmationActionSound, prepareBoardEntryActionSound, preparePositionRemoveActionSound, prepareCustomizationTabActionSound, unlockConfirmationActionSound, maintainConfirmationAudioReadiness } from '../lib/uiActionSound'
 
+const GamePage = lazy(() => import('../pages/game/GamePage').then(module => ({ default: module.GamePage })))
+const RoomSelectionPage = lazy(() => import('../pages/rooms/RoomSelectionPage').then(module => ({ default: module.RoomSelectionPage })))
+const ComputerPage = lazy(() => import('../pages/computer/ComputerPage').then(module => ({ default: module.ComputerPage })))
+const CustomPositionPage = lazy(() => import('../pages/computer/CustomPositionPage').then(module => ({ default: module.CustomPositionPage })))
+const ShopPage = lazy(() => import('../pages/shop/ShopPage').then(module => ({ default: module.ShopPage })))
+
+function preloadMatchScreens() {
+  // HOVANG: disabled eager route preloading.
+  // React.lazy still loads each screen when requested.
+}
 export function App() {
+  usePhonePortrait()
+  useDesktopDialogScrollbars()
   useRoomConnection()
+  useEffect(() => {
+    const preload = () => preloadMatchScreens()
+    if (document.readyState === 'complete') {
+      preload()
+    } else {
+      window.addEventListener('load', preload, { once: true })
+      return () => window.removeEventListener('load', preload)
+    }
+  }, [])
   useEnergyRecovery()
+  useEffect(() => {
+    void prepareConfirmationActionSound()
+    void prepareBoardEntryActionSound()
+    void preparePositionRemoveActionSound()
+    void prepareCustomizationTabActionSound()
+    const stopMaintainingAudio = maintainConfirmationAudioReadiness()
+    document.addEventListener('pointerdown', unlockConfirmationActionSound, true)
+    document.addEventListener('keydown', unlockConfirmationActionSound, true)
+    const playForConfirmationAction = (event: MouseEvent) => {
+      if (isUiCheckboxLabelClick(event.target)) return
+      if (isUiTabAction(event.target)) playCustomizationTabActionSound()
+      else if (isUiSelectionAction(event.target)) playConfirmationActionSound()
+      else if (isConfirmationActionButton(event.target)) playConfirmationActionSound()
+    }
+    document.addEventListener('click', playForConfirmationAction, true)
+    return () => {
+      stopMaintainingAudio()
+      document.removeEventListener('click', playForConfirmationAction, true)
+      document.removeEventListener('pointerdown', unlockConfirmationActionSound, true)
+      document.removeEventListener('keydown', unlockConfirmationActionSound, true)
+    }
+  }, [])
   const screen = useSessionStore(state => state.screen)
   const liveSeatKey = useSessionStore(state => state.mode === 'online' && state.room
     ? JSON.stringify([state.room.id, ...state.room.players.map(player => player.id).sort()])
@@ -56,12 +105,14 @@ export function App() {
   }, [screen, liveRoomKey])
   return <>
     <ChallengeNotifications />
+    <HomeRewardNotifications />
+    
     {(screen === 'home' || keepHome) && <div className="w-full" inert={screen !== 'home'} aria-hidden={screen !== 'home'}><HomePage /></div>}
-    {(screen === 'game' || screen === 'replay' && replay) && <div className="fixed inset-0"><GamePage key={screen === 'replay' ? replay?.id : liveSeatKey} initialResultSide={leaveResult.current?.key === liveSeatKey ? leaveResult.current.side : undefined} skipEntrance={skipEntrance} replayData={screen === 'replay' ? replay ?? undefined : undefined} onEntranceComplete={finishEntrance} /></div>}
+    <Suspense fallback={<HovangLoadingOverlay fullscreen />}>{(screen === 'game' || screen === 'replay' && replay) && <div className="fixed inset-0"><GamePage key={screen === 'replay' ? replay?.id : liveRoomKey} presentationKey={liveSeatKey} initialResultSide={leaveResult.current?.key === liveSeatKey ? leaveResult.current.side : undefined} skipEntrance={skipEntrance} replayData={screen === 'replay' ? replay ?? undefined : undefined} onEntranceComplete={finishEntrance} /></div>}
     {screen === 'rooms' && <div className="fixed inset-0"><RoomSelectionPage onEntranceComplete={finishEntrance} /></div>}
     {screen === 'computer' && <div className="fixed inset-0"><ComputerPage onEntranceComplete={finishEntrance} /></div>}
     {screen === 'position' && <div className="fixed inset-0"><CustomPositionPage /></div>}
-    {screen === 'shop' && <ShopPage />}
+    {screen === 'shop' && <ShopPage />}</Suspense>
     <EnergyNotice />
   </>
 }

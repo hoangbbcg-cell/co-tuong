@@ -3,7 +3,7 @@ import { useSessionStore } from '../../../store/sessionStore'
 import { isExistingFriend, hasInitialIncomingFriendRequest } from '../components/FriendsDialog'
 import { socialActionByName,useSocialStore } from '../../../store/socialStore'
 
-export function useMessageFriendship(name: string, onSent?: () => void) {
+export function useMessageFriendship(name: string, onSent?: (message?: string) => void) {
   const account=useSessionStore(s=>s.account)
   const relation=useSocialStore(s=>s.friends.find(f=>f.name===name))
   const legacyOverride = useSessionStore(state => state.friendshipOverrides[name])
@@ -35,10 +35,10 @@ export function useMessageFriendship(name: string, onSent?: () => void) {
     setRemovalName(name)
   }
   const activate = () => {
-    if(useSessionStore.getState().account){if(isFriend)requestRemoval();else void socialActionByName(name,incoming?'accept':pending?'remove':'request').then(() => { if (!incoming && !pending) onSent?.() }).catch(error=>useSessionStore.getState().setNotice(String(error)));return}
+    if(useSessionStore.getState().account){if(isFriend)requestRemoval();else void socialActionByName(name,incoming?'accept':pending?'remove':'request').then(() => { if (!incoming) onSent?.(pending ? 'Đã hủy lời mời kết bạn' : undefined) }).catch(error=>useSessionStore.getState().setNotice(String(error)));return}
     if (isFriend) requestRemoval()
     else if (incoming) { setIncoming(name, false); setPending(name, false); setFriendship(name, true) }
-    else { setPending(name, !pending); if (!pending) onSent?.() }
+    else { setPending(name, !pending); onSent?.(pending ? 'Đã hủy lời mời kết bạn' : undefined) }
   }
   const confirmRemoval = () => {
     if (!removalName) return

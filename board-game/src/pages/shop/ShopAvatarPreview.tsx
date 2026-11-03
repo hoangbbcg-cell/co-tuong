@@ -1,9 +1,10 @@
+import { CrispUiImage } from '../../lib/CrispUiImage'
 import { useEffect, useRef } from 'react'
 import { buttonInteraction, shopMobileDialogFrameClass } from '../../lib/uiClasses'
 import { AvatarPortrait } from '../../features/lobby/components/AvatarCustomization'
 import { useSessionStore } from '../../store/sessionStore'
 
-export function ShopAvatarPreview({ name, image, kind = 'avatar', onClose }: { name: string; image: string; kind?: 'avatar' | 'frame'; onClose: () => void }) {
+export function ShopAvatarPreview({ name, image, kind = 'avatar', frameImage, onClose }: { name: string; image: string; kind?: 'avatar' | 'frame'; frameImage?: string; onClose: () => void }) {
   const avatarIndex = useSessionStore(state => state.avatarIndex)
   const ref = useRef<HTMLDialogElement>(null)
   useEffect(() => { if (!ref.current?.open) ref.current?.showModal() }, [])
@@ -11,8 +12,8 @@ export function ShopAvatarPreview({ name, image, kind = 'avatar', onClose }: { n
     <h2 id="shop-avatar-preview-title" className="mb-4 text-center font-heading text-2xl font-bold">{name}</h2>
     {kind === 'frame' ? <div className="relative mx-auto aspect-square w-full">
       <div className="absolute inset-[10%] overflow-hidden rounded-full"><AvatarPortrait avatarIndex={avatarIndex} className="size-full rounded-full" /></div>
-      <img src={image} alt={name} className="pointer-events-none absolute inset-0 size-full object-contain" />
-    </div> : <img src={image} alt={name} className="mx-auto aspect-square w-full rounded-full object-cover" />}
+      <CrispUiImage src={image} alt={name} className="pointer-events-none absolute inset-0 size-full object-contain" />
+    </div> : <div className="relative mx-auto aspect-square w-full overflow-hidden rounded-full"><img src={image} alt={name} className="size-full rounded-full object-cover" />{frameImage && <img src={frameImage} alt="" className="pointer-events-none absolute inset-0 size-full object-contain" />}</div>}
     <div className="mt-4 text-center"><button autoFocus type="button" onClick={onClose} className={`${buttonInteraction} rounded-lg border border-[#c99044] bg-[#4a3020] px-6 py-2 text-lg`}>Đóng</button></div>
   </dialog>
 }

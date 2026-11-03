@@ -1,10 +1,14 @@
+import { showRoomNotice } from '../../../lib/roomNotice'
 import { useEffect, useRef, useState } from 'react'
 import { useSessionStore } from '../../../store/sessionStore'
 import { roomSocket } from '../../../services/socket'
 import { errorMessage } from '../../../services/api'
 
 export function useChat(enabled = true) {
-  const session = useSessionStore()
+  const mode = useSessionStore(s => s.mode)
+  const room = useSessionStore(s => s.room)
+  const localMessages = useSessionStore(s => s.messages)
+  const name = useSessionStore(s => s.name)
   const [input, setInput] = useState('')
   const [picker, setPicker] = useState<'emoji' | 'quick' | null>(null)
   const [collapsed, setCollapsed] = useState(() => window.matchMedia('(max-width: 800px)').matches)
@@ -12,7 +16,7 @@ export function useChat(enabled = true) {
   const containerRef = useRef<HTMLElement>(null)
   const messagesRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const messages = session.mode === 'online' ? session.room?.messages ?? [] : session.messages
+  const messages = mode === 'online' ? room?.messages ?? [] : localMessages
   useEffect(() => {
     if (!enabled) return
     const el = messagesRef.current
@@ -34,15 +38,13 @@ export function useChat(enabled = true) {
   const send = async (text = input) => {
     if (!enabled) return
     if (!text.trim() || text.length > 300 || sending) return
-    const compact = window.matchMedia('(max-width: 800px)').matches
-    if (compact) inputRef.current?.focus({ preventScroll: true })
     setSending(true)
     try {
-      if (session.mode === 'online') session.receiveRoom(await roomSocket.chat(text.trim()))
-      else session.append(text)
+      if (mode === 'online') useSessionStore.getState().receiveRoom(await roomSocket.chat(text.trim()))
+      else useSessionStore.getState().append(text)
       setInput(''); setPicker(null)
-    } catch (error) { session.setNotice(errorMessage(error)) }
-    finally { setSending(false); if (!compact) inputRef.current?.focus() }
+    } catch (error) { errorMessage(error) === 'Đã chặn chat' ? showRoomNotice('Đã chặn chat') : useSessionStore.getState().setNotice(errorMessage(error)) }
+    finally { setSending(false) }
   }
   const emoji = (value: string) => {
     const start = inputRef.current?.selectionStart ?? input.length
@@ -50,11 +52,10 @@ export function useChat(enabled = true) {
     const next = input.slice(0, start) + value + input.slice(end)
     if (next.length <= 300) {
       setInput(next)
-      requestAnimationFrame(() => { inputRef.current?.focus(); inputRef.current?.setSelectionRange(start + value.length, start + value.length) })
+      requestAnimationFrame(() => { inputRef.current?.setSelectionRange(start + value.length, start + value.length) })
     }
-    setPicker(null)
   }
-  return { input, setInput, picker, collapsed, sending, messages, name: session.name, mode: session.mode, containerRef, messagesRef, inputRef, send, emoji,
+  return { input, setInput, picker, collapsed, sending, messages, name, mode, containerRef, messagesRef, inputRef, send, emoji,
     closePicker: () => setPicker(null),
     togglePicker: (value: 'emoji' | 'quick') => setPicker(current => current === value ? null : value),
     toggle: () => { setCollapsed(current => !current); setPicker(null) } }

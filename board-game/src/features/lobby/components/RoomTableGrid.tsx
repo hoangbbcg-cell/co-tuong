@@ -1,5 +1,6 @@
-import board from '../../../assets/room-selection/table-board.png'
-import lockedBoard from '../../../assets/room-selection/table-board-locked.png'
+import { HovangDataSpinner } from '../../../components/HovangDataSpinner'
+import board from '../../../assets/room-selection/table-board.webp'
+import lockedBoard from '../../../assets/room-selection/table-board-locked.webp'
 import bluePlayer from '../../../assets/room-selection/table-player-blue.png'
 import redPlayer from '../../../assets/room-selection/table-player-red.png'
 import { buttonInteraction } from '../../../lib/uiClasses'
@@ -32,10 +33,10 @@ export function RoomTableGrid({ rooms, vacantOnly, disabled, loading, onJoin }: 
           </span>
         </span>
       </span>
-      <span className="flex w-full min-w-0 items-baseline justify-center gap-1 truncate text-center font-heading text-xl compact:font-body compact:text-[13px] compact:leading-tight compact:flex-wrap compact:overflow-visible compact:whitespace-normal compact:shrink-0"><span className="shrink-0 font-number compact:font-body lining-nums tabular-nums">{room.minutes ?? 10}′</span>{room.playerNames?.[0] && <span className="max-w-[65%] truncate compact:max-w-full compact:overflow-visible compact:whitespace-normal compact:text-clip compact:break-words compact:[overflow-wrap:anywhere]">{room.playerNames[0]}</span>}</span>
+      <span className="flex w-full min-w-0 items-baseline justify-center gap-1 truncate text-center font-body text-xl compact:text-[13px] compact:leading-tight compact:flex-wrap compact:overflow-visible compact:whitespace-normal compact:shrink-0"><span className="shrink-0 font-body lining-nums tabular-nums">{room.minutes ?? 10}′</span>{(room.ownerName ?? room.playerNames?.[0]) && <span className="max-w-[65%] truncate compact:max-w-full compact:overflow-visible compact:whitespace-normal compact:text-clip compact:break-words compact:[overflow-wrap:anywhere]">{room.ownerName ?? room.playerNames?.[0]}</span>}</span>
     </button>
     })}
-    {loading && displayedRooms.length === 0 && <p role="status" className="absolute inset-0 m-0 grid place-items-center text-center text-[#f4d995]">Đang tải danh sách bàn…</p>}
+    {loading && displayedRooms.length === 0 && <div role="status" aria-label="Đang tải danh sách bàn" className="absolute inset-0 m-0 grid place-items-center"><HovangDataSpinner /></div>}
     {!loading && displayedRooms.length === 0 && <p className="absolute inset-0 m-0 grid place-items-center text-center text-[#f4d995]">Chưa có bàn phù hợp.</p>}
   </div>
 }

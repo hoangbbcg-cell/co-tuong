@@ -32,6 +32,13 @@ describe('Pikafish UCI', () => {
     await expect(service.move({ moves: [], remainingMs: NaN })).rejects.toMatchObject({ status: 400 })
     await expect(service.ready()).rejects.toThrow('Chưa cài engine')
   })
+  it('rejects malformed hint response budgets before starting the engine', async () => {
+    const service = new PikafishService('missing', 'missing')
+    for (const responseBudgetMs of [0, 99, 2501, 800.5, '800']) {
+      await expect(service.move({ moves: [], remainingMs: 600000, level: 10, thinkMs: 800, responseBudgetMs })).rejects.toMatchObject({ status: 400 })
+    }
+    await expect(service.move({ moves: [], remainingMs: 600000, level: 10, responseBudgetMs: 800 })).rejects.toMatchObject({ status: 400 })
+  })
   const installed = process.platform === 'win32' && existsSync(fileURLToPath(new URL('../engines/pikafish/Pikafish-Windows-x86-64-universal.exe', import.meta.url)))
   it.skipIf(!installed)('MultiPV thật trả đủ top5 ở depth1 cho cấp yếu nhất', async () => {
     const binary = fileURLToPath(new URL('../engines/pikafish/Pikafish-Windows-x86-64-universal.exe', import.meta.url))

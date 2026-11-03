@@ -1,3 +1,4 @@
+import { MATCH_INTRO_MS } from '../src/game/moves/actions'
 // @vitest-environment jsdom
 import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -9,9 +10,11 @@ import type { Move } from '../src/types/game'
 import { useComputerSetup } from '../src/features/lobby/hooks/useComputerSetup'
 import { useGame } from '../src/features/game/hooks/useGame'
 
-vi.mock('../src/features/game/hooks/useMoveSound', () => ({ useMoveSound: () => ({ playMatchIntro: vi.fn() }) }))
+const gameSound = vi.hoisted(() => ({ playMatchIntro: vi.fn() }))
+vi.mock('../src/features/game/hooks/useMoveSound', () => ({ useMoveSound: () => gameSound }))
 
 beforeEach(() => {
+  vi.clearAllMocks()
   vi.useFakeTimers()
   window.matchMedia = vi.fn().mockReturnValue({ matches: true })
   useGameStore.getState().reset(performance.now())
@@ -26,7 +29,8 @@ describe('Pikafish turn lifecycle', () => {
     const now = performance.now()
     const { result } = renderHook(() => useGame())
     expect(result.current.game.phase).toBe('playing')
-    expect(result.current.game.lastClockUpdate).toBeGreaterThanOrEqual(now + 1300)
+    expect(result.current.game.lastClockUpdate).toBeGreaterThanOrEqual(now + MATCH_INTRO_MS)
+    expect(gameSound.playMatchIntro).toHaveBeenCalledWith(true)
     expect(move).not.toHaveBeenCalled()
   })
   it('giữ cấp đã chọn khi mở lại thiết lập trong cùng phiên', () => {

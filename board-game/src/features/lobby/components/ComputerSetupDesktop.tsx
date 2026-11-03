@@ -44,16 +44,16 @@ export function ComputerSetupDesktop({ setup }: { setup: ReturnType<typeof useCo
             <legend className="sr-only">Chọn bên</legend>
             <span aria-hidden="true" className="flex items-center gap-[12px] font-[Arial,sans-serif] text-[21px] text-[#eab44f]"><span className="w-[30px]"><HomeIcon name="friends" /></span>Chọn bên</span>
             {([{ value: 'red', label: 'Đỏ' }, { value: 'black', label: 'Đen' }, { value: 'random', label: 'Ngẫu nhiên' }] as const).map(option => <label key={option.value} className="flex cursor-pointer items-center gap-[10px] whitespace-nowrap font-[Arial,sans-serif] text-[20px] text-[#f4eee4]">
-              <input type="radio" name="computer-side" value={option.value} checked={setup.side === option.value} onChange={() => setup.setSide(option.value)} disabled={setup.starting} className={`size-[28px] appearance-none rounded-full border-2 border-[#e3be70] bg-[#21190e]/80 outline-offset-4 checked:shadow-[inset_0_0_0_4px_#291b0d] focus-visible:outline-2 focus-visible:outline-[#fff1ba] ${option.value === 'red' ? 'checked:border-red-500 checked:bg-red-600' : 'checked:bg-[#edbd61]'}`} />{option.label}
+              <input data-ui-selection-sound type="radio" name="computer-side" value={option.value} checked={setup.side === option.value} onChange={() => setup.setSide(option.value)} disabled={setup.starting} className={`size-[28px] appearance-none rounded-full border-2 border-[#e3be70] bg-[#21190e]/80 outline-offset-4 checked:shadow-[inset_0_0_0_4px_#291b0d] focus-visible:outline-2 focus-visible:outline-[#fff1ba] ${option.value === 'red' ? 'checked:border-red-500 checked:bg-red-600' : 'checked:bg-[#edbd61]'}`} />{option.label}
             </label>)}
           </fieldset>
 
           <div className="absolute top-[521px] right-[48px] left-[58px] grid h-[82px] grid-cols-2 gap-[28px]">
-            <ComputerActionButton action="position" disabled={setup.starting} onClick={setup.customPosition}>Vị trí tùy chỉnh</ComputerActionButton>
-            <ComputerActionButton action="start" disabled={setup.starting} aria-busy={setup.starting} onClick={() => void setup.start()}>{setup.starting ? 'Đang kết nối…' : 'Đấu ngay'}</ComputerActionButton>
+            <ComputerActionButton data-ui-selection-sound action="position" disabled={setup.starting} onClick={setup.customPosition}>Vị trí tùy chỉnh</ComputerActionButton>
+            <ComputerActionButton data-ui-selection-sound action="start" disabled={setup.starting} aria-busy={setup.starting} onClick={() => void setup.start()}>{setup.starting ? 'Đang kết nối…' : 'Đấu ngay'}</ComputerActionButton>
           </div>
         </section>
-        <button type="button" className={`${buttonInteraction} mt-[13px] aspect-[2132/348] w-[1268px] max-w-none shrink-0 rounded-xl hover:brightness-110`} onClick={() => setup.setMessage('Luyện cờ chưa được hỗ trợ.')}><CrispUiImage src={puzzles} alt="Luyện cờ — Luyện tập cùng máy, rèn kỹ năng mỗi ngày" className="block size-full object-contain" /></button>
+        <button data-ui-selection-sound type="button" className={`${buttonInteraction} mt-[13px] aspect-[2132/348] w-[1268px] max-w-none shrink-0 rounded-xl hover:brightness-110`} onClick={() => setup.setMessage('Luyện cờ chưa được hỗ trợ.')}><CrispUiImage src={puzzles} alt="Luyện cờ — Luyện tập cùng máy, rèn kỹ năng mỗi ngày" className="block size-full object-contain" /></button>
     <footer className="pointer-events-none flex h-[30px] w-full shrink-0 items-center justify-center px-4"><span className="text-center font-[Arial,sans-serif] text-[14px] tracking-[0.3em] text-[#c69a42] uppercase [text-shadow:0_1px_2px_#261a0c]">Cờ tướng · Trí tuệ vô tận</span></footer>
       </div>
     </div>
@@ -62,7 +62,7 @@ export function ComputerSetupDesktop({ setup }: { setup: ReturnType<typeof useCo
 }
 
 export function ComputerLevelButton({ level, selected, disabled, onClick }: { level: number; selected: boolean; disabled: boolean; onClick: () => void }) {
-  return <button type="button" aria-pressed={selected} disabled={disabled} onClick={onClick} className={`${buttonInteraction} relative h-[64px] compact:h-11 compact:text-[18px] rounded-full border-2 font-heading text-[25px] text-[#ffebbd] shadow-[inset_0_1px_1px_#ffe5a255,0_3px_3px_#0008] disabled:cursor-not-allowed disabled:opacity-60 ${selected ? 'border-[#ffe3a1] bg-[linear-gradient(180deg,#a00910_0%,#570006_80%)] shadow-[0_0_9px_2px_#ff4518,inset_0_0_0_2px_#a83214]' : 'border-[#c99044] bg-[linear-gradient(180deg,#513014_0%,#1c0f08_85%)] hover:brightness-125'}`}>
+  return <button data-ui-selection-sound type="button" aria-pressed={selected} disabled={disabled} onClick={onClick} className={`${buttonInteraction} relative h-[64px] compact:h-11 compact:text-[18px] rounded-full border-2 font-heading text-[25px] text-[#ffebbd] shadow-[inset_0_1px_1px_#ffe5a255,0_3px_3px_#0008] disabled:cursor-not-allowed disabled:opacity-60 ${selected ? 'border-[#ffe3a1] bg-[linear-gradient(180deg,#a00910_0%,#570006_80%)] shadow-[0_0_9px_2px_#ff4518,inset_0_0_0_2px_#a83214]' : 'border-[#c99044] bg-[linear-gradient(180deg,#513014_0%,#1c0f08_85%)] hover:brightness-125'}`}>
               <Ornament color={selected ? '#f1ad56' : '#ab762d'} />
               <span className="relative inline-flex items-baseline justify-center gap-[6px] leading-none"><span className="font-heading">Cấp</span><span className="font-number lining-nums tabular-nums">{level}</span></span>
             </button>

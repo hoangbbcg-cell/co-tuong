@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>Viền ngọc bích</title>
+  <defs><linearGradient id="rim" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#79b5a6"/><stop offset=".32" stop-color="#254f44"/><stop offset=".62" stop-color="#79b5a6"/><stop offset="1" stop-color="#254f44"/></linearGradient></defs>
+  <circle cx="256" cy="256" r="222" fill="none" stroke="#254f44" stroke-width="34"/>
+  <circle cx="256" cy="256" r="222" fill="none" stroke="url(#rim)" stroke-width="28"/>
+  <circle cx="256" cy="256" r="238" fill="none" stroke="#d7e9cb" stroke-width="3"/>
+  <circle cx="256" cy="256" r="207" fill="none" stroke="#d7e9cb" stroke-width="3"/>
+  <circle cx="256" cy="256" r="233" fill="none" stroke="#79b5a6" stroke-width="2" opacity=".75"/>
+  <circle cx="256" cy="256" r="211" fill="none" stroke="#254f44" stroke-width="2"/>
+  <path d="M47 192q-10 28-10 64m428-64q10 28 10 64" fill="none" stroke="#d7e9cb" stroke-width="2" opacity=".75"/>
+  <g fill="url(#rim)" stroke="#d7e9cb" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M241 13h30l10 18-12 23h-26l-12-23Z"/><path d="M247 22h18l6 10-7 13h-16l-7-13Z" fill="none"/><path d="M230 30q-15-14-19 3m71-3q15-14 19 3" fill="none"/></g>
+  <g transform="translate(256 478)" stroke="#d7e9cb" stroke-width="2" stroke-linejoin="round">
+    <path d="M-26-2q12 14 26 9Q14 12 26-2M-20 4q8 11 20 9Q12 15 20 4" fill="none"/>
+    <path d="m0-12 9 11-9 11-9-11Z" fill="url(#rim)"/>
+  </g>
+</svg>

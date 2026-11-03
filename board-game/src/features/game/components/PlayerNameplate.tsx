@@ -1,4 +1,4 @@
-import nameFrame from '../../../assets/player/name-frame.png'
+import nameFrame from '../../../assets/player/name-frame.webp'
 import { NumberText } from '../../../lib/NumberText'
 
 /** Home reference: width180, height38, font24, horizontal padding24. */

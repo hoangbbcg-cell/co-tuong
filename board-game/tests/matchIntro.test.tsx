@@ -1,3 +1,4 @@
+import { MATCH_INTRO_MS } from '../src/game/moves/actions'
 // @vitest-environment jsdom
 import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
@@ -21,7 +22,7 @@ it('shows only on start, does not replay on snapshots, and expires', () => {
   expect(result.current.visible).toBe(true)
   act(() => vi.advanceTimersByTime(800))
   rerender({ phase: 'playing', room: 'room-1' })
-  act(() => vi.advanceTimersByTime(500))
+  act(() => vi.advanceTimersByTime(MATCH_INTRO_MS - 800))
   expect(result.current.visible).toBe(false)
 })
 
@@ -42,6 +43,6 @@ it('briefly shows the names with reduced motion', () => {
   const { result, rerender } = setup(true)
   rerender({ phase: 'playing', room: 'room-1' })
   expect(result.current.visible).toBe(true)
-  act(() => vi.advanceTimersByTime(1300))
+  act(() => vi.advanceTimersByTime(MATCH_INTRO_MS))
   expect(result.current.visible).toBe(false)
 })

@@ -1,3 +1,4 @@
+import { HovangLoadingOverlay } from '../../../components/HovangLoadingOverlay'
 import { useEffect, useRef, useState } from 'react'
 import { accountApi } from '../../../services/accountApi'
 import { errorMessage } from '../../../services/api'
@@ -37,6 +38,6 @@ export function GoogleSignInButton({onComplete,onError,link=false}:{onComplete?:
   return <div className="relative flex size-full items-center justify-center">
     <div ref={container} className={`flex w-full justify-center ${pending?'pointer-events-none opacity-50':''}`} />
     {!ready&&!pending&&!originError&&<button type="button" aria-label="Đăng nhập với Google" className="absolute inset-0 cursor-pointer font-bold" onClick={()=>{if(!clientId)callbacks.current.onError('Đăng nhập Google chưa được cấu hình.');else setRetry(value=>value+1)}}>{clientId?'Tải đăng nhập Google…':'Đăng nhập với Google'}</button>}
-    {pending&&<span role="status" aria-label="Đang đăng nhập Google" className="absolute size-7 animate-spin rounded-full border-2 border-[#613014]/30 border-t-[#613014]" />}
+    {pending&&<HovangLoadingOverlay label="Đang đăng nhập Google" />}
   </div>
 }

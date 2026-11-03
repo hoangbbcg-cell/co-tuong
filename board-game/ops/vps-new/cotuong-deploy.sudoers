@@ -1,0 +1,2 @@
+# Separate deployment identity can only request the fixed atomic activate/rollback helper.
+cotuong_deploy ALL=(root) NOPASSWD: NOSETENV: /usr/local/sbin/cotuong-deploy-activate

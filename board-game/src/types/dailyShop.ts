@@ -5,3 +5,9 @@ export interface DailyShop {
   refreshAt: number
   products: ShopProduct[]
 }
+
+export interface WeeklyShop extends DailyShop {
+  week: string
+}
+
+export type ShopMarket = 'daily' | 'weekly'

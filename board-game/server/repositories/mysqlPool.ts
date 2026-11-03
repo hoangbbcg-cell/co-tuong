@@ -14,7 +14,10 @@ export function mysqlOptions(env: NodeJS.ProcessEnv = process.env): PoolOptions 
   if (runtimeUser.toLowerCase() === 'root') throw new Error('Backend không được dùng MySQL root. Hãy dùng cotuong_app.')
   let user = runtimeUser
   let password = required('DB_PASSWORD')
-  const migratorFile = env.DB_MIGRATOR_CREDENTIALS_FILE
+  const isMigrationCli =
+    process.argv.some(arg => /(?:^|[\\/])database\.ts$/.test(arg)) &&
+    process.argv.some(arg => ['migrate', 'verify', 'smoke'].includes(arg))
+  const migratorFile = isMigrationCli ? env.DB_MIGRATOR_CREDENTIALS_FILE : undefined
   if (migratorFile) {
     try {
       const credentials = JSON.parse(readFileSync(migratorFile, 'utf8')) as { user?: unknown; password?: unknown }

@@ -1,7 +1,8 @@
+import { MATCH_INTRO_MS } from '../../../game/moves/actions'
 import { useAudioSettingsStore } from '../../../store/audioSettingsStore'
 
-type SoundName = 'move' | 'capture' | 'check' | 'checkmate' | 'introOne' | 'introTwo'
-type Channel = 'effects' | 'intro' | 'checkmate' | 'clock'
+type SoundName = 'move' | 'capture' | 'check' | 'checkmate' | 'introOne' | 'introTwo' | 'clockTick'
+type Channel = 'effects' | 'intro' | 'checkmate' | 'clock' | 'clockTick' | 'readyCountdown'
 type Clip = { sound: SoundName; volume: number; delay?: number; offset?: number }
 
 /** Decodes each asset once per board and gives each cue its own playback source. */
@@ -12,21 +13,27 @@ export class GameSounds {
   private readonly abort = new AbortController()
   private readonly buffers = new Map<SoundName, Promise<AudioBuffer>>()
   private readonly active: Record<Channel, Set<AudioBufferSourceNode>> = {
-    effects: new Set(), intro: new Set(), checkmate: new Set(), clock: new Set(),
+    effects: new Set(), intro: new Set(), checkmate: new Set(), clock: new Set(), clockTick: new Set(), readyCountdown: new Set(),
   }
-  private readonly versions: Record<Channel, number> = { effects: 0, intro: 0, checkmate: 0, clock: 0 }
+  private readonly versions: Record<Channel, number> = { effects: 0, intro: 0, checkmate: 0, clock: 0, clockTick: 0, readyCountdown: 0 }
+  private clockTickAttempts = 0 // HOVANG_V64_DIAGNOSTIC
+  private clockTickStarts = 0
+  private clockTickTimer: ReturnType<typeof setInterval> | null = null
+  private clockTickDelayTimer: ReturnType<typeof setTimeout> | null = null // HOVANG_CLOCK_TICK_V6
   private clockBuffer: AudioBuffer | null = null
   private readonly waiting = new Set<() => void>()
   private readonly warned = new Set<string>()
   private disposed = false
 
-  constructor(sources: Record<SoundName, string>) {
+  constructor(sources: Record<Exclude<SoundName, 'clockTick'>, string> & Partial<Record<'clockTick', string>>) {
     this.output.connect(this.context.destination)
     const updateMute = () => this.output.gain.setValueAtTime(useAudioSettingsStore.getState().muted ? 0 : 1, this.context.currentTime)
     updateMute()
     this.unsubscribeAudio = useAudioSettingsStore.subscribe(updateMute)
     for (const name of Object.keys(sources) as SoundName[]) {
-      const buffer = fetch(sources[name], { signal: this.abort.signal })
+      const url = sources[name]
+      if (!url) continue
+      const buffer = fetch(url, { signal: this.abort.signal })
         .then(response => {
           if (!response.ok) throw new Error(`HTTP ${response.status}`)
           return response.arrayBuffer()
@@ -94,6 +101,7 @@ export class GameSounds {
       gain.disconnect()
       finish()
     }
+    if (channel === 'clockTick') this.clockTickStarts++
     source.start(time + (clip.delay ?? 0), clip.offset ?? 0)
     return finished
   }
@@ -174,7 +182,57 @@ export class GameSounds {
 
   stopClockWarning() { this.stop('clock') }
 
+  // HOVANG_V64_DIAGNOSTIC - local-only read-only status
+  // Manual diagnostic only: does not start an automatic clock timer.
+  // One short audible tick; no recurring timer.
+  playReadyCountdownTick() {
+    void this.playClips([{ sound: 'clockTick', volume: 4.0 }], 'readyCountdown')
+  }
+  playClockTickDiagnostic() {
+    if (this.disposed || !this.buffers.has('clockTick')) return
+    this.clockTickAttempts++
+    void this.playClips([{ sound: 'clockTick', volume: 4.0 }], 'clockTick')
+  }
+  getClockTickDebug() {
+    return {
+      context: this.context.state,
+      muted: useAudioSettingsStore.getState().muted,
+      timer: this.clockTickTimer !== null,
+      asset: this.buffers.has('clockTick'),
+      attempts: this.clockTickAttempts,
+      starts: this.clockTickStarts,
+      active: this.active.clockTick.size,
+      disposed: this.disposed,
+    }
+  }
+  startClockTick() {
+    if (this.disposed || this.clockTickTimer !== null || this.clockTickDelayTimer !== null || !this.buffers.has('clockTick')) return
+
+    const tick = () => {
+      if (this.disposed) return
+      this.clockTickAttempts++
+      void this.playClips([{ sound: 'clockTick', volume: 4.0 }], 'clockTick')
+    }
+
+    // Wait for the match introduction before the first audible tick.
+    this.clockTickDelayTimer = setTimeout(() => {
+      this.clockTickDelayTimer = null
+      if (this.disposed) return
+      tick()
+      this.clockTickTimer = setInterval(tick, 1000)
+    }, MATCH_INTRO_MS)
+  }
+
+  stopClockTick() {
+    if (this.clockTickDelayTimer !== null) clearTimeout(this.clockTickDelayTimer)
+    this.clockTickDelayTimer = null
+    if (this.clockTickTimer !== null) clearInterval(this.clockTickTimer)
+    this.clockTickTimer = null
+    this.stop('clockTick')
+  }
+
   stopAll() {
+    this.stopClockTick()
     this.stopClockWarning()
     this.stop('effects')
     this.stop('intro')
@@ -187,6 +245,7 @@ export class GameSounds {
     this.unsubscribeAudio()
     this.output.disconnect()
     this.stopAll()
+    this.stop('readyCountdown')
     this.abort.abort()
     window.removeEventListener('pointerdown', this.unlock, true)
     window.removeEventListener('keydown', this.unlock, true)

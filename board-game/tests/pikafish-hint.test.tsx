@@ -29,13 +29,13 @@ it('clears a displayed hint on a move without an extra render during the move an
   expect(renders - previous).toBe(1)
 })
 
-it('requests the strongest 700ms hint for the human without changing any game state, including clocks', async () => {
+it('requests the strongest hint with an 800ms response budget for the human without changing any game state, including clocks', async () => {
   const game = playing(), before = JSON.stringify(game)
   vi.mocked(pikafishApi.move).mockResolvedValue(redMove)
   const { result, rerender } = renderHook(({ snapshot }) => usePikafishHint(snapshot, 'red', true, 0, vi.fn()), { initialProps: { snapshot: game } })
   await act(async () => { await result.current.request() })
   expect(result.current.hint).toEqual(redMove)
-  expect(pikafishApi.move).toHaveBeenCalledWith([], 600_000, 10, expect.any(AbortSignal), positionFen(game.board, 'red'), 700)
+  expect(pikafishApi.move).toHaveBeenCalledWith([], 600_000, 10, expect.any(AbortSignal), positionFen(game.board, 'red'), 800, 800)
   expect(JSON.stringify(game)).toBe(before)
   // A clock tick should not erase the hint or restart the request.
   rerender({ snapshot: { ...game, remainingTime: { red: 500_000, black: 600_000 } } })
@@ -102,6 +102,9 @@ it('draws one non-interactive arrow on the existing Board and flips it using the
   const view = render(<Board {...props} hintMove={redMove} />)
   const arrow = view.getByTestId('pikafish-hint-arrow')
   expect(arrow.style.pointerEvents).toBe('none')
+  expect(arrow.classList.contains('z-2')).toBe(true)
+  expect(arrow.querySelector('g')?.getAttribute('fill')).toBe('#76ad59')
+  expect(arrow.querySelector('path')?.getAttribute('d')).toContain('M0 -17')
   expect(arrow.querySelector('g')?.getAttribute('transform')).toContain('translate(73 833)')
   expect(view.getAllByTestId('board-frame')).toHaveLength(1)
   fireEvent.click(view.getAllByTestId('board-hit')[54])

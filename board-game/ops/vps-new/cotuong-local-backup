@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+umask 077
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+readonly DEST='/var/backups/cotuong-stage'
+readonly DB='cotuong_stage'
+readonly STAMP="$(date -u +%Y-%m-%dT%H-%M-%SZ)"
+readonly TMP="$DEST/.${STAMP}.sql.gz.tmp"
+readonly OUT="$DEST/${STAMP}.sql.gz"
+trap 'rm -f -- "$TMP"' EXIT
+
+[[ "$(id -u)" == 0 ]] || { echo 'root required' >&2; exit 1; }
+[[ -d "$DEST" && ! -L "$DEST" && "$(stat -c %U:%a "$DEST")" == 'root:700' ]] || { echo 'unsafe backup directory' >&2; exit 1; }
+exec 9>/run/lock/cotuong-local-backup.lock
+flock -n 9 || { echo 'another test database backup is already running' >&2; exit 1; }
+[[ ! -e "$TMP" && ! -L "$TMP" && ! -e "$OUT" && ! -L "$OUT" ]] || { echo 'backup timestamp already exists; refusing to overwrite' >&2; exit 1; }
+mysql --protocol=socket --user=root -NBe "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='${DB}'" | grep -Fxq "$DB"
+mysqldump --protocol=socket --user=root --single-transaction --routines --triggers --events --databases "$DB" | gzip -n > "$TMP"
+gzip -t "$TMP"
+[[ -s "$TMP" ]]
+mv -- "$TMP" "$OUT"
+chmod 0600 "$OUT"
+printf 'Created verified local backup: %s\n' "$OUT"

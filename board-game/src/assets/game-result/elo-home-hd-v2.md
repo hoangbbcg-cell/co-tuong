@@ -1,0 +1,7 @@
+# Elo Home HD v2
+
+2026-10-26. Built-in image_gen edit from ../pieces/red-general.png, transparent background. User requested closer resemblance to the original icon after v1. Inspected glyph, cream face, red ring and gold border; high-resolution artwork, no runtime blur. Home reward thumbnail and preview use this version; in-match artwork remains original.
+
+## Final prompt
+
+Use case: precise-object-edit. Faithful high-resolution facsimile / restoration of THIS EXACT small attached icon, not a new interpretation. Reproduce the reference as closely as possible: exact front-facing compact round ivory medallion, original proportions, narrow gold outline, thin dark red inner ring, original red Chinese 帥 glyph with its exact relative stroke thickness, curved stroke ends, spacing and overall silhouette. All the reference pixels are design instructions. Preserve the asymmetric small lower-right bevel, cream face shading, warm subdued gold rim, and dark crimson glyph. The previous attempt made the ring and glyph too heavy and changed the typography: avoid this; COPY the original lettering contours instead. Keep the original thin rings and the small ivory margin around the glyph. Sharply render smooth original contours at 1024px resolution with genuine transparent alpha outside, minimal transparent padding, no blur/no glow/no pixel staircase. Original aspect ratio 60:62. No ornate coin redesign, no thick angled chess piece, no added details. This should look exactly like the same old icon enlarged cleanly.

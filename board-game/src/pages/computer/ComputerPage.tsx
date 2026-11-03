@@ -9,7 +9,7 @@ export function ComputerPage({ onEntranceComplete }: { onEntranceComplete: () =>
   const music = useHomeMusic()
   const entrance = useRoomEntrance(onEntranceComplete)
   return <><main aria-label="Chơi với máy" data-testid="computer-entrance" data-entering={entrance.entering} className="flex h-dvh w-full items-center justify-center overflow-hidden bg-[#263a35] data-[entering=true]:bg-transparent">
-    <div className="relative h-dvh w-full overflow-hidden">
+    <div className="relative h-dvh w-full overflow-hidden desktop:h-[calc(100dvh-12px)] desktop:w-[calc(100%-240px)] desktop:border-[5px] desktop:border-[#80582c]">
       <div ref={entrance.sceneRef} className="h-full [clip-path:inset(0)]"><ComputerSetup setup={setup} music={music} entering={entrance.entering} /></div>
     </div>
   </main>{entrance.entering && <OpeningCover onComplete={entrance.finishEntrance} />}</>

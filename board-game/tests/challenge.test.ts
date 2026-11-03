@@ -14,8 +14,37 @@ describe('accepted play invitations', () => {
       challenges.update(id, { name, avatarIndex: 0, avatarFrameIndex: 0, elo: 0, localBusy: false })
     }
   })
+  it('invites the exact account despite duplicate names and multiple connections', () => {
+    const profile = { name: 'Binh', avatarIndex: 0, avatarFrameIndex: 0, elo: 0, localBusy: false }
+    challenges.update('b', profile, 'friend-account')
+    challenges.update('other', profile, 'other-account')
+    challenges.update('friend-tab', profile, 'friend-account')
+    expect(challenges.send('a', { name: 'Binh', accountId: 'friend-account' }).invite.targetId).toBe('friend-tab')
+  })
+  it('does not fall back to another same-name account when the friend is offline', () => {
+    expect(() => challenges.send('a', { name: 'Binh', accountId: 'offline-account' })).toThrow('Người chơi không còn trực tuyến.')
+  })
   const invite = () => challenges.send('a', { id: 'b', name: 'Binh' }).invite
   const accept = () => challenges.reply('b', { id: invite().id, accepted: true })
+
+  it('admits an owner-invited recipient without exposing or requiring the locked room password', () => {
+    const locked = rooms.create('Locked', 10, 60, undefined, 'secret')
+    rooms.join(locked.id, 'a', 'An', 'secret')
+    expect(() => rooms.join(locked.id, 'b', 'Binh')).toThrow('Mật khẩu')
+    expect(accept().room?.players.map(p => p.id)).toEqual(['a', 'b'])
+    expect(() => rooms.join(locked.id, 'stranger', 'Stranger')).toThrow('Mật khẩu')
+  })
+
+  it('does not bypass a password when the inviter is not the current owner', () => {
+    const locked = rooms.create('Locked', 10, 60, undefined, 'secret')
+    rooms.join(locked.id, 'owner', 'Owner', 'secret')
+    rooms.join(locked.id, 'a', 'An', 'secret')
+    rooms.command('owner', { type: 'stand-up' })
+    const room = rooms.roomFor('a')!
+    room.ownerId = 'owner'
+    expect(accept).toThrow('Bàn đang khóa')
+    expect(rooms.roomFor('b')).toBeUndefined()
+  })
 
   it('requires five seconds between invitations even after an early rejection', () => {
     let now = 100000
@@ -72,14 +101,36 @@ describe('accepted play invitations', () => {
     expect(previousRooms.map(room => room.id)).toEqual([old.id])
   })
 
-  it('does not remove members already in the same room', () => {
+  it('rejects sending from a full table without removing either seated player', () => {
     const existing = rooms.create('Together')
     rooms.join(existing.id, 'a', 'An')
     rooms.join(existing.id, 'b', 'Binh')
-    const { room, previousRooms } = accept()
-    expect(room?.id).toBe(existing.id)
-    expect(room?.players.map(player => player.id)).toEqual(['a', 'b'])
-    expect(previousRooms).toEqual([])
+    expect(invite).toThrow('Bàn đã đầy.')
+    expect(rooms.roomFor('a')?.players.map(player => player.id)).toEqual(['a', 'b'])
+  })
+
+  it('rechecks a table filled after delivery before moving the recipient from their room', () => {
+    const destination = rooms.create('Sender')
+    rooms.join(destination.id, 'a', 'An')
+    const old = rooms.create('Recipient')
+    rooms.join(old.id, 'b', 'Binh')
+    const pending = invite()
+    rooms.join(destination.id, 'c', 'Chi')
+    rooms.command('a', { type: 'ready' })
+    expect(() => challenges.reply('b', { id: pending.id, accepted: true })).toThrow('Bàn đã đầy.')
+    expect(rooms.roomFor('b')?.id).toBe(old.id)
+    expect(rooms.roomFor('a')?.players.map(player => player.id)).toEqual(['a', 'c'])
+    expect(rooms.roomFor('a')?.viewers).toEqual([])
+    expect(rooms.roomFor('a')?.goldRewardExcludedPairs).toBeUndefined()
+  })
+
+  it('rejects an old invitation if the sender moves to a full table', () => {
+    const pending = invite()
+    const destination = rooms.create('New full table')
+    rooms.join(destination.id, 'a', 'An')
+    rooms.join(destination.id, 'c', 'Chi')
+    expect(() => challenges.reply('b', { id: pending.id, accepted: true })).toThrow('Bàn đã đầy.')
+    expect(rooms.roomFor('b')).toBeUndefined()
   })
 
   it('uses the sender room at acceptance, even if they entered after sending', () => {

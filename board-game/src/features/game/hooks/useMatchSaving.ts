@@ -6,7 +6,7 @@ import { useSavedMatches } from '../../../store/savedMatchesStore'
 import { createClientId } from '../../../lib/clientId'
 import { usePlayedMatches } from '../../../store/playedMatchesStore'
 import { useSessionStore } from '../../../store/sessionStore'
-import { loadAccountData } from '../../../services/accountSession'
+import { applyAccount, invalidateAccountHistory } from '../../../services/accountSession'
 import { accountApi } from '../../../services/accountApi'
 
 export function useMatchSaving(game: GameState, onlineMatch: RecordedMatch | undefined, online: boolean, owner: string, redName: string, blackName: string, enabled = true) {
@@ -32,7 +32,7 @@ export function useMatchSaving(game: GameState, onlineMatch: RecordedMatch | und
     }
   }, [enabled, online, onlineMatch, game.phase, game.result])
   const recording = lastMatch
-  useEffect(()=>{const account=useSessionStore.getState().account;if(online&&recording&&account)void accountApi.me().then(loadAccountData).catch(()=>setError('Không tải được lịch sử ván đấu.'))},[online,recording?.id])
+  useEffect(()=>{const account=useSessionStore.getState().account;if(online&&recording&&account)void accountApi.me().then(profile => { if (useSessionStore.getState().account?.id !== account.id) return; invalidateAccountHistory(); applyAccount(profile) }).catch(()=>setError('Không tải được lịch sử ván đấu.'))},[online,recording?.id])
   useEffect(() => {
     if (!enabled || !online || !recording || useSessionStore.getState().account) return
     try { usePlayedMatches.getState().record(owner, recording) }
@@ -41,7 +41,7 @@ export function useMatchSaving(game: GameState, onlineMatch: RecordedMatch | und
   const saved = !!recording && entries.some(item => item.owner === owner && item.id === recording.id)
   const save = async () => {
     if (!recording) return
-    try { await useSavedMatches.getState().save(owner, recording); setError('') }
+    try { await useSavedMatches.getState().save(owner, recording, online && !!useSessionStore.getState().account); setError('') }
     catch (error) { setError(error instanceof Error ? error.message : 'Không thể lưu ván đấu.') }
   }
   return { recording, saved, error, save }

@@ -7,18 +7,20 @@ import { errorMessage } from '../../../services/api'
 import { useSessionStore } from '../../../store/sessionStore'
 import { alreadyOwnedMessage, ownsCosmetic } from '../../../lib/shopCatalog'
 import type { ShopProduct } from '../../../lib/shopCatalog'
+import type { ShopMarket } from '../../../types/dailyShop'
 
 export function useShopPurchase(onMessage: (message: string) => void, showSuccessMessage = true) {
   const [selected, setSelected] = useState<ShopProduct | null>(null)
+  const [selectedMarket, setSelectedMarket] = useState<ShopMarket>('daily')
   const [buying, setBuying] = useState(false)
   const busy = useRef(false)
   const attempts = useRef(new Map<string, string>())
-  const open = (product: ShopProduct) => {
+  const open = (product: ShopProduct, market: ShopMarket = 'daily') => {
     if (busy.current) return
     const account = useSessionStore.getState().account
     if (!account) { onMessage('Vui lòng đăng nhập để mua sản phẩm.'); return }
     if (ownsCosmetic(account, product)) { onMessage(alreadyOwnedMessage(product)); return }
-    onMessage(''); setSelected(product)
+    onMessage(''); setSelected(product); setSelectedMarket(market)
   }
   const confirm = async () => {
     if (!selected || busy.current) return
@@ -27,7 +29,7 @@ export function useShopPurchase(onMessage: (message: string) => void, showSucces
     try {
       const requestId = attempts.current.get(product.id) ?? createClientId()
       attempts.current.set(product.id, requestId)
-      const profile = await accountApi.purchase(product.id, requestId)
+      const profile = await accountApi.purchase(product.id, requestId, selectedMarket)
       if (useSessionStore.getState().account?.id === profile.id) applyAccount(profile)
       attempts.current.delete(product.id)
       if (showSuccessMessage) onMessage(`Đã mua ${product.kind === 'avatar' ? 'avatar' : 'viền'} ${product.name}. Vật phẩm đã được lưu vào ${product.kind === 'avatar' ? 'Chọn avatar' : 'Chọn viền'}.`)

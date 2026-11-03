@@ -2,7 +2,7 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { act, cleanup, renderHook } from '@testing-library/react'
 
-afterEach(() => { cleanup(); localStorage.clear(); vi.unstubAllGlobals(); vi.resetModules() })
+afterEach(() => { cleanup(); localStorage.clear(); vi.unstubAllGlobals(); vi.doUnmock('../src/features/lobby/audio/BackgroundMusicPlayer'); vi.resetModules() })
 
 it('restores muted game effects after a module reload independently of music', async () => {
   const first = await import('../src/store/audioSettingsStore')
@@ -18,21 +18,41 @@ it('restores muted game effects after a module reload independently of music', a
 
 it('keeps background music off after reload and saves turning it back on', async () => {
   const play = vi.fn(async () => {})
-  const audio = { paused: true, ended: false, play, pause: vi.fn(), addEventListener: vi.fn() }
-  vi.stubGlobal('Audio', class { constructor() { return audio } })
+
+  vi.doMock('../src/features/lobby/audio/BackgroundMusicPlayer', () => ({
+    BackgroundMusicPlayer: class {
+      paused = true
+      ended = false
+      async play(_url: string) {
+        await play()
+        this.paused = false
+      }
+      pause() {
+        this.paused = true
+      }
+    },
+  }))
+
   const first = await import('../src/features/lobby/hooks/useHomeMusic')
   const initial = renderHook(() => first.useHomeMusic())
+
   await act(async () => initial.result.current.toggle())
   expect(localStorage.getItem('co-tuong-audio-music-v1')).toBe('false')
+
   initial.unmount()
   play.mockClear()
   vi.resetModules()
+
   const second = await import('../src/features/lobby/hooks/useHomeMusic')
   const restored = renderHook(() => second.useHomeMusic())
+
   expect(restored.result.current.playing).toBe(false)
+
   document.dispatchEvent(new Event('pointerdown'))
   expect(play).not.toHaveBeenCalled()
+
   await act(async () => restored.result.current.toggle())
+
   expect(play).toHaveBeenCalledTimes(1)
   expect(localStorage.getItem('co-tuong-audio-music-v1')).toBe('true')
 })

@@ -1,4 +1,27 @@
+- 2026-10-27: Đính chính theo user: không dùng chung khung dòng Xếp hạng cho Bạn bè/Lịch sử laptop và hoàn tác chiều cao138px. Bạn bè trở lại row90px/nền-gradient-border cũ; Đã chơi Lịch sử trở lại 8 hàng auto-height/khung cũ. Chỉ thêm dải gradient + shadow mép trái y hệt Ranking; giữ gap8px×scale đã chốt và FriendRowShade nâu. Mobile không đổi. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: Theo user, đồng bộ dòng Bạn bè và Lịch sử Đã chơi LAPTOP trực tiếp với Xếp hạng qua socialPlayerRowClass/getSocialRowStyle/socialPlayerListClass: cao138px×scale, bo/nền/viền và gap8px×scale. FriendRow giữ lớp nâu quanh danh hiệu/nút; mobile giữ nguyên. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: Theo user, đồng bộ gap dòng Đã chơi Lịch sử và các danh sách Bạn bè với Xếp hạng bằng --social-row-gap=8px×scale; Lịch sử giữ 8 hàng bằng cách trừ tổng gap56px. Bạn bè LAPTOP căn hàng header tab Danh sách/Thêm bạn cùng cao56px để vị trí search và đầu danh sách cố định khi đổi hai tab; điện thoại không đổi. npm.cmd run build PASS; dist cập nhật; chưa browser QA.
+- 2026-10-27: Theo user riêng LAPTOP: tên Xếp hạng22→24px, Đã chơi Lịch sử21→23px, Bạn bè22→24px; trạng thái Xếp hạng19→21px và Bạn bè19→21px, tất cả theo scale dialog. Điện thoại giữ nguyên; không đổi cỡ trạng thái Lịch sử. Build PASS, dist cập nhật; chưa browser QA.
 # Hệ thống bậc và sao theo Elo
+
+- 2026-10-27: User đính chính full màn hình là bỏ khung giới hạn ngoài LAPTOP, không phóng Ranking. Hoàn tác riêng viewport Ranking về layout cũ. Home/Shop qua useHomeLayout rộng/cao viewport desktop, giữ content scale cũ; bỏ viền/shadow giới hạn ngoài. GamePage/CustomPositionPage desktop wfull/hdvh/border0/shadownone như trang Chọn bàn; màn chọn bàn/chơi máy vốn full giữ. Compact giữ nguyên. Typecheck/build PASS; dist cập nhật; chưa browser QA.
+
+- 2026-10-27: Theo user sau lượt chỉnh Ranking, riêng Xếp hạng LAPTOP mở rộng theo viewport như Chọn bàn: rộng innerWidth-12/lề6px, cao innerHeight-12-trừ50scale chừa biển tiêuđề trên; neo dialog left6/top6+title. Giữ scale nội dung và mobile, không đổi useRankingLayout chung để tránh ảnh hưởng bảng khác. Typecheck/build PASS, dist cập nhật; chưa browser QA. Khóa lại phạm vi sau task.
+
+- 2026-10-27: Theo user riêng Xếp hạng LAPTOP làm rõ danh hiệu/sao: RankingRankBadge dùng sharpen convolution nhẹ bảo toàn alpha + contrast1.12 với ảnh nguồn HD hiện có; lớp sao bỏ translate nửa pixel, tọa độ snap nguyên từ token cũ, giữ kích thước/mốc trong sai số làmtròn. compact prop giữ nhánh render cũ khôngfilter; các màn khác giữ. Typecheck/build PASS; dist xác nhận feConvolveMatrix, chưa browser QA độ nét.
+- 2026-10-27: Nút Mời chơi riêng desktop Xếp hạng rộng158px theo scale (trước173), giữ chiều cao60px và nội dung; compact không đổi.
+
+
+- 2026-10-27: Theo ảnh/user chỉnh riêng Xếp hạng LAPTOP: nền nâu bao Elo nới trái/phải mỗi bên5px thật bằng inset span, giữ artwork Elo/kích thước cột/điểm; vương miện top1 nâng4px thật bằng marginTop-4. Cả2tab, compact không đổi. Build/typecheck PASS,dist cập nhật; chưa browser QA, không chạy test cho spacing; khóa lại phạm vi.
+
+
+- 2026-10-27: Theo user chỉnh riêng Xếp hạng LAPTOP: header dùng inset đo thực scrollbar+padding danh sách như compact để Hạng/Người chơi/Elo/Thao tác cùng cột dòng bên dưới; giữ khoảng user15px và nhãn căn mép tên. Nền nâu bao Elo cao calc100%+6px và bo ranking5 như mobile, artwork/điểm giữ. Nút invite desktop dùng socialActionButton/socialActionStyle + icon crop friend-invite-button đúng mẫu Bạn bè laptop, đủ chữ Mời chơi và giữ challenge ID/cooldown; compact giữ RankingViewButton chữ Mời như cũ. Không sửa UI Bạn bè/mobile/avatar. Build/typecheck PASS,dist cập nhật; chưa browser QA, không chạy test cho thay đổi trình bày. Khóa lại phạm vi sau task.
+
+
+- 2026-10-27: User mở riêng Xếp hạng LAPTOP: cụm user sau cột hạng thêm padding trái15px thật, nhãn Người chơi căn trái theo mép tên bằng cùng avatar84/gap20/margin2+15px; áp dụng cả2tab. Nhánh compact không thêm style nên điện thoại giữ nguyên. Giữ kích thước avatar/khung và cột Elo/thao tác. Build/typecheck PASS,dist cập nhật; chỉnh spacing không chạy tests, chưa browser QA; khóa lại phạm vi sau task.
+
+
+- 2026-10-26: User chốt dùng hình Elo HD v2 hiện tại và áp dụng cho toàn project. XIANGQI_ELO_ICON tại lib/eloArtwork.ts dùng chung elo-home-hd-v2.png cho Home mobile/laptop, Xếp hạng, PlayerInfoCard/Thông tin, PlayerCard trong trận và MatchResultDialog, popup thưởng/preview. Chỉ đổi icon Elo Cờ Tướng; kích thước/bố cục/điểm/sao/quân bàn cờ/Elo Cờ Úp giữ nguyên. Yêu cầu này mở phạm vi ảnh Elo tại các màn vốn khóa trong task. Typecheck/build PASS; dist có asset/bundle mới, đã đối chiếu7nơi dùng/chưa browser QA.
 
 - 2026-10-23: Theo user, hạ cụm sao toàn project2px theo khung tham chiếu: clusterOffsetYPx -14→-12; vị trí hiện tại cao hơn6px so trước chuỗi chỉnh. Token chung áp dụng mobile/laptop/người chơi/máy. Build/typecheck PASS; dist cập nhật; chưa browser QA.
 
@@ -153,3 +176,5 @@ Quy tắc2026-10-05: Tân Binh giữ vị trí sao hiện hành. Sáu bậc2–7
 - 2026-10-23: Theo user, dịch nút× mobile thêm lên10px/trái15px so vị trí trước; tổng offset trái10/lên18px. Đồng bộ Xếp hạng/Bạn bè/Lịch sử qua DialogCloseButton; khóa lại phạm vi.
 
 - 2026-10-23: User đính chính hướng dịch nút× lượt trước: phải15px thay trái15px, giữ nâng thêm10px. Tổng offset hiện tại phải20/lên18px cho Xếp hạng/Bạn bè/Lịch sử mobile; desktop giữ nguyên. Khóa lại phạm vi.
+
+- 2026-10-28: Theo user, nhãn cột “Thao tác” trong Xếp hạng compact/mobile dịch sang phải5px; laptop giữ nguyên.

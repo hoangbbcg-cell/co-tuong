@@ -1,10 +1,12 @@
+import { HovangLoadingOverlay } from '../../../components/HovangLoadingOverlay'
+import { oneChoiceNoticeDialog, oneChoiceNoticeButton } from './OneChoiceNoticeStyles'
 import trainingBanner from '../../../assets/computer-setup/training-banner.png'
 import { computerAvatar } from '../../../lib/computerAvatar'
 import { ComputerActionButton } from './ComputerActionButton'
 
 import { PlayerNameplate } from '../../game/components/PlayerNameplate'
 import { CrispUiImage } from '../../../lib/CrispUiImage'
-import background from '../../../assets/backgrounds/computer.png'
+import background from '../../../assets/backgrounds/computer.webp'
 
 
 
@@ -17,7 +19,6 @@ import type { useComputerSetup } from '../hooks/useComputerSetup'
 import type { useHomeMusic } from '../hooks/useHomeMusic'
 
 type Props = { setup: ReturnType<typeof useComputerSetup>; music: ReturnType<typeof useHomeMusic>; entering: boolean }
-const utility = `${buttonInteraction} grid size-12 shrink-0 place-items-center rounded-[var(--ui-p-3,3px)] border-2 border-[#d8ac35] bg-[linear-gradient(#ad7e08,#805100)] text-[#ffe535] shadow-[inset_0_1px_0_#ffec8d,0_3px_5px_#0005] hover:brightness-110 compact:size-10`
 const headerUtilityShadow = { boxShadow: 'inset 0 -20px 24px -14px rgba(0,0,0,.68), inset 0 1px 0 #ffec8d, inset 0 0 0 1px #6f400b, 0 8px 20px 6px rgba(0,0,0,.55)' }
 
 export function ComputerSetup({ setup, music, entering }: Props) {
@@ -28,6 +29,7 @@ export function ComputerSetup({ setup, music, entering }: Props) {
     } catch { setup.setMessage('Trình duyệt chưa cho phép chế độ toàn màn hình.') }
   }
   return <div className="relative isolate flex h-full overflow-hidden flex-col bg-[#21180d] text-[#fff0d1]">
+    {setup.starting && <HovangLoadingOverlay label="Đang chuẩn bị ván cờ" />}
     <CrispUiImage src={background} alt="" className="pointer-events-none absolute inset-0 -z-20 size-full object-cover object-center" />
 
     <div inert={entering} className="contents">
@@ -36,7 +38,7 @@ export function ComputerSetup({ setup, music, entering }: Props) {
     <header className="flex h-[var(--ui-p-56,56px)] shrink-0 items-center gap-6 border-b-2 border-[#b78136] bg-[#130e08]/10 px-10 backdrop-blur-[1px] compact:h-[calc(42px+12px)] compact:gap-3 compact:px-4">
       <button type="button" className={`${gameUtilityButton} shrink-0 compact:size-(--mobile-utility-size) compact:[&_svg]:size-(--mobile-utility-icon)`} aria-label="Về trang chủ" onClick={setup.back}><GameBackIcon /></button>
       <nav className="ml-auto flex shrink-0 items-center gap-2" aria-label="Tiện ích">
-      <button style={headerUtilityShadow} className={`${homeUtilityButton} shrink-0 compact:size-(--mobile-utility-size) compact:[&_svg]:size-(--mobile-utility-icon)`} aria-label={music.playing ? 'Tắt nhạc' : 'Bật nhạc'} aria-pressed={music.playing} onClick={() => void music.toggle().catch(() => setup.setMessage('Không thể phát nhạc trên trình duyệt này.'))}><HomeIcon name={music.playing ? 'sound' : 'muted'} /></button>
+      <button data-ui-tab-sound style={headerUtilityShadow} className={`${homeUtilityButton} shrink-0 compact:size-(--mobile-utility-size) compact:[&_svg]:size-(--mobile-utility-icon)`} aria-label={music.playing ? 'Tắt nhạc' : 'Bật nhạc'} aria-pressed={music.playing} onClick={() => void music.toggle().catch(() => setup.setMessage('Không thể phát nhạc trên trình duyệt này.'))}><HomeIcon name={music.playing ? 'sound' : 'muted'} /></button>
       <button style={headerUtilityShadow} className={`${homeUtilityButton} shrink-0 compact:hidden`} aria-label="Toàn màn hình" title="Phóng to/thu nhỏ màn hình" onClick={() => void toggleFullscreen()}><HomeIcon name="fullscreen" /></button>
       </nav>
     </header>
@@ -44,14 +46,14 @@ export function ComputerSetup({ setup, music, entering }: Props) {
       <div className="flex shrink-0 flex-col items-center gap-1"><CrispUiImage src={computerAvatar} alt="Ông Hoàng" className="h-[100px] w-[124px] object-contain" /><PlayerNameplate name="Ông Hoàng" className="[--nameplate-width:170px]" /></div>
       <div className="flex shrink-0 translate-y-[20px] flex-col gap-5">
       <div className="grid shrink-0 grid-cols-5 gap-2">{Array.from({length:10},(_,index)=>index+1).map(level => <ComputerLevelButton key={level} level={level} selected={setup.level === level} disabled={setup.starting} onClick={() => setup.setLevel(level)} />)}</div>
-      <fieldset className="flex shrink-0 flex-wrap items-center justify-center gap-x-6 gap-y-3 py-1"><legend className="mb-2 w-full text-center font-body text-base text-[#eab44f]">Chọn bên</legend>{([{value:'red',label:'Đỏ'},{value:'black',label:'Đen'},{value:'random',label:'Ngẫu nhiên'}] as const).map(option => <label key={option.value} className="flex items-center gap-2 font-body text-sm text-[#f4eee4]"><input type="radio" name="mobile-side" checked={setup.side === option.value} onChange={() => setup.setSide(option.value)} disabled={setup.starting} className={`size-5 appearance-none rounded-full border-2 border-[#e3be70] bg-[#21190e]/80 outline-offset-4 checked:shadow-[inset_0_0_0_3px_#291b0d] focus-visible:outline-2 focus-visible:outline-[#fff1ba] ${option.value === 'red' ? 'checked:border-red-500 checked:bg-red-600' : 'checked:bg-[#edbd61]'}`} />{option.label}</label>)}</fieldset>
-      <div className="grid h-12 shrink-0 grid-cols-2 gap-3"><ComputerActionButton action="position" disabled={setup.starting} onClick={setup.customPosition}>Vị trí tùy chỉnh</ComputerActionButton><ComputerActionButton action="start" disabled={setup.starting} aria-busy={setup.starting} onClick={() => void setup.start()}>{setup.starting ? 'Đang chuẩn bị…' : 'Đấu ngay'}</ComputerActionButton></div>
+      <fieldset className="flex shrink-0 flex-wrap items-center justify-center gap-x-6 gap-y-3 py-1"><legend className="mb-2 w-full text-center font-body text-base text-[#eab44f]">Chọn bên</legend>{([{value:'red',label:'Đỏ'},{value:'black',label:'Đen'},{value:'random',label:'Ngẫu nhiên'}] as const).map(option => <label key={option.value} className="flex items-center gap-2 font-body text-sm text-[#f4eee4]"><input data-ui-selection-sound type="radio" name="mobile-side" checked={setup.side === option.value} onChange={() => setup.setSide(option.value)} disabled={setup.starting} className={`size-5 appearance-none rounded-full border-2 border-[#e3be70] bg-[#21190e]/80 outline-offset-4 checked:shadow-[inset_0_0_0_3px_#291b0d] focus-visible:outline-2 focus-visible:outline-[#fff1ba] ${option.value === 'red' ? 'checked:border-red-500 checked:bg-red-600' : 'checked:bg-[#edbd61]'}`} />{option.label}</label>)}</fieldset>
+      <div className="grid h-12 shrink-0 grid-cols-2 gap-3"><ComputerActionButton data-ui-selection-sound action="position" disabled={setup.starting} onClick={setup.customPosition}>Vị trí tùy chỉnh</ComputerActionButton><ComputerActionButton data-ui-selection-sound action="start" disabled={setup.starting} aria-busy={setup.starting} onClick={() => void setup.start()}>{setup.starting ? 'Đang chuẩn bị…' : 'Đấu ngay'}</ComputerActionButton></div>
       </div>
-      <button type="button" className={`${buttonInteraction} relative -top-[10px] mt-auto -mx-2 w-[calc(100%+16px)] aspect-[2132/418] shrink-0`} onClick={() => setup.setMessage('Luyện cờ chưa được hỗ trợ.')}><CrispUiImage src={trainingBanner} alt="Luyện cờ — Luyện tập cùng máy, rèn kỹ năng mỗi ngày" className="block size-full object-fill" /></button>
+      <button data-ui-selection-sound type="button" className={`${buttonInteraction} relative -top-[10px] mt-auto -mx-2 w-[calc(100%+16px)] aspect-[2132/418] shrink-0`} onClick={() => setup.setMessage('Luyện cờ chưa được hỗ trợ.')}><CrispUiImage src={trainingBanner} alt="Luyện cờ — Luyện tập cùng máy, rèn kỹ năng mỗi ngày" className="block size-full object-fill" /></button>
     </section>
     <ComputerSetupDesktop setup={setup} />
 
-    <dialog ref={setup.messageRef} aria-label="Thông báo" onCancel={() => setup.setMessage('')} className="m-auto w-[min(var(--ui-p-384,384px),90vw)] rounded-xl border border-[#c7a264] bg-[#30271e] p-6 text-center text-[#fff0d1] shadow-2xl backdrop:bg-black/60"><p>{setup.message}</p><button autoFocus className={`${utility} mx-auto mt-5 w-auto px-6 text-base`} onClick={() => setup.setMessage('')}>Đã hiểu</button></dialog>
+    <dialog ref={setup.messageRef} aria-label="Thông báo" onCancel={() => setup.setMessage('')} className={`${oneChoiceNoticeDialog} backdrop:bg-black/60`}><p>{setup.message}</p><button autoFocus className={oneChoiceNoticeButton} onClick={() => setup.setMessage('')}>Đã hiểu</button></dialog>
     </div>
   </div>
 }

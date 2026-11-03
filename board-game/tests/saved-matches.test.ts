@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, expect, it, vi } from 'vitest'
+import { usePlayedMatches } from '../src/store/playedMatchesStore'
 import { useSavedMatches } from '../src/store/savedMatchesStore'
 import { createGame } from '../src/game/state/initial'
 import { finishGame } from '../src/game/moves/actions'
@@ -37,3 +38,51 @@ it('quota failure does not report success', async () => {
  expect(savedMatchSide(record, 'red player')).toBe('red')
  expect(savedMatchSide(record, 'spectator')).toBe('red')
  })
+
+it('records a started zero-move match and replaces it with its zero-move final result', () => {
+  vi.useFakeTimers()
+  usePlayedMatches.setState({ entries: [] })
+  try {
+    const ready = { id: 'started-zero', endedAt: Date.now(), redName: 'me', blackName: 'B', states: [createGame()] }
+    usePlayedMatches.getState().record('me', ready)
+    expect(usePlayedMatches.getState().entries).toHaveLength(0)
+    const initial = { ...createGame(), phase: 'playing' as const }
+    const started = { ...ready, startedAt: Date.now(), states: [initial] }
+    usePlayedMatches.getState().record('me', started)
+    expect(usePlayedMatches.getState().entries[0].states).toEqual([initial])
+    const final = finishGame(initial, 'black', 'leave')
+    usePlayedMatches.getState().record('me', { ...started, states: [final] })
+    expect(usePlayedMatches.getState().entries).toHaveLength(1)
+    expect(usePlayedMatches.getState().entries[0].states).toEqual([final])
+    usePlayedMatches.getState().record('me', started)
+    expect(usePlayedMatches.getState().entries[0].states[0].phase).toBe('finished')
+  } finally {
+    usePlayedMatches.setState({ entries: [] })
+    vi.useRealTimers()
+  }
+})
+
+it('local deletion does not require server history', async () => {
+  const { accountApi } = await import('../src/services/accountApi')
+  const { useSessionStore } = await import('../src/store/sessionStore')
+  const previousAccount = useSessionStore.getState().account
+  const historySpy = vi.spyOn(accountApi, 'history').mockRejectedValue(new Error('network offline'))
+  try {
+    useSessionStore.setState({ account: { id: 'test-account' } as never })
+    const started = finishGame(createGame(), 'red', 'resign')
+    await useSavedMatches.getState().save('me', {
+      id: 'local-delete-regression',
+      endedAt: Date.now(),
+      redName: 'me',
+      blackName: 'Máy',
+      states: [started]
+    })
+    await useSavedMatches.getState().remove('me', 'local-delete-regression')
+    expect(useSavedMatches.getState().entries).toHaveLength(0)
+    expect(JSON.parse(localStorage.getItem('xiangqi-saved-matches-v1')!)).toEqual([])
+    expect(historySpy).not.toHaveBeenCalled()
+  } finally {
+    historySpy.mockRestore()
+    useSessionStore.setState({ account: previousAccount })
+  }
+})

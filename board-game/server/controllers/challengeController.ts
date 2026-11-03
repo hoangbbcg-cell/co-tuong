@@ -1,4 +1,4 @@
-import { publicRoom } from '../services/publicRoom'
+﻿import { publicRoom } from '../services/publicRoom'
 import type { Server } from 'socket.io'
 import type { Ack, ClientEvents, ServerEvents } from '../../src/types/room'
 import { ChallengeService } from '../services/challengeService'
@@ -6,6 +6,7 @@ import { RoomError } from '../services/roomService'
 import { RoomPersistence } from '../services/roomPersistence'
 import { AccountRepository } from '../repositories/accountRepository'
 import { AccountError } from '../errors'
+import { allowSocketEvent } from '../services/socketRateLimiter'
 
 export function registerChallengeSockets(io: Server<ClientEvents, ServerEvents>, service: ChallengeService,persistence?:RoomPersistence) {
   const finish = (id: string, senderId: string, targetId: string, message: string) => {
@@ -15,6 +16,7 @@ export function registerChallengeSockets(io: Server<ClientEvents, ServerEvents>,
     let start = Date.now(), requests = 0
     const run = (ack: Ack<null>, action: () => void|Promise<void>) => {
       if (typeof ack !== 'function') return
+      if (!allowSocketEvent(socket)) { ack({ ok: false, error: 'Thao tác quá nhanh. Vui lòng thử lại.' }); return }
       if (Date.now() - start > 1000) { start = Date.now(); requests = 0 }
       if (++requests > 20) { ack({ ok: false, error: 'Thao tác quá nhanh. Vui lòng thử lại.' }); return }
       void(async()=>{try {await persistence?.authorize(socket.id);await persistence?.flush();await action();await persistence?.flush();ack({ ok: true, data: null }) }
@@ -26,7 +28,8 @@ export function registerChallengeSockets(io: Server<ClientEvents, ServerEvents>,
       if(!p)throw new AccountError('Tài khoản không còn hoạt động.',401)
       service.update(socket.id,{...profile,name:p.displayName,elo:p.stats.find(s=>s.variant==='xiangqi')?.elo??1000,avatarIndex:Number(p.avatarCode.replace('avatar-','')),avatarFrameIndex:Number(p.avatarFrameCode.replace('frame-',''))}, id)
     }))
-    socket.on('challenge:send', (target, ack) => run(ack, () => {
+    socket.on('challenge:send', (target, ack) => run(ack, async() => {
+      await persistence?.prepareStarts([socket.id])
       let resolved = target
       if (persistence && target && typeof target.id === 'string' && /^\d+$/.test(target.id)) {
         const recipient = [...persistence.identities].find(([connectionId, identity]) =>
@@ -42,7 +45,10 @@ export function registerChallengeSockets(io: Server<ClientEvents, ServerEvents>,
       io.to(invite.targetId).emit('challenge:invite', invite)
     }))
     socket.on('challenge:reply', (input, ack) => run(ack, async() => {
-      if(input?.accepted)await persistence?.canPlay(socket.id)
+      if(input?.accepted) {
+        const senderId = service.inviteSenderId(socket.id, input.id)
+        await persistence?.prepareStarts(senderId ? [socket.id, senderId] : [socket.id])
+      }
       const { invite, room, previousRooms } = service.reply(socket.id, input)
       if (!room) {
         io.to(invite.senderId).emit('challenge:result', { id: invite.id, message: input.blockMinutes ? 'Đã bị chặn' : 'Lời mời So tài đã bị từ chối.' })
@@ -67,3 +73,4 @@ export function registerChallengeSockets(io: Server<ClientEvents, ServerEvents>,
     for (const invite of service.expire()) finish(invite.id, invite.senderId, invite.targetId, '')
   }, 1000)
 }
+

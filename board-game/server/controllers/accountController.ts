@@ -14,10 +14,14 @@ export function cookieValue(header:string|undefined,name:string):string|undefine
 }
 export function accountRouter(account:AccountService,persistence=new PersistenceService(),online:()=>Set<string>=()=>new Set()) {
   const router=Router()
+  router.use((_req,res,next)=>{
+    res.setHeader('Cache-Control','private, no-store')
+    next()
+  })
   const throttles=new Map<string,{at:number;count:number}>()
   const googleNonces=new Map<string,{expires:number;sessionHash:string;actor:string|null}>()
   router.use((req,_res,next)=>{
-    const key=req.ip??'local',now=Date.now(),current=throttles.get(key)
+    const key=(req.ip??'local')+(['GET','HEAD'].includes(req.method)?':read':':write'),now=Date.now(),current=throttles.get(key)
     const entry=current&&now-current.at<60000?current:{at:now,count:0}
     if(throttles.size>10000)for(const [ip,item]of throttles)if(now-item.at>60000)throttles.delete(ip)
     entry.count++;throttles.set(key,entry)
@@ -72,6 +76,7 @@ export function accountRouter(account:AccountService,persistence=new Persistence
   router.post('/test-bot/:id/move', async(req,res)=>res.json(await testBot.move(String(res.locals.userId),uuid(req.params.id),req.body?.move,uuid(req.body?.requestId))))
   router.get('/shop', (_req,res)=>res.json(SHOP_PRODUCTS))
   router.get('/shop/daily', async(_req,res)=>{res.setHeader('Cache-Control','no-store');res.json(await shop.daily())})
+  router.get('/shop/weekly', async(_req,res)=>{res.setHeader('Cache-Control','no-store');res.json(await shop.weekly())})
   router.post('/shop/purchase', async(req,res)=>res.json(await shop.purchase(String(res.locals.userId),req.body)))
   router.post('/logout',async(req,res)=>{await account.repository.session(String(res.locals.userId),null);res.clearCookie('ct_guest_session',{path:'/'});res.json({ok:true})})
   router.patch('/name',async(req,res)=>{await account.rename(String(res.locals.userId),req.body?.name);res.json({ok:true})})
@@ -94,7 +99,16 @@ export function accountRouter(account:AccountService,persistence=new Persistence
   router.get('/search',async(req,res)=>res.json(await account.repository.search(text(req.query.q,50))))
   router.get('/profiles/:id',async(req,res)=>{
     const profile=await account.repository.profile(userId(req.params.id));if(!profile)throw new AccountError('Không tìm thấy người chơi.',404)
-    const {gold:_gold,energy:_energy,energyRecoveryAt:_at,...publicProfile}=profile;res.json(publicProfile)
+    const {
+      id,publicId,displayName,linked,renamed,avatarCode,avatarFrameCode,
+      countryCode,provinceCode,provinceName,wardCode,wardName,locationSet,
+      friends,followers,likes,stats
+    }=profile
+    res.json({
+      id,publicId,displayName,linked,renamed,avatarCode,avatarFrameCode,
+      countryCode,provinceCode,provinceName,wardCode,wardName,locationSet,
+      friends,followers,likes,stats
+    })
   })
   router.get('/ranking',async(req,res)=>{
     const variant=req.query.variant??'xiangqi';if(variant!=='xiangqi'&&variant!=='jieqi')throw new AccountError('Variant không hợp lệ.')
@@ -105,6 +119,8 @@ export function accountRouter(account:AccountService,persistence=new Persistence
   router.get('/social/suggestions',async(_req,res)=>res.json(await persistence.friendSuggestions(String(res.locals.userId))))
   router.get('/social',async(_req,res)=>{const data=await persistence.social.list(String(res.locals.userId)),current=online();res.json({...data,friends:data.friends.map(f=>({...f,online:current.has(String(f.id))}))})})
   router.post('/social',async(req,res)=>{await persistence.socialAction(String(res.locals.userId),req.body??{});res.json({ok:true})})
+  router.get('/group-invitations',async(_req,res)=>res.json(await persistence.social.invitations(String(res.locals.userId))))
+  router.patch('/group-invitations/:id',async(req,res)=>{if(typeof req.body?.accepted!=='boolean')throw new AccountError('Lựa chọn không hợp lệ.');res.json(await persistence.social.respondInvitation(String(res.locals.userId),uuid(req.params.id),req.body.accepted))})
   router.get('/conversations',async(_req,res)=>{const list=await persistence.social.conversations(String(res.locals.userId)),current=online();res.json(list.map(conversation=>({...conversation,online:conversation.type==='direct'&&current.has(String(conversation.peerId))})))})
   router.post('/conversations',async(req,res)=>res.json({id:await persistence.createConversation(String(res.locals.userId),req.body??{})}))
   router.get('/conversations/:id/messages',async(req,res)=>res.json(await persistence.social.messages(String(res.locals.userId),uuid(req.params.id))))
@@ -113,6 +129,7 @@ export function accountRouter(account:AccountService,persistence=new Persistence
   router.get('/conversations/:id/settings',async(req,res)=>res.json(await persistence.social.groupSettings(String(res.locals.userId),uuid(req.params.id))))
   router.get('/conversations/:id/blocked',async(req,res)=>res.json(await persistence.social.blockedMembers(String(res.locals.userId),uuid(req.params.id))))
   router.get('/conversations/:id/pending',async(req,res)=>res.json(await persistence.social.pendingMembers(String(res.locals.userId),uuid(req.params.id))))
+  router.patch('/conversations/:id/chat-settings',async(req,res)=>{const {chatDisabled,deputyChatAllowed}=req.body??{};if(typeof chatDisabled!=='boolean'||typeof deputyChatAllowed!=='boolean')throw new AccountError('Cài đặt không hợp lệ.');await persistence.social.setGroupChat(String(res.locals.userId),uuid(req.params.id),chatDisabled,deputyChatAllowed);res.json({ok:true})})
   router.patch('/conversations/:id/settings',async(req,res)=>{if(typeof req.body?.approvalRequired!=='boolean')throw new AccountError('Cài đặt không hợp lệ.');await persistence.social.setGroupApproval(String(res.locals.userId),uuid(req.params.id),req.body.approvalRequired);res.json({ok:true})})
   router.patch('/conversations/:id/mute',async(req,res)=>{const hours=req.body?.hours;if(hours!==null&&(!Number.isInteger(hours)||hours<0||hours>8760))throw new AccountError('Thời gian tắt thông báo không hợp lệ.');await persistence.social.mute(String(res.locals.userId),uuid(req.params.id),hours);res.json({ok:true})})
   router.patch('/conversations/:id/title',async(req,res)=>{await persistence.social.renameGroup(String(res.locals.userId),uuid(req.params.id),text(req.body?.title,80));res.json({ok:true})})

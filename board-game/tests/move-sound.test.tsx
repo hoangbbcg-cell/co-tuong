@@ -26,7 +26,7 @@ it('does not replay the previous seats checkmate on a fresh finished session', (
   expect(audio.dispose).toHaveBeenCalledTimes(1)
 })
 
-type Props = { move: Move | null; board: Board; moveCount: number; phase: GameState['phase']; result?: GameState['result'] }
+type Props = { move: Move | null; board: Board; moveCount: number; phase: GameState['phase']; result?: GameState['result']; silentTransitionKey?: string }
 const firstMove: Move = { from: { row: 6, col: 0 }, to: { row: 5, col: 0 } }
 const captureMove: Move = { from: { row: 5, col: 0 }, to: { row: 4, col: 0 } }
 function setup() {
@@ -40,7 +40,7 @@ function setup() {
   secondBoard[5][0] = null
   secondBoard[4][0] = piece
   const initialProps: Props = { move: null, board: initialBoard, moveCount: 0, phase: 'ready' }
-  return { ...renderHook(({ move, board, moveCount, phase, result }: Props) => useMoveSound(move, board, moveCount, phase, result), { initialProps }),
+  return { ...renderHook(({ move, board, moveCount, phase, result, silentTransitionKey }: Props) => useMoveSound(move, board, moveCount, phase, result, null, false, silentTransitionKey), { initialProps }),
     initialBoard, firstBoard, secondBoard }
 }
 
@@ -59,6 +59,35 @@ it('plays intro once, stops it at the first move, and preserves move/capture and
   expect(audio.play).toHaveBeenLastCalledWith('move')
   act(() => result.current.playMatchIntro(true))
   expect(audio.playIntro).toHaveBeenCalledTimes(2)
+})
+
+it('can suppress both automatic and requested match intros while preserving move sounds', () => {
+  const initialBoard = createGame().board
+  const firstBoard = initialBoard.map(row => [...row])
+  firstBoard[5][0] = firstBoard[6][0]
+  firstBoard[6][0] = null
+  const initialProps: Props = { move: null, board: initialBoard, moveCount: 0, phase: 'ready' }
+  const hook = renderHook(({ move, board, moveCount, phase }: Props) => useMoveSound(move, board, moveCount, phase, null, null, false, undefined, false), { initialProps })
+  act(() => hook.result.current.playMatchIntro(true))
+  hook.rerender({ ...initialProps, phase: 'playing' })
+  expect(audio.playIntro).not.toHaveBeenCalled()
+  hook.rerender({ move: firstMove, board: firstBoard, moveCount: 1, phase: 'playing' })
+  expect(audio.play).toHaveBeenLastCalledWith('move')
+})
+
+it('suppresses only cues caused by switching into or out of trial mode', () => {
+  const { rerender, firstBoard } = setup()
+  const playing = { move: firstMove, board: firstBoard, moveCount: 1, phase: 'playing' as const }
+  act(() => rerender(playing))
+  expect(audio.play).toHaveBeenCalledTimes(1)
+  act(() => rerender({ ...playing, board: firstBoard.map(row => [...row]), silentTransitionKey: '1' }))
+  expect(audio.play).toHaveBeenCalledTimes(1)
+  expect(audio.stopAll).toHaveBeenCalledTimes(1)
+  act(() => rerender({ ...playing, board: firstBoard.map(row => [...row]), silentTransitionKey: '2' }))
+  expect(audio.play).toHaveBeenCalledTimes(1)
+  expect(audio.stopAll).toHaveBeenCalledTimes(2)
+  act(() => rerender({ ...playing, moveCount: 2, silentTransitionKey: '2' }))
+  expect(audio.play).toHaveBeenCalledTimes(2)
 })
 
 it('does not replay sounds on clock/snapshot updates but detects a new ply with the same coordinates', () => {
@@ -81,6 +110,21 @@ it('plays checkmate once for the finishing move without depending on Board anima
   expect(audio.playCheckmate).toHaveBeenCalledTimes(1)
 })
 
+it('keeps full move and checkmate cues when browsing a replay or trial board', () => {
+  const { initialBoard, firstBoard, secondBoard } = setup()
+  cleanup()
+  vi.clearAllMocks()
+  const initialProps: Props = { move: firstMove, board: firstBoard, moveCount: 1, phase: 'finished' }
+  const hook = renderHook(({ move, board, moveCount, phase, result }: Props) => useMoveSound(move, board, moveCount, phase, result, null, true), { initialProps })
+  const { rerender } = hook
+  expect(audio.play).not.toHaveBeenCalled()
+  expect(audio.playCheckmate).not.toHaveBeenCalled()
+  act(() => rerender({ move: captureMove, board: secondBoard, moveCount: 2, phase: 'finished' }))
+  expect(audio.play).toHaveBeenLastCalledWith('capture')
+  act(() => rerender({ move: captureMove, board: secondBoard, moveCount: 2, phase: 'finished', result: { winner: 'red', reason: 'checkmate' } }))
+  expect(audio.playCheckmate).toHaveBeenCalledOnce()
+})
+
 it('cancels sounds on reset and cleans up audio when leaving', () => {
   const { rerender, unmount, initialBoard, firstBoard } = setup()
   act(() => rerender({ move: firstMove, board: firstBoard, moveCount: 1, phase: 'playing' }))
@@ -99,4 +143,13 @@ it('keeps mate completion pending until playback ends, including a result-only s
   expect(result.current.checkmateAudioComplete).toBe(false)
   await act(async () => end())
   expect(result.current.checkmateAudioComplete).toBe(true)
+})
+
+it('does not play the previous mate when a newcomer sees waiting then a finished snapshot', () => {
+  const board = createGame().board
+  const initial: Props = {move:null,board,moveCount:0,phase:'ready'}
+  const hook = renderHook((p:Props) => useMoveSound(p.move,p.board,p.moveCount,p.phase,p.result,null,false,undefined,true,false,true), {initialProps:initial})
+  hook.rerender({move:firstMove,board:board.map(row=>[...row]),moveCount:12,phase:'finished',result:{winner:'red',reason:'checkmate'}})
+  expect(audio.playCheckmate).not.toHaveBeenCalled()
+  expect(audio.play).not.toHaveBeenCalled()
 })

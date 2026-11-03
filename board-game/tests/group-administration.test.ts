@@ -28,22 +28,22 @@ it('changes both roles within the group transaction',async()=>{
 it('dissolves by ending every active membership without deleting messages',async()=>{
   membership('owner')
   await new SocialRepository().member('1','group','dissolve',null)
-  expect(mocks.change).toHaveBeenCalledTimes(2)
+  expect(mocks.change).toHaveBeenCalledTimes(3)
   expect(mocks.change).toHaveBeenCalledWith('UPDATE conversation_members SET left_at=UTC_TIMESTAMP(3) WHERE conversation_id=? AND left_at IS NULL',['group'],expect.anything())
 })
 
 it('queues an invitation from a regular member when approval is enabled',async()=>{
   mocks.rows.mockResolvedValueOnce([{type:'group',member_approval_required:1}]).mockResolvedValueOnce([{role:'member'}]).mockResolvedValueOnce([]).mockResolvedValueOnce([{id:'3'}]).mockResolvedValueOnce([])
   const result=await new SocialRepository().member('2','group','add','3')
-  expect(result).toEqual({pendingApproval:true})
+  expect(result).toEqual({pendingInvitation:true,pendingApproval:false})
   expect(mocks.change).toHaveBeenCalledOnce()
-  expect(mocks.change).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO conversation_join_requests'),['group','3','2'],expect.anything())
+  expect(mocks.change).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO conversation_invitations'),['group','3','2'],expect.anything())
 })
-it.each([['owner',1],['member',0]])('adds immediately for role %s and approval %s',async(role,enabled)=>{
+it.each([['owner',1],['member',0]])('invites without adding for role %s and approval %s',async(role,enabled)=>{
   mocks.rows.mockResolvedValueOnce([{type:'group',member_approval_required:enabled}]).mockResolvedValueOnce([{role}]).mockResolvedValueOnce([]).mockResolvedValueOnce([{id:'3'}]).mockResolvedValueOnce([])
   const result=await new SocialRepository().member('2','group','add','3')
-  expect(result).toEqual({pendingApproval:false})
-  expect(mocks.change).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO conversation_members'),['group','3'],expect.anything())
+  expect(result).toEqual({pendingInvitation:true,pendingApproval:false})
+  expect(mocks.change).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO conversation_invitations'),['group','3','2'],expect.anything())
 })
 it.each(['approve','reject'] as const)('prevents a regular member from %s',async action=>{
   membership('member')

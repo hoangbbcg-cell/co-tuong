@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '../lib/generateUUID'
 import { io, type Socket } from 'socket.io-client'
 import type { ClientEvents, Reply, RoomCommand, RoomSnapshot, ServerEvents } from '../types/room'
 
@@ -11,11 +12,11 @@ export async function connect() {
   await new Promise<void>((resolve, reject) => {
     const cleanup = () => { clearTimeout(timer); socket.off('connect', onConnect); socket.off('connect_error', onError) }
     const onConnect = () => { cleanup(); resolve() }
-    const onError = () => { cleanup(); reject(new Error('Không kết nối được máy chủ phòng.')) }
-    const timer = setTimeout(onError, 8000)
+    const onError = () => { /* keep waiting while Socket.IO retries */ }
+    const timer = setTimeout(() => { cleanup(); reject(new Error('Không kết nối được máy chủ phòng.')) }, 8000)
     socket.once('connect', onConnect)
-    socket.once('connect_error', onError)
-    socket.connect()
+    socket.on('connect_error', onError)
+    if (!socket.active) socket.connect()
   })
 }
 export const roomSocket = {
@@ -23,12 +24,19 @@ export const roomSocket = {
     await connect()
     let reply: Reply<RoomSnapshot>
     try { reply = await socket.timeout(8000).emitWithAck('room:join', { roomId, name, password, asViewer }) }
-    catch (error) { socket.disconnect(); socket.connect(); throw error }
+    catch (error) { throw error }
     return unwrap(reply)
   },
   async command(command: RoomCommand) {
-    if (!socket.connected) throw new Error('Đã mất kết nối phòng.')
-    return unwrap<RoomSnapshot>(await socket.timeout(8000).emitWithAck('game:command', command))
+    const request = { ...command, commandId: command.commandId ?? generateUUID() }
+    let reply: Reply<RoomSnapshot>
+    try { await connect(); reply = await socket.timeout(8000).emitWithAck('game:command', request) }
+    catch { await connect(); await roomSocket.resume(); reply = await socket.timeout(8000).emitWithAck('game:command', request) }
+    return unwrap(reply)
+  },
+  async resume(): Promise<RoomSnapshot | null> {
+    if (!socket.connected) return null
+    return unwrap<RoomSnapshot | null>(await socket.timeout(8000).emitWithAck('room:resume'))
   },
   async chat(text: string) {
     if (!socket.connected) throw new Error('Đã mất kết nối phòng.')
@@ -37,6 +45,7 @@ export const roomSocket = {
   async leave() {
     // Keep presence connected outside rooms to receive challenges.
     try { if (socket.connected) unwrap(await socket.timeout(3000).emitWithAck('room:leave')) }
-    catch (error) { socket.disconnect(); socket.connect(); throw error }
+    catch (error) { throw error }
   },
 }
+

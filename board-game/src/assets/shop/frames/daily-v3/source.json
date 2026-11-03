@@ -1,0 +1,152 @@
+{
+  "date": "2026-10-25",
+  "generator": "Built-in image_gen, individual calls for 20 frames",
+  "purpose": "Replace rejected flat SVG previews with textured raster frames matching the three existing frames",
+  "referenceImages": [
+    "../vien_03_do.png",
+    "../vien_08_xanh_ngoc.png",
+    "../vien_09_tim.png"
+  ],
+  "frames": [
+    {
+      "slug": "do-hong",
+      "name": "Viền đỏ hồng",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: deep rose ruby enamel with subtle marbled streaks, antique gold lips, two gold petal-shaped clasps each holding a small ruby cabochon",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-8b060f98-4af7-47ab-89f9-e0f649460c74.png",
+      "file": "do-hong.png"
+    },
+    {
+      "slug": "xanh-ngoc",
+      "name": "Viền xanh ngọc",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: translucent mint jade band with mottled mineral texture, warm gold lips, two small sculpted ruyi-cloud clasps",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-9d0bf346-fd31-45a7-8ede-135d43d5a39a.png",
+      "file": "xanh-ngoc.png"
+    },
+    {
+      "slug": "tim-thach",
+      "name": "Viền tím thạch",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: violet amethyst polished mineral band with rich veining, champagne gold edges, two small faceted teardrop amethyst gold settings",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-3b8e6dbd-3f8e-4112-817f-672297dd7b11.png",
+      "file": "tim-thach.png"
+    },
+    {
+      "slug": "vang-kim",
+      "name": "Viền vàng kim",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: brushed rich yellow gold band with fine engraved scrolling texture, bright beveled gold lips, two short sculpted laurel leaf clasps",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-37dbd5fc-ab54-4007-bfc0-4cc1062e8091.png",
+      "file": "vang-kim.png"
+    },
+    {
+      "slug": "bac-sang",
+      "name": "Viền bạc sáng",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: polished silver band with softly brushed steel center, pale gold fine lips, two small four-petal silver-gold flower emblems",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-c49cd5b3-c031-4afb-8295-0525343daa68.png",
+      "file": "bac-sang.png"
+    },
+    {
+      "slug": "dong-co",
+      "name": "Viền đồng cổ",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: aged warm bronze band with subtle engraved ancient geometric pattern, burnished gold lips, two small rounded square bronze seal clasps",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-e4d14f2a-50d9-4384-a60d-126c4df3eeb4.png",
+      "file": "dong-co.png"
+    },
+    {
+      "slug": "xanh-duong",
+      "name": "Viền xanh dương",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: royal blue sapphire lacquer band with lustrous subtle texture, gold edges, two slim gold diamond mounts with blue gemstones",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-80da3e08-b916-4e0b-b28f-24f98a239736.png",
+      "file": "xanh-duong.png"
+    },
+    {
+      "slug": "hong-ngoc",
+      "name": "Viền hồng ngọc",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: rose quartz pink marbled band, rose gold bevel edges, two small sculpted five-petal blossom clasps with pearl centers",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-2b2042b9-f741-48f6-b70a-cce853e4d642.png",
+      "file": "hong-ngoc.png"
+    },
+    {
+      "slug": "den-vang",
+      "name": "Viền đen vàng",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: glossy black obsidian band with faint charcoal mineral streaks, substantial gold bevel edges, two small stepped art-deco gold clasps with tiny black gems",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-a7a38bf1-a3d2-4eeb-9af2-fdd07231fbcb.png",
+      "file": "den-vang.png"
+    },
+    {
+      "slug": "trang-ngoc",
+      "name": "Viền trắng ngọc",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: ivory white jade band with cloudy stone texture, delicate warm gold rims, two small polished gold scroll clasps with ivory centers",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-614fd3dd-344f-4aec-b643-24f0d9c50ee7.png",
+      "file": "trang-ngoc.png"
+    },
+    {
+      "slug": "cam-ho-phach",
+      "name": "Viền hổ phách",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: golden orange amber band with translucent honey swirls, bronze-gold rims, two small gold flame-shaped settings holding orange cabochons",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-e37b985e-7c5b-4e60-ab10-ca10dc1a28d4.png",
+      "file": "cam-ho-phach.png"
+    },
+    {
+      "slug": "xanh-la",
+      "name": "Viền xanh lá",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: deep green malachite band with natural concentric mineral striping, gold rims, two small bamboo-leaf shaped gold clasps",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-6bb739c5-31d1-4047-9c5b-a03b417e14e4.png",
+      "file": "xanh-la.png"
+    },
+    {
+      "slug": "lam-bac",
+      "name": "Viền lam bạc",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: pale aquamarine icy enamel band with gentle marbling, bright silver-gold rim, two small sculpted silver wave clasps with blue stones",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-fc256b58-f323-4329-9550-6359d3351a84.png",
+      "file": "lam-bac.png"
+    },
+    {
+      "slug": "tim-vang",
+      "name": "Viền tím vàng",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: deep plum enamel band with fine antique etched filigree texture, yellow gold rims, two compact gold fleur-shaped clasps with tiny lavender stones",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-5b3d3e08-0c97-49f1-a771-76df4958f2f8.png",
+      "file": "tim-vang.png"
+    },
+    {
+      "slug": "do-dong",
+      "name": "Viền đỏ đồng",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: dark cinnabar red lacquer band with lightly worn copper texture, polished copper and gold lips, two small braided-knot gold clasps",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-9de74847-c377-4c60-b6ae-8399e5830bdc.png",
+      "file": "do-dong.png"
+    },
+    {
+      "slug": "hong-phan",
+      "name": "Viền hồng phấn",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: pale blush pearlescent band with shimmering nacre texture, rose gold rims, two restrained sculpted shell-petal clasps with small pearls",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-c5191dd7-ea17-4fcf-9aca-87f4134bbb27.png",
+      "file": "hong-phan.png"
+    },
+    {
+      "slug": "ngoc-bich",
+      "name": "Viền ngọc bích",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: dark celadon nephrite jade band with subtle cloudy green mineral inclusions, antique gold edges, two small gold coin-like circular clasps with jade centers",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-0c5e4677-fd23-4c55-8ca0-a9a955d4d8f1.png",
+      "file": "ngoc-bich.png"
+    },
+    {
+      "slug": "xanh-dem",
+      "name": "Viền xanh đêm",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: midnight navy lapis lazuli band with sparse tiny golden mineral flecks, warm gold lips, two small crescent-shaped gold clasps with sapphire inset",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-86da9c9d-2a3a-497c-a376-e5666204bc77.png",
+      "file": "xanh-dem.png"
+    },
+    {
+      "slug": "vang-chanh",
+      "name": "Viền vàng chanh",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: pale citrine yellow crystal enamel band with glossy organic streaks, champagne gold edges, two small sunburst coin clasps each with amber center",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-998f0840-a273-4187-8f3a-9a50f918a5e2.png",
+      "file": "vang-chanh.png"
+    },
+    {
+      "slug": "nau-go",
+      "name": "Viền nâu gỗ",
+      "prompt": "Create a NEW variation of an avatar FRAME using the three attached frames as STYLE REFERENCES ONLY. Match their polished dimensional game-asset craftsmanship: textured glossy enamel/jade/metal circular band, fine gold inner and outer lips, realistic bevels and highlights, two modest sculpted ornaments at 9 and 3 o'clock. Thin band and large opening like references, not a heavy fantasy wreath. Perfect frontal circle, centered on square canvas, all artwork inside canvas, 3% padding. Exactly ONE frame only. Center opening and entire exterior must be genuinely ALPHA TRANSPARENT, no opaque fill, no background, no fake checkerboard, no portrait, no text, no labels, no inset panels. Center aperture diameter about 74% of canvas, outer circle 92%; the two small side ornaments may occupy the band but must not obstruct the opening. Keep it elegant, premium and restrained, richer material than flat vector graphics. Requested distinct material + ornament design: polished dark sandalwood brown band with subtle fine wood grain, warm gold bevel rims, two small carved bronze cloud-scroll clasps",
+      "originalPath": "C:\\Users\\NHAT HOANG\\.codex\\generated_images\\01a15ecf-6fc1-75d0-8e66-28e92bae42d8\\exec-4022cd74-6f30-4878-a8a4-117cbf369e48.png",
+      "file": "nau-go.png"
+    }
+  ]
+}
