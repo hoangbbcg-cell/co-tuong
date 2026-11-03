@@ -1815,3 +1815,9 @@ HTTPS SHA-256 của index, ads.txt, 5 trang nội dung, manifest và 2 icons kh�
 - HomeRewardNotifications.tsx: bỏ offset desktop translate-y5dvh để dialog nằm giữa viewport; mobile đã grid center.
 - Backup: outputs/backups/reward-center-20261103/HomeRewardNotifications.tsx.
 - Kiểm tra source: offset gỡ đúng một nơi; chưa QA trình duyệt. Không build/deploy VPS.
+
+## 2026-11-03 - Publish current source to GitHub
+- Branch codex/publish-local-20261103, draft PR#33; source/assets/docs included, local reports/backups/credentials/build products excluded.
+- Retained upstream operational safeguards, normalized Git line endings, declared build dependency sharp, synchronized room test fixtures with current rules.
+- Typecheck/lint/build PASS. Full suite 872 PASS/66 FAIL/41 SKIP; subsequent room/popup35/35 PASS. Full suite not green; VPS not activated.
+- Report: outputs/github-publish-20261103/REPORT.md.

@@ -623,3 +623,11 @@ Sandbox DNS không resolve; lệnh kiểm tra thiếu ErrorAction Stop khiến h
 - Previous command did not isolate failures and did not provide sufficient visible progress.
 - Corrective rule: do not pass Jest-only flags to Vitest; capture each command exit code independently, use time limits and visible progress, and never push when validation fails.
 - No Git push or VPS changes were performed by that batch.
+
+## 2026-11-03 - Source publication validation
+- Initial sandbox GitHub auth lookup falsely reported invalid token due network restrictions; authorized network lookup authenticated correctly.
+- Git index lock contention interrupted stage/commit; verified state before retry, no hook bypass. Windows CRLF caused whole-file merge conflicts; normalized three-way resolution retained master ops and local gameplay.
+- Untracked workflow blocked merge; backed up before using upstream tracked workflow. One fixture-update command had duplicate board-game cwd prefix; corrected before writing.
+- Sandbox test/npm runs stalled; canceled before source merge or dependency changes, ran verification outside sandbox. Initial full result: 66 failing tests, no successful full baseline.
+- Build failed MODULE_NOT_FOUND sharp: dependency was used by postbuild but not declared. Added pinned dev dependency, full build then exit0. Do not deploy when CI/tests remain failing.
+- Wrong generic SSH key could not log in as deploy account; used existing dedicated cotuong_vps_test_deploy key successfully. No remote state changed.

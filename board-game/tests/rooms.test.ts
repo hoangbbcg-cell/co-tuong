@@ -126,9 +126,9 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(roomAfterLeave?.viewers?.filter(viewer => viewer.queued).map(viewer => viewer.id)).toEqual(['viewer-2'])
     expect(roomAfterLeave?.game.result).toMatchObject({ winner: 'black', reason: 'leave' })
   })
-  it('server khóa nước đi và giữ giờ trong 1,3 giây khai cuộc', () => {
+  it('server khóa nước đi và giữ giờ trong thời gian khai cuộc đã cấu hình', () => {
     start()
-    now = base + 1299
+    now = base + MATCH_INTRO_MS - 1
     expect(() => service.command('a', move)).toThrow()
     expect(service.tick()[0].game.remainingTime.red).toBe(600000)
     now = base + MATCH_INTRO_MS
@@ -137,7 +137,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(room.game.remainingTime.red).toBe(600000)
     expect(room.game.phase).toBe('playing')
     expect(room.game.result).toBeNull()
-    now = base + 1301
+    now = base + MATCH_INTRO_MS + 1
     const reply = service.command('b', { type: 'move', move: { from: { row: 3, col: 0 }, to: { row: 4, col: 0 } } })
     expect(reply.game.phase).toBe('playing')
     expect(reply.game.currentTurn).toBe('red')
@@ -159,7 +159,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(() => service.command('a', { type: 'move', move: { from: { row: -1, col: 0 }, to: { row: 5, col: 0 } } })).toThrow()
     expect(() => service.command('outsider', move)).toThrow()
     expect(() => service.command('a', { type: 'teleport' })).toThrow()
-    now = base + 1500
+    now = base + MATCH_INTRO_MS + 200
     const room = service.command('a', move)
     expect(room.game.board[5][0]?.side).toBe('red')
     expect(room.game.remainingTime.red).toBe(599800)
@@ -183,7 +183,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
     room = service.command('a', { type: 'request-takeback' })
     expect(room.takebackOffer).toEqual({ requester: 'red', plies: 1 })
     expect(room.takebackRemaining?.red).toBe(1)
-    now = base + 1350
+    now = base + MATCH_INTRO_MS + 50
     room = service.tick()[0]
     expect(room.game.remainingTime.black).toBe(600000)
     expect(room.game.turnElapsed).toBe(0)
@@ -192,8 +192,8 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(room.game.board[6][0]?.side).toBe('red')
     expect(room.game.currentTurn).toBe('red')
     expect(room.takebackRemaining?.red).toBe(2)
-    now = base + 1400; service.command('a', move)
-    now = base + 1500; service.command('b', { type: 'move', move: { from: { row: 3, col: 0 }, to: { row: 4, col: 0 } } })
+    now = base + MATCH_INTRO_MS + 100; service.command('a', move)
+    now = base + MATCH_INTRO_MS + 200; service.command('b', { type: 'move', move: { from: { row: 3, col: 0 }, to: { row: 4, col: 0 } } })
     room = service.command('a', { type: 'request-takeback' })
     expect(room.takebackOffer?.plies).toBe(2)
     room = service.command('b', { type: 'reply-takeback', accepted: true })
@@ -202,7 +202,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(room.game.remainingTime).toEqual({ red: 600000, black: 600000 })
     expect(room.game.turnElapsed).toBe(0)
     expect(room.takebackRemaining?.red).toBe(2)
-    now = base + 1600; service.command('a', move)
+    now = base + MATCH_INTRO_MS + 300; service.command('a', move)
     room = service.command('a', { type: 'request-takeback' })
     room = service.command('b', { type: 'reply-takeback', accepted: false })
     expect(room.takebackRemaining?.red).toBe(1)

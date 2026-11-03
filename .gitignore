@@ -77,3 +77,7 @@ board-game/src/assets/references/uploads/*
 *.jks
 *.keystore
 /VPS_CHECKPOINT.zip
+
+/board-game/scripts/hovang-webp-build-result.json
+/board-game/engines/fairy-stockfish/fairy-stockfish*
+/board-game/engines/fairy-stockfish/*.nnue
