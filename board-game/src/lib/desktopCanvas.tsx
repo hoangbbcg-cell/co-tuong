@@ -44,7 +44,7 @@ export function DesktopCanvas({ children }: { children: ReactNode }) {
   const viewportStyle = {
     position: "fixed",
     inset: 0,
-    // display: "grid",
+    // display: "grid", fix UI bug where the canvas is not centered on mobile when the keyboard is open
     placeItems: "center",
   } as CSSProperties;
   const canvasStyle = {
@@ -52,7 +52,7 @@ export function DesktopCanvas({ children }: { children: ReactNode }) {
     height: DESKTOP_CANVAS_HEIGHT,
     minWidth: DESKTOP_CANVAS_WIDTH,
     minHeight: DESKTOP_CANVAS_HEIGHT,
-    // transform: `scale(${canvas.scale})`,
+    // transform: `scale(${canvas.scale})`, fix UI bug where the canvas is not centered on mobile when the keyboard is open
     transformOrigin: "center",
     overflow: "visible",
     "--desktop-canvas-scale": canvas.scale,
