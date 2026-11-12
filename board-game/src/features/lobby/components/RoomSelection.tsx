@@ -40,10 +40,14 @@ const coin = `${homeUtilityButton} shrink-0 compact:size-(--mobile-utility-size)
 
 const framedButton = `${buttonInteraction} border-0 bg-transparent bg-[length:100%_100%] bg-no-repeat text-[#fff0ce] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50`
 
+import xiangqiRankingTab from '../../../assets/rankings/ranking-xiangqi-tab-user.png'
+import hiddenRankingTab from '../../../assets/rankings/ranking-hidden-tab-user.png'
+import { selectedImageTabGlow } from '../../../lib/uiClasses'
 export function RoomSelection({ lobby, music, onClose, onEntranceComplete, onOpenProfile, onFullscreen }: Props) {
   const [roomCode, setRoomCode] = useState('')
+  const [boardVariant, setBoardVariant] = useState<'xiangqi' | 'jieqi'>('xiangqi')
   const provinceDialogLayout = useFriendsLayout()
-  const selection = useRoomSelection(lobby)
+  const selection = useRoomSelection(lobby, boardVariant)
   const provinceOptions = useVietnamAdministrativeUnits(selection.provincePickerOpen, null)
   const provinceLabel = selection.allProvinces ? 'Tất cả' : roomProvinceLabel(selection.province)
   const entrance = useRoomEntrance(onEntranceComplete)
@@ -53,17 +57,41 @@ export function RoomSelection({ lobby, music, onClose, onEntranceComplete, onOpe
     <div inert={entrance.entering} className="contents">
     <header className="relative flex h-[56px] shrink-0 items-center gap-6 border-b-2 border-[#b78136] bg-[#130e08]/85 px-10 compact:h-[calc(42px+12px)] compact:gap-3 compact:px-4">
       <button type="button" className={`${gameUtilityButton} shrink-0 compact:size-(--mobile-utility-size) compact:[&_svg]:size-(--mobile-utility-icon)`} aria-label="Đóng" onClick={onClose}><GameBackIcon /></button>
-      <form noValidate aria-label="Tìm phòng theo số" className="absolute left-1/2 top-1/2 flex h-[44px] w-[min(480px,calc(100%_-_310px))] -translate-x-1/2 -translate-y-1/2 items-stretch gap-2 compact:h-9 compact:w-[calc(100%_-_134px)] compact:gap-[6px]" onSubmit={event => { event.preventDefault(); lobby.joinByCode(roomCode) }}><label style={searchFieldMetrics(provinceDialogLayout.compact ? 'calc(var(--spacing) * 9)' : '44px', provinceDialogLayout.compact)} className="flex min-w-0 flex-1 items-center border border-[#81420f] bg-[linear-gradient(#5a3219,#2b1508)] px-2 shadow-[inset_0_0_0_1px_#ffd888,inset_0_0_0_3px_#a45f20,inset_0_0_0_4px_#55250b,0_1px_1px_#5b2b0d]"><SearchIcon className="size-6 shrink-0 text-[#f6d27b] compact:size-5" /><input aria-label="Số phòng" placeholder="Nhập số phòng..." inputMode="numeric" maxLength={6} value={roomCode} onChange={event => setRoomCode(event.target.value.replace(/\D/g, ''))} className={`ml-1 h-full min-w-0 flex-1 bg-transparent font-arial font-normal not-italic lining-nums tabular-nums text-[#e5d8bc] outline-none placeholder:font-body placeholder:text-[#c2ae81] ${searchFieldTextSize}`} /></label><SearchButton aria-label="Tìm và vào phòng" disabled={lobby.pending} className="h-full min-w-[80px] text-base compact:min-w-[56px] compact:px-[8px] compact:text-sm"><svg aria-hidden="true" viewBox="0 0 24 24" className="size-[20px] shrink-0 compact:size-[16px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6"/></svg>Tìm</SearchButton></form>
+      <form noValidate aria-label="Tìm phòng theo số" className="absolute left-1/2 top-1/2 flex h-[44px] w-[min(480px,calc(100%_-_310px))] -translate-x-1/2 -translate-y-1/2 items-stretch gap-2 compact:h-9 compact:w-[calc(100%_-_134px)] compact:gap-[6px]" onSubmit={event => { event.preventDefault(); lobby.joinByCode(roomCode, boardVariant) }}><label style={searchFieldMetrics(provinceDialogLayout.compact ? 'calc(var(--spacing) * 9)' : '44px', provinceDialogLayout.compact)} className="flex min-w-0 flex-1 items-center border border-[#81420f] bg-[linear-gradient(#5a3219,#2b1508)] px-2 shadow-[inset_0_0_0_1px_#ffd888,inset_0_0_0_3px_#a45f20,inset_0_0_0_4px_#55250b,0_1px_1px_#5b2b0d]"><SearchIcon className="size-6 shrink-0 text-[#f6d27b] compact:size-5" /><input aria-label="Số phòng" placeholder="Nhập số phòng..." inputMode="numeric" maxLength={6} value={roomCode} onChange={event => setRoomCode(event.target.value.replace(/\D/g, ''))} className={`ml-1 h-full min-w-0 flex-1 bg-transparent font-arial font-normal not-italic lining-nums tabular-nums text-[#e5d8bc] outline-none placeholder:font-body placeholder:text-[#c2ae81] ${searchFieldTextSize}`} /></label><SearchButton aria-label="Tìm và vào phòng" disabled={lobby.pending} className="h-full min-w-[80px] text-base compact:min-w-[56px] compact:px-[8px] compact:text-sm"><svg aria-hidden="true" viewBox="0 0 24 24" className="size-[20px] shrink-0 compact:size-[16px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6"/></svg>Tìm</SearchButton></form>
       <nav className="ml-auto flex flex-wrap shrink-0 items-center justify-end gap-[10px]" aria-label="Tiện ích">
         <button data-ui-tab-sound className={coin} aria-label={music.playing ? 'Tắt nhạc' : 'Bật nhạc'} aria-pressed={music.playing} onClick={() => void music.toggle().catch(() => selection.setMessage('Không thể phát nhạc trên trình duyệt này.'))}><HomeIcon name={music.playing ? 'sound' : 'muted'}/></button>
         <button className={`${coin} compact:hidden`} aria-label="Toàn màn hình" title="Phóng to/thu nhỏ màn hình" onClick={onFullscreen}><HomeIcon name="fullscreen"/></button>
       </nav>
     </header>
+    <div className="relative z-10 flex shrink-0 flex-col items-center gap-2 px-3 pt-2 compact:gap-1.5 compact:pt-1.5">
+      <div role="group" aria-label="Chọn chế độ bàn" className="mx-auto flex w-full max-w-[400px] items-center justify-center gap-2 compact:max-w-[290px]">
+        {(['xiangqi', 'jieqi'] as const).map(value => (
+          <button
+            key={value}
+            type="button"
+            data-ui-selection-sound
+            aria-label={value === 'xiangqi' ? 'Cờ Tướng' : 'Cờ Úp'}
+            aria-pressed={boardVariant === value}
+            disabled={lobby.pending}
+            onClick={() => setBoardVariant(value)}
+            className={`${buttonInteraction} relative block h-[46px] w-[172px] max-w-[48%] shrink-0 border-0 bg-transparent p-0 transition-[filter] duration-150 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-[#ffe4a6] disabled:opacity-50 compact:h-[34px] compact:w-[128px]`}
+          >
+            <img
+              src={value === 'xiangqi' ? xiangqiRankingTab : hiddenRankingTab}
+              alt=""
+              aria-hidden="true"
+              className={`pointer-events-none block size-full object-contain ${boardVariant === value ? selectedImageTabGlow : ''}`}
+            />
+          </button>
+        ))}
+      </div>
+
+    </div>
     <div className="mx-auto flex min-h-0 w-[calc(88%-180px)] flex-1 flex-col pt-3 compact:w-full compact:px-2 compact:pt-2">
       <div className="grid shrink-0 grid-cols-[3fr_2.5fr_4fr] gap-3 px-[10px] compact:grid-cols-2 compact:gap-2">
-        <button type="button" data-ui-selection-sound aria-label={`Chọn tỉnh/thành phố, hiện tại ${provinceLabel}`} onClick={selection.openProvincePicker} className={`${framedButton} relative isolate flex h-[72px] items-center gap-3 px-6 py-[5px] compact:h-[52px] compact:gap-1 compact:px-3`}>
+        <button type="button" data-ui-selection-sound aria-label={`Chọn tỉnh/thành phố, hiện tại ${provinceLabel}`} onClick={selection.openProvincePicker} className={`${framedButton} relative isolate flex h-[58px] items-center gap-2 px-5 py-[3px] compact:h-[44px] compact:gap-1 compact:px-3`}>
           <img src={buttonImage} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 size-full object-fill" />
-          {selection.allProvinces ? <span aria-hidden="true" className="relative z-10 text-3xl compact:text-2xl">🌐</span> : <img src={roomProvinceIcon(selection.province)} alt="" className="relative z-10 block max-h-[56px] w-14 shrink-0 object-contain compact:max-h-9 compact:w-9"/>}
+          {selection.allProvinces ? <span aria-hidden="true" className="relative z-10 text-2xl compact:text-xl">🌐</span> : <img src={roomProvinceIcon(selection.province)} alt="" className="relative z-10 block max-h-[43px] w-11 shrink-0 object-contain compact:max-h-8 compact:w-8"/>}
           <h2 id="roomSelectionTitle" className="sr-only">Chọn Bàn</h2>
           <div className="relative -top-[3px] z-10 min-w-0 flex-1 text-left">
             <p title={provinceLabel} className="relative top-[5px] truncate font-heading text-[22px] leading-tight compact:text-lg">{provinceLabel}</p>
@@ -73,9 +101,9 @@ export function RoomSelection({ lobby, music, onClose, onEntranceComplete, onOpe
             </p>
           </div>
         </button>
-        <button data-ui-selection-sound aria-label="Tạo bàn" className={`${framedButton} relative isolate flex h-[72px] items-center justify-center gap-2 compact:h-[52px]`} onClick={() => selection.setCreating(true)} disabled={lobby.pending}><img src={buttonImage} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 size-full object-fill"/><span className="relative z-10 font-heading text-[22px] compact:text-lg">Tạo bàn</span><span aria-hidden="true" className="relative z-10 font-number text-4xl leading-none compact:text-2xl">＋</span></button>
-        <div ref={selection.quickTimeRef} style={{ backgroundImage: `url(${quickImage})` }} className="relative flex h-[72px] items-center bg-transparent bg-[length:100%_100%] bg-no-repeat px-3 text-[#fff0ce] compact:col-span-2 compact:h-[52px]">
-          <button data-ui-selection-sound className={`${buttonInteraction} flex min-w-0 flex-1 items-center justify-center gap-2 py-2 text-[22px] hover:brightness-110 disabled:opacity-50 compact:text-lg`} disabled={lobby.pending || lobby.loading || !lobby.name.trim()} onClick={selection.quickPlay}><span aria-hidden="true" className="text-4xl leading-none compact:text-[28px]">⚔</span><span className="font-heading compact:text-xl">Chơi nhanh</span><span className="border-l border-[#e4ac57]/50 pl-2 font-heading"><span className="font-number">{selection.quickMinutes}</span> <span className="compact:text-xl">phút</span></span></button>
+        <button data-ui-selection-sound aria-label="Tạo bàn" className={`${framedButton} relative isolate flex h-[58px] items-center justify-center gap-2 compact:h-[44px]`} onClick={() => selection.setCreating(true)} disabled={lobby.pending}><img src={buttonImage} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 size-full object-fill"/><span className="relative z-10 font-heading text-[22px] compact:text-lg">Tạo bàn</span><span aria-hidden="true" className="relative z-10 font-number text-3xl leading-none compact:text-2xl">＋</span></button>
+        <div ref={selection.quickTimeRef} style={{ backgroundImage: `url(${quickImage})` }} className="relative flex h-[58px] items-center bg-transparent bg-[length:100%_100%] bg-no-repeat px-3 text-[#fff0ce] compact:col-span-2 compact:h-[44px]">
+          <button data-ui-selection-sound className={`${buttonInteraction} flex min-w-0 flex-1 items-center justify-center gap-2 py-2 text-[22px] hover:brightness-110 disabled:opacity-50 compact:text-lg`} disabled={lobby.pending || lobby.loading || !lobby.name.trim()} onClick={selection.quickPlay}><span aria-hidden="true" className="text-3xl leading-none compact:text-2xl">⚔</span><span className="font-heading compact:text-xl">Chơi nhanh</span><span className="border-l border-[#e4ac57]/50 pl-2 font-heading"><span className="font-number">{selection.quickMinutes}</span> <span className="compact:text-xl">phút</span></span></button>
           <button type="button" data-ui-tab-sound className={`${buttonInteraction} grid size-10 compact:size-8 shrink-0 place-items-center text-3xl compact:text-2xl hover:bg-black/20`} aria-label="Chọn thời gian Chơi nhanh" aria-expanded={selection.timeOpen} aria-controls="room-time-options" onClick={() => selection.setTimeOpen(!selection.timeOpen)}><svg viewBox="0 0 24 24" className="size-7 compact:size-6" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true"><path d="m5 9 7 7 7-7"/></svg></button>
           {selection.timeOpen && <div id="room-time-options" role="listbox" aria-label="Thời gian Chơi nhanh" className="absolute right-0 top-full z-20 mt-1 flex w-28 flex-col gap-1 rounded-md border border-[#b78a47] bg-[#382717]/95 p-1.5 shadow-[0_4px_12px_#0009]" onKeyDown={event => { if (event.key === 'Escape') selection.setTimeOpen(false) }}>{ROOM_MINUTES.map(minutes => <button data-ui-selection-sound key={minutes} type="button" role="option" aria-selected={selection.quickMinutes === minutes} className={`${buttonInteraction} flex h-8 compact:h-11 w-full items-center justify-center rounded-sm bg-[#2b160edb] px-2 font-number text-base text-[#ffe7b6] hover:bg-[#613014]`} onClick={() => { selection.setQuickMinutes(minutes); selection.setTimeOpen(false) }}>{minutes} phút</button>)}</div>}
         </div>
@@ -89,12 +117,13 @@ export function RoomSelection({ lobby, music, onClose, onEntranceComplete, onOpe
         <RoomTableGrid rooms={selection.rooms} vacantOnly={selection.vacantOnly} disabled={lobby.pending || !lobby.name.trim()} loading={lobby.loading} onJoin={lobby.join} />
       </section>
     </div>
+
     <footer className="shrink-0 pt-2">
       <div className="mx-auto flex max-w-full justify-center gap-2" aria-label="Lọc bàn">{(['all', 'vacant', 'locked'] as const).map(filter => <button key={filter} data-ui-selection-sound aria-pressed={selection.roomFilter === filter} onClick={() => selection.setRoomFilter(filter)} className={`${buttonInteraction} grid h-[34px] compact:h-8 compact:w-[110px] compact:px-2 compact:text-xs w-[140px] max-w-[30%] place-items-center rounded-[3px] border border-[#dfc49c] px-3 text-sm shadow-[inset_0_0_0_1px_#f7e3bd44,0_2px_3px_#0005] hover:brightness-110 ${selection.roomFilter === filter ? 'bg-[linear-gradient(#e3cba6,#bea07a)] text-[#392715]' : 'bg-[linear-gradient(#705437,#4a3422)] text-[#ddc5a2]'}`}>{filter === 'locked' ? 'Bàn khóa' : filter === 'vacant' ? 'Còn trống' : 'Tất cả'}</button>)}</div>
     </footer>
     {lobby.roomSearchNotice && <div role="alert" className={`${shopMobileDialogFrameClass} pointer-events-none absolute left-1/2 top-1/2 z-50 w-[min(320px,calc(100%-32px))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border-2 border-[#d5a657] bg-[radial-gradient(ellipse_at_top,#85502466,transparent_70%),linear-gradient(145deg,#482910,#201007)] px-5 py-6 text-center font-body text-xl font-semibold text-[#ffe5ac] shadow-[inset_0_0_0_3px_#3b1d0b,inset_0_0_0_4px_#a8753466,0_14px_40px_#0009]`}>Không tìm thấy phòng</div>}
     {selection.addressNoticeOpen && <NoticeOverlay onDismiss={() => selection.setAddressNoticeOpen(false)} className={confirmationDialogOverlay}><section role="alertdialog" aria-modal="true" aria-labelledby="room-address-notice" className={confirmationDialogFrame} onKeyDown={event => { if (event.key === 'Escape') selection.setAddressNoticeOpen(false) }}><h2 id="room-address-notice" className={confirmationDialogTitle}>Thiết lập địa chỉ</h2><p className={confirmationDialogDescription}>Bạn chưa chọn địa chỉ, hãy thiết lập địa chỉ.</p><div className={confirmationDialogActions}><button autoFocus type="button" className={`${confirmationCancelButton} px-6 py-2 text-base`} onClick={() => selection.setAddressNoticeOpen(false)}>Hủy</button><button type="button" className={`${confirmationAcceptButton} px-6 py-2 text-base`} onClick={() => { selection.setAddressNoticeOpen(false); onOpenProfile() }}>Đồng ý</button></div></section></NoticeOverlay>}
-    {selection.creating && <div className="absolute inset-0 z-30 grid place-items-center bg-black/65 p-5 compact:p-2"><CreateRoomForm lobby={lobby} province={selection.creationProvince} onCancel={() => selection.setCreating(false)} /></div>}
+    {selection.creating && <div className="absolute inset-0 z-30 grid place-items-center bg-black/65 p-5 compact:p-2"><CreateRoomForm lobby={lobby} initialVariant={boardVariant} province={selection.creationProvince} onCancel={() => selection.setCreating(false)} /></div>}
     {selection.provincePickerOpen && <div className="absolute inset-0 z-40 grid place-items-center bg-black/75 p-4 compact:p-2" onMouseDown={event => { if (event.target === event.currentTarget) selection.setProvincePickerOpen(false) }}>
       <section role="dialog" aria-modal="true" aria-labelledby="room-province-title" className="relative isolate h-[80dvh] w-full max-w-[min(920px,124dvh)] border-0 bg-transparent p-0 text-[#ffe7b2]">
         <RoomDialogFrame />
@@ -104,10 +133,10 @@ export function RoomSelection({ lobby, music, onClose, onEntranceComplete, onOpe
           {provinceOptions.provincesLoading && <div role="status" aria-label="Đang tải danh sách tỉnh thành" className="grid min-h-32 place-items-center p-6"><HovangDataSpinner /></div>}
           {provinceOptions.provincesError && <div role="alert" className="flex flex-col items-center gap-3 p-6 text-center text-[#f3d59f]"><span>{provinceOptions.provincesError}</span><button type="button" onClick={provinceOptions.retryProvinces} className="rounded-md border border-[#e1ae4e] px-4 py-2 hover:bg-[#613014]">Tải lại</button></div>}
           {!provinceOptions.provincesLoading && !provinceOptions.provincesError && <div className="grid h-full grid-cols-2 auto-rows-[calc((100%-24px)/4)] gap-x-3 gap-y-2 compact:grid-cols-2 compact:auto-rows-[calc((100%-40px)/6)] compact:gap-2">
-          {[{ name: 'Tất cả' }, ...sortRoomProvinces(provinceOptions.provinces, lobby.rooms)].map(city => {
+          {[{ name: 'Tất cả' }, ...sortRoomProvinces(provinceOptions.provinces, selection.variantRooms)].map(city => {
             const isAll = city.name === 'Tất cả'
             const selected = isAll ? selection.allProvinces : !selection.allProvinces && city.name === selection.province
-            const { roomCount, playerCount } = roomRegionActivity(isAll ? preferVietnamRooms(lobby.rooms.filter(room => room.players > 0 || (room.viewerCount ?? 0) > 0)) : lobby.rooms, isAll ? undefined : city.name)
+            const { roomCount, playerCount } = roomRegionActivity(isAll ? preferVietnamRooms(selection.variantRooms.filter(room => room.players > 0 || (room.viewerCount ?? 0) > 0)) : selection.variantRooms, isAll ? undefined : city.name)
             return <button key={city.name} data-ui-selection-sound type="button" aria-pressed={selected} onClick={() => { selection.setAllProvinces(isAll); if (!isAll) selection.setProvince(city.name); selection.setProvincePickerOpen(false) }} className={`${buttonInteraction} relative isolate flex h-full min-h-0 [container-type:inline-size] compact:[container-type:size] items-center gap-3 rounded-lg border-0 bg-transparent px-5 py-0 text-left leading-none hover:brightness-125 compact:gap-[2cqw] compact:px-[3cqw] ${selected ? 'ring-2 ring-[#ffd65b]' : ''}`}>
               <img src={provinceCard} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 block size-full object-fill" />
               <span aria-hidden="true" className="relative z-10 flex h-full w-[26cqw] compact:w-[min(36cqw,100cqh)] shrink-0 items-center justify-center">{isAll ? <span className="text-[16cqw] compact:text-[min(27cqw,78cqh)]">🌐</span> : <img src={roomProvinceIcon(city.name)} alt="" className="block size-full object-contain" />}</span>

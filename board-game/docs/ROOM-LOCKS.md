@@ -1,5 +1,13 @@
 # Quy tắc bàn khóa cập nhật 2026-10-28
 
+- 2026-11-10: Chặn xếp hàng cũng chặn tự vào ghế: mọi người mới vào (gồm lời mời của chủ) ở View queued=false dù đang có 0/1/2 ghế có người. Không đẩy người đang ngồi xuống. Chủ vẫn có thể Đưa lên bàn bằng quản lý; tắt chặn thì người mới vào lại theo luật ghế trống hiện hành.
+
+- 2026-11-10: Bàn có quyền quản lý (bàn khóa và Thế cờ riêng dù không bật khóa) giữ quyền chủ khi chủ xuống View, kể cả đổi ghế/hết năng lượng. Một người ngồi cũng được Xuống bàn; cả hai xuống View thì phòng vẫn tồn tại, không ép người xem không xếp hàng lên bàn. Chỉ chuyển chủ khi chủ thực sự rời phòng; không đổi chủ vì người khác vào ghế. Xếp hàng tự nguyện vẫn lên ghế theo FIFO/đủ năng lượng, phòng hết toàn bộ thành viên vẫn xóa. Bàn thường không đổi. Thay quy tắc chuyển chủ khi xuống View và bắt buộc đủ hai ghế trước đây trong phạm vi này.
+
+- 2026-11-08: Cập nhật phòng "Thế cờ riêng": nút Đổi bên bàn cờ trong phòng là lệnh server custom-swap-sides (chỉ chủ phòng, trước ván) đổi bên ngồi hai người nên bàn cờ hai người cùng lật; Back từ phòng trả đúng thế cờ khi bấm Tạo bàn, Back từ bàn đánh thử trả về màn xếp quân Vị trí tùy chỉnh với đúng thế cờ ban đầu.
+
+- 2026-11-08: Phòng "Thế cờ riêng" (customFen từ Vị trí tùy chỉnh Đấu ngay) dùng cùng khuôn Tạo bàn gồm Bàn khóa/Mật khẩu. Không khóa thì đích thực là phòng không khóa: vào thẳng không hỏi mật khẩu khi vào bằng mã phòng hoặc So tài; bật khóa giữ nguyên luật 0–64 ký tự và passwordRequired. Phòng custom không xuất hiện trong danh sách phòng hoặc Chơi nhanh, chỉ vào bằng mã phòng (roomApi.byCode) hoặc lời mời; chủ phòng và quyền chủ bàn khóa hiện hành không đổi. Xem chi tiết phòng custom trong AGENTS.md ngày 2026-11-08 và docs/CUSTOM-POSITION.md.
+
 - Bật Bàn khóa có thể để mật khẩu trống (0–64 ký tự). Trống thì vào thẳng; chỉ passwordRequired=true mới hỏi mật khẩu, kể cả tìm số phòng/lời mời. Bàn khóa vẫn tách khỏi Chơi nhanh.
 - Chủ bàn khóa là tài khoản tạo bàn, được xác thực từ cookie HTTP và danh tính socket; không nhận chủ phòng do client tự khai. Khi chủ rời, chuyển cho người còn trong phòng đầu tiên. Server RAM giữ quyền/cài đặt trong vòng đời phòng.
 - Menu ba gạch có nút vàng Cài đặt ở bên phải, chỉ chủ bàn khóa. Hai checkbox Chặn vào hàng/Chặn chat áp dụng ngay, không xác nhận. Chặn hàng đưa mọi người đang queued về viewer không xếp hàng và gửi toast Đã thoát hàng; thử vào hàng báo Đã chặn vào hàng. Chặn chat chặn cả ghế/viewer, chủ vẫn nhắn được; bị chặn gửi báo Đã chặn chat. Tắt chặn chung không xóa cấm chat riêng.
@@ -79,3 +87,19 @@ Kiểm chứng: unit service kiểm tra mật khẩu sai/thiếu/đúng ở cả
 - 2026-11-02: Sau ván, người ngồi hết năng lượng phải xuống View queued=false kể cả không có hàng chờ; chủ bàn khóa là ngoại lệ luôn giữ ghế khi hết năng lượng, cả khi có người xếp hàng. Người thay vẫn theo FIFO/đủ năng lượng; không đẩy xuống giữa ván. Quy tắc này thay ngoại lệ chủ bàn khóa hết năng lượng phải nhường và giữ người hết năng lượng khi không có hàng trước đó.
 - Sửa nguyên nhân đếm lại không chạy với persistence thật: RoomPersistence.observe đổi lastCompletedMatch.id sang UUID DB khi recordCompletion. captureCompletedMatch phải tạo rematchWaits SAU observer để giữ đúng ID cuối; trước đây test RAM không tái hiện. Thêm regression observer đổi ID và test2socket thật xác nhận cả2nhận30→29 qua room:state/helperUI. Người hết năng lượng không hàng chờ xuống sau5s trình diễn; sau xoay có người khác hết năng lượng vẫn dọn ghế dù hết hàng, giữ lockedowner. Backup outputs/backups/persisted-rematch-energy-20261102. Final32/32 rematch/energy/queue/presentation PASS; socket1/1 PASS ngoài sandbox (localhost tạm, không DB thật). Build TypeScript/Vite PASS, dist cập nhật/diff-check PASS. Chưa browser2thiết bị/MySQL thật QA; không có listener local3001/5173 ở lần kiểm tra; không restart/deploy máy chủ người dùng.
 - 2026-11-03: Người nhận lời mời Mời chơi/So tài từ chủ phòng khóa được vào không nhập mật khẩu; server xác nhận inviter hiện vẫn owner khi accept. Join thường/lời mời không phải chủ vẫn kiểm mật khẩu, không gửi password client và không đổi queue/ghế. tests/challenge15/15 PASS. Backup outputs/backups/owner-invite-password-20261103. Chưa socket/browser QA, backend cần nạp mã mới.
+
+## 2026-11-10 — Bàn thường khi không còn người ngồi
+
+Chỉ áp dụng phòng thường (`!locked && !customFen`), gồm cả Cờ Tướng/Cờ Úp. Khi không còn người ngồi, ưu tiên người queued đủ năng lượng theo FIFO; không có hàng phù hợp thì đưa View đủ năng lượng vào sớm nhất lên bàn và giao chủ phòng cho người đó. Không ép View thường lên khi vẫn còn một người ngồi. Nếu không có ai đủ năng lượng lên thay thì xóa phòng; các View còn lại hết năng lượng nhận room:removed reason energy/notice và rời socket room, không để client ở phòng đã xóa. Phòng hết toàn bộ thành viên vẫn xóa như trước.
+
+Dùng helper settleEmptyNormalTable chung sau leave/update và tick để không sót trường hợp người cuối cùng bị demote do hết năng lượng sau ván. Giữ thời gian trình diễn kết quả/luật miễn năng lượng và quyết định kết quả hiện tại. Bàn khóa và bàn thế cờ riêng giữ ngoại lệ có thể trống ghế mà còn View/chủ phòng; không tự kéo View thường lên trong những bàn này.
+
+Kiểm chứng56/56tests7suite PASS, gồm8ca mới hai variant, socket thật thông báo/xóa membership, queue, quản lý bàn, stand-up và reconnect; TypeScript PASS. Chưa browserQA/deploy. Backup .checkpoints/normal-empty-room-20261110.
+
+## 2026-11-10 — Phòng thường tạo bỏ dở
+
+Phòng thường vừa tạo chưa có người ngồi không hiển thị trong Chọn Bàn. User đã hủy quy tắc tạo phòng vắng người60giây tự xóa. Khôi phục thời hạn dọn phòng hoàn toàn không có thành viên30phút đã có trước task; không bổ sung hạn60giây cho luồng tạo→join. Một người đã ngồi chờ được giữ phòng bình thường; bàn khóa/custom giữ cơ chế cũ, không đổi grace reconnect3phút.
+
+RoomRepository.pruneEmpty trả snapshot phòng đã dọn. RoomService thu gom các snapshot này kể cả khi prune do list/create, dọn history/readywait và phát thay đổi qua tick để sảnh nhận rooms:changed. Trường hợp hết ghế mà còn View vẫn dùng settleEmptyNormalTable: ưu tiên queued đủ năng lượng rồi View đủ năng lượng; không người thay thì đóng/đưa View hết năng lượng ra. Không chỉ che phòng trên UI rồi giữ vô thời hạn.
+
+92/92tests9suite PASS gồm6ca tạo bỏ dở hai variant, socket thông báo sảnh và giữ socket người ngồi, cùng luật empty-room/queue/khóa/thế riêng/HTTP; TypeScript và diffcheckPASS. Thay đổi chỉ backendlocal, không chạy lại pipeline ảnhfrontend. Backup .checkpoints/empty-room-vps-20261110. Theo yêu cầu mới user không tiếp tục đọc/sửaVPS; các phòng đang chạy chưa bị xóa hoặc restart.

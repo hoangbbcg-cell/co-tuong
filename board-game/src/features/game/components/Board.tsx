@@ -1,8 +1,10 @@
 import { ReadyCountdownBadge } from './ReadyCountdownBadge'
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Board as BoardState, Move, Piece, Position, Side } from '../../../types/game'
 import { findGeneral } from '../../../game/rules'
 import { buttonInteraction } from '../../../lib/uiClasses'
+import { canControlHovangWatermark, readHovangWatermark } from '../../../lib/hovangBrandEntitlement'
+import { useSessionStore } from '../../../store/sessionStore'
 import mapleBoard from '../../../assets/boards/banco-inner-clean-v1.webp'
 import readyButton from '../../../assets/buttons/ready-button-ss-shadow-reference.webp'
 import startMatchButton from '../../../assets/buttons/custom-position-start.webp'
@@ -143,15 +145,21 @@ function animatePieceLift(layer: HTMLDivElement | null, variant: PieceLiftVarian
 function PieceMotion({ pieceId, selected, moving, duration, scale, path, children }: { pieceId: string; selected: boolean; moving: boolean; duration: number; scale: number; path: Array<{ left: number; top: number }>; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   const previouslySelected = useRef(selected)
+  const flight = useRef<{ path: typeof path; selected: boolean; elapsed: number } | null>(null)
   useLayoutEffect(() => {
+    if (!moving) { flight.current = null; return }
     if (!moving || !ref.current || path.length < 2 || typeof ref.current.animate !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const previousFlight = flight.current?.path === path ? flight.current : null
+    const state = { path, selected: previousFlight?.selected ?? previouslySelected.current, elapsed: previousFlight?.elapsed ?? 0 }
+    flight.current = state
     const start = path[0]
     const destination = path[path.length - 1]
     const dx = Math.round((destination.left - pieceWidth / 2) * scale) - Math.round((start.left - pieceWidth / 2) * scale)
     const dy = Math.round((destination.top - pieceHeight / 2) * scale) - Math.round((start.top - pieceHeight / 2) * scale)
-    const selectedLift = previouslySelected.current ? Math.round(12 * scale) : 0
+    const selectedLift = state.selected ? Math.round(12 * scale) : 0
     const lift = Math.round(pieceFlightHeight * scale)
-    // Land continuously instead of reaching the target early and dropping in 40ms.
+    // Continue the selection lift in the same trajectory as the move.
+    // A separate settling animation can pull the piece down before it travels.
     const keyframes: Keyframe[] = Array.from({ length: 33 }, (_, index) => {
       const t = index / 32
       const height = selectedLift * (1 - t) + lift * Math.sin(Math.PI * t) ** 2
@@ -159,7 +167,12 @@ function PieceMotion({ pieceId, selected, moving, duration, scale, path, childre
     })
 
     const motion = ref.current.animate(keyframes, { duration, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)', fill: 'both' })
-    return () => motion.cancel()
+    // A responsive resize must continue the same flight, not replay its start.
+    if (state.elapsed > 0) motion.currentTime = Math.min(state.elapsed, duration)
+    return () => {
+      state.elapsed = typeof motion.currentTime === 'number' ? motion.currentTime : 0
+      motion.cancel()
+    }
   }, [moving, duration, scale, path])
   useLayoutEffect(() => { previouslySelected.current = selected }, [selected])
   return <div className={`relative size-full ${selected || moving ? 'will-change-transform' : ''} ${moving ? 'transition-none' : 'transition-transform duration-150 ease-out motion-reduce:transition-none'}`} style={{
@@ -170,6 +183,7 @@ function PieceMotion({ pieceId, selected, moving, duration, scale, path, childre
   </div>
 }
 interface PieceViewProps {
+  cachedFace: boolean
   piece: Piece
   testId: string
   left: number
@@ -181,7 +195,7 @@ interface PieceViewProps {
   scale: number
   path: Array<{ left: number; top: number }>
 }
-const PieceView = memo(function PieceView({ piece, testId, left, top, visualRow, selected, moving, duration, scale, path }: PieceViewProps) {
+const PieceView = memo(function PieceView({ piece, testId, left, top, visualRow, selected, moving, duration, scale, path, cachedFace }: PieceViewProps) {
   return <div data-testid={testId} data-piece-id={piece.id} className="absolute" style={{
     left: Math.round((left - pieceWidth / 2) * scale),
     top: Math.round((top - pieceHeight / 2) * scale),
@@ -192,7 +206,7 @@ const PieceView = memo(function PieceView({ piece, testId, left, top, visualRow,
     <PieceMotion pieceId={piece.id} selected={selected} moving={moving} duration={duration} scale={scale} path={path}>
       {piece.concealed
         ? <img data-testid="covered-piece" src={concealedBack} alt="" aria-hidden="true" draggable={false} className={`m-0 block size-full border-0 p-0 object-fill saturate-[0.84] ${moving ? 'drop-shadow-none' : 'drop-shadow-[0.5625em_0.8125em_0.25em_#6a4827c2]'}`} style={{ fontSize: 16 * scale }} />
-        : <ChessPiece side={piece.side} type={piece.type} character={piece.name} scale={scale} moving={moving} />}
+        : <ChessPiece side={piece.side} type={piece.type} character={piece.name} scale={scale} moving={moving} cachedFace={cachedFace} />}
     </PieceMotion>
   </div>
 }, (before, after) => {
@@ -203,7 +217,7 @@ const PieceView = memo(function PieceView({ piece, testId, left, top, visualRow,
     && a.jieqi === b.jieqi && a.concealed?.type === b.concealed?.type && a.concealed?.name === b.concealed?.name
     && before.testId === after.testId && before.left === after.left && before.top === after.top
     && before.visualRow === after.visualRow && before.selected === after.selected && before.moving === after.moving
-    && before.duration === after.duration && before.scale === after.scale
+    && before.duration === after.duration && before.scale === after.scale && before.cachedFace === after.cachedFace
     && before.path.length === after.path.length
     && before.path.every((point, index) => point.left === after.path[index].left && point.top === after.path[index].top)
 })
@@ -226,10 +240,35 @@ interface Props {
   onCheckmateEffectStart?: () => void
   onCheckmateEffectComplete?: () => void
   onRemove?: (point: Position) => void
+  suppressLastMoveMarkers?: boolean
   readyCountdown?: number | null
+  showHovangWatermark?: boolean
 }
 export const Board = memo(function Board(props: Props) {
   const { board, selected, legalMoves, animation, scale } = props
+  const [compactPieces, setCompactPieces] = useState(() => typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 800px)').matches)
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return
+    const query = window.matchMedia('(max-width: 800px)')
+    const sync = () => setCompactPieces(query.matches)
+    sync()
+    if (query.addEventListener) query.addEventListener('change', sync)
+    else query.addListener?.(sync)
+    return () => { if (query.removeEventListener) query.removeEventListener('change', sync); else query.removeListener?.(sync) }
+  }, [])
+  const account = useSessionStore(state => state.account)
+  const accountPublicId = account?.publicId
+  const watermarkAllowed = canControlHovangWatermark(accountPublicId, account?.hovangWatermarkControl)
+  const [watermarkVisible, setWatermarkVisible] = useState(() => !watermarkAllowed || !accountPublicId || readHovangWatermark(accountPublicId))
+  useEffect(() => {
+    const sync = () => setWatermarkVisible(!watermarkAllowed || !accountPublicId || readHovangWatermark(accountPublicId))
+    sync()
+    window.addEventListener('hovang-watermark-changed', sync)
+    return () => window.removeEventListener('hovang-watermark-changed', sync)
+  }, [accountPublicId, watermarkAllowed])
+  const showHovangWatermark = props.showHovangWatermark === false ? false : props.showHovangWatermark === true ? true : watermarkVisible
+  // Hide stale selection markers while a move is animating or the source square is empty.
+  const selectionVisible = !animation && !!selected && !!board[selected.row]?.[selected.col]
   const hintFrom = props.hintMove ? location(props.hintMove.from, props.flipped) : null
   const hintTo = props.hintMove ? location(props.hintMove.to, props.flipped) : null
   const hintLength = hintFrom && hintTo ? Math.hypot(hintTo.left - hintFrom.left, hintTo.top - hintFrom.top) : 0
@@ -249,7 +288,8 @@ export const Board = memo(function Board(props: Props) {
   useEffect(() => () => checkmateHitCancelRef.current?.(), [])
   const layerStyle = { width: props.frameWidth, height: props.frameWidth * 1296 / 1134 }
   const checkedGeneral = props.checkSide ? findGeneral(props.checkSide, board) : null
-  const path = useMemo(() => animation ? getPieceMovePath(animation).map(point => location(point, props.flipped)) : [], [animation, props.flipped])
+  const path = useMemo(() => animation ? getPieceMovePath(animation).map(point => location(point, props.flipped)) : [],
+    [animation?.from.row, animation?.from.col, animation?.to.row, animation?.to.col, props.flipped])
   const duration = PIECE_MOVE_DURATION_MS
   const effectPieceId = props.checkmateEffect && props.lastMove
     ? board[props.lastMove.to.row][props.lastMove.to.col]?.id ?? null
@@ -332,16 +372,16 @@ export const Board = memo(function Board(props: Props) {
         </g>
       </svg>}
       <div className={`${layer} pointer-events-none`} style={layerStyle} aria-hidden="true">
-        <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 font-georgia leading-none font-bold whitespace-nowrap text-[#936332] italic" style={{ top: 641.5 * scale, fontSize: Math.round(48 * scale) }}>HOVANG</span>
+        {showHovangWatermark && <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 font-georgia leading-none font-bold whitespace-nowrap text-[#936332] italic" style={{ top: 641.5 * scale, fontSize: Math.round(48 * scale) }}>HOVANG</span>}
       </div>
       <div hidden={props.revealPieces === false} className={`${layer} pointer-events-none z-3`} style={layerStyle} aria-hidden="true">
         {checkedGeneral && <div data-testid="checked-general-ring" className={lastMovePieceRing} style={{ ...displayLocation(checkedGeneral, props.flipped, scale), width: Math.round(122 * scale), height: Math.round(122 * scale), borderWidth: Math.round(5 * scale) }} />}
-        {props.lastMove && !animation && !selected && <>
+        {props.lastMove && !props.suppressLastMoveMarkers && !animation && !selected && <>
           <img data-testid="last-move-origin" src={moveIndicatorDot} alt="" className={moveMarkerImageClass} style={{ ...displayLocation(props.lastMove.from, props.flipped, scale), width: Math.round(155 * scale), height: Math.round(155 * scale) }} />
           <div data-testid="last-move-destination" className={lastMovePieceRing} style={{ ...displayLocation(props.lastMove.to, props.flipped, scale), width: Math.round(122 * scale), height: Math.round(122 * scale), borderWidth: Math.round(5 * scale) }} />
         </>}
-        {selected && <CornerMarker testId="selected-marker" point={selected} flipped={props.flipped} scale={scale} />}
-        {legalMoves.map(point => board[point.row][point.col]
+        {selectionVisible && <CornerMarker testId="selected-marker" point={selected} flipped={props.flipped} scale={scale} />}
+        {selectionVisible && legalMoves.map(point => board[point.row][point.col]
           ? <CornerMarker key={`${point.row}-${point.col}`} testId="capture-move-marker" point={point} flipped={props.flipped} scale={scale} />
           : <img key={`${point.row}-${point.col}`} data-testid="move-marker" src={moveIndicatorDot} alt="" className={moveMarkerImageClass} style={{ ...displayLocation(point, props.flipped, scale), width: Math.round(155 * scale), height: Math.round(155 * scale) }} />)}
       </div>
@@ -361,7 +401,7 @@ export const Board = memo(function Board(props: Props) {
           const movingPath = moving ? path : emptyPath
           const visualRow = props.flipped ? 9 - target.row : target.row
           const position = moving && path.length ? path[0] : location(point, props.flipped)
-          return <PieceView key={piece.id} piece={piece} testId={`piece-${point.row}-${point.col}`} left={position.left} top={position.top} visualRow={visualRow} selected={selectedPiece} moving={moving} duration={duration} scale={scale} path={movingPath} />
+          return <PieceView key={piece.id} piece={piece} testId={`piece-${point.row}-${point.col}`} left={position.left} top={position.top} visualRow={visualRow} selected={selectedPiece} moving={moving} duration={duration} scale={scale} path={movingPath} cachedFace={compactPieces && !props.hiddenChess} />
         })}
       </div>
       <div hidden={props.revealPieces === false} className={`${layer} pointer-events-none z-5`} style={layerStyle} aria-hidden="true">

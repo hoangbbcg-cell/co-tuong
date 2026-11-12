@@ -35,7 +35,6 @@ export function DesktopCanvas({ children }: { children: ReactNode }) {
       window.visualViewport?.removeEventListener('resize', resize)
     }
   }, [])
-  if (canvas.compact) return children
   const viewportStyle = {
     position: 'fixed',
     inset: 0,
@@ -52,5 +51,8 @@ export function DesktopCanvas({ children }: { children: ReactNode }) {
     overflow: 'visible',
     '--desktop-canvas-scale': canvas.scale,
   } as CSSProperties
-  return <div id="app-desktop-viewport" style={viewportStyle}><div id="app-desktop-canvas" style={canvasStyle}>{children}</div></div>
+  // Keep both wrapper nodes across the breakpoint. Adding/removing them remounts
+  // Providers and every screen, losing local game/editor state during rotation.
+  // Compact wrappers have no layout box or desktop IDs, preserving mobile CSS.
+  return <div id={canvas.compact ? undefined : 'app-desktop-viewport'} style={canvas.compact ? { display: 'contents' } : viewportStyle}><div id={canvas.compact ? undefined : 'app-desktop-canvas'} style={canvas.compact ? { display: 'contents' } : canvasStyle}>{children}</div></div>
 }

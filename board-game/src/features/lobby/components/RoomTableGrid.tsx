@@ -10,12 +10,12 @@ type Props = { rooms: RoomSummary[]; vacantOnly: boolean; disabled: boolean; loa
 
 export function RoomTableGrid({ rooms, vacantOnly, disabled, loading, onJoin }: Props) {
   const displayedRooms = rooms
-    .filter(room => (room.players > 0 || (room.viewerCount ?? 0) > 0) && (!vacantOnly || room.players === 1))
+    .filter(room => ((room.onlineCount ?? (room.players + (room.viewerCount ?? 0))) > 0) && (!vacantOnly || room.players === 1))
     // The server returns rooms in repository insertion (creation) order; stable ties keep older rooms first.
-    .sort((left, right) => (right.players + (right.viewerCount ?? 0)) - (left.players + (left.viewerCount ?? 0)))
+    .sort((left, right) => (right.onlineCount ?? (right.players + (right.viewerCount ?? 0))) - (left.onlineCount ?? (left.players + (left.viewerCount ?? 0))))
   return <div className="relative z-10 grid min-h-0 flex-1 grid-cols-4 auto-rows-[calc((100%-16px)/3)] gap-2 compact:grid-cols-3 compact:auto-rows-[calc((100%-24px)/4)] narrow:auto-rows-[calc((100%-24px)/4)] overflow-y-auto [scrollbar-gutter:stable]       ">
     {displayedRooms.map(room => {
-      const totalPeople = room.players + (room.viewerCount ?? 0)
+      const totalPeople = (room.onlineCount ?? (room.players + (room.viewerCount ?? 0)))
       return <button key={room.id} type="button" disabled={disabled} onClick={() => onJoin(room.id)} aria-label={`Vào phòng ${room.name}, ${room.players}/2 ghế, ${totalPeople} người trong phòng`} className={`${buttonInteraction} disabled:cursor-pointer! relative flex min-h-0 min-w-0 flex-col items-center justify-center gap-1 bg-transparent p-0 text-[#fff0ce]`}>
       <span className="flex h-[78%] compact:h-[76%] w-full min-h-0 flex-col items-center justify-center gap-[5px]">
         <span className="flex shrink-0 items-center gap-1 rounded-full bg-[#1c0e07]/65 px-1.5 py-0.5 text-[#ffe08b]">

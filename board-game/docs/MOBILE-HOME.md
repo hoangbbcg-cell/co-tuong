@@ -90,3 +90,5 @@ Kiểm chứng:3/3 test preview/route/Home compact PASS, typecheck/build PASS; l
 - 2026-10-25: Theo user tăng nhẹ tiếp nút tiện ích MOBILE40→42px/icon22→24px; slotchat/header/offset và menu đồng bộ42px. Home/desktop/View/avatar không đổi. Build/typecheck PASS; dist xác nhận token42px; chưa browser QA.
 
 - 2026-11-02: Theo user, hai mũi tên Chế độ trước/tiếp theo Home mobile và nút Giải đấu Home mobile/laptop phát tiếng X qua data-ui-selection-sound chung, tôn trọng muted và không chồng tiếng tab. Giữ callback/chuyển trang/UI. Backup outputs/backups/home-x-sound-20261102. mobile-home + ui-checkbox-sound5/5 PASS; npm.cmd run build TypeScript/Vite PASS; dist index-Pj3YiMZv.js xác nhận marker; chưa nghe thử browser.
+
+- 2026-11-04: Theo user thẻ tên Home bắt buộc fixedWidth bằng tổng2Elo:37cqw mobile, desktop token180 theo layoutscale; loại bỏ auto-width tên riêng2Home. Chỉ mở/sửa chiều rộng nameplate, giữ font/height/avatar/vị trí và khóa lại sautask.

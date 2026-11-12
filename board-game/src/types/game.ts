@@ -1,6 +1,15 @@
 export type Side = 'red' | 'black'
 export type PieceType = 'rook' | 'horse' | 'elephant' | 'advisor' | 'general' | 'cannon' | 'soldier'
 export type GameVariant = 'xiangqi' | 'jieqi'
+/** A captured concealed piece is a private identity until sent to its capturer. */
+export interface JieqiCapture {
+  id: string
+  by: Side
+  side: Side
+  concealed: boolean
+  type: PieceType | null
+  name: string | null
+}
 export interface Piece {
   id: string; type: PieceType; side: Side; name: string
   jieqi?: boolean
@@ -28,9 +37,14 @@ export interface RepetitionState {
 export interface MoveHint extends Position { type: 'legal' | 'repetition-forbidden' }
 export interface GameState {
   turnTimeLimitMs?: number
+  /** Increment is credited on a legal move, capped at this per-side starting time. */
+  initialTimeMs?: number
+  /** Awarded once after a legal move. Omitted means none. */
+  incrementMs?: number
   repetition?: RepetitionState
   variant?: GameVariant
   board: Board
+  captures?: JieqiCapture[]
   currentTurn: Side
   phase: 'ready' | 'playing' | 'finished'
   remainingTime: Record<Side, number>

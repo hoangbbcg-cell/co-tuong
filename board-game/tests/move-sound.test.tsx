@@ -19,6 +19,45 @@ vi.mock('../src/features/game/audio/GameSounds', () => ({ GameSounds: class {
 } }))
 afterEach(() => { cleanup(); vi.clearAllMocks() })
 
+it('plays the next intro when auto-rematch jumps directly from finished to playing with move count reset', () => {
+  const board = createGame().board
+  const initial: Props = { move: null, board, moveCount: 0, phase: 'ready', silentTransitionKey: 'room:false' }
+  const hook = renderHook((p: Props) => useMoveSound(p.move, p.board, p.moveCount, p.phase, p.result, null, false, p.silentTransitionKey, true, false, true), { initialProps: initial })
+  hook.rerender({ ...initial, phase: 'playing' })
+  hook.rerender({ ...initial, phase: 'playing', move: firstMove, moveCount: 1, board: board.map(row => [...row]) })
+  hook.rerender({ ...initial, phase: 'finished', move: firstMove, moveCount: 1, result: { winner: 'red', reason: 'resign' } })
+  const stops = audio.stopAll.mock.calls.length
+  const introStops = audio.stopIntro.mock.calls.length
+  // No Ready click and no intermediate ready phase: the server starts in one snapshot.
+  hook.rerender({ ...initial, phase: 'playing', board: createGame().board })
+  expect(audio.playIntro).toHaveBeenCalledTimes(2)
+  expect(audio.stopAll).toHaveBeenCalledTimes(stops)
+  expect(audio.stopIntro).toHaveBeenCalledTimes(introStops)
+  hook.rerender({ ...initial, phase: 'playing', board: createGame().board })
+  expect(audio.playIntro).toHaveBeenCalledTimes(2)
+})
+
+it('plays online intro on automatic start and again after the next ready countdown, without a Ready click', () => {
+  const board = createGame().board
+  const initial: Props = { move: null, board, moveCount: 0, phase: 'ready', silentTransitionKey: 'room:false' }
+  const hook = renderHook((p: Props) => useMoveSound(p.move, p.board, p.moveCount, p.phase, p.result, null, false, p.silentTransitionKey, true, false, true), { initialProps: initial })
+  // Repeated countdown snapshots are still in ready phase.
+  hook.rerender({ ...initial, board: board.map(row => [...row]) })
+  expect(audio.playIntro).not.toHaveBeenCalled()
+  hook.rerender({ ...initial, phase: 'playing' })
+  expect(audio.playIntro).toHaveBeenCalledTimes(1)
+  hook.rerender({ ...initial, phase: 'playing', board: board.map(row => [...row]) })
+  expect(audio.playIntro).toHaveBeenCalledTimes(1)
+  hook.rerender({ ...initial, phase: 'finished', result: { winner: 'red', reason: 'resign' } })
+  hook.rerender(initial)
+  hook.rerender({ ...initial, board: board.map(row => [...row]) })
+  expect(audio.playIntro).toHaveBeenCalledTimes(1)
+  hook.rerender({ ...initial, phase: 'playing' })
+  expect(audio.playIntro).toHaveBeenCalledTimes(2)
+  hook.rerender({ ...initial, phase: 'playing', board: board.map(row => [...row]) })
+  expect(audio.playIntro).toHaveBeenCalledTimes(2)
+})
+
 it('does not replay the previous seats checkmate on a fresh finished session', () => {
   const hook = renderHook(() => useMoveSound(firstMove, createGame().board, 12, 'finished', { winner: 'red', reason: 'checkmate' }))
   expect(audio.playCheckmate).not.toHaveBeenCalled()

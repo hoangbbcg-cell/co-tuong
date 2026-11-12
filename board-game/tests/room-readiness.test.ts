@@ -1,6 +1,7 @@
 import { beforeEach, expect, it } from 'vitest'
 import { RoomRepository } from '../server/repositories/roomRepository'
 import { RoomService } from '../server/services/roomService'
+import { MATCH_INTRO_MS } from '../src/game/moves/actions'
 
 let now: number, service: RoomService, id: string
 beforeEach(() => {
@@ -14,37 +15,47 @@ const queue = () => { service.join(id, 'c', 'Người C'); return service.comman
 const ready = (player: string) => service.command(player, { type: 'ready' })
 const tickAt = (time: number) => { now = time; return service.tick() }
 
-it.each([false, true])('không có người chờ: cơ chế mới vẫn chạy bộ đếm, một người ready=%s', oneReady => {
+it.each([false, true])('không có người chờ: đủ hai ghế đếm30s rồi bắt đầu, một người ready=%s', oneReady => {
   const room = oneReady ? ready('a') : service.roomFor('a')!
+  expect(room.readyCountdown).toBeNull()
   tickAt(999)
   expect(room.readyCountdown).toBeNull()
   tickAt(1000)
   expect(room.readyCountdown).toBe(30)
-  tickAt(30_000)
+  tickAt(30_999)
   expect(room.readyCountdown).toBe(1)
+  expect(room.game.phase).toBe('ready')
   tickAt(31_000)
+  expect(room.readyCountdown).toBeNull()
   expect(room.game.phase).toBe('playing')
   expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
 })
-it('hai người chưa ready: 1s mới hiện30; đủ31s bắt đầu', () => {
+it('hai người chưa ready: chờ1s rồi hiện30s khi đủ ghế rồi tự bắt đầu', () => {
   const room = queue()
-  tickAt(999)
-  expect(room.readyCountdown).toBeNull()
-  tickAt(1000)
-  expect(room.readyCountdown).toBe(30)
+  tickAt(10999)
+  expect(room.readyCountdown).toBe(21)
+  tickAt(11_000)
+  expect(room.readyCountdown).toBe(20)
   tickAt(30_000)
   expect(room.readyCountdown).toBe(1)
   tickAt(31_000)
   expect(room.game.phase).toBe('playing')
-  expect(room.game.lastClockUpdate).toBe(32_300)
+  expect(room.game.lastClockUpdate).toBe(31_000 + MATCH_INTRO_MS)
   expect(room.readyCountdown).toBeNull()
   expect(room.players.every(player => player.ready)).toBe(true)
 })
-it('một người ready không rút ngắn 31s và không đổi ghế', () => {
+it('một người ready: chờ1s rồi đếm đủ30s từ lúc đủ ghế và không đổi người', () => {
   const room = queue()
-  tickAt(15_000)
   ready('a')
-  expect(room.readyCountdown).toBe(16)
+  expect(room.readyCountdown).toBeNull()
+  tickAt(999)
+  expect(room.readyCountdown).toBeNull()
+  tickAt(1000)
+  expect(room.readyCountdown).toBe(30)
+  tickAt(5999)
+  expect(room.readyCountdown).toBe(26)
+  tickAt(6000)
+  expect(room.readyCountdown).toBe(25)
   tickAt(30_000)
   expect(room.readyCountdown).toBe(1)
   expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
@@ -52,13 +63,11 @@ it('một người ready không rút ngắn 31s và không đổi ghế', () => 
   expect(room.game.phase).toBe('playing')
   expect(room.lastCompletedMatch).toBeUndefined()
 })
-it('người thứ hai ready vẫn chờ đủ31s, giữ nguyên hai ghế', () => {
+it('người thứ hai ready trước hạn bắt đầu ngay, giữ nguyên hai ghế', () => {
   const room = queue()
   ready('a')
   tickAt(19_999)
   ready('b')
-  expect(room.game.phase).toBe('ready')
-  tickAt(31_000)
   expect(room.game.phase).toBe('playing')
   expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
 })
@@ -67,14 +76,17 @@ it('người chờ bỏ hàng không đổi hai ghế hay tạo kết quả', ()
   tickAt(15_000)
   service.command('c', { type: 'leave-queue' })
   tickAt(31_000)
+  expect(room.game.phase).toBe('playing')
   expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
   expect(room.lastCompletedMatch).toBeUndefined()
 })
 it('người chờ rời phòng không làm thay đổi cặp ghế', () => {
   const room = queue()
   ready('a')
-  tickAt(20_000)
+  tickAt(11_000)
   service.leave('c')
+  tickAt(60_000)
+  expect(room.game.phase).toBe('playing')
   expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
   expect(room.lastCompletedMatch).toBeUndefined()
 })
@@ -84,8 +96,6 @@ it('ready lặp không đẩy lùi thời điểm khởi đầu', () => {
   tickAt(19_000)
   ready('a')
   expect(() => service.command('a', { type: 'reset' })).toThrow()
-  tickAt(30_000)
-  expect(room.game.phase).toBe('ready')
   tickAt(31_000)
   expect(room.game.phase).toBe('playing')
 })
@@ -98,7 +108,7 @@ it('người chờ không chen ghế khi hết countdown', () => {
   expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
   expect(room.game.phase).toBe('playing')
 })
-it('sau kết quả chờ đủ xác nhận+2s rồi cặp mới có 31s riêng', () => {
+it('sau kết quả đủ 3s từ lúc kết thúc rồi thay người và đếm Ready', () => {
   const room = queue()
   ready('a'); ready('b')
   tickAt(31_000)
@@ -108,13 +118,13 @@ it('sau kết quả chờ đủ xác nhận+2s rồi cặp mới có 31s riêng'
   service.command('b', { type: 'result-presentation-complete', matchId })
   tickAt(32_999)
   expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
-  tickAt(33_000)
+  tickAt(34_000)
   expect(room.players.map(player => player.id)).toEqual(['c', 'b'])
   expect(room.viewers?.find(viewer => viewer.id === 'a')?.queued).toBe(false)
   service.command('a', { type: 'join-queue' })
-  tickAt(63_999)
+  tickAt(64_999)
   expect(room.game.phase).toBe('ready')
-  tickAt(64_000)
+  tickAt(65_000)
   expect(room.game.phase).toBe('playing')
   expect(room.players.map(player => player.id)).toEqual(['c', 'b'])
 })
@@ -126,7 +136,7 @@ it('sau đổi ghế giữ archive trước khi ván mới bắt đầu', () => 
   const archive = room.lastCompletedMatch!
   service.command('a', { type: 'result-presentation-complete', matchId: archive.id })
   service.command('b', { type: 'result-presentation-complete', matchId: archive.id })
-  tickAt(33_000)
+  tickAt(34_000)
   ready('b')
   tickAt(52_999)
   expect(room.players.map(player => player.id)).toEqual(['c', 'b'])

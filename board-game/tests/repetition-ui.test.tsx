@@ -10,7 +10,7 @@ import { createGame } from '../src/game/state/initial'
 import { applyMove, startGame } from '../src/game/moves/actions'
 import { candidateRepetition, REPETITION_FORBIDDEN_MESSAGE, REPETITION_WARNING_MESSAGE } from '../src/game/rules/repetition'
 import { roomSocket, socket } from '../src/services/socket'
-import { pikafishApi } from '../src/services/pikafish'
+import { fairyStockfishApi } from '../src/services/fairyStockfish'
 import { PIECE_MOVE_DURATION_MS } from '../src/features/game/moveAnimation'
 
 const audio = vi.hoisted(() => ({ play: vi.fn() }))
@@ -58,7 +58,7 @@ it.each(['local', 'online'] as const)('red-dot click in %s preserves selection/c
   const game = fixture(4)
   const room = { id: 'test', name: 'Test', game, moveCount: 0, players: [{ id: 'r', name: 'Red', side: 'red' as const, ready: true }], messages: [], drawOffer: null }
   const command = vi.spyOn(roomSocket, 'command').mockResolvedValue(room)
-  const ai = vi.spyOn(pikafishApi, 'move')
+  const ai = vi.spyOn(fairyStockfishApi, 'move')
   useGameStore.setState({ game, selected: null })
   if (mode === 'online') {
     socket.id = 'r'

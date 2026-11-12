@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import { DEFAULT_PLAYER_ELO } from '../../../lib/rankProgression'
 import { AVATA_RATIO, AVATA_TITLE_BADGE_STYLE } from './playerIdentityLayout'
 import { RankTitleBadge } from './RankTitleBadge'
 
 /** Shared Elo-derived title and earned stars; new players start at rank one. */
-export function AvatarRankBadge({ elo = DEFAULT_PLAYER_ELO, previewStars, computer = false }: { elo?: number; previewStars?: number; computer?: boolean }) {
+export const AvatarRankBadge = memo(function AvatarRankBadge({ elo = DEFAULT_PLAYER_ELO, previewStars, computer = false }: { elo?: number; previewStars?: number; computer?: boolean }) {
   const badgeStyle = {
     ...AVATA_TITLE_BADGE_STYLE,
     height: `${AVATA_RATIO.titleBadge.heightPx / AVATA_RATIO.avatarDiameterPx * 100}%`,
@@ -20,4 +21,4 @@ export function AvatarRankBadge({ elo = DEFAULT_PLAYER_ELO, previewStars, comput
   >
     <RankTitleBadge elo={elo} previewStars={previewStars} computer={computer} />
   </span>
-}
+})

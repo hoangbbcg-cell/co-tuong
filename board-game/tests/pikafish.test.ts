@@ -40,6 +40,7 @@ describe('Pikafish UCI', () => {
     await expect(service.move({ moves: [], remainingMs: 600000, level: 10, responseBudgetMs: 800 })).rejects.toMatchObject({ status: 400 })
   })
   const installed = process.platform === 'win32' && existsSync(fileURLToPath(new URL('../engines/pikafish/Pikafish-Windows-x86-64-universal.exe', import.meta.url)))
+  const fairyInstalled = process.platform === 'win32' && existsSync(fileURLToPath(new URL('../engines/fairy-stockfish/fairy-stockfish_x86-64-modern.exe', import.meta.url)))
   it.skipIf(!installed)('MultiPV thật trả đủ top5 ở depth1 cho cấp yếu nhất', async () => {
     const binary = fileURLToPath(new URL('../engines/pikafish/Pikafish-Windows-x86-64-universal.exe', import.meta.url))
     const child = spawn(binary, [], { cwd: dirname(binary), windowsHide: true })
@@ -86,11 +87,11 @@ describe('Pikafish UCI', () => {
       await expect(service.move({ moves: [...moves, 'b0c2'], remainingMs: 15000 })).rejects.toMatchObject({ status: 400 })
     } finally { service.close() }
   }, 20000)
-  it.skipIf(!installed)('HTTP khởi động engine, đáp nước và trả lỗi input đúng', async () => {
+  it.skipIf(!fairyInstalled)('HTTP Fairy-Stockfish khởi động engine, đáp nước và trả lỗi input đúng', async () => {
     const app = createApplication()
     try {
       await new Promise<void>(resolve => app.http.listen(0, '127.0.0.1', resolve))
-      const url = `http://127.0.0.1:${(app.http.address() as AddressInfo).port}/api/pikafish`
+      const url = `http://127.0.0.1:${(app.http.address() as AddressInfo).port}/api/fairy-stockfish`
       expect((await fetch(`${url}/ready`)).status).toBe(200)
       const post = (moves: string[]) => fetch(`${url}/move`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ moves, remainingMs: 15000 }) })
       const response = await post(['a3a4'])

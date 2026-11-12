@@ -61,9 +61,28 @@ export function useBoardLayout(fullMobileWidth = false, layoutKey = '') {
       }
       const outer = scene.getBoundingClientRect()
       const inner = board.getBoundingClientRect()
+      if (window.matchMedia('(max-width: 800px)').matches) {
+        const frame = board.closest('[data-testid="board-frame"]') ?? board
+        arena.style.setProperty('--mobile-replay-controls-top', `${frame.getBoundingClientRect().bottom - arena.getBoundingClientRect().top + 5}px`)
+      }
       scene.style.setProperty('--mobile-viewers-top', `${inner.bottom - outer.top + 5}px`)
-      if (main) main.style.setProperty('--mobile-view-button-top', `${inner.bottom - main.getBoundingClientRect().top + 5}px`)
-      if (main) main.style.setProperty('--mobile-match-actions-top', `${inner.bottom - main.getBoundingClientRect().top + 39}px`)
+      if (main) {
+        main.style.setProperty('--mobile-view-button-top', `${inner.bottom - main.getBoundingClientRect().top + 5}px`)
+        if (window.matchMedia('(max-width: 800px)').matches && mobileElo && mobileElo.getClientRects().length > 0) {
+          const eloRect = mobileElo.getBoundingClientRect()
+          const viewButton = main.querySelector<HTMLElement>('#viewersButton')
+          const viewHeight = viewButton?.getBoundingClientRect().height || 26
+          main.style.setProperty('--mobile-view-elo-top', `${eloRect.top + eloRect.height / 2 - viewHeight / 2}px`)
+        }
+      }
+      if (main) {
+        const mainRect = main.getBoundingClientRect()
+        const actionHeight = actions?.getBoundingClientRect().height || 36
+        // Center the button row in the free space from the board to the screen bottom.
+        const centeredTop = (inner.bottom + mainRect.bottom - actionHeight) / 2 - mainRect.top
+        const actionTop = Math.max(0, Math.min(mainRect.height - actionHeight, centeredTop))
+        main.style.setProperty('--mobile-match-actions-top', `${actionTop}px`)
+      }
       const left = Math.max(0, inner.left - outer.left)
       const right = Math.max(left, inner.right - outer.left)
       const top = Math.max(0, inner.top - outer.top)

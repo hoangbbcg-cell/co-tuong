@@ -5,6 +5,7 @@ import { useProfileLayout } from '../src/features/lobby/hooks/useProfileLayout'
 import { useFriendsLayout } from '../src/features/lobby/hooks/useFriendsLayout'
 import { useRankingLayout } from '../src/features/lobby/hooks/useRankingLayout'
 import { useHistoryLayout } from '../src/features/lobby/hooks/useHistoryLayout'
+import { getAppViewportSize } from '../src/lib/desktopCanvas'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 const useLayouts = () => ({ profile: useProfileLayout(), friends: useFriendsLayout(), ranking: useRankingLayout(), history: useHistoryLayout() })
@@ -42,5 +43,10 @@ it('preserves the existing desktop dialog sizes', () => {
   expect(hook.result.current.friends.height).toBe(750)
   expect(hook.result.current.ranking.height).toBe(750)
   expect(hook.result.current.history.height).toBe(750)
-  for (const layout of Object.values(hook.result.current)) expect(layout.scale).toBe(0.85)
+  const viewport = getAppViewportSize()
+  const profileScale = Math.min(0.85, (viewport.width - 32) / 740, (viewport.height - 32) / 850)
+  const socialScale = Math.min(0.85, (viewport.width - 32) / 1120, (viewport.height - 32) / 780)
+  expect(hook.result.current.profile.scale).toBeCloseTo(profileScale)
+  expect(hook.result.current.profile.avatarScale).toBe(0.85)
+  for (const layout of [hook.result.current.friends, hook.result.current.ranking, hook.result.current.history]) expect(layout.scale).toBeCloseTo(socialScale)
 })

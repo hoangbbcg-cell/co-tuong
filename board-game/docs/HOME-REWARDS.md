@@ -46,3 +46,11 @@
 - 2026-10-29: Hoàn tất yêu cầu căn giữa nhận thưởng mobile: native dialog Nhận được phủ viewport100vw×100dvh/grid center, artwork giữ min(92vw,70dvh) ở khung con, desktop giữ layout. Chặn confirm khi preview đang mở và bỏ cancel nổi bọt từ dialog con. RewardPreviewDialog chỉ đóng bằng chạm nền nếu chính pointerdown bắt đầu trên nền; bỏ click chuyển đích khi preview vừa mở để không mất bảng do cùng cú chạm. Đóng/Escape preview vẫn hoạt động. 7/7 reward-gesture/receipt tests PASS; npm.cmd run build PASS, dist/assets/index-DoQC6Z7T.js cập nhật; chưa QA điện thoại thật/âm thanh.
 
 - 2026-10-30: Theo user, bảng xem lớn vật phẩm trong Nhận được trên MOBILE cố định ngang, không vuốt lệch sang hai bên. RewardPreviewDialog khóa overflow-x/overscroll-x và chỉ cho pan dọc, giới hạn wrapper theo viewport; áp dụng component preview dùng chung Home/trong trận. Giữ luồng chạm/giữ thông tin danh hiệu và đóng preview. npm.cmd run build PASS (TypeScript/Vite), dist/assets/index-DjDWAhjn.js xác nhận lớp khóa cuộn mới; chưa QA vuốt trên điện thoại thật.
+
+## 2026-11-12 — Chỉ trình diễn vật phẩm một lần
+
+User chốt vật phẩm đã nhận chỉ thông báo một lần lúc nhận, không phát lại khi về Home/tải lại. Bảng chụp riêng danh sách đang hiển thị; sau khi native dialog showModal thành công thì ghi receipt ngay, không đợi Xác nhận. Bảng/preview vẫn giữ mở cho người dùng xem; Xác nhận chỉ đóng batch đó. Đồ tới trong lúc bảng mở chờ batch tiếp theo, không bị xác nhận nhầm. Rời Home hoặc remount không phát lại batch đã trình diễn.
+
+Home rewards đọc receipt mới nhất từ localStorage trước quan sát, nhận storage event của tài khoản để tránh tab có cache cũ ghi lại pending đã xem. Lưu mã vật phẩm đã trình diễn và tập danh hiệu từng thấy; snapshot thiếu danh hiệu rồi xuất hiện lại không tạo thông báo lặp. Điều này thay quy tắc 2026-10-29 về thông báo lại cùng danh hiệu sau revoke/regrant. Profile thiếu cosmetics chưa được xem là kho rỗng: chờ snapshot có inventory thật để lập baseline, không báo lại toàn bộ avatar/viền cũ khi hydrate.
+
+Không thay quyền sở hữu, cấp đồ, tài nguyên hoặc API/backend/DB. Receipt là trạng thái trên trình duyệt hiện tại, không phải receipt đồng bộ server nhiều thiết bị. Dữ liệu sở hữu ban đầu chỉ lập baseline; không replay đồ cũ trên thiết bị mới. Backup/tests/ảnh tại .checkpoints/reward-once-select-style-20261112. Chỉ local, chưa VPS.

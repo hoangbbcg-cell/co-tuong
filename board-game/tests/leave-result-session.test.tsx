@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, render, screen } from '@testing-library/react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, expect, it, vi } from 'vitest'
 import { createGame } from '../src/game/state/initial'
 import { useSessionStore } from '../src/store/sessionStore'
 import type { RoomSnapshot } from '../src/types/room'
@@ -15,8 +15,17 @@ vi.mock('../src/pages/rooms/RoomSelectionPage', () => ({ RoomSelectionPage: () =
 vi.mock('../src/pages/computer/ComputerPage', () => ({ ComputerPage: () => null }))
 vi.mock('../src/pages/computer/CustomPositionPage', () => ({ CustomPositionPage: () => null }))
 vi.mock('../src/features/game/components/EnergyNotice', () => ({ EnergyNotice: () => null }))
-import { App } from '../src/app/App'
-afterEach(() => { cleanup(); useSessionStore.setState({ screen: 'home', room: null }) })
+let App: typeof import('../src/app/App')['App']
+
+beforeAll(async () => {
+  const appModule = await import('../src/app/App')
+  App = appModule.App
+
+  // App preloads route modules during import.
+  // Wait for all dynamic imports before Vitest can tear down jsdom.
+  await vi.dynamicImportSettled()
+}, 30000)
+afterEach(async () => { cleanup(); useSessionStore.setState({ screen: 'home', room: null }); await vi.dynamicImportSettled() })
 it('keeps the room screen mounted through player and viewer arrivals and departures', async () => {
   const self = { id: 'self', name: 'Self', side: 'red' as const, ready: false }
   const opponent = { id: 'other', name: 'Other', side: 'black' as const, ready: false }

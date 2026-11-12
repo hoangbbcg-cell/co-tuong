@@ -11,7 +11,8 @@ export const messageImageDirectory = fileURLToPath(new URL('../../uploads/messag
 const pair=(a:string,b:string) => BigInt(a)<BigInt(b)?[a,b]:[b,a]
 export class SocialRepository {
   async suggestions(id:string) {
-    return rows(`SELECT CAST(u.id AS CHAR) id,CAST(u.public_id AS CHAR) publicId,u.display_name name,u.avatar_code avatarCode,u.avatar_frame_code avatarFrameCode,s.elo FROM users u LEFT JOIN user_game_stats s ON s.user_id=u.id AND s.variant='xiangqi' WHERE u.status='active' AND u.id<>? AND NOT EXISTS (SELECT 1 FROM friendships f WHERE f.status='accepted' AND ((f.user_low_id=? AND f.user_high_id=u.id) OR (f.user_high_id=? AND f.user_low_id=u.id))) AND NOT EXISTS (SELECT 1 FROM user_blocks b WHERE (b.blocker_id=? AND b.blocked_id=u.id) OR (b.blocked_id=? AND b.blocker_id=u.id)) ORDER BY RAND() LIMIT 20`,[id,id,id,id,id])
+    // Friend/suggestion badges use the shared tier: the higher Elo of the two variants, never a sum.
+    return rows(`SELECT CAST(u.id AS CHAR) id,CAST(u.public_id AS CHAR) publicId,u.display_name name,u.avatar_code avatarCode,u.avatar_frame_code avatarFrameCode,GREATEST(COALESCE(sx.elo,1000),COALESCE(sj.elo,1000)) elo FROM users u LEFT JOIN user_game_stats sx ON sx.user_id=u.id AND sx.variant='xiangqi' LEFT JOIN user_game_stats sj ON sj.user_id=u.id AND sj.variant='jieqi' WHERE u.status='active' AND u.id<>? AND NOT EXISTS (SELECT 1 FROM friendships f WHERE f.status='accepted' AND ((f.user_low_id=? AND f.user_high_id=u.id) OR (f.user_high_id=? AND f.user_low_id=u.id))) AND NOT EXISTS (SELECT 1 FROM user_blocks b WHERE (b.blocker_id=? AND b.blocked_id=u.id) OR (b.blocked_id=? AND b.blocker_id=u.id)) ORDER BY RAND() LIMIT 20`,[id,id,id,id,id])
   }
   async imageMessage(id:string,conversation:string,bytes:Buffer,clientId:string,extension:'jpg'|'png'|'webp'|'gif'='jpg') {
     const membership=await rows('SELECT user_id FROM conversation_members WHERE conversation_id=? AND user_id=? AND left_at IS NULL',[conversation,id])
@@ -34,7 +35,7 @@ export class SocialRepository {
     return access.length>0
   }
   async list(id:string) {
-    const friends=await rows(`SELECT CAST(u.id AS CHAR) id,CAST(u.public_id AS CHAR) publicId,u.display_name name,u.avatar_code avatarCode,u.avatar_frame_code avatarFrameCode,f.status,CAST(f.requested_by AS CHAR) requestedBy,s.elo FROM friendships f JOIN users u ON u.id=IF(f.user_low_id=?,f.user_high_id,f.user_low_id) LEFT JOIN user_game_stats s ON s.user_id=u.id AND s.variant='xiangqi' WHERE f.user_low_id=? OR f.user_high_id=?`,[id,id,id])
+    const friends=await rows(`SELECT CAST(u.id AS CHAR) id,CAST(u.public_id AS CHAR) publicId,u.display_name name,u.avatar_code avatarCode,u.avatar_frame_code avatarFrameCode,f.status,CAST(f.requested_by AS CHAR) requestedBy,GREATEST(COALESCE(sx.elo,1000),COALESCE(sj.elo,1000)) elo FROM friendships f JOIN users u ON u.id=IF(f.user_low_id=?,f.user_high_id,f.user_low_id) LEFT JOIN user_game_stats sx ON sx.user_id=u.id AND sx.variant='xiangqi' LEFT JOIN user_game_stats sj ON sj.user_id=u.id AND sj.variant='jieqi' WHERE f.user_low_id=? OR f.user_high_id=?`,[id,id,id])
     const follows=await rows('SELECT CAST(followed_id AS CHAR) id FROM user_follows WHERE follower_id=?',[id])
     const blocks=await rows('SELECT CAST(blocked_id AS CHAR) id FROM user_blocks WHERE blocker_id=?',[id])
     return {friends,follows,blocks}
@@ -58,7 +59,7 @@ export class SocialRepository {
       (SELECT COUNT(*) FROM messages m WHERE m.conversation_id=c.id AND m.sender_id<>cm.user_id AND m.id>GREATEST(COALESCE(cm.last_read_message_id,0),COALESCE(cm.cleared_through_message_id,0))) unreadCount
       FROM conversation_members cm JOIN conversations c ON c.id=cm.conversation_id
       LEFT JOIN users other ON other.id=IF(c.direct_user_low_id=?,c.direct_user_high_id,c.direct_user_low_id)
-      WHERE cm.user_id=? AND cm.left_at IS NULL AND (cm.cleared_through_message_id IS NULL OR EXISTS(SELECT 1 FROM messages m WHERE m.conversation_id=c.id AND m.id>cm.cleared_through_message_id)) ORDER BY COALESCE(c.last_message_at,c.created_at) DESC,c.created_at DESC,c.id DESC LIMIT 100`,[id,id])
+      WHERE cm.user_id=? AND cm.left_at IS NULL AND (c.type='group' OR cm.cleared_through_message_id IS NULL OR EXISTS(SELECT 1 FROM messages m WHERE m.conversation_id=c.id AND m.id>cm.cleared_through_message_id)) ORDER BY COALESCE(c.last_message_at,c.created_at) DESC,c.created_at DESC,c.id DESC LIMIT 100`,[id,id])
   }
   async createConversation(id:string,targets:string[],title:string|null) {
     return transaction(async c=>{

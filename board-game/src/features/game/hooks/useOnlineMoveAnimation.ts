@@ -8,21 +8,26 @@ export function useOnlineMoveAnimation(roomId: string | null, game: GameState, m
   const [flight, setFlight] = useState<{ key: string; move: Move } | null>(null)
   const move = game.lastMove
   const key = `${roomId}:${moveCount}:${move?.from.row},${move?.from.col}:${move?.to.row},${move?.to.col}`
-  useLayoutEffect(() => {
-    const before = previous.current
-    previous.current = { roomId, game, moveCount }
+  // Recognize an authoritative online move before last-move markers are rendered.
+  const before = previous.current
+  const incomingMove = (() => {
     if (!roomId || !before || before.roomId !== roomId || moveCount !== before.moveCount + 1
-      || before.game.phase !== 'playing' || !move) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      || before.game.phase !== 'playing' || !move) return null
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return null
     const source = before.game.board[move.from.row]?.[move.from.col]
     const destination = game.board[move.to.row]?.[move.to.col]
-    if (!source || destination?.id !== source.id || game.board[move.from.row]?.[move.from.col]) return
-    setFlight({ key, move })
-  }, [roomId, game, moveCount, key, move])
+    if (!source || destination?.id !== source.id || game.board[move.from.row]?.[move.from.col]) return null
+    return move
+  })()
+
+  useLayoutEffect(() => {
+    previous.current = { roomId, game, moveCount }
+    if (incomingMove) setFlight({ key, move: incomingMove })
+  }, [roomId, game, moveCount, key, incomingMove])
   useEffect(() => {
     if (!flight) return
     const timer = window.setTimeout(() => setFlight(current => current === flight ? null : current), PIECE_MOVE_DURATION_MS)
     return () => window.clearTimeout(timer)
   }, [flight])
-  return roomId && flight?.key === key ? flight.move : null
+  return incomingMove ?? (roomId && flight?.key === key ? flight.move : null)
 }

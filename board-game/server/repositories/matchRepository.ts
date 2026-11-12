@@ -25,9 +25,10 @@ export class MatchRepository {
       const friends=await rows("SELECT 1 FROM friendships WHERE user_low_id=? AND user_high_id=? AND status='accepted'",ids,c)
       for(const user of ids)if(!friends.length&&!unlimited.has(user)&&resources.get(user)!.energy<1)throw new AccountError('Không đủ năng lượng để bắt đầu ván.')
       const invited=(room.goldRewardExcludedPairs??[]).some(pair=>room.players.length===2&&room.players.every(player=>pair.includes(player.id)))
-      const goldEligible=!friends.length&&!invited
+      const customRoom=Boolean(room.customFen)
+      const goldEligible=!customRoom&&!friends.length&&!invited
       await change(`INSERT INTO matches(id,source,variant,status,rated,room_ref,room_name_snapshot,province_snapshot,initial_time_ms,turn_limit_ms,initial_state,gold_reward_eligible,rules_version,rating_rules_version,started_at)
-        VALUES (?,'server_online',?,'playing',?,?,?,?,?,?,?,?,'game-v1','stars-v2',UTC_TIMESTAMP(3))`,[id,room.game.variant??'xiangqi',Number(friends.length===0),room.id,room.name,room.province??null,(room.minutes??10)*60000,(room.turnSeconds??60)*1000,JSON.stringify(room.game),Number(goldEligible)],c)
+        VALUES (?,'server_online',?,'playing',?,?,?,?,?,?,?,?,'game-v1','stars-v2',UTC_TIMESTAMP(3))`,[id,room.game.variant??'xiangqi',Number(!customRoom&&friends.length===0),room.id,room.name,room.province??null,(room.minutes??10)*60000,(room.turnSeconds??60)*1000,JSON.stringify(room.game),Number(goldEligible)],c)
       for(const side of ['red','black'] as const) {
         const user=users[side],profile=await rows('SELECT display_name,avatar_code,avatar_frame_code FROM users WHERE id=?',[user],c)
         const stats=await rows('SELECT elo FROM user_game_stats WHERE user_id=? AND variant=? FOR UPDATE',[user,room.game.variant??'xiangqi'],c)
@@ -54,11 +55,12 @@ export class MatchRepository {
       const friends=await rows("SELECT 1 FROM friendships WHERE user_low_id=? AND user_high_id=? AND status='accepted'",userIds,c)
       const goldEligible=Number(m[0].gold_reward_eligible)===1&&!friends.length
        const countsForStats=Number(m[0].rated)===1&&!friends.length
+      const sameRankDelta=randomInt(11,14)
       for(const p of players) {
         const side=p.side as Side,won=result.winner===side,draw=result.winner===null
         const opponent=players.find(x=>x.side!==side)!
         // The persisted policy also freezes Elo for friends/invited pairs, including unfriend mid-game.
-        const delta=goldEligible?ratingDelta(Number(p.elo_before),Number(opponent.elo_before),draw?'draw':won?'win':'loss'):0
+        const delta=goldEligible?ratingDelta(Number(p.elo_before),Number(opponent.elo_before),draw?'draw':won?'win':'loss',sameRankDelta):0
         await change('UPDATE match_players SET elo_delta=?,elo_after=elo_before+? WHERE match_id=? AND side=?',[delta,delta,id,side],c)
         if(!isDraw&&countsForStats) {
           const stats=await rows('SELECT current_win_streak FROM user_game_stats WHERE user_id=? AND variant=? FOR UPDATE',[String(p.userId),variant],c)

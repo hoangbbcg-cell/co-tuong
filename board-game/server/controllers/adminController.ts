@@ -3,8 +3,9 @@ import { AdminAuth } from '../services/adminAuth'
 import { AdminService } from '../services/adminService'
 import { AccountError } from '../errors'
 import { cookieValue } from './accountController'
+import { ActivityService } from '../services/activityService'
 
-export function adminRouter(auth = new AdminAuth(), service = new AdminService()) {
+export function adminRouter(auth = new AdminAuth(), service = new AdminService(), online: () => Set<string> = () => new Set(), activity = new ActivityService()) {
   const router = Router()
   router.use((req, _res, next) => {
     if (!['GET', 'HEAD'].includes(req.method) && req.headers.origin) {
@@ -21,6 +22,7 @@ export function adminRouter(auth = new AdminAuth(), service = new AdminService()
   })
   router.use((req, _res, next) => { auth.authorize(cookieValue(req.headers.cookie, 'ct_admin_session')); next() })
   router.get('/me', (_req, res) => res.json({ ok: true }))
+  router.get('/analytics', async (req, res) => res.json(await activity.report(req.query, online())))
   router.post('/logout', (req, res) => {
     auth.logout(cookieValue(req.headers.cookie, 'ct_admin_session'))
     res.clearCookie('ct_admin_session', { path: '/api/admin' }); res.json({ ok: true })

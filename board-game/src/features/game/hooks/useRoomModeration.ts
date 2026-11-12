@@ -11,10 +11,10 @@ export function useRoomModeration(room: RoomSnapshot | null) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [target, setTarget] = useState<ModerationTarget | null>(null)
   const [action, setAction] = useState<ModerationAction | null>(null)
-  const [settingsDraft, setSettingsDraft] = useState<{ queueBlocked: boolean; chatBlocked: boolean } | null>(null)
+  const [settingsDraft, setSettingsDraft] = useState<{ queueBlocked: boolean; chatBlocked: boolean; keepOwnerSeat: boolean } | null>(null)
   const [pending, setPending] = useState(false)
   const notice = useInviteSentNotice()
-  const owner = !!room?.locked && room.ownerId === socket.id
+  const owner = !!room && (room.locked === true || !!room.customFen) && room.ownerId === socket.id
   useEffect(() => {
     const receive = (event: Event) => notice.show((event as CustomEvent<string>).detail)
     window.addEventListener('room-notice', receive)
@@ -31,7 +31,7 @@ export function useRoomModeration(room: RoomSnapshot | null) {
     catch (error) { notice.show(errorMessage(error)) }
     finally { setPending(false); setSettingsDraft(null) }
   }
-  return { queueBlocked: settingsDraft?.queueBlocked ?? !!room?.queueBlocked, chatBlocked: settingsDraft?.chatBlocked ?? !!room?.chatBlocked, owner, settingsOpen, setSettingsOpen, target, action, setAction, pending, notice: notice.notice,
+  return { queueBlocked: settingsDraft?.queueBlocked ?? !!room?.queueBlocked, chatBlocked: settingsDraft?.chatBlocked ?? !!room?.chatBlocked, keepOwnerSeat: settingsDraft?.keepOwnerSeat ?? !!room?.keepOwnerSeat, owner, settingsOpen, setSettingsOpen, target, action, setAction, pending, notice: notice.notice,
     openTarget: (id: string) => {
       if (!owner || id === socket.id) return
       const seated = room!.players.find(member => member.id === id)
@@ -39,7 +39,7 @@ export function useRoomModeration(room: RoomSnapshot | null) {
       if (member) { setTarget({ id, name: member.name, seated: !!seated }); setAction(null) }
     },
     closeTarget: () => { if (!pending) { setTarget(null); setAction(null) } },
-    settings: (queueBlocked: boolean, chatBlocked: boolean) => { if (!owner || pending) return; setSettingsDraft({ queueBlocked, chatBlocked }); return send({ type: 'room-settings', queueBlocked, chatBlocked }) },
+    settings: (queueBlocked: boolean, chatBlocked: boolean, keepOwnerSeat: boolean) => { if (!owner || pending) return; setSettingsDraft({ queueBlocked, chatBlocked, keepOwnerSeat }); return send({ type: 'room-settings', queueBlocked, chatBlocked, keepOwnerSeat }) },
     confirm: () => target && action ? send({ type: 'moderate', targetId: target.id, action }) : undefined,
   }
 }

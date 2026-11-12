@@ -41,7 +41,19 @@ async function main() {
   const candidates = [];
 
   for (const file of files) {
-    const original = fs.readFileSync(file);
+    let original;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        original = fs.readFileSync(file);
+        break;
+      } catch (error) {
+        if (error.code !== 'ENOENT' || attempt === 4) {
+          throw error;
+        }
+        const wait = new Int32Array(new SharedArrayBuffer(4));
+        Atomics.wait(wait, 0, 0, 150);
+      }
+    }
     originalBytes += original.length;
 
     const meta = await sharp(original).metadata();

@@ -4,9 +4,9 @@ import { useSessionStore } from '../../../store/sessionStore'
 import { chooseComputerMove } from '../../../game/moves/computer'
 import { candidateRepetition } from '../../../game/rules/repetition'
 import { opposite } from '../../../game/state/initial'
-import { pikafishApi } from '../../../services/pikafish'
 import { fairyStockfishApi } from '../../../services/fairyStockfish'
-import { errorMessage } from '../../../services/api'
+import { pikaJieqiMove } from '../../../services/pikaJieqi'
+import { computerErrorMessage } from '../../../lib/computerPresentation'
 
 export function useComputer(allowed = true) {
   const enabled = useSessionStore(state => allowed && state.screen === 'game' && state.mode === 'computer')
@@ -61,11 +61,11 @@ export function useComputer(allowed = true) {
       setThinking(true)
       try {
         const state = useGameStore.getState()
-        const move = engine === 'pikafish'
-          ? await pikafishApi.move(state.moves, state.game.remainingTime[machineSide], level, controller.signal, ...(state.initialFen ? [state.initialFen] : []))
-          : engine === 'fairy'
-            ? await fairyStockfishApi.move(state.moves, state.game.remainingTime[machineSide], level, controller.signal, state.initialFen ?? undefined)
-            : chooseComputerMove(board, machineSide, Math.random(), state.game)
+        const move = engine === 'pikaJieqi'
+          ? await pikaJieqiMove(state.game, controller.signal, level)
+          : engine === 'pikafish' || engine === 'fairy'
+          ? await fairyStockfishApi.move(state.moves, state.game.remainingTime[machineSide], level, controller.signal, state.initialFen ?? undefined)
+          : chooseComputerMove(board, machineSide, Math.random(), state.game)
         if (!current()) return
         if (!move || board[move.from.row]?.[move.from.col]?.side !== machineSide) throw new Error('Máy không trả về nước đi hợp lệ.')
         if (candidateRepetition(state.game, move).forbidden) {
@@ -77,7 +77,7 @@ export function useComputer(allowed = true) {
         state.select(move.to, now, !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
         if (useGameStore.getState().game.board === board) throw new Error('Store đã từ chối nước đi của máy.')
       } catch (failure) {
-        if (current()) setError(errorMessage(failure))
+        if (current()) setError(computerErrorMessage(engine === 'pikaJieqi' ? 'jieqi' : 'xiangqi'))
       } finally { if (!controller.signal.aborted) setThinking(false) }
     }, delay)
     return () => { window.clearTimeout(timer); controller.abort() }

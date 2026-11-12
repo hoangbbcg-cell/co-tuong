@@ -1,3 +1,4 @@
+import { uniqueRoomMembers } from '../../../lib/roomMembers'
 import standUpImage from '../../../assets/room-users/stand-up.png'
 import { useAvatarTouchHold } from '../hooks/useAvatarTouchHold'
 ﻿import type { CSSProperties } from 'react'
@@ -8,7 +9,7 @@ import waitingCardFrame from '../../../assets/room-users/waiting-card-frame-tigh
 import queueJoinBurron from '../../../assets/room-users/queue-join-swapped.png'
 import queueLeaveBurron from '../../../assets/room-users/queue-leave-swapped.png'
 
-export type RoomUser = { id: string; name: string; side?: 'red' | 'black'; ready?: boolean; queued?: boolean; queueNumber?: number }
+export type RoomUser = { id: string; userId?: string; name: string; side?: 'red' | 'black'; ready?: boolean; queued?: boolean; queueNumber?: number }
 
 const waitingFrameSryle: CSSProperties = {
   borderImageSource: `url(${waitingCardFrame})`,
@@ -58,7 +59,7 @@ export function RoomQueueButton({ queued, disabled = false, onToggleQueue }: {
 }
 
 export function RoomStandUpButton({ disabled = false, onStandUp }: { disabled?: boolean; onStandUp: () => void }) {
-  return <button data-ui-selection-sound type="button" aria-label="Xuống bàn" disabled={disabled} onClick={onStandUp} className="pointer-events-auto m-0 inline-flex h-[43px] w-[140px] shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent p-0 leading-none shadow-none disabled:cursor-wait disabled:opacity-60"><img src={standUpImage} alt="Xuống bàn" className="m-0 block h-full w-full scale-[1.3] border-0 p-0 object-contain"/></button>
+  return <button data-ui-selection-sound type="button" aria-label="Xuống bàn" disabled={disabled} onClick={onStandUp} className="pointer-events-auto m-0 inline-flex h-[43px] w-[140px] shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent p-0 leading-none shadow-none disabled:cursor-wait disabled:opacity-100"><img src={standUpImage} alt="Xuống bàn" className="m-0 block h-full w-full scale-[1.3] border-0 p-0 object-contain"/></button>
 }
 
 export function RoomUsersPanel({ users, queued = false, queueDisabled = false, onStandUp, onToggleQueue, onAvatarClick, onManage }: {
@@ -70,9 +71,10 @@ export function RoomUsersPanel({ users, queued = false, queueDisabled = false, o
   onToggleQueue?: () => void
   onAvatarClick?: (name: string) => void
 }) {
-  const waitingNumbers = new Map(users.filter(user => user.ready).map((user, index) => [user.id, index + 1]))
+  const members = uniqueRoomMembers(users)
+  const waitingNumbers = new Map(members.filter(user => user.ready).map((user, index) => [user.id, index + 1]))
   const isWairing = (user: RoomUser) => !!user.ready || !!user.queued
-  const orderedUsers = users
+  const orderedUsers = members
     .map((user, arrivalOrder) => ({ user, arrivalOrder }))
     .sort((a, b) => Number(isWairing(b.user)) - Number(isWairing(a.user)) || a.arrivalOrder - b.arrivalOrder)
 

@@ -4,11 +4,41 @@ import type { useLobby } from './useLobby'
 import { useLobbyPresence } from './useLobbyPresence'
 import { useSessionStore } from '../../../store/sessionStore'
 
-export function useRoomSelection(lobby: ReturnType<typeof useLobby>) {
-  const [province, setProvince] = useState(() => useSessionStore.getState().countryCode === 'VN' ? lobby.province : '')
-  const [allProvinces, setAllProvinces] = useState(() => useSessionStore.getState().countryCode !== 'VN')
+type RoomVariant = 'xiangqi' | 'jieqi'
+type RoomFilter = 'all' | 'vacant' | 'locked'
+
+type VariantSelection = {
+  province: string
+  allProvinces: boolean
+  roomFilter: RoomFilter
+  quickMinutes: number
+}
+
+export function useRoomSelection(lobby: ReturnType<typeof useLobby>, variant: RoomVariant = 'xiangqi') {
+  const [variantSelections, setVariantSelections] = useState<Record<RoomVariant, VariantSelection>>(() => {
+    const makeInitial = (): VariantSelection => ({
+      province: useSessionStore.getState().countryCode === 'VN' ? lobby.province : '',
+      allProvinces: useSessionStore.getState().countryCode !== 'VN',
+      roomFilter: 'all',
+      quickMinutes: 10,
+    })
+    return { xiangqi: makeInitial(), jieqi: makeInitial() }
+  })
+
+  const { province, allProvinces, roomFilter, quickMinutes } = variantSelections[variant]
+
+  const updateVariant = (patch: Partial<VariantSelection>) => {
+    setVariantSelections(previous => ({
+      ...previous,
+      [variant]: { ...previous[variant], ...patch },
+    }))
+  }
+
+  const setProvince = (value: string) => updateVariant({ province: value })
+  const setAllProvinces = (value: boolean) => updateVariant({ allProvinces: value })
+  const setRoomFilter = (value: RoomFilter) => updateVariant({ roomFilter: value })
+  const setQuickMinutes = (value: number) => updateVariant({ quickMinutes: value })
   const presence = useLobbyPresence(province)
-  const [roomFilter, setRoomFilter] = useState<'all' | 'vacant' | 'locked'>('all')
   const vacantOnly = roomFilter === 'vacant'
   const [creating, setCreatingState] = useState(false)
   const setCreating = (next: boolean) => { if (next && !lobby.requireEnergy()) return; setCreatingState(next) }
@@ -23,7 +53,7 @@ export function useRoomSelection(lobby: ReturnType<typeof useLobby>) {
     document.addEventListener('pointerdown', closeOutside)
     return () => document.removeEventListener('pointerdown', closeOutside)
   }, [timeOpen])
-  const [quickMinutes, setQuickMinutes] = useState(10)
+
   const [message, setMessage] = useState('')
   useEffect(() => {
     if (!message) return
@@ -38,10 +68,21 @@ export function useRoomSelection(lobby: ReturnType<typeof useLobby>) {
     }
     setProvincePickerOpen(true)
   }
+  const variantRooms = useMemo(
+    () => lobby.rooms.filter(room => (room.variant ?? 'xiangqi') === variant),
+    [lobby.rooms, variant]
+  )
+
   const regionRooms = useMemo(() => {
-    const occupied = lobby.rooms.filter(room => room.players > 0 || (room.viewerCount ?? 0) > 0)
-    return allProvinces ? preferVietnamRooms(occupied) : occupied.filter(room => normalizeRoomProvince(room.province) === normalizeRoomProvince(province))
-  }, [lobby.rooms, province, allProvinces])
+    const occupied = variantRooms.filter(
+      room => (room.onlineCount ?? (room.players + (room.viewerCount ?? 0))) > 0
+    )
+    return allProvinces
+      ? preferVietnamRooms(occupied)
+      : occupied.filter(
+          room => normalizeRoomProvince(room.province) === normalizeRoomProvince(province)
+        )
+  }, [variantRooms, province, allProvinces])
   const activity = roomRegionActivity(regionRooms)
   const provinceRooms = useMemo(() => {
     const candidates = regionRooms.filter(room => (roomFilter !== 'locked' || room.locked) && (roomFilter !== 'vacant' || (room.players === 1 && room.phase !== 'playing')))
@@ -52,9 +93,9 @@ export function useRoomSelection(lobby: ReturnType<typeof useLobby>) {
   const available = provinceRooms.filter(room => room.players === 1 && room.phase !== 'playing')
   const quickPlay = () => {
     setMessage('')
-    lobby.quickPlay(() => setMessage('Không có bàn phù hợp với thời gian đã chọn.'), quickMinutes, allProvinces ? undefined : province)
+    lobby.quickPlay(() => setMessage('Không có bàn phù hợp với thời gian đã chọn.'), quickMinutes, allProvinces ? undefined : province, variant)
   }
-  return { creationProvince: allProvinces ? '' : province, regionRooms, activity, addressNoticeOpen, setAddressNoticeOpen, openProvincePicker, quickTimeRef, timeOpen, setTimeOpen, quickMinutes, setQuickMinutes, provincePickerOpen, setProvincePickerOpen, province, setProvince, allProvinces, setAllProvinces, vacantOnly, roomFilter, setRoomFilter, creating, setCreating, message, setMessage, quickPlay,
+  return { variantRooms, creationProvince: allProvinces ? '' : province, regionRooms, activity, addressNoticeOpen, setAddressNoticeOpen, openProvincePicker, quickTimeRef, timeOpen, setTimeOpen, quickMinutes, setQuickMinutes, provincePickerOpen, setProvincePickerOpen, province, setProvince, allProvinces, setAllProvinces, vacantOnly, roomFilter, setRoomFilter, creating, setCreating, message, setMessage, quickPlay,
     rooms: roomFilter === 'locked' ? provinceRooms.filter(room => room.locked) : vacantOnly ? available : provinceRooms,
     players: presence.provinceCounts[province] ?? (presence.province === province ? presence.players : 0), provinceCounts: presence.provinceCounts }
 }

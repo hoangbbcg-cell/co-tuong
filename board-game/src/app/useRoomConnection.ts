@@ -3,7 +3,7 @@ import { isEnergyError } from '../lib/energy'
 import { refreshAccount } from '../services/accountSession'
 import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { roomSocket, socket } from '../services/socket'
+import { connect, roomSocket, socket } from '../services/socket'
 import { useSessionStore } from '../store/sessionStore'
 import { showRoomNotice } from '../lib/roomNotice'
 import type { RoomSnapshot } from '../types/room'
@@ -56,6 +56,13 @@ export function useRoomConnection() {
         void client.invalidateQueries({ queryKey: ['rooms'] })
       }).catch(() => {}).finally(() => { resuming = false })
     }
+    const foreground = () => {
+      if (document.visibilityState === 'hidden' || useSessionStore.getState().mode !== 'online') return
+      void connect().then(resume).catch(() => {})
+    }
+    document.addEventListener('visibilitychange', foreground)
+    window.addEventListener('focus', foreground)
+    window.addEventListener('online', foreground)
     const disconnect = (reason: string) => {
       if (reason === 'io client disconnect') return
       if (useSessionStore.getState().mode === 'online') {
@@ -63,7 +70,13 @@ export function useRoomConnection() {
       }
     }
     const replaced = (roomId: string) => { if (useSessionStore.getState().room?.id === roomId) useSessionStore.getState().leave('Quyền điều khiển ván đã chuyển sang thiết bị khác.') }
-    const removed = (roomId: string) => { if (useSessionStore.getState().room?.id === roomId) { useSessionStore.getState().leave('Bạn đã bị đuổi khỏi phòng.'); void client.invalidateQueries({ queryKey: ['rooms'] }) } }
+    const removed = (roomId: string, reason?: 'energy') => {
+      const state = useSessionStore.getState()
+      if (state.room?.id !== roomId) return
+      state.leave(reason === 'energy' ? '' : 'Bạn đã bị đuổi khỏi phòng.')
+      if (reason === 'energy') useSessionStore.getState().showEnergyNotice()
+      void client.invalidateQueries({ queryKey: ['rooms'] })
+    }
     const notice = (message: string) => {
       if (isEnergyError(message)) {
         useSessionStore.getState().showEnergyNotice()
@@ -88,6 +101,6 @@ export function useRoomConnection() {
     socket.on('connect', resume)
     socket.on('room:control-replaced', replaced)
     if (socket.connected) resume()
-    return () => { document.removeEventListener('pointerdown', warmLeaveSound); document.removeEventListener('keydown', warmLeaveSound); socket.off('room:sound', roomSound); socket.off('room:notice', notice); socket.off('room:removed', removed); socket.off('room:state', receive); socket.off('disconnect', disconnect); socket.off('connect', resume); socket.off('room:control-replaced', replaced) }
+    return () => { document.removeEventListener('visibilitychange', foreground); window.removeEventListener('focus', foreground); window.removeEventListener('online', foreground); document.removeEventListener('pointerdown', warmLeaveSound); document.removeEventListener('keydown', warmLeaveSound); socket.off('room:sound', roomSound); socket.off('room:notice', notice); socket.off('room:removed', removed); socket.off('room:state', receive); socket.off('disconnect', disconnect); socket.off('connect', resume); socket.off('room:control-replaced', replaced) }
   }, [client, hasAccount])
 }

@@ -14,6 +14,7 @@ import { NumberText } from '../../../lib/NumberText'
 import type { AccountProfile } from '../../../types/account'
 import type { GameVariant } from '../../../types/game'
 import { AvatarRankBadge } from './AvatarRankBadge'
+import { sharedRankEloFromStats } from '../../../lib/rankProgression'
 
 interface Props {
   intro: ReturnType<typeof useMatchIntro>
@@ -25,6 +26,7 @@ interface Props {
 }
 export function introPlayer(name: string, profile: AccountProfile | null, variant: GameVariant) {
   return { name: profile?.displayName ?? name, loaded: !!profile, elo: profile?.stats.find(item => item.variant === variant)?.elo ?? 1000,
+    rankElo: sharedRankEloFromStats(profile?.stats),
     avatarIndex: Number(profile?.avatarCode.replace('avatar-', '')) || 0,
     frameIndex: Number(profile?.avatarFrameCode.replace('frame-', '')) || 0 }
 }
@@ -33,7 +35,7 @@ function IntroPortrait({ player }: { player: IntroPlayer }) {
   return <div className="relative size-[clamp(56px,12vw,88px)] compact:size-[clamp(72px,20vw,96px)] mb-7 shrink-0 rounded-full bg-[#201309] shadow-[0_5px_20px_#0008]">
     {player.loaded && <><AvatarPortrait avatarIndex={player.avatarIndex} className="size-full rounded-full" />
     <AvatarFrameOverlay src={getAvatarFrame(player.frameIndex).image} />
-    <AvatarRankBadge elo={player.elo}/></>}
+    <AvatarRankBadge elo={player.rankElo}/></>}
   </div>
 }
 export function MatchIntro({ intro, redName, blackName, redId, blackId, variant = 'xiangqi' }: Props) {

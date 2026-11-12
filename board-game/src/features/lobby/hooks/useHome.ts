@@ -4,7 +4,7 @@ import { useGameStore } from '../../../store/gameStore'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { roomApi, errorMessage } from '../../../services/api'
 import { roomSocket } from '../../../services/socket'
-import { randomAvailableRoom } from '../../../lib/quickRoom'
+import { rankHomeQuickPlayRooms } from '../../../lib/quickRoom'
 import { MAX_ENERGY, isEnergyError } from '../../../lib/energy'
 import { refreshMatchHistory } from '../../../services/accountSession'
 
@@ -43,11 +43,17 @@ export function useHome() {
   const quick = useMutation({
     mutationFn: async (variant: 'xiangqi' | 'jieqi') => {
       const rooms = await client.fetchQuery({ queryKey: ['rooms'], queryFn: ({ signal }) => roomApi.list(signal), staleTime: 0 })
-      const room = randomAvailableRoom(rooms, Math.random, variant, !useSessionStore.getState().countryCode)
       if (!requireEnergy()) return { blocked: true as const }
       const profile = useSessionStore.getState()
       const province = profile.countryCode === 'VN' ? profile.province.trim() || undefined : undefined
-      const destination = room ?? await (variant === 'jieqi' ? roomApi.create('Bàn Cờ Úp', 10, 60, province, undefined, 'jieqi') : roomApi.create('Bàn cờ', 10, 60, province))
+      const candidates = rankHomeQuickPlayRooms(rooms, variant, province)
+      // Select a real one-player room first; never enter a password-protected room.
+      // If joining a selected room fails, propagate the error; do not create an
+      // unrelated room or silently bypass server permissions.
+      if (candidates.length) return roomSocket.join(candidates[0].id, name)
+      const destination = variant === 'jieqi'
+        ? await roomApi.create('Bàn Cờ Úp', 10, 60, province, undefined, 'jieqi')
+        : await roomApi.create('Bàn cờ', 10, 60, province)
       return roomSocket.join(destination.id, name)
     },
     onSuccess: room => {

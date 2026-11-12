@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useSessionStore } from './sessionStore'
 import { createGame, opposite } from '../game/state/initial'
 import { advanceClock, applyMoveWithResult, finishGame, startGame, takebackSnapshot, MATCH_INTRO_MS } from '../game/moves/actions'
 import { isInsideBoard } from '../game/rules'
@@ -47,6 +48,7 @@ export const useGameStore = create<LocalGameStore>()((set, get) => ({
     selected: null, animation: null, animationVersion: state.animationVersion + 1, moves: [], history: [], takebacksRemaining: 2, takebackDeclineVersion: 0,
   })),
   tick: now => set(state => {
+    if (useSessionStore.getState().mode === 'computer') return state
     const game = advanceClock(state.game, now)
     const selected = game.phase === 'finished' ? null : state.selected
     if (game === state.game && selected === state.selected) return state
@@ -59,7 +61,10 @@ export const useGameStore = create<LocalGameStore>()((set, get) => ({
     if (game.board[point.row][point.col]?.side === game.currentTurn) { set({ selected: point }); return }
     if (selected) {
       const move = { from: selected, to: point }
-      const result = applyMoveWithResult(game, move, now, game.currentTurn, {
+      const moveGame = useSessionStore.getState().mode === 'computer'
+        ? { ...game, lastClockUpdate: now, turnElapsed: 0 }
+        : game
+      const result = applyMoveWithResult(moveGame, move, now, game.currentTurn, {
         skipEndgameMoveScan: DEBUG_SKIP_ENDGAME_MOVE_SCAN,
 
       })
@@ -88,6 +93,7 @@ export const useGameStore = create<LocalGameStore>()((set, get) => ({
     set({ animation: null })
   },
   takeback: (plies, now, consume = true) => set(state => {
+    if (state.game.variant === 'jieqi') return state
     const restored = state.history.at(-plies)
     if (!restored || state.takebacksRemaining <= 0) return state
     return {

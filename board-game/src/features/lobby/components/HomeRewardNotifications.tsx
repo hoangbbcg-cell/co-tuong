@@ -2,7 +2,7 @@ import { useSessionStore } from '../../../store/sessionStore'
 import { useEffect, useRef, useState } from 'react'
 import { useHomeRewardNotifications } from '../hooks/useHomeRewardNotifications'
 import { useCelebrationSound } from '../../../lib/useCelebrationSound'
-import { acknowledgeHomeRewards, type HomeReward } from '../../../store/homeRewardsStore'
+import { type HomeReward } from '../../../store/homeRewardsStore'
 import { AvatarPortrait } from './AvatarCustomization'
 import { getAvatarFrame } from '../../../lib/avatarFrames'
 import { ReceivedHonorArtwork, ReceivedHonorDetails } from './ProfileDialog'
@@ -29,7 +29,7 @@ function RewardPreview({ reward, onClose, detailsVisible, onCloseDetails, detail
 }
 
 export function HomeRewardNotifications() {
-  const { account, pending, visible } = useHomeRewardNotifications()
+  const { account, pending, visible, markPresented, dismiss } = useHomeRewardNotifications()
   const screen = useSessionStore(state => state.screen)
   const [dialogOpened, setDialogOpened] = useState(false)
   useCelebrationSound('reward', visible && dialogOpened, { finishOnClose: true, resetKey: `${account?.id}:${screen}` })
@@ -40,7 +40,7 @@ export function HomeRewardNotifications() {
   const dialog = useRef<HTMLDialogElement>(null)
   useEffect(() => {
     const element = dialog.current
-    if (visible && element && !element.open) element.showModal()
+    if (visible && element && !element.open) { element.showModal(); markPresented() }
     else if (!visible && element?.open) element.close()
     setDialogOpened(Boolean(visible && element?.open))
   }, [visible])
@@ -53,9 +53,9 @@ export function HomeRewardNotifications() {
   }
   const onlyResources = rewards.every(reward => reward.kind === 'gold' || reward.kind === 'elo')
   const closePreview = () => { setSelectedReward(null); setPressedHonor(null) }
-  const confirm = () => { if (account && !selectedReward) acknowledgeHomeRewards(account.id, pending.map(reward => reward.id)) }
-  return <dialog ref={dialog} data-home-reward aria-label="Vật phẩm mới nhận được" onCancel={event => { event.preventDefault(); if (event.target !== event.currentTarget) return; if (selectedReward) closePreview(); else confirm() }} className="m-auto max-h-none max-w-none overflow-visible border-0 bg-transparent p-0 shadow-none backdrop:bg-black/60 compact:fixed compact:inset-0 compact:m-0 compact:h-[100dvh] compact:w-screen! compact:open:grid compact:place-items-center" style={{ width: 'min(92vw, 70dvh)' }}>
-    <div className="relative w-full compact:w-[min(92vw,70dvh)]">
+  const confirm = () => { if (account && !selectedReward) dismiss() }
+  return <dialog ref={dialog} data-home-reward aria-label="Vật phẩm mới nhận được" onCancel={event => { event.preventDefault(); if (event.target !== event.currentTarget) return; if (selectedReward) closePreview(); else confirm() }} className="fixed! inset-0! m-0! flex! h-[100dvh]! w-screen! max-h-none! max-w-none! items-center justify-center overflow-visible border-0 bg-transparent p-0 shadow-none backdrop:bg-black/60" style={{ width: 'min(92vw, 70dvh)' }}>
+    <div className="relative mx-auto w-[min(92vw,70dvh)] max-w-full shrink-0">
       <CrispUiImage src={frame} alt="Nhận được — Vật phẩm nhận được" className="block h-auto w-full" />
       <div className="absolute overflow-x-auto overflow-y-hidden overscroll-x-contain touch-pan-x [container-type:size]" style={onlyResources ? { left: '18%', top: '56%', width: '64%', height: '16%' } : { left: '12%', top: '54%', width: '76%', height: '21%' }}>
         <div className="flex w-max min-w-full flex-nowrap items-start gap-[8px] pb-[8px]">

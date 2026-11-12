@@ -8,6 +8,7 @@ import { useSessionStore } from '../../../store/sessionStore'
 import { getMoveHints, REPETITION_WARNING_MESSAGE } from '../../../game/rules/repetition'
 import { gameStatus, sideName } from '../../../game/state/selectors'
 import { opposite, TURN_TIME_LIMIT_MS } from '../../../game/state/initial'
+import { positionError } from '../../../game/state/customPosition'
 import { roomSocket, socket } from '../../../services/socket'
 import { errorMessage } from '../../../services/api'
 import type { Position, Move, GameState } from '../../../types/game'
@@ -58,6 +59,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
     computerDemo: state.computerDemo,
     computerEngine: state.computerEngine,
     humanSide: state.humanSide,
+    customPositionTrial: state.customPositionTrial,
     leave: state.leave,
     lobbyOpen: state.lobbyOpen,
     mode: state.mode,
@@ -85,8 +87,8 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
   const game = replay?.game ?? (online ? session.room!.game : local.game)
   const moveCount = replay?.moveCount ?? (online ? session.room?.moveCount ?? 0 : local.history.length)
   const timeToTimeout = Math.min(game.remainingTime[game.currentTurn], (game.turnTimeLimitMs ?? TURN_TIME_LIMIT_MS) - game.turnElapsed)
-  const clockWarningKey = !replay && !repetitionNotice && game.phase === 'playing' && timeToTimeout > 0 && timeToTimeout <= 10_000 ? `${game.currentTurn}:${moveCount}` : null
-  const clockTickRunning = !replay && shouldPlayClockTick(
+  const clockWarningKey = !replay && !computer && !repetitionNotice && game.phase === 'playing' && timeToTimeout > 0 && timeToTimeout <= 10_000 ? `${game.currentTurn}:${moveCount}` : null
+  const clockTickRunning = !replay && !computer && shouldPlayClockTick(
     game,
     online
       ? Boolean(session.room?.repetitionNoticePaused)
@@ -168,10 +170,10 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
     warnedMove.current = null
   }, [online, session.room?.id, game.phase === 'ready'])
   useEffect(() => {
-    if (replay || online || session.lobbyOpen) return
+    if (replay || online || computer || session.lobbyOpen) return
     const timer = window.setInterval(() => useGameStore.getState().tick(performance.now()), 100)
     return () => clearInterval(timer)
-  }, [!!replay, online, session.lobbyOpen])
+  }, [!!replay, online, computer, session.lobbyOpen])
   useEffect(() => {
     if (replay || !local.animation || online) return
     const timer = window.setTimeout(() => local.completeAnimation(local.animationVersion, performance.now()), PIECE_MOVE_DURATION_MS)
@@ -232,10 +234,10 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
   useEffect(() => { setStandUpConfirmationOpen(false) }, [game.phase, session.room?.id, player?.id, session.room?.players.length])
   const confirmStandUp = () => {
     setStandUpConfirmationOpen(false)
-    if (!replay && online && player && session.room?.players.length === 2) void command({ type: 'stand-up' })
+    if (!replay && online && player && (session.room?.players.length === 2 || session.room?.locked || session.room?.customFen)) void command({ type: 'stand-up' })
   }
   const standUp = () => {
-    if (replay || !online || !player || session.room?.players.length !== 2) return
+    if (replay || !online || !player || !(session.room?.players.length === 2 || session.room?.locked || session.room?.customFen)) return
     if (game.phase === 'playing') setStandUpConfirmationOpen(true)
     else confirmStandUp()
   }
@@ -251,13 +253,27 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
   const select = useCallback((point: Position) => {
     if (replay) return
     if (session.lobbyOpen) return
-    if (session.computerDemo || computer && game.currentTurn !== session.humanSide) return
+    const freeOpening = computer && session.customPositionTrial && local.history.length === 0 && game.phase === 'playing' && !local.animation
+    if (session.computerDemo || computer && !freeOpening && game.currentTurn !== session.humanSide) return
     if (forbiddenMoves.some(hint => hint.row === point.row && hint.col === point.col)) {
       if (online && selected) void command({ type: 'repetition-attempt', move: { from: selected, to: point } })
       return
     }
     if (!online) {
       if (session.testBotId) { void testBot.select(point); return }
+      if (freeOpening) {
+        const firstPiece = game.board[point.row]?.[point.col]
+        if (firstPiece && firstPiece.side !== game.currentTurn) {
+          const error = positionError(game.board, firstPiece.side)
+          if (error) { session.setNotice(error); return }
+          // Before the first move, selecting either color makes that color the human side.
+          useGameStore.setState(state => ({ game: { ...state.game, currentTurn: firstPiece.side }, selected: null }))
+          useSessionStore.setState({ humanSide: firstPiece.side })
+          session.setNotice('')
+        } else if (firstPiece && firstPiece.side !== session.humanSide) {
+          useSessionStore.setState({ humanSide: firstPiece.side })
+        }
+      }
       local.select(point, performance.now(), !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
       return
     }
@@ -267,7 +283,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
       void command({ type: 'move', move: { from: onlineSelected, to: point } })
     }
     setOnlineSelected(null)
-  }, [!!replay, session.testBotId, testBot.select, session.computerDemo, session.lobbyOpen, computer, game.currentTurn, session.humanSide, online, local.select, pending, player, game.phase, game.board, onlineSelected, command, legalMoves, forbiddenMoves])
+  }, [!!replay, session.testBotId, testBot.select, session.computerDemo, session.customPositionTrial, session.lobbyOpen, computer, game.currentTurn, session.humanSide, local.history.length, local.animation, game.board, session.setNotice, online, local.select, pending, player, game.phase, game.board, onlineSelected, command, legalMoves, forbiddenMoves])
   const dismissRepetitionNotice = () => {
     if (replay) return
     if (online && !player) return
@@ -303,6 +319,27 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
   useEffect(() => { if (game.phase !== 'playing') setResignConfirmationOpen(false) }, [game.phase])
   const leaveImmediately = async () => {
     if (replay) { replay.leave(); return }
+    if (online && useSessionStore.getState().customRoomReturn && session.room?.customFen && session.room.ownerId === socket.id && typeof useSessionStore.getState().customRoomReturnFen === 'string') {
+      // Leaving a custom room returns to the position trial that created it.
+      const eligibleTrialAdId = eligibleOnlineExitAdId(
+        online,
+        Boolean(player),
+        game.phase,
+        onlineAdIdentityRef.current?.matchId,
+        onlineAdIdentityRef.current?.matchId,
+      )
+      try { await roomSocket.leave() } catch { /* Disconnect still releases the server seat. */ }
+      if (eligibleTrialAdId) queueAccumulatedOnlineAdOffer(eligibleTrialAdId)
+      // Back restores the exact trial board at the moment "Tạo bàn" was pressed.
+      const returnFen = useSessionStore.getState().customRoomReturnFen
+      if (typeof returnFen === 'string') {
+        useGameStore.getState().loadPosition(returnFen)
+        useSessionStore.setState({ customRoomReturnFen: null })
+      }
+      // Keep the custom position in the game store: the trial board resumes untouched.
+      useSessionStore.setState({ screen: 'game', room: null, mode: 'computer', testBotId: undefined, testBotGold: undefined, computerDemo: false, computerDemoQueued: false, customPositionTrial: true, computerEngine: 'fairy', computerLevel: 10, customRoomReturn: false, customReplayReturn: null, notice: '' })
+      return
+    }
     // An active online match also qualifies when its player exits.
     const eligibleAdId = eligibleOnlineExitAdId(
       online,
@@ -329,15 +366,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
   useEffect(() => { if (game.phase !== 'playing') setLeaveConfirmationOpen(false) }, [game.phase])
   const phase = game.phase
   const variant = game.variant
-  // Play intro only after the server-confirmed phase transition.
-  const previousOnlinePhase = useRef(game.phase)
-  useEffect(() => {
-    const previous = previousOnlinePhase.current
-    previousOnlinePhase.current = game.phase
-    if (online && !replay && previous === 'ready' && game.phase === 'playing') {
-      playMatchIntro(true)
-    }
-  }, [online, replay, game.phase, playMatchIntro])
+  // useMoveSound handles every server-confirmed start, including finished -> playing.
   const start = useCallback(() => {
     if (replay) return
     if (session.testBotId) { void testBot.start(game.variant ?? 'xiangqi'); return }
@@ -374,13 +403,14 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
   const takebackPlies: 1 | 2 = requestedTakebackPlies === 2 && moveCount === 1 ? 1 : requestedTakebackPlies
   const computerHasMoved = computer && local.history.some(snapshot => snapshot.currentTurn === session.humanSide)
   const onlineHasMoved = !online || !!player && !session.room?.takebackBlocked?.[player.side] && (moveCount >= 2 || moveCount === 1 && game.currentTurn !== player.side)
-  const canTakeback = !replay && game.phase === 'playing' && moveCount >= 1 && onlineHasMoved && (!computer || computerHasMoved)
+  const canTakeback = game.variant !== 'jieqi' && !replay && game.phase === 'playing' && moveCount >= 1 && onlineHasMoved && (!computer || computerHasMoved)
   const takebacksLeft = online ? player ? session.room?.takebackRemaining?.[player.side] ?? 2 : 0 : computer ? local.takebacksRemaining : 0
   return {
     game, moveCount, online, computer, humanSide: session.humanSide, computerEngine: session.computerEngine, computerState, room: replay ? null : session.room, player: replay ? undefined : player, viewer: replay ? undefined : viewer, toggleQueue, standUp, standUpConfirmationOpen, confirmStandUp, cancelStandUp: () => setStandUpConfirmationOpen(false), selected, legalMoves, forbiddenMoves, repetitionNotice: replay ? '' : repetitionNotice?.message ?? '', repetitionAttemptNotice, dismissRepetitionNotice,
     animation, select, checkmateAudioComplete,
     animationVersion: local.animationVersion, canTakeback, takebacksLeft, takebackDeclineVersion: local.takebackDeclineVersion,
     status: testBot.error || computerState.error || session.notice || (testBot.pending ? 'Máy giả đang xử lý…' : session.testBotId && game.phase === 'playing' ? 'Máy giả: đi 2 nước hợp lệ để thử bảng thất bại.' : computerState.thinking ? '' : game.phase === 'playing' ? '' : gameStatus(game)), pending: pending || testBot.pending,
+    command,
     start,
     reset: () => replay ? undefined : session.testBotId ? void testBot.start(game.variant ?? 'xiangqi') : online ? void command({ type: 'reset' }) : local.reset(performance.now(), game.variant),
     requestTakeback: () => {
@@ -388,6 +418,7 @@ export function useGame(replay?: { game: GameState; moveCount: number; animation
       else if (computer && canTakeback && local.takebacksRemaining > 0) local.declineTakeback()
     },
     replyTakeback: (accepted: boolean) => {
+      if (game.variant === 'jieqi') return
       if (online) void command({ type: 'reply-takeback', accepted })
     },
     draw, resign, leave, leaveConfirmationOpen, confirmLeave, cancelLeave: () => setLeaveConfirmationOpen(false),

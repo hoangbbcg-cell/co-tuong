@@ -2,6 +2,7 @@ import { CrispUiImage } from '../../../lib/CrispUiImage'
 import { computerAvatar } from '../../../lib/computerAvatar'
 import { PlayerNameplate } from '../../game/components/PlayerNameplate'
 import { ComputerActionButton } from './ComputerActionButton'
+import { ComputerVariantTabs } from './ComputerVariantTabs'
 import puzzles from '../../../assets/computer-setup/training-banner.png'
 import { buttonInteraction } from '../../../lib/uiClasses'
 import { useComputerLayout } from '../hooks/useComputerLayout'
@@ -16,45 +17,42 @@ function Ornament({ color }: { color: string }) {
   </svg>
 }
 
-export function ComputerSetupDesktop({ setup }: { setup: ReturnType<typeof useComputerSetup> }) {
+export function ComputerSetupDesktop({ setup, onStart, onCustomPosition }: { setup: ReturnType<typeof useComputerSetup>; onStart: () => void; onCustomPosition: () => void }) {
   const layout = useComputerLayout()
 
   return <div ref={layout.areaRef} className="relative min-h-0 flex-1 overflow-hidden overscroll-none compact:hidden">
-    <div className="absolute left-1/2 -translate-x-1/2" style={{ top: 42 * layout.scale, width: 1148 * layout.scale, height: 878 * layout.scale }}>
-      <div className="relative flex h-[878px] w-[1148px] origin-top-left flex-col items-center" style={{ transform: `scale(${layout.scale})` }}>
-        <section aria-label="Thiết lập ván đấu với máy" className="relative h-[625px] w-[1058px] shrink-0 rounded-[6px] border-[3px] border-[#d39a43] bg-[#170d07c9] shadow-[inset_0_0_0_2px_#ffe2a0,inset_0_0_0_5px_#57300f,0_8px_25px_#080401b3]">
+    <div className="absolute left-1/2 -translate-x-1/2" style={{ top: 24 * layout.scale, width: 1268 * layout.scale, height: 960 * layout.scale }}>
+      <div className="relative flex h-[960px] w-[1268px] origin-top-left flex-col items-center" style={{ transform: `scale(${layout.scale})` }}>
+        <section aria-label="Thiết lập ván đấu với máy" className="relative h-[750px] w-[1268px] shrink-0 rounded-[6px] border-[3px] border-[#d39a43] bg-[#170d07c9] shadow-[inset_0_0_0_2px_#ffe2a0,inset_0_0_0_5px_#57300f,0_8px_25px_#080401b3]">
           <div aria-hidden="true" className="pointer-events-none absolute inset-[6px] rounded-[3px] border border-[#92612d66]" />
           <div aria-hidden="true" className="pointer-events-none absolute top-[4px] left-[4px] size-[99px] rounded-tl-[95px] border-t border-l border-[#a67a3a66]" />
           <div aria-hidden="true" className="pointer-events-none absolute top-[4px] right-[4px] size-[99px] rounded-tr-[95px] border-t border-r border-[#a67a3a66]" />
           <div aria-hidden="true" className="pointer-events-none absolute bottom-[4px] left-[4px] size-[99px] rounded-bl-[95px] border-b border-l border-[#a67a3a66]" />
           <div aria-hidden="true" className="pointer-events-none absolute right-[4px] bottom-[4px] size-[99px] rounded-br-[95px] border-r border-b border-[#a67a3a66]" />
 
-
-
-          <CrispUiImage src={computerAvatar} alt="Ông Hoàng" className="pointer-events-none absolute top-[13px] left-1/2 block h-[148px] w-[183px] max-w-none -translate-x-1/2 object-contain" />
-          <div className="absolute top-[171px] left-1/2 grid h-[53px] w-[330px] -translate-x-1/2 place-items-center">
-            <PlayerNameplate name="Ông Hoàng" className="[--nameplate-width:250px]" />
+          <CrispUiImage src={computerAvatar} alt="Ông Hoàng" className="pointer-events-none absolute top-[13px] left-1/2 block h-[164px] w-[203px] max-w-none -translate-x-1/2 object-contain" />
+          <div className="absolute top-[185px] left-1/2 grid h-[60px] w-[372px] -translate-x-1/2 place-items-center">
+            <PlayerNameplate name="Ông Hoàng" className="[--nameplate-width:285px]" />
           </div>
 
-          <div className="absolute top-[261px] right-[28px] left-[28px] grid grid-cols-5 gap-x-[16px] gap-y-[33px]">
+          <div className="absolute top-[268px] inset-x-0 flex justify-center"><div className="origin-top" style={{ transform: `scale(${1 / layout.scale})` }}><ComputerVariantTabs variant={setup.variant} onChange={setup.setVariant} disabled={setup.starting} gapClass="gap-7" /></div></div><div className="absolute top-[354px] right-[28px] left-[28px] grid grid-cols-5 gap-x-[16px] gap-y-[26px]">
             {Array.from({ length: 10 }, (_, index) => index + 1).map(level => <ComputerLevelButton key={level} level={level} selected={setup.level === level} disabled={setup.starting} onClick={() => setup.setLevel(level)} />)}
           </div>
 
-          <fieldset className="absolute top-[454px] right-0 left-0 flex h-[47px] items-center justify-center gap-[31px]">
+          <fieldset className="absolute top-[540px] right-0 left-0 flex h-[62px] items-center justify-center gap-[34px]">
             <legend className="sr-only">Chọn bên</legend>
-            <span aria-hidden="true" className="flex items-center gap-[12px] font-[Arial,sans-serif] text-[21px] text-[#eab44f]"><span className="w-[30px]"><HomeIcon name="friends" /></span>Chọn bên</span>
-            {([{ value: 'red', label: 'Đỏ' }, { value: 'black', label: 'Đen' }, { value: 'random', label: 'Ngẫu nhiên' }] as const).map(option => <label key={option.value} className="flex cursor-pointer items-center gap-[10px] whitespace-nowrap font-[Arial,sans-serif] text-[20px] text-[#f4eee4]">
-              <input data-ui-selection-sound type="radio" name="computer-side" value={option.value} checked={setup.side === option.value} onChange={() => setup.setSide(option.value)} disabled={setup.starting} className={`size-[28px] appearance-none rounded-full border-2 border-[#e3be70] bg-[#21190e]/80 outline-offset-4 checked:shadow-[inset_0_0_0_4px_#291b0d] focus-visible:outline-2 focus-visible:outline-[#fff1ba] ${option.value === 'red' ? 'checked:border-red-500 checked:bg-red-600' : 'checked:bg-[#edbd61]'}`} />{option.label}
+            <span aria-hidden="true" className="flex items-center gap-[14px] font-[Arial,sans-serif] text-[26px] text-[#eab44f]"><span className="w-[36px]"><HomeIcon name="friends" /></span>Chọn bên</span>
+            {([{ value: 'red', label: 'Đỏ' }, { value: 'black', label: 'Đen' }, { value: 'random', label: 'Ngẫu nhiên' }] as const).map(option => <label key={option.value} className="flex cursor-pointer items-center gap-[12px] whitespace-nowrap font-[Arial,sans-serif] text-[25px] text-[#f4eee4]">
+              <input data-ui-selection-sound type="radio" name="computer-side" value={option.value} checked={setup.side === option.value} onChange={() => setup.setSide(option.value)} disabled={setup.starting} className={`size-[34px] appearance-none rounded-full border-2 border-[#e3be70] bg-[#21190e]/80 outline-offset-4 checked:shadow-[inset_0_0_0_5px_#291b0d] focus-visible:outline-2 focus-visible:outline-[#fff1ba] ${option.value === 'red' ? 'checked:border-red-500 checked:bg-red-600' : 'checked:bg-[#edbd61]'}`} />{option.label}
             </label>)}
           </fieldset>
 
-          <div className="absolute top-[521px] right-[48px] left-[58px] grid h-[82px] grid-cols-2 gap-[28px]">
-            <ComputerActionButton data-ui-selection-sound action="position" disabled={setup.starting} onClick={setup.customPosition}>Vị trí tùy chỉnh</ComputerActionButton>
-            <ComputerActionButton data-ui-selection-sound action="start" disabled={setup.starting} aria-busy={setup.starting} onClick={() => void setup.start()}>{setup.starting ? 'Đang kết nối…' : 'Đấu ngay'}</ComputerActionButton>
+          <div className="absolute top-[628px] right-[48px] left-[58px] grid h-[82px] grid-cols-2 gap-[28px]">
+            <ComputerActionButton data-ui-selection-sound action="position" disabled={setup.starting} onClick={onCustomPosition}>Vị trí tùy chỉnh</ComputerActionButton>
+            <ComputerActionButton data-ui-selection-sound action="start" disabled={setup.starting} aria-busy={setup.starting} onClick={onStart}>{setup.starting ? 'Đang kết nối…' : 'Đấu ngay'}</ComputerActionButton>
           </div>
         </section>
-        <button data-ui-selection-sound type="button" className={`${buttonInteraction} mt-[13px] aspect-[2132/348] w-[1268px] max-w-none shrink-0 rounded-xl hover:brightness-110`} onClick={() => setup.setMessage('Luyện cờ chưa được hỗ trợ.')}><CrispUiImage src={puzzles} alt="Luyện cờ — Luyện tập cùng máy, rèn kỹ năng mỗi ngày" className="block size-full object-contain" /></button>
-    <footer className="pointer-events-none flex h-[30px] w-full shrink-0 items-center justify-center px-4"><span className="text-center font-[Arial,sans-serif] text-[14px] tracking-[0.3em] text-[#c69a42] uppercase [text-shadow:0_1px_2px_#261a0c]">Cờ tướng · Trí tuệ vô tận</span></footer>
+        <button data-ui-selection-sound type="button" className={`${buttonInteraction} mt-[34px] h-[176px] w-[1268px] shrink-0 rounded-xl hover:brightness-110`} onClick={() => setup.setMessage('Luyện cờ chưa được hỗ trợ.')}><CrispUiImage src={puzzles} alt="Luyện cờ — Luyện tập cùng máy, rèn kỹ năng mỗi ngày" className="block size-full object-fill" /></button>
       </div>
     </div>
 

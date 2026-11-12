@@ -15,8 +15,8 @@ it.each([false,true])('keeps a standing player inside the room as a non-queued v
   expect(room.players.map(p=>p.id)).toEqual(['b','c'])
   expect(room.viewers).toContainEqual({id:'a',userId:'1',name:'An',queued:false})
   expect(service.roomFor('a')?.id).toBe(room.id)
-  expect(room.ownerId).toBe('b')
-  expect(service.list()[0].ownerName).toBe('Binh')
+  expect(room.ownerId).toBe(locked ? 'a' : 'b')
+  expect(service.list()[0].ownerName).toBe(locked ? 'An' : 'Binh')
 })
 it('finishes the real match as a loss before moving the participant to view',()=>{
   const {service,room,setTime}=setup()

@@ -1,5 +1,6 @@
 import { MATCH_INTRO_MS } from '../../../game/moves/actions'
 import { useAudioSettingsStore } from '../../../store/audioSettingsStore'
+import { createAudioOutputKeepAlive } from '../../../lib/audioOutputKeepAlive'
 
 type SoundName = 'move' | 'capture' | 'check' | 'checkmate' | 'introOne' | 'introTwo' | 'clockTick'
 type Channel = 'effects' | 'intro' | 'checkmate' | 'clock' | 'clockTick' | 'readyCountdown'
@@ -7,11 +8,14 @@ type Clip = { sound: SoundName; volume: number; delay?: number; offset?: number 
 
 /** Decodes each asset once per board and gives each cue its own playback source. */
 export class GameSounds {
-  private readonly context = new AudioContext()
+  private readonly context = new AudioContext({ latencyHint: 'interactive' })
   private readonly output = this.context.createGain()
+  private readonly keepAliveGain = this.context.createGain()
+  private readonly keepAlive: ConstantSourceNode
   private readonly unsubscribeAudio: () => void
   private readonly abort = new AbortController()
   private readonly buffers = new Map<SoundName, Promise<AudioBuffer>>()
+  private readonly decodedBuffers = new Map<SoundName, AudioBuffer>()
   private readonly active: Record<Channel, Set<AudioBufferSourceNode>> = {
     effects: new Set(), intro: new Set(), checkmate: new Set(), clock: new Set(), clockTick: new Set(), readyCountdown: new Set(),
   }
@@ -24,10 +28,16 @@ export class GameSounds {
   private readonly waiting = new Set<() => void>()
   private readonly warned = new Set<string>()
   private disposed = false
+  private resuming: Promise<void> | null = null
 
   constructor(sources: Record<Exclude<SoundName, 'clockTick'>, string> & Partial<Record<'clockTick', string>>) {
     this.output.connect(this.context.destination)
-    const updateMute = () => this.output.gain.setValueAtTime(useAudioSettingsStore.getState().muted ? 0 : 1, this.context.currentTime)
+    this.keepAliveGain.connect(this.context.destination)
+    this.keepAlive = createAudioOutputKeepAlive(this.context, this.keepAliveGain)
+    const updateMute = () => {
+      this.output.gain.setValueAtTime(useAudioSettingsStore.getState().muted ? 0 : 1, this.context.currentTime)
+      this.updateKeepAlive()
+    }
     updateMute()
     this.unsubscribeAudio = useAudioSettingsStore.subscribe(updateMute)
     for (const name of Object.keys(sources) as SoundName[]) {
@@ -39,6 +49,7 @@ export class GameSounds {
           return response.arrayBuffer()
         })
         .then(data => this.context.decodeAudioData(data))
+        .then(decoded => { this.decodedBuffers.set(name, decoded); return decoded })
       this.buffers.set(name, buffer)
       // Preloading must not create unhandled rejections before the first cue.
       void buffer.catch(error => this.warn(name, error))
@@ -56,24 +67,35 @@ export class GameSounds {
   }
 
   private readonly onStateChange = () => {
-    if (this.context.state !== 'running' && !this.disposed) return
+    if (this.context.state !== 'running' && !this.disposed) {
+      if (document.visibilityState === 'visible' && !useAudioSettingsStore.getState().muted) this.unlock()
+      return
+    }
     for (const resolve of this.waiting) resolve()
     this.waiting.clear()
   }
 
   private readonly onVisibility = () => {
+    this.updateKeepAlive()
     if (document.visibilityState === 'visible') this.unlock()
   }
 
-  private readonly unlock = () => {
-    if (this.disposed || this.context.state === 'running') return
-    void this.context.resume().then(this.onStateChange).catch(error => {
+  private updateKeepAlive() {
+    const enabled = !useAudioSettingsStore.getState().muted && document.visibilityState === 'visible'
+    this.keepAliveGain.gain.setValueAtTime(enabled ? 1 : 0, this.context.currentTime)
+  }
+
+  private readonly unlock = (gesture?: Event) => {
+    if (this.disposed || this.context.state === 'running' || this.context.state === 'closed' || this.resuming && !gesture) return
+    this.resuming = this.context.resume().then(this.onStateChange).catch(error => {
       // A later real gesture can resume the context; pending cues stay cancellable.
       if (!(error instanceof DOMException && error.name === 'NotAllowedError')) this.warn('resume', error)
-    })
+    }).finally(() => { this.resuming = null })
   }
 
   private async ready(names: SoundName[], channel: Channel, version: number) {
+    // Request resume immediately, before decoding/loading yields the gesture.
+    this.unlock()
     const buffers = await Promise.all(names.map(name => this.buffers.get(name)!))
     if (this.disposed || this.versions[channel] !== version) return null
     if (this.context.state !== 'running') {
@@ -107,8 +129,16 @@ export class GameSounds {
   }
 
   private async playClips(clips: Clip[], channel: Channel) {
+    if (this.disposed) return
     const version = this.versions[channel]
     try {
+      this.unlock()
+      const cached = clips.map(clip => this.decodedBuffers.get(clip.sound))
+      if (this.context.state === 'running' && cached.every((buffer): buffer is AudioBuffer => !!buffer)) {
+        const time = this.context.currentTime
+        await Promise.all(clips.map((clip, index) => this.start(cached[index], clip, channel, time)))
+        return
+      }
       const buffers = await this.ready(clips.map(clip => clip.sound), channel, version)
       if (!buffers) return
       const time = this.context.currentTime
@@ -243,6 +273,9 @@ export class GameSounds {
     if (this.disposed) return
     this.disposed = true
     this.unsubscribeAudio()
+    this.keepAlive.stop()
+    this.keepAlive.disconnect()
+    this.keepAliveGain.disconnect()
     this.output.disconnect()
     this.stopAll()
     this.stop('readyCountdown')

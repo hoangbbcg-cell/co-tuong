@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { adminApi } from '../../services/adminApi'
 import { errorMessage } from '../../services/api'
@@ -13,13 +13,17 @@ export function useAdmin() {
   const [catalog, setCatalog] = useState<{ code: string; title: string }[]>([])
   const [target, setTarget] = useState<AdminUser | null>(null)
   const busy = useRef(false)
+  const sessionExpired = useCallback(() => {
+    setAuthenticated(false); setTarget(null); setUsers([]); setCatalog([]); setNotice('')
+    setError('Phiên quản trị đã hết hiệu lực. Vui lòng đăng nhập lại.')
+  }, [])
   const run = async (action: () => Promise<void>) => {
     if (busy.current) return
     busy.current = true; setLoading(true); setError(''); setNotice('')
     try { await action() }
     catch (e) {
-      setError(errorMessage(e))
-      if (axios.isAxiosError(e) && e.response?.status === 401) { setAuthenticated(false); setTarget(null); setUsers([]); setCatalog([]) }
+      if (axios.isAxiosError(e) && e.response?.status === 401) sessionExpired()
+      else setError(errorMessage(e))
     } finally { busy.current = false; setLoading(false) }
   }
   useEffect(() => {
@@ -30,11 +34,15 @@ export function useAdmin() {
   useEffect(() => {
     if (!authenticated) return
     let alive = true
-    void adminApi.catalog().then(data => { if (alive) setCatalog(data) }).catch(e => { if (alive) setError(errorMessage(e)) })
+    void adminApi.catalog().then(data => { if (alive) setCatalog(data) }).catch(e => {
+      if (!alive) return
+      if (axios.isAxiosError(e) && e.response?.status === 401) sessionExpired()
+      else setError(errorMessage(e))
+    })
     return () => { alive = false }
-  }, [authenticated])
+  }, [authenticated, sessionExpired])
   return {
-    authenticated, loading, error, notice, users, catalog, target,
+    authenticated, loading, error, notice, users, catalog, target, sessionExpired,
     login: (password: string) => run(async () => { await adminApi.login(password); setAuthenticated(true) }),
     logout: () => run(async () => { await adminApi.logout(); setAuthenticated(false); setTarget(null); setUsers([]); setCatalog([]) }),
     search: (q: string) => run(async () => { setUsers(await adminApi.search(q)) }),

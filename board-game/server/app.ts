@@ -13,8 +13,6 @@ import { registerRoomSockets, roomRouter } from './controllers/roomController'
 import { ChallengeRepository } from './repositories/challengeRepository'
 import { ChallengeService } from './services/challengeService'
 import { registerChallengeSockets } from './controllers/challengeController'
-import { PikafishService } from './services/pikafishService'
-import { pikafishRouter } from './controllers/pikafishController'
 import { FairyStockfishService } from './services/fairyStockfishService'
 import { fairyStockfishRouter } from './controllers/fairyStockfishController'
 import { registerLobbyPresence } from './controllers/lobbyPresenceController'
@@ -66,7 +64,12 @@ export function createApplication(options: { staticDirectory?: string } = {}) {
   const service = new RoomService(new RoomRepository(persistence?room=>persistence.observe(room):undefined,persistence?room=>persistence.canStart(room):undefined,persistence?(id,room)=>persistence.hasEnergy(id,room):undefined))
   // Checkpoint 2: no database snapshot restore on server startup.
   if(databaseEnabled) {
-    app.use('/api/admin', adminRouter())
+    app.use('/api/admin', adminRouter(undefined, undefined, () => new Set(
+      [...io.sockets.sockets.keys()].flatMap(socketId => {
+        const identity = persistence!.identities.get(socketId)
+        return identity ? [identity.id] : []
+      })
+    )))
     app.use('/api/account',accountRouter(account,undefined,()=>new Set([...persistence!.identities.values()].map(p=>p.id))))
     app.use('/api/payments', paymentRouter(account))
     // HOVANG_FCM_DIAG_V1: temporary authenticated local-only diagnostic.
@@ -110,7 +113,6 @@ export function createApplication(options: { staticDirectory?: string } = {}) {
       }catch{next(new Error('Không xác thực được tài khoản.'))}
     })
   }
-  const pikafish = new PikafishService()
   const fairyStockfish = new FairyStockfishService()
   app.get('/api/health', (_req, res) => res.json({ status: 'ok' }))
   if(databaseEnabled)app.use('/api/rooms',async(req,res,next)=>{
@@ -123,7 +125,6 @@ export function createApplication(options: { staticDirectory?: string } = {}) {
     next()
   })
   app.use('/api/rooms', roomRouter(service))
-  app.use('/api/pikafish', pikafishRouter(pikafish))
   app.use('/api/fairy-stockfish', fairyStockfishRouter(fairyStockfish))
   app.use('/api', (_req, res) => res.status(404).json({ error: 'API không tồn tại.' }))
   const onError: ErrorRequestHandler = (error, _req, res, _next) => {
@@ -155,6 +156,6 @@ export function createApplication(options: { staticDirectory?: string } = {}) {
   })
   const challengeInterval = registerChallengeSockets(io, new ChallengeService(new ChallengeRepository(), service),persistence)
   const stopNativeFcmScheduler = startNativeFcmOfflineScheduler()
-  http.on('close', () => { stopNativeFcmScheduler(); clearInterval(interval); clearInterval(challengeInterval); pikafish.close(); fairyStockfish.close() })
-  return { app, http, io, service, ready, close: async () => { clearInterval(interval); clearInterval(challengeInterval); pikafish.close(); fairyStockfish.close(); await new Promise<void>(resolve => io.close(() => resolve()));await persistence?.waitForCommands();await persistence?.flush();await offlinePersistence?.flush();if(databaseEnabled)await closeMysqlPool() } }
+  http.on('close', () => { stopNativeFcmScheduler(); clearInterval(interval); clearInterval(challengeInterval); fairyStockfish.close() })
+  return { app, http, io, service, ready, close: async () => { clearInterval(interval); clearInterval(challengeInterval); fairyStockfish.close(); await new Promise<void>(resolve => io.close(() => resolve()));await persistence?.waitForCommands();await persistence?.flush();await offlinePersistence?.flush();if(databaseEnabled)await closeMysqlPool() } }
 }

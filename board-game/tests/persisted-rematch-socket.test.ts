@@ -30,9 +30,9 @@ it('publishes the rematch countdown to both real sockets after persistence assig
     now=2000
     expect((await clients[1].timeout(3000).emitWithAck('game:command',{type:'resign'})).ok).toBe(true)
     now=7000
-    await vi.waitFor(()=>{for(const client of clients)expect(readyCountdownForPlayer(latest.get(client.id!),client.id)).toBe(30)},{timeout:3000})
+    await vi.waitFor(()=>{for(const client of clients)expect(readyCountdownForPlayer(latest.get(client.id!),client.id)).toBe(28)},{timeout:3000})
     now=8000
-    await vi.waitFor(()=>{for(const client of clients)expect(readyCountdownForPlayer(latest.get(client.id!),client.id)).toBe(29)},{timeout:3000})
+    await vi.waitFor(()=>{for(const client of clients)expect(readyCountdownForPlayer(latest.get(client.id!),client.id)).toBe(27)},{timeout:3000})
   }finally{
     clients.forEach(client=>client.disconnect());clearInterval(interval)
     await new Promise<void>(resolve=>io.close(()=>resolve()))

@@ -8,7 +8,7 @@ export function useComputerLayout() {
     const area = areaRef.current
     if (!area) return
     const measure = () => {
-      setScale(Math.max(0, Math.min(1, (area.clientWidth - 24) / 1268, (area.clientHeight - 48) / 878)))
+      setScale(Math.max(0, Math.min(1, (area.clientWidth - 24) / 1268, (area.clientHeight - 48) / 960)))
     }
     measure()
     const observer = new ResizeObserver(measure)

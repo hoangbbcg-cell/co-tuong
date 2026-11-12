@@ -20,11 +20,13 @@ import { oneChoiceNoticeDialog, oneChoiceNoticeButton } from '../../features/lob
 import { buttonInteraction, homeUtilityButton as utility } from '../../lib/uiClasses'
 import { NumberText } from '../../lib/NumberText'
 import background from '../../assets/backgrounds/home.webp'
+import { OuterSceneBackdrop } from '../../lib/OuterSceneBackdrop'
 import { useHomeLayout } from '../../features/lobby/hooks/useHomeLayout'
 import { AvatarRankBadge } from '../../features/game/components/AvatarRankBadge'
 import { AvatarPortrait } from '../../features/lobby/components/AvatarCustomization'
 import { useSessionStore } from '../../store/sessionStore'
 import { getAvatarFrame } from '../../lib/avatarFrames'
+import { sharedRankEloFromStats } from '../../lib/rankProgression'
 import { AvatarFrameOverlay } from '../../features/game/components/AvatarFrameOverlay'
 import { XIANGQI_ELO_ICON as redGeneral } from '../../lib/eloArtwork'
 import concealedPiece from '../../assets/history/history-hidden-user.png'
@@ -114,14 +116,13 @@ export function HomePage() {
     if (!historyPlayerProfileRef.current?.open) historyPlayerProfileRef.current?.showModal()
   }
 
-  return <main className="relative isolate h-dvh w-full overflow-hidden bg-[#263a35] text-[#f7e6c1]" aria-label="Màn hình chính">
+  return <main className="relative isolate h-dvh w-full overflow-hidden bg-[#17251f] text-[#f7e6c1]" aria-label="Màn hình chính">
+    <OuterSceneBackdrop />
     {home.joining && <HovangLoadingOverlay label="Đang tìm bàn" />}
     <MobileHome unreadMessageCount={unreadMessageCount} home={home} music={music} onEnergy={openEnergy} onMessages={() => openMessages()} />
 
-    <div className="absolute top-1/2 left-1/2 isolate flex compact:hidden origin-center flex-col overflow-hidden border-[length:var(--ui-p-5,5px)] border-[#80582c] bg-[#d9d4bf] px-8 py-5 shadow-[inset_0_0_0_2px_#efd397,0_0_0_1px_#e1c993,0_8px_30px_#101d18aa] compact:px-4 compact:py-3" style={{ ...getCrispUiLayout(layout.scale, layout.width, layout.height), transform: 'translate(-50%, -50%)' }}>
+    <div className="absolute top-1/2 left-1/2 isolate flex compact:hidden origin-center flex-col overflow-hidden border-[length:var(--ui-p-5,5px)] border-[#80582c] bg-[#d9d4bf] px-8 py-5 shadow-[0_0_0_6px_#170c07cc,0_0_42px_14px_#0008,0_8px_30px_#101d18aa] compact:px-4 compact:py-3" style={{ ...getCrispUiLayout(layout.scale, layout.width, layout.height), transform: 'translate(-50%, -50%)' }}>
       <CrispUiImage src={background} alt="" className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover object-center" />
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,#f4e8cd11,transparent_50%,#344b4233)]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-[var(--ui-p-2,2px)] z-10 border border-[#e3bf78] shadow-[inset_0_0_0_2px_#63472055]" />
       <span aria-hidden="true" className="pointer-events-none absolute -bottom-2 left-1 z-10 font-georgia text-[length:var(--ui-p-72,72px)] leading-none text-[#c3953e] [text-shadow:1px_1px_#513515,-1px_-1px_#ffe5a0]">❧</span>
       <span aria-hidden="true" className="pointer-events-none absolute right-1 -bottom-2 z-10 -scale-x-100 font-georgia text-[length:var(--ui-p-72,72px)] leading-none text-[#c3953e] [text-shadow:1px_1px_#513515,-1px_-1px_#ffe5a0]">❧</span>
       <header style={{ transform: `translateY(${12 - (layout.compact ? 12 : 20) * layout.scale}px)` }} className="relative z-10 flex flex-wrap items-start justify-between gap-4">
@@ -129,11 +130,11 @@ export function HomePage() {
           <span className="block w-[var(--ui-p-108,108px)] shrink-0 pb-7">
             <span className="relative block size-[var(--ui-p-106,106px)]">
               <button data-ui-selection-sound type="button" className={`${buttonInteraction} block size-full rounded-full bg-transparent p-0`} onClick={home.openProfile} aria-label="Mở hồ sơ người chơi"><span role="img" aria-label="Avatar kỳ sĩ" className="relative block size-full rounded-full"><AvatarPortrait avatarIndex={selectedAvatarIndex} className="block size-full rounded-full" /><AvatarFrameOverlay src={getAvatarFrame(selectedFrameIndex).image} /></span></button>
-                            <AvatarRankBadge elo={elo} previewStars={account?undefined:3} />
+                            <AvatarRankBadge elo={account ? sharedRankEloFromStats(account.stats) : elo} previewStars={account?undefined:3} />
             </span>
           </span>
           <span className="w-[var(--ui-p-180,180px)] pt-3">
-            <strong className="block font-normal"><PlayerNameplate name={home.name} className="[--nameplate-width:var(--ui-p-180,180px)]" /></strong>
+            <strong className="block font-normal"><PlayerNameplate name={home.name} fixedWidth className="[--nameplate-width:var(--ui-p-180,180px)]" /></strong>
             <span className="mt-2 grid w-full grid-cols-2 gap-1 text-[length:var(--ui-p-16,16px)] leading-tight text-[#fff0cf]">
               <span className="relative flex h-[var(--ui-p-32,32px)] min-w-0 items-center justify-center bg-center bg-no-repeat bg-[length:100%_100%] pl-8 pr-3 font-georgia text-[#ffe7ae] whitespace-nowrap [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}><CrispUiImage src={redGeneral} alt="Cờ Tướng" className="absolute left-[var(--ui-p-8,8px)] size-[var(--ui-p-22,22px)] shrink-0 object-contain" /><span className="font-number text-[length:var(--ui-p-18,18px)] leading-none lining-nums tabular-nums">{elo}</span></span>
               <span className="relative flex h-[var(--ui-p-32,32px)] min-w-0 items-center justify-center bg-center bg-no-repeat bg-[length:100%_100%] pl-8 pr-3 font-georgia text-[#ffe7ae] whitespace-nowrap [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}><CrispUiImage src={concealedPiece} alt="Cờ Úp" className="absolute left-[var(--ui-p-8,8px)] m-0 block size-[var(--ui-p-20,20px)] shrink-0 border-0 p-0 object-contain" /><span className="font-number text-[length:var(--ui-p-18,18px)] leading-none lining-nums tabular-nums">{account?.stats.find(s=>s.variant==='jieqi')?.elo??1000}</span></span>

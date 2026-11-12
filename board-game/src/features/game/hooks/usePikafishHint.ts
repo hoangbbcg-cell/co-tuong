@@ -3,8 +3,8 @@ import type { GameState, Move, Side } from '../../../types/game'
 import { positionFen } from '../../../game/state/customPosition'
 import { getLegalMoves } from '../../../game/rules'
 import { candidateRepetition } from '../../../game/rules/repetition'
-import { pikafishApi } from '../../../services/pikafish'
-import { errorMessage } from '../../../services/api'
+import { fairyStockfishApi } from '../../../services/fairyStockfish'
+import { computerErrorMessage } from '../../../lib/computerPresentation'
 
 interface HintContext {
   board: GameState['board']; turn: Side; phase: GameState['phase']
@@ -43,7 +43,7 @@ export function usePikafishHint(game: GameState, humanSide: Side, enabled: boole
         && next.humanSide === humanSide && next.enabled && next.revision === revision
     }
     try {
-      const move = await pikafishApi.move([], 600_000, 10, controller.signal, positionFen(game.board, humanSide), 800, 800)
+      const move = await fairyStockfishApi.move([], 600_000, 10, controller.signal, positionFen(game.board, humanSide))
       if (!current()) return
       const { from, to } = move
       if (game.board[from.row]?.[from.col]?.side !== humanSide
@@ -51,7 +51,7 @@ export function usePikafishHint(game: GameState, humanSide: Side, enabled: boole
         || candidateRepetition(game, move).forbidden) throw new Error('Ông Hoàng trả về gợi ý không hợp lệ.')
       setResult({ context, hint: move, thinking: false })
     } catch (failure) {
-      if (current()) { setResult(null); onNotice(errorMessage(failure)) }
+      if (current()) { setResult(null); onNotice(computerErrorMessage()) }
     }
   }
   const visible = result && enabled && sameContext(result.context, context) ? result : null

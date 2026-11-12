@@ -19,8 +19,14 @@ export class RoomRepository {
   restore(room: RoomSnapshot) { this.rooms.set(room.id, room); this.updatedAt.set(room.id, Date.now()) }
   delete(id: string) { this.rooms.delete(id); this.updatedAt.delete(id); this.passwords.delete(id); this.ownerAccounts.delete(id) }
   pruneEmpty(now = Date.now()) {
+    const removed: RoomSnapshot[] = []
     for (const room of this.rooms.values()) {
-      if (!room.players.length && !room.viewers?.length && now - (this.updatedAt.get(room.id) ?? 0) > 30 * 60_000) this.delete(room.id)
+      const lifetime = 30 * 60_000
+      if (!room.players.length && !room.viewers?.length && now - (this.updatedAt.get(room.id) ?? 0) >= lifetime) {
+        this.delete(room.id)
+        removed.push(room)
+      }
     }
+    return removed
   }
 }

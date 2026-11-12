@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach,beforeEach,describe,expect,it,vi } from 'vitest'
-import { cleanup,fireEvent,render,screen } from '@testing-library/react'
+import { cleanup,configure,fireEvent,render,screen } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { useEntryStore } from '../src/store/entryStore'
 import { EntryGate } from '../src/app/EntryGate'
@@ -8,11 +8,11 @@ import { useSessionStore } from '../src/store/sessionStore'
 import { playerNameError } from '../src/lib/playerName'
 const mocks=vi.hoisted(()=>({me:vi.fn(),guest:vi.fn(),restoreGuest:vi.fn(),logout:vi.fn(),load:vi.fn()}))
 vi.mock('../src/services/accountApi',()=>({accountApi:mocks}))
-vi.mock('../src/services/accountSession',()=>({loadAccountData:async(profile:{displayName:string})=>{await mocks.load();useSessionStore.setState({name:profile.displayName})}}))
+vi.mock('../src/services/accountSession',()=>({clearAccountHistoryCache:vi.fn(),loadAccountData:async(profile:{displayName:string})=>{await mocks.load();useSessionStore.setState({name:profile.displayName})}}))
 vi.mock('../src/app/App',()=>({App:()=> <div>Game entry</div>}))
 const profile={id:'9007199254740993',publicId:'12345678',displayName:'Kỳ Thủ 000042'}
-beforeEach(()=>{vi.stubEnv('VITE_GOOGLE_CLIENT_ID','');localStorage.clear();useEntryStore.setState({entry:null,loading:true,restoreError:''});mocks.load.mockReset().mockResolvedValue(undefined);mocks.me.mockReset().mockRejectedValue({isAxiosError:true,response:{status:401}});mocks.restoreGuest.mockReset().mockRejectedValue({isAxiosError:true,response:{status:401}});mocks.guest.mockReset().mockResolvedValue(profile);mocks.logout.mockReset().mockResolvedValue(undefined)})
-afterEach(()=>{cleanup();vi.restoreAllMocks();vi.unstubAllEnvs()})
+beforeEach(()=>{configure({asyncUtilTimeout:3000});vi.stubEnv('VITE_GOOGLE_CLIENT_ID','');localStorage.clear();useEntryStore.setState({entry:null,loading:true,restoreError:''});mocks.load.mockReset().mockResolvedValue(undefined);mocks.me.mockReset().mockRejectedValue({isAxiosError:true,response:{status:401}});mocks.restoreGuest.mockReset().mockRejectedValue({isAxiosError:true,response:{status:401}});mocks.guest.mockReset().mockResolvedValue(profile);mocks.logout.mockReset().mockResolvedValue(undefined)})
+afterEach(()=>{cleanup();configure({asyncUtilTimeout:1000});vi.restoreAllMocks();vi.unstubAllEnvs()})
 describe('server-backed Guest entry',()=>{
   it('offers retry instead of a new Guest when a valid session has a temporary data-loading failure',async()=>{
     mocks.me.mockResolvedValue(profile)

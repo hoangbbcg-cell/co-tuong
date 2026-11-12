@@ -94,3 +94,28 @@ Ngày 2026-10-24, người dùng yêu cầu bố trí lại UI điện thoại t
 - 2026-11-02: User yêu cầu intro giữa chậm hơn, dải thấp hơn, blur nền nhẹ và không chạy clock trong hiệu ứng. MATCH_INTRO_MS1300→2600 dùng chung hook/startGame local/RoomService; server vẫn authoritative, chặn move và không trừ tổng/lượt trước lastClockUpdate. Dải vào12%, giữa12–74%(~1612ms), mờ50px đến90%, thoát100%; cao cụm clamp210/38vh/300 thay260/52vh/400, avatar56–88 thay64–112 riêng intro. Nền tối30%/blur4px. GameSounds delay tick theo token chung (policy tick vẫn tắt). Đồng bộ fixture thời gian intro về token, không đổi assertion nghiệp vụ cũ. Backup outputs/backups/slower-match-intro-20261102. Final6suite35/35PASS gồm engine/server không trừgiờ/chặnmove vàhook giữa>1500ms/cònhiện ở1300ms. Build TypeScript/Vite đãPASS, đang chờ postbuild tối ưu ảnh kết thúc; chưa browser2thiết bị QA. Backend cần nạp mã mới để áp dụng2600ms online, không restart/deploy.
 
 - 2026-11-02: Theo mẫu user, MatchIntro thay2kiếmSVG bằng3lớpPNG1254² nềnalpha: emblem(khiên+vòng+lá), sword-left/sword-right; built-in image_gen edit ảnh thamchiếu, táidựng phần che. Asset/prompt/source/reference tại src/assets/match-intro. Huyhiệu translateZ360→0/scale bounce như đậpvào;2kiếm độc lập trượt chéo từ gần±36px, vào nhanh300ms rồichậm1000ms, thoátngắn/mờ. Thêm2tamgiác hướng vào giữa ở2đầu mỗi dải. MATCH_INTRO_MS2600→2000 chia300vào+1000giữa, chung server/local/tick/audio; clockvàmove vẫnchờtoken. DảiElo/avatar/viền/tên/cam-xanh/blur giữ. Backup outputs/backups/match-intro-layered-20261102.6suite35/35PASS (giữa1s, Z, kiếmnear36, alphaảnhkiểmtrựcquan, clockserver/engine); build đangchờ2postbuild tốiưuảnh, TypeScript/Vite xong. Chưa browsermotion/2thiếtbịQA; backend cần nạpmã2s, khôngrestart/deploy.
+
+- 2026-11-04: Bản local dùng fitContent cho tên PlayerCard cả laptop/mobile: chiều rộng theo nội dung cộng padding20px mỗi bên, không ép tối thiểu90px; theo đính chính user hiện trọn tên một dòng, bỏ ellipsis và giới hạn chiều rộng. Không đổi avatar.
+
+
+- 2026-11-04: User hủy thử style Home cho tên bàn đấu: hoàn tác cỡ chữ/khung về token170 desktop và clamp84/26vw/108 mobileHeader trước thử Home; giữ tên đầy đủ và padding20px. Không sửa Home/avatar.
+
+- 2026-11-04: User đặt thẻ tên bàn đấu tối thiểu140px cả laptop/mobile, vẫn w-max theo tên đầy đủ/padding20px. PlayerNameplate fitContent áp dụngmin140, không đổi geometryavatar.
+
+- 2026-11-04 (đính chính mới nhất): min-width thẻ tên trong bàn đấu mobile120px, thay140px riêngmobile; desktop140px giữ, không đổi font/padding20/đầyđủtên/avatar.
+
+- 2026-11-04 mới nhất supersedes min120: CHỈ thẻ tên trong trận mobile min100px; desktopmin140/Home fixedWidth/padding20 khôngđổi.
+
+- 2026-11-10: Theo user, hiệu ứng chuyển bên lớp phủ xanh và viền thời gian trong PlayerCard dùng 120ms (trước 350ms), đồng bộ laptop/mobile; không đổi clock hoặc geometry avatar. User báo quân giật trước khi đi: Board bỏ animation hạ wrapper riêng, nối độ nâng khi chọn vào cùng quỹ đạo bay 400ms để tránh hạ quân rồi mới trượt. Regression animation/online/player/clock 14/14 PASS; typecheck và Vite PASS; chưa browser QA.
+
+- 2026-11-10 (phản hồi tiếp): User vẫn thấy quân đứng một nhịp trước khi đi ở cả online/máy. Board chung nhận primary pointerdown thay vì chờ click sau nhả; bỏ click chuột/touch trùng, giữ click detail=0 cho keyboard/assistive. Quỹ đạo bay dùng tốc độ linear thay ease-out để không có đoạn gần như đứng cuối nước. Giữ 400ms/độ nâng/luật và xác nhận server online. 41/41 targeted tests PASS, TypeScript PASS; chưa browser QA, chưa khẳng định đã loại độ trễ mạng online.
+
+- 2026-11-10 (đính chính theo user): Hoàn tác riêng lượt piece-immediate: Board trở lại onClick và easing cubic-bezier(0.22,0.61,0.36,1); bỏ test pointerdown. Quy tắc pointerdown/linear ở ghi chú trước đã hủy; giữ khung thời gian120ms và bản quỹ đạo trước lượt này. Kiểm tra âm khai cuộc: useMoveSound phát khi phase chuyển sang playing, không phụ thuộc thao tác Ready; về ready reset cờ intro nên ván tự bắt đầu kế tiếp vẫn gọi phát. Thêm regression ready→playing→finished→ready→playing, không bấm Ready, mỗi ván gọi intro và snapshot lặp không gọi thêm. 6suite40/40tests PASS; typecheck PASS. Chưa nghe trực tiếp trên trình duyệt; mute/autoplay vẫn theo cấu hình/trình duyệt.
+
+## 2026-11-10 — Xoay ngang/dọc giữ state đang chạy
+
+User yêu cầu xoay ngang rồi dọc phải giữ nguyên trạng thái, không reset/ảnh hưởng ván. DesktopCanvas trước đây trả children trực tiếp khi compact và thêm2wrapper khi desktop; vượt breakpoint800px đã remount toàn bộ Providers/App, làm mất state local của editor/trial/thiết lập và vòng đời kết nối.
+
+Giữ2DOMwrapper cố định ở cả2chế độ, compact display:contents và không gắn id desktop để giữ CSS/hình học hiện tại. Khi xoay chỉ đổi style/id/scale, không remount cây ứng dụng. Bỏ usePhonePortrait tự ép portrait còn sót trong App theo quy tắc đã hủy khóa xoay2026-10-21; màn hình theo hướng thiết bị. Không đổi luật/timer/engine/permission AI, geometry avatar hoặc iframe iPad.
+
+Regression mới đã fail trên bản trước và PASS sau sửa: qua lại390×844↔932×430/1000×600 nhiều lần giữ bước đi, lựa chọn AI, nội dung input, chính nodeDOM và mount count1; kiểm tra cả windowresize/visualViewportresize.34/34targeted5suite PASS, TypeScript PASS. Chưa thử xoay điện thoại thật/browserQA. Backup .checkpoints/orientation-state-20261110; trạng thái build cuối xem AI_CHANGELOG.

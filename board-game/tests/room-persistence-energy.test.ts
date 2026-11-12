@@ -91,5 +91,5 @@ it('lets a zero-energy friend take the vacant seat, play, and remain seated afte
   await persistence.prepareStarts(['a','b'],[room])
   now=7000;service.tick()
   expect(room.players.map(player=>player.id)).toEqual(['a','b'])
-  expect(room.readyCountdown).toBe(30)
+  expect(room.readyCountdown).toBe(28)
 })

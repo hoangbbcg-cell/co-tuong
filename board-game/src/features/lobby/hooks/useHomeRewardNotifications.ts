@@ -1,6 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSessionStore } from '../../../store/sessionStore'
-import { observeRewardHonors, observeRewardProfile, pendingHomeRewards, useHomeRewards } from '../../../store/homeRewardsStore'
+import { acknowledgeHomeRewards, observeRewardHonors, observeRewardProfile, pendingHomeRewards, useHomeRewards, type HomeReward } from '../../../store/homeRewardsStore'
 import { accountApi } from '../../../services/accountApi'
 
 export function useHomeRewardNotifications() {
@@ -28,5 +28,20 @@ export function useHomeRewardNotifications() {
     return () => { cancelled = true; clearInterval(timer); document.removeEventListener('visibilitychange', onVisible) }
   }, [account?.id])
   const pending = account ? pendingHomeRewards(account.id) : []
-  return { account, pending, atHome: screen === 'home', visible: screen === 'home' && pending.length > 0 }
+  const [batch, setBatch] = useState<{ accountId: string; rewards: HomeReward[] } | null>(null)
+  useEffect(() => {
+    if (!account || screen !== 'home') { if (batch) setBatch(null); return }
+    if (batch && batch.accountId !== account.id) { setBatch(pending.length ? { accountId: account.id, rewards: pending } : null); return }
+    if ((!batch || batch.accountId !== account.id) && pending.length) setBatch({ accountId: account.id, rewards: pending })
+  }, [account?.id, screen, batch, pending])
+  useEffect(() => {
+    const sync = (event: StorageEvent) => {
+      if (account && event.key === `cotuong-home-rewards-v1:${account.id}`) useHomeRewards.setState(current => ({ revision: current.revision + 1 }))
+    }
+    window.addEventListener('storage', sync)
+    return () => window.removeEventListener('storage', sync)
+  }, [account?.id])
+  const displayed = account && batch?.accountId === account.id ? batch.rewards : []
+  const markPresented = () => { if (account) acknowledgeHomeRewards(account.id, displayed.map(reward => reward.id)) }
+  return { account, pending: displayed, atHome: screen === 'home', visible: screen === 'home' && displayed.length > 0, markPresented, dismiss: () => setBatch(null) }
 }

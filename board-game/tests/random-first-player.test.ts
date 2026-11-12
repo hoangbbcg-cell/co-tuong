@@ -64,7 +64,7 @@ it('uses the same draw when a queued room starts automatically', () => {
   const { service, id, at } = room()
   service.join(id, 'viewer', 'Viewer')
   service.command('viewer', { type: 'join-queue' })
-  at(30000)
+  at(31000)
   service.tick()
   expect(service.roomFor('a')?.game.currentTurn).toBe('red')
   expect(service.roomFor('a')?.players.find(player => player.id === 'b')?.side).toBe('red')

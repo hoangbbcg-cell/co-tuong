@@ -1,20 +1,20 @@
 import { confirmationDialogFrame, confirmationDialogTitle, confirmationDialogDescription, confirmationDialogActions } from '../../../lib/confirmationDialogStyles'
 import { confirmationCancelButton, confirmationAcceptButton } from '../../../lib/confirmationButtonStyles'
 import { useState } from 'react'
+import { ReplayTapOverlay } from './ReplayTapOverlay'
+import { useSessionStore } from '../../../store/sessionStore'
 import { createPortal } from 'react-dom'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import type { useReplayPlayback } from '../hooks/useReplayPlayback'
 import type { useReplayTrial } from '../hooks/useReplayTrial'
 import { buttonInteraction, selectionPalette } from '../../../lib/uiClasses'
-import playButton from '../../../assets/history/controls-play-v2.png'
 import controlFrame from '../../../assets/history/controls-frame-v2.png'
 import backButton from '../../../assets/history/controls-back-v2.png'
 import countFrame from '../../../assets/history/controls-count-v2.png'
 import forwardButton from '../../../assets/history/controls-forward-v2.png'
-import machineButton from '../../../assets/history/controls-machine-v2.png'
-import analysisButton from '../../../assets/history/controls-analysis-v2.png'
-import hintButton from '../../../assets/history/controls-hint-v2.png'
-import resetButton from '../../../assets/history/controls-reset-v2.png'
+import createRoomButton from '../../../assets/history/controls-create-room-v8.png'
+import resetButton from '../../../assets/history/controls-reset-v8.png'
+import flipButton from '../../../assets/history/controls-flip-v8.png'
 import replayFlipIcon from '../../../assets/history/replay-flip.png'
 
 function ArtworkButton({ src, children, className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { src: string }) {
@@ -41,34 +41,52 @@ function ToolArtworkButton({ src, busy = false, className = '', ...props }: Butt
     {!busy && <span aria-hidden="true" className={`pointer-events-none absolute inset-0 hidden bg-[#ffe08b]/[0.08] group-hover:block ${hint ? 'group-active:opacity-0' : ''}`} style={{ maskImage: `url(${src})`, maskSize: '100% 100%', maskRepeat: 'no-repeat' }} />}
   </button>
 }
-export function ReplayControls({ playback, trial, onToggleMode, onNotice, onHint, hintThinking = false }: { playback: ReturnType<typeof useReplayPlayback>; trial?: ReturnType<typeof useReplayTrial>; onToggleMode?: () => void; onNotice?: (message: string) => void; onHint?: () => void; hintThinking?: boolean }) {
+export function ReplayControls({ playback, trial, onToggleMode, onNotice, onFlipBoard, onCreateRoom, mobilePart = 'all', hideAiControls = false }: { playback: ReturnType<typeof useReplayPlayback>; trial?: ReturnType<typeof useReplayTrial>; onToggleMode?: () => void; onNotice?: (message: string) => void; onFlipBoard?: () => void; onCreateRoom?: () => void; onHint?: () => void; hintThinking?: boolean; mobilePart?: 'all' | 'navigation' | 'tools' | 'machine'; hideAiControls?: boolean }) {
   const [confirmReset, setConfirmReset] = useState(false)
   const practice = trial?.active ? trial : null
   const history = practice ?? playback
+  const mobileMachineControls = practice && !hideAiControls && <div className="flex flex-row items-center gap-[5px] rounded-[13px] border-2 border-[#d8a14c] bg-[linear-gradient(145deg,#6c350f,#32190c_65%,#54280e)] px-[7px] py-[8px] shadow-[inset_0_1px_0_#f9c96d,inset_0_0_12px_#1e0b04,0_2px_6px_#160a05]" aria-label="Chọn bên máy đánh">
+        {([{ side: 'red', label: 'Bên Đỏ', active: practice.machineRed, glyph: '帥', tone: 'border-[#e8b862] bg-[radial-gradient(circle_at_35%_25%,#f5d38d,#df9c4f_70%,#a65b25)] text-[#ac2318]' }, { side: 'black', label: 'Bên Đen', active: practice.machineBlack, glyph: '將', tone: 'border-[#e8b862] bg-[radial-gradient(circle_at_35%_25%,#f5d38d,#df9c4f_70%,#a65b25)] text-[#26201a]' }] as const).map(item => <button key={item.side} type="button" data-ui-selection-sound aria-label={`Máy đánh ${item.label}`} aria-pressed={item.active} onClick={() => practice.toggleMachineSide(item.side)} className="flex min-h-[43px] min-w-0 flex-1 items-center justify-between gap-[3px] rounded-[10px] border border-[#bf812d] bg-[linear-gradient(180deg,#582a11,#361807)] px-[3px] py-[4px] text-left shadow-[inset_0_1px_0_#a56a2c] transition-colors hover:border-[#f0ba54] hover:bg-[#693313]">
+          <span aria-hidden="true" className={`flex size-[30px] shrink-0 items-center justify-center rounded-full border-2 font-serif text-[23px] font-bold leading-none shadow-[0_2px_3px_#1b0a03,inset_0_1px_2px_#fff0ba] ${item.tone}`}>{item.glyph}</span>
+          <span className="hidden">{item.label}</span>
+          <span aria-hidden="true" className={`relative h-[22px] w-[40px] shrink-0 rounded-full border border-[#e3a64a] shadow-[inset_0_1px_3px_#241004] transition-colors ${item.active ? 'bg-[#b97424]' : 'bg-[#4f3621]'}`}><span className={`absolute left-[2px] top-[2px] size-[16px] rounded-full border border-[#fce0a0] bg-[#ffebbd] shadow-[0_1px_3px_#1f0e06] transition-transform ${item.active ? 'translate-x-[18px]' : 'translate-x-0'}`} /></span>
+          <span className="sr-only">{item.active ? 'Bật' : 'Tắt'}</span>
+        </button>)}
+      </div>
+  const replayToolButtons = practice && <div className="mt-[10px] grid w-full grid-cols-3 items-start gap-[8px] compact:mt-[4px]">
+      <ToolArtworkButton src={createRoomButton} aria-label="Tạo bàn" title={onCreateRoom ? 'Tạo phòng online riêng từ thế cờ hiện tại' : 'Tạo bàn từ thế cờ tùy chỉnh'} onClick={onCreateRoom ?? (() => { sessionStorage.setItem('hovang-custom-room-entry', 'replay'); useSessionStore.setState({ screen: 'position' }) })} className="w-full min-w-0 origin-top scale-[0.92]" />
+      <ToolArtworkButton src={resetButton} aria-label="Reset thế thử ban đầu" title="Reset thế thử ban đầu (↑ / ↓)" aria-keyshortcuts="ArrowUp ArrowDown" onClick={() => practice ? setConfirmReset(true) : playback.seek(0)} className="w-full min-w-0 origin-top scale-[0.92]" />
+      <ToolArtworkButton
+        src={flipButton}
+        aria-label="Đổi bên"
+        title="Đảo hướng bàn cờ"
+        onClick={onFlipBoard}
+        disabled={!onFlipBoard}
+        className="w-[92%] min-w-0 justify-self-center"
+      />
+    </div>
+  if (practice && hideAiControls && (mobilePart === 'navigation' || mobilePart === 'machine')) return null
   return <nav aria-label={practice ? 'Điều khiển đánh thử' : 'Điều khiển xem lại'} className="relative z-20 flex h-[220px] w-[220px] shrink-0 flex-col items-center compact:h-auto compact:w-full compact:max-w-[220px]">
-    <ControlFrame>
-      {!practice && <ArtworkButton src={playButton} title="Phát / Tạm dừng (Enter)" aria-keyshortcuts="Enter" onClick={playback.toggle} className="h-[45.6px] w-full hover:brightness-110">
-        <span className="absolute inset-0 flex items-center justify-center gap-2 font-heading text-lg text-[#ffe5a6]">
-          <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4" fill="currentColor">{playback.playing ? <path d="M4 3h4v14H4Zm8 0h4v14h-4Z" /> : <path d="m5 2 13 8-13 8Z" />}</svg>{playback.playing ? 'Tạm dừng' : 'Phát'}
-        </span>
-      </ArtworkButton>}
-      <div className="grid w-full grid-cols-[52.8px_minmax(0,1fr)_52.8px] items-center gap-[6px]">
+    {mobilePart !== 'machine' && <ControlFrame>
+      {mobilePart === 'all' && mobileMachineControls}
+      {(mobilePart === 'tools' && practice) && mobileMachineControls}
+
+      {(mobilePart === 'all' || mobilePart === 'navigation' || (mobilePart === 'tools' && (!practice || hideAiControls))) && <div className="grid w-full grid-cols-[52.8px_minmax(0,1fr)_52.8px] items-center gap-[6px]">
         <NavigationButton disabled={history.step === 0} onClick={() => practice ? practice.back() : playback.seek(playback.step - 1)} />
         <span aria-label={`Nước ${history.step} trên ${history.total}`} className="relative flex h-[45.6px] min-w-0 items-center justify-center font-number text-lg leading-none lining-nums tabular-nums text-[#ffe5a6]">
-          <img src={countFrame} alt="" className="pointer-events-none absolute inset-0 block size-full" /><span className="relative">{history.step}/{history.total}</span>
+          <img src={countFrame} alt="" className="pointer-events-none absolute inset-0 block size-full" /><span className="relative">{history.step}/{history.total}</span>{!practice && <ReplayTapOverlay playing={playback.playing} onToggle={playback.toggle} />}
         </span>
         <NavigationButton forward disabled={history.step === history.total} onClick={() => history.seek(history.step + 1)} />
-      </div>
-      {practice && <ArtworkButton src={machineButton} aria-label="Máy đi" aria-keyshortcuts="Enter" aria-pressed={practice.machine} onClick={practice.toggleMachine} className={`h-[52px] w-full rounded-[12px] outline-none focus:outline-none focus-visible:outline-none transition-[transform,filter,box-shadow] duration-200 ${practice.machine ? 'scale-[1.03] brightness-125 ring-2 ring-[#ffe08b] shadow-[0_0_5px_2px_#ffe08b,0_0_15px_5px_#f8b73c99,inset_0_0_10px_2px_#f8b73c88]' : ''}`}>
-        <span className="absolute inset-y-0 left-[34%] right-[8%] flex items-center justify-center whitespace-nowrap font-heading text-[17px] text-[#ffe5a6]">Máy đi · {practice.machine ? 'Bật' : 'Tắt'}</span>
-      </ArtworkButton>}
-    </ControlFrame>
-    {practice && <div className="mt-[10px] grid w-full grid-cols-3 items-center gap-[10px]">
-      {[{ label: 'Phân tích', image: analysisButton }, { label: 'Gợi ý', image: hintButton }].map(item => <ToolArtworkButton key={item.label} src={item.image} busy={item.label === 'Gợi ý' && hintThinking} aria-label={item.label} title={item.label === 'Gợi ý' && onHint ? 'Gợi ý nước đi bằng Ông Hoàng' : 'Đang phát triển'} onClick={() => item.label === 'Gợi ý' && onHint ? onHint() : onNotice?.('Đang phát triển')} className="w-full" />)}
-      <ToolArtworkButton src={resetButton} aria-label="Reset thế thử ban đầu" title="Reset thế thử ban đầu (↑ / ↓)" aria-keyshortcuts="ArrowUp ArrowDown" onClick={() => setConfirmReset(true)} className="w-full" />
-    </div>}
-    {confirmReset && practice && createPortal(<div className="fixed inset-0 z-[1200] grid place-items-center bg-black/60 p-4"><section role="alertdialog" aria-modal="true" aria-labelledby="trial-reset-question" className={confirmationDialogFrame} onKeyDown={event => { event.stopPropagation(); if (event.key === 'Escape') setConfirmReset(false) }}><h2 id="trial-reset-question" className={confirmationDialogTitle}>Xác nhận hoàn tác</h2><p className={confirmationDialogDescription}>Bạn có muốn hoàn tác về thế cờ ban đầu không?</p><div className={confirmationDialogActions}><button type="button" autoFocus onClick={() => setConfirmReset(false)} className={`${confirmationCancelButton} px-5 py-2`}>Hủy</button><button type="button" onClick={() => { setConfirmReset(false); practice.reset() }} className={`${confirmationAcceptButton} px-5 py-2`}>Đồng ý</button></div></section></div>, document.body)}
-    {onToggleMode && <ReplayModeButton active={!!practice} onClick={onToggleMode} className={`desktop:absolute desktop:left-1/2 desktop:top-[220px] desktop:z-[80] desktop:-translate-x-1/2 ${practice ? 'compact:mt-[20px]' : 'compact:mt-[4px]'}`} />}
-    {practice?.error && <><span role="alert" className="mt-2 text-center text-xs text-[#ffe5a6]">{practice.error}</span><button type="button" data-ui-selection-sound className={`${buttonInteraction} mt-2 h-10 w-full rounded-md border ${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.text}`} onClick={practice.retry}>Thử lại</button></>}
+      </div>}
+      {mobilePart === 'tools' && replayToolButtons}
+    </ControlFrame>}
+    {mobilePart === 'all' && replayToolButtons}
+    {mobilePart === 'machine' && mobileMachineControls}
+
+    {mobilePart !== 'navigation' && mobilePart !== 'machine' && confirmReset && practice && createPortal(<div className="fixed inset-0 z-[1200] grid place-items-center bg-black/60 p-4"><section role="alertdialog" aria-modal="true" aria-labelledby="trial-reset-question" className={confirmationDialogFrame} onKeyDown={event => { event.stopPropagation(); if (event.key === 'Escape') setConfirmReset(false) }}><h2 id="trial-reset-question" className={confirmationDialogTitle}>Xác nhận hoàn tác</h2><p className={confirmationDialogDescription}>Bạn có muốn hoàn tác về thế cờ ban đầu không?</p><div className={confirmationDialogActions}><button type="button" autoFocus onClick={() => setConfirmReset(false)} className={`${confirmationCancelButton} px-5 py-2`}>Hủy</button><button type="button" onClick={() => { setConfirmReset(false); practice.reset() }} className={`${confirmationAcceptButton} px-5 py-2`}>Đồng ý</button></div></section></div>, document.body)}
+    {mobilePart === 'all' && onToggleMode && <ReplayModeButton active={!!practice} onClick={onToggleMode} className={`desktop:absolute desktop:left-1/2 desktop:top-[220px] desktop:z-[80] desktop:-translate-x-1/2 ${practice ? 'compact:mt-[20px]' : 'compact:mt-[4px]'}`} />}
+    {mobilePart !== 'navigation' && mobilePart !== 'machine' && practice?.error && <><span role="alert" className="mt-2 text-center text-xs text-[#ffe5a6]">{practice.error}</span><button type="button" data-ui-selection-sound className={`${buttonInteraction} mt-2 h-10 w-full rounded-md border ${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.text}`} onClick={practice.retry}>Thử lại</button></>}
   </nav>
 }
+
+

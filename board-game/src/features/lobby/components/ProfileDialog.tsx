@@ -71,6 +71,7 @@ import editIcon from '../../../assets/icons/903174a3-cfa1-4f7c-badc-1dd24d62c991
 import { buttonInteraction, customizationListPanel, gameUtilityButton } from '../../../lib/uiClasses'
 import { AvatarCustomization, AvatarPortrait } from './AvatarCustomization'
 import { getAvatarFrame } from '../../../lib/avatarFrames'
+import { sharedRankEloFromStats } from '../../../lib/rankProgression'
 import { AvatarRankBadge } from '../../game/components/AvatarRankBadge'
 import { AvatarFrameOverlay, AVATAR_FRAME_VISIBLE_SCALE } from '../../game/components/AvatarFrameOverlay'
 import { VietnamAddressPicker } from './VietnamAddressPicker'
@@ -770,7 +771,7 @@ export function ProfileDialog({ dialogRef, name, playerId, challengeTargetId, on
   const [linkRequiredOpen,setLinkRequiredOpen] = useState(false)
   const displayedAccount=useDatabaseProfile(name,isOwnProfile)
   const ownElo = useSessionStore(state => state.elo)
-  const displayedElo = displayedAccount?.stats.find(stat => stat.variant === 'xiangqi')?.elo ?? (isOwnProfile ? ownElo : 1000)
+  const displayedElo = displayedAccount ? sharedRankEloFromStats(displayedAccount.stats) : (isOwnProfile ? ownElo : 1000)
   const databaseHonors=useDatabaseHonors(name)
   const profilePersistence=useProfilePersistence()
   const countryCode = useSessionStore(state => state.countryCode)

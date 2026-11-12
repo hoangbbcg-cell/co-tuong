@@ -50,7 +50,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
 
     expect(service.list().find(item => item.id === room.id)).toMatchObject({ players: 1, viewerCount: 0 })
   })
-  it('đưa người thua về View thường sau hiệu ứng+2s và cho người đầu lên bàn', () => {
+  it('đưa người thua về View sau 3s từ lúc ván kết thúc', () => {
     service.join(id, 'viewer-1', 'Khán giả 1')
     service.join(id, 'viewer-2', 'Khán giả 2')
     service.command('viewer-1', { type: 'join-queue' })
@@ -63,10 +63,10 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(result.players.map(player => player.id)).toEqual(['a', 'b'])
     expect(() => service.command('b', { type: 'ready' })).toThrow()
     for (const player of result.players) service.command(player.id, { type: 'result-presentation-complete', matchId: result.lastCompletedMatch!.id })
-    now = base + 1999
+    now = base + 2999
     expect(service.tick()).toEqual([])
     expect(result.players.map(player => player.id)).toEqual(['a', 'b'])
-    now = base + 2000
+    now = base + 3000
     expect(service.tick()).toHaveLength(1)
     expect(result.players.map(player => player.id)).toEqual(['viewer-1', 'b'])
     expect(result.viewers?.filter(viewer => viewer.queued).map(viewer => viewer.id)).toEqual(['viewer-2'])
@@ -82,7 +82,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
     expect(room.viewers).toEqual([expect.objectContaining({ id: 'viewer', queued: false })])
     expect(room.game.phase).toBe('finished')
   })
-  it('late queue entry waits for both presentations and two seconds', () => {
+  it('late queue entry waits until the next completed match', () => {
     start()
     service.command('a', { type: 'resign' })
     now = base + 1
@@ -90,10 +90,10 @@ describe('Service phòng và server là nguồn sự thật', () => {
     const room = service.command('viewer', { type: 'join-queue' })
     expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
     for (const player of room.players) service.command(player.id, { type: 'result-presentation-complete', matchId: room.lastCompletedMatch!.id })
-    now = base + 2001
+    now = base + 3000
     service.tick()
-    expect(room.players.map(player => player.id)).toEqual(['viewer', 'b'])
-    expect(room.viewers).toEqual([expect.objectContaining({ id: 'a', queued: false })])
+    expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
+    expect(room.viewers).toEqual([expect.objectContaining({ id: 'viewer', queued: true })])
   })
   it.each(['a', 'b'])('keeps late entrants queued after %s readies a rematch', playerId => {
     start()
@@ -124,7 +124,7 @@ describe('Service phòng và server là nguồn sự thật', () => {
       expect.objectContaining({ id: 'b', side: 'black' }),
     ]))
     expect(roomAfterLeave?.viewers?.filter(viewer => viewer.queued).map(viewer => viewer.id)).toEqual(['viewer-2'])
-    expect(roomAfterLeave?.game.result).toMatchObject({ winner: 'black', reason: 'leave' })
+    expect(roomAfterLeave?.lastCompletedMatch?.states.at(-1)?.result).toMatchObject({ winner: 'black', reason: 'leave' })
   })
   it('server khóa nước đi và giữ giờ trong thời gian khai cuộc đã cấu hình', () => {
     start()

@@ -15,6 +15,19 @@ vi.mock('../src/features/game/hooks/useTestBot', () => ({ useTestBot: () => ({ e
 vi.mock('../src/features/game/hooks/useMoveSound', () => ({ useMoveSound: () => ({ playMatchIntro: vi.fn(), checkmateAudioComplete: true }) }))
 
 const room = (): RoomSnapshot => ({ id: 'room', name: 'Bàn', players: [{ id: 'self', name: 'PlayerSelf', side: 'red', ready: true }, { id: 'other', name: 'PlayerOther', side: 'black', ready: true }], viewers: [], game: { ...createGame(), phase: 'playing' }, messages: [], drawOffer: null })
+it.each(['locked', 'custom', 'ordinary'] as const)('sole seated player can stand only in a managed room: %s', async kind => {
+  const snapshot = room()
+  snapshot.players = snapshot.players.slice(0, 1)
+  snapshot.game = { ...snapshot.game, phase: 'ready' }
+  snapshot.locked = kind === 'locked'
+  if (kind === 'custom') snapshot.customFen = 'custom source'
+  useSessionStore.setState({ room: snapshot })
+  vi.mocked(roomSocket.command).mockResolvedValue(snapshot)
+  const hook = renderHook(() => useGame())
+  await act(async () => { hook.result.current.standUp() })
+  if (kind === 'ordinary') expect(roomSocket.command).not.toHaveBeenCalled()
+  else expect(roomSocket.command).toHaveBeenCalledExactlyOnceWith({ type: 'stand-up' })
+})
 it('resignation requires an explicit decision and cancelling never sends the command', () => {
   const hook = renderHook(() => useGame())
   act(() => hook.result.current.resign())

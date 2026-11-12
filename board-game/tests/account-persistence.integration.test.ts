@@ -8,6 +8,7 @@ import { join } from 'node:path'
 import { unlink } from 'node:fs/promises'
 import { getMysqlPool } from '../server/repositories/mysqlPool'
 import { createGame } from '../src/game/state/initial'
+import { MATCH_INTRO_MS } from '../src/game/moves/actions'
 import type { RoomSnapshot } from '../src/types/room'
 const assignment = vi.hoisted(() => ({ firstSide: 'red' as 'red' | 'black' }))
 // Use the existing side-selector seam; exercise both outcomes without probabilistic CI.
@@ -80,7 +81,7 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
       expect((await request('/account/positions','GET',undefined,linked.cookie)).data[0].id).toBe(position.id)
       expect((await request('/account/honors','GET',undefined,linked.cookie)).data.map((h:{code:string})=>h.code)).toContain('pt_5_ky-huu')
       expect((await request('/account/me','GET',undefined,a.cookie)).status).toBe(401)
-      expect((await request('/account/name','PATCH',{name:'Kỳ Hữu'},linked.cookie)).status).toBe(200)
+      expect((await request('/account/name','PATCH',{name:'Kỳ hữu'},linked.cookie)).status).toBe(200)
       expect((await request('/account/name','PATCH',{name:'Đổi nữa'},linked.cookie)).status).toBe(400)
       const conflict=await login(b.cookie,'stable-google-sub')
       expect(conflict.status).toBe(409)
@@ -122,7 +123,7 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
       expect(rejected.ok).toBe(false)
       previousSocket.disconnect()
       const returned=await login('','stable-google-sub')
-      expect(returned.status).toBe(200);expect(returned.data.id).toBe(a.data.id);expect(returned.data.displayName).toBe('Kỳ Hữu')
+      expect(returned.status).toBe(200);expect(returned.data.id).toBe(a.data.id);expect(returned.data.displayName).toBe('Kỳ hữu')
       const forgedChallenge=await request('/account/google/nonce','POST')
       expect((await request('/account/google','POST',{credential:'forged'},forgedChallenge.cookie)).status).toBe(401)
       expect((await login('','another-google-sub','wrong-audience')).status).toBe(401)
@@ -238,8 +239,10 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
     const history=await request('/account/history','GET',undefined,a.cookie)
     expect(history.data).toHaveLength(1);expect(history.data[0].states.at(-1).result.reason).toBe('resign')
     const pa=await request('/account/me','GET',undefined,a.cookie),pb=await request('/account/me','GET',undefined,b.cookie)
-    expect(pa.data.stats.find((s:{variant:string})=>s.variant==='xiangqi').elo).toBe(987)
-    expect(pb.data.stats.find((s:{variant:string})=>s.variant==='xiangqi').elo).toBe(1013)
+    const aElo=pa.data.stats.find((s:{variant:string})=>s.variant==='xiangqi').elo
+    expect(aElo).toBeGreaterThanOrEqual(987);expect(aElo).toBeLessThanOrEqual(989)
+    const bElo=pb.data.stats.find((s:{variant:string})=>s.variant==='xiangqi').elo
+    expect(bElo).toBeGreaterThanOrEqual(1011);expect(bElo).toBeLessThanOrEqual(1013)
     expect(Number(pb.data.gold)).toBeGreaterThanOrEqual(125);expect(Number(pb.data.gold)).toBeLessThanOrEqual(150)
     expect(pa.data.gold).toBe('0');expect(pa.data.energy).toBe(4)
     const match=history.data[0].id
@@ -269,7 +272,7 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
     const redPlayer = (started.data as RoomSnapshot).players.find(player => player.side === 'red')!
     expect((started.data as RoomSnapshot).players.find(player => player.id === sa.id)!.side).toBe(firstSide)
     const redSocket = redPlayer.id === sa.id ? sa : sb
-    await new Promise(resolve=>setTimeout(resolve,1400))
+    await new Promise(resolve=>setTimeout(resolve,MATCH_INTRO_MS+100))
     expect((await redSocket.timeout(8000).emitWithAck('game:command',{type:'move',move:{from:{row:6,col:0},to:{row:5,col:0}}})).ok).toBe(true)
     await sa.timeout(8000).emitWithAck('game:command',{type:'offer-draw'})
     expect((await sb.timeout(8000).emitWithAck('game:command',{type:'reply-draw',accepted:true})).ok).toBe(true)

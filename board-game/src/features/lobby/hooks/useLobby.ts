@@ -2,7 +2,7 @@ import { isEnergyError } from '../../../lib/energy'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { roomApi, errorMessage } from '../../../services/api'
-import { roomSocket } from '../../../services/socket'
+import { roomSocket, socket, connect } from '../../../services/socket'
 import { useSessionStore } from '../../../store/sessionStore'
 import { useGameStore } from '../../../store/gameStore'
 import { playerNameError } from '../../../lib/playerName'
@@ -37,21 +37,41 @@ export function useLobby() {
   }
   const onEnergyError = (error: unknown) => { if (isEnergyError(errorMessage(error))) useSessionStore.getState().showEnergyNotice() }
   const rooms = useQuery({ queryKey: ['rooms'], queryFn: ({ signal }) => roomApi.list(signal), enabled: lobbyOpen, refetchInterval: lobbyOpen ? 5000 : false, retry: 1 })
+
+  // HOVANG_ROOM_REALTIME_V632
+  useEffect(() => {
+    if (!lobbyOpen) return
+    let active = true
+    const refreshRooms = () => {
+      if (active) void client.invalidateQueries({ queryKey: ['rooms'] })
+    }
+    socket.on('rooms:changed', refreshRooms)
+    socket.on('connect', refreshRooms)
+    void connect().catch(() => {
+      // The existing 5-second polling remains a fallback.
+    })
+    return () => {
+      active = false
+      socket.off('rooms:changed', refreshRooms)
+      socket.off('connect', refreshRooms)
+    }
+  }, [client, lobbyOpen])
   const join = useMutation({
     onError: onEnergyError,
     mutationFn: ({ roomId, password }: { roomId: string; password?: string }) => roomSocket.join(roomId, name.trim(), password),
-    onSuccess: room => { setPasswordRoom(null); useSessionStore.getState().setName(name); useSessionStore.getState().enterOnline(room); void client.invalidateQueries({ queryKey: ['rooms'] }) },
+    onSuccess: room => { setPasswordRoom(null); useSessionStore.getState().setName(name); // Only the room owner keeps the trial board for Back; joining a custom room by code or invite behaves like a normal room (Back returns home).
+      if (room.customFen && room.ownerId === socket.id) useSessionStore.getState().enterCustomRoom(room); else useSessionStore.getState().enterOnline(room); void client.invalidateQueries({ queryKey: ['rooms'] }) },
   })
   const create = useMutation({
     onError: onEnergyError,
-    mutationFn: ({ roomMinutes, turnSeconds, province, password }: { roomMinutes: number; turnSeconds: number; province: string; password?: string }) => { if (!requireEnergy()) throw new Error('Không đủ năng lượng.'); return roomApi.create('Bàn cờ', roomMinutes, turnSeconds, province, password) },
+    mutationFn: ({ roomMinutes, turnSeconds, province, password, variant, customFen, incrementSeconds }: { roomMinutes: number; turnSeconds: number; province: string; password?: string; variant: 'xiangqi' | 'jieqi'; customFen?: string; incrementSeconds: number }) => { if (!requireEnergy()) throw new Error('Không đủ năng lượng.'); return roomApi.create(customFen ? 'Thế cờ riêng' : 'Bàn cờ', roomMinutes, turnSeconds, province, password, variant, customFen, incrementSeconds) },
     onSuccess: (room, variables) => { void client.invalidateQueries({ queryKey: ['rooms'] }); join.mutate({ roomId: room.id, password: variables.password }) },
   })
   const quick = useMutation({
     onError: onEnergyError,
-    mutationFn: async ({ minutes, province }: { minutes: number | null; province?: string }) => {
+    mutationFn: async ({ minutes, province, variant }: { minutes: number | null; province?: string; variant: 'xiangqi' | 'jieqi' }) => {
       const latest = await client.fetchQuery({ queryKey: ['rooms'], queryFn: ({ signal }) => roomApi.list(signal), staleTime: 0 })
-      const room = randomAvailableRoom(minutes === null ? latest : latest.filter(room => (room.minutes ?? 10) === minutes), Math.random, 'xiangqi', !useSessionStore.getState().countryCode, { province, allowPasswordlessLocked: true })
+      const room = randomAvailableRoom(minutes === null ? latest : latest.filter(room => (room.minutes ?? 10) === minutes), Math.random, variant, !useSessionStore.getState().countryCode, { province, allowPasswordlessLocked: true })
       if (!room) return null
       return roomSocket.join(room.id, name.trim())
     },
@@ -63,10 +83,9 @@ export function useLobby() {
     },
   })
   const findRoom = useMutation({
-    mutationFn: async (code: string) => {
-      const latest = await client.fetchQuery({ queryKey: ['rooms'], queryFn: ({ signal }) => roomApi.list(signal), staleTime: 0 })
-      const room = latest.find(candidate => candidate.code === code.trim())
-      if (!room) throw new Error('Không tìm thấy phòng có số này.')
+    mutationFn: async ({ code, variant }: { code: string; variant: 'xiangqi' | 'jieqi' }) => {
+      const room = await roomApi.byCode(code)
+      if ((room.variant ?? 'xiangqi') !== variant) throw new Error('Không tìm thấy phòng có số này.')
       return room
     },
     onError: () => setRoomSearchNotice(value => value + 1),
@@ -89,11 +108,11 @@ export function useLobby() {
   }
   return { requireEnergy, minutes, setMinutes, province: province, dialogRef, open: lobbyOpen, name, setName, rooms: rooms.data ?? [], loading: rooms.isLoading,
     pending: join.isPending || create.isPending || quick.isPending || findRoom.isPending, error: notice || ((!passwordRoom && join.error) || create.error || quick.error || rooms.error ? errorMessage((!passwordRoom && join.error) || create.error || quick.error || rooms.error) : ''),
-    quickPlay: (onNoRoom: () => void, minutes: number | null = null, province?: string) => {
-      if (validateName()) quick.mutate({ minutes, province }, { onSuccess: room => { if (!room) onNoRoom() } })
+    quickPlay: (onNoRoom: () => void, minutes: number | null = null, province?: string, variant: 'xiangqi' | 'jieqi' = 'xiangqi') => {
+      if (validateName()) quick.mutate({ minutes, province, variant }, { onSuccess: room => { if (!room) onNoRoom() } })
     },
     roomSearchNotice: Boolean(roomSearchNotice),
-    joinByCode: (code: string) => { if (!/^\d{6}$/.test(code.trim())) { setRoomSearchNotice(value => value + 1); return } if (validateName()) { setRoomSearchNotice(0); join.reset(); findRoom.mutate(code.trim()) } },
+    joinByCode: (code: string, variant: 'xiangqi' | 'jieqi' = 'xiangqi') => { if (!/^\d{6}$/.test(code.trim())) { setRoomSearchNotice(value => value + 1); return } if (validateName()) { setRoomSearchNotice(0); join.reset(); findRoom.mutate({ code: code.trim(), variant }) } },
     nameError, dismissNameError: () => setNameError(''), validateName,
     passwordRoom, passwordError: join.error ? errorMessage(join.error) : '', dismissPasswordRoom: () => { if (!join.isPending) { setPasswordRoom(null); join.reset() } },
     joinLocal, join: (id: string, password?: string) => {
@@ -101,5 +120,5 @@ export function useLobby() {
       const room = rooms.data?.find(candidate => candidate.id === id)
       if ((room?.passwordRequired ?? room?.locked) && password === undefined) { join.reset(); setPasswordRoom(room); return }
       join.mutate({ roomId: id, password })
-    }, create: (roomMinutes: number, turnSeconds: number, province = useSessionStore.getState().province, password?: string) => { if (validateName() && requireEnergy()) create.mutate({ roomMinutes, turnSeconds, province, password }) }, refresh: () => void rooms.refetch() }
+    }, create: (roomMinutes: number, turnSeconds: number, province = useSessionStore.getState().province, password?: string, variant: 'xiangqi' | 'jieqi' = 'xiangqi', customFen?: string, incrementSeconds = 0) => { if (validateName() && requireEnergy()) create.mutate({ roomMinutes, turnSeconds, province, password, variant, customFen, incrementSeconds }) }, refresh: () => void rooms.refetch() }
 }

@@ -4,18 +4,27 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { createGame } from '../src/game/state/initial'
 import type { GameState, Move } from '../src/types/game'
 import { usePikafishHint } from '../src/features/game/hooks/usePikafishHint'
-import { pikafishApi } from '../src/services/pikafish'
+import { fairyStockfishApi } from '../src/services/fairyStockfish'
 import { Board } from '../src/features/game/components/Board'
 import { positionFen } from '../src/game/state/customPosition'
 
-vi.mock('../src/services/pikafish', () => ({ pikafishApi: { move: vi.fn() } }))
+vi.mock('../src/services/fairyStockfish', () => ({ fairyStockfishApi: { move: vi.fn() } }))
 afterEach(() => { cleanup(); vi.resetAllMocks() })
 const redMove: Move = { from: { row: 6, col: 0 }, to: { row: 5, col: 0 } }
 const playing = () => ({ ...createGame(), phase: 'playing' as const })
 
+it('hint failures never display native connection diagnostics', async () => {
+  const notice = vi.fn()
+  vi.mocked(fairyStockfishApi.move).mockRejectedValue(new Error('Fairy-Stockfish connection failed: /private/pikafish'))
+  const { result } = renderHook(() => usePikafishHint(playing(), 'red', true, 0, notice))
+  await act(async () => result.current.request())
+  expect(notice).toHaveBeenCalledWith('Ông Hoàng chưa thể xử lý yêu cầu. Vui lòng thử lại.')
+  expect(result.current.hint).toBeNull()
+})
+
 it('clears a displayed hint on a move without an extra render during the move animation', async () => {
   const game = playing()
-  vi.mocked(pikafishApi.move).mockResolvedValue(redMove)
+  vi.mocked(fairyStockfishApi.move).mockResolvedValue(redMove)
   let renders = 0
   const { result, rerender } = renderHook(({ snapshot }) => {
     renders++
@@ -29,30 +38,30 @@ it('clears a displayed hint on a move without an extra render during the move an
   expect(renders - previous).toBe(1)
 })
 
-it('requests the strongest hint with an 800ms response budget for the human without changing any game state, including clocks', async () => {
+it('requests the strongest Fairy hint for the human without changing any game state, including clocks', async () => {
   const game = playing(), before = JSON.stringify(game)
-  vi.mocked(pikafishApi.move).mockResolvedValue(redMove)
+  vi.mocked(fairyStockfishApi.move).mockResolvedValue(redMove)
   const { result, rerender } = renderHook(({ snapshot }) => usePikafishHint(snapshot, 'red', true, 0, vi.fn()), { initialProps: { snapshot: game } })
   await act(async () => { await result.current.request() })
   expect(result.current.hint).toEqual(redMove)
-  expect(pikafishApi.move).toHaveBeenCalledWith([], 600_000, 10, expect.any(AbortSignal), positionFen(game.board, 'red'), 800, 800)
+  expect(fairyStockfishApi.move).toHaveBeenCalledWith([], 600_000, 10, expect.any(AbortSignal), positionFen(game.board, 'red'))
   expect(JSON.stringify(game)).toBe(before)
   // A clock tick should not erase the hint or restart the request.
   rerender({ snapshot: { ...game, remainingTime: { red: 500_000, black: 600_000 } } })
   expect(result.current.hint).toEqual(redMove)
-  expect(pikafishApi.move).toHaveBeenCalledTimes(1)
+  expect(fairyStockfishApi.move).toHaveBeenCalledTimes(1)
 })
 
 it('replaces hints, cancels superseded requests, and ignores responses after reset/undo/turn changes or leaving', async () => {
   const game = playing()
   const pending: Array<(move: Move) => void> = []
-  vi.mocked(pikafishApi.move).mockImplementation(() => new Promise(resolve => pending.push(resolve)))
+  vi.mocked(fairyStockfishApi.move).mockImplementation(() => new Promise(resolve => pending.push(resolve)))
   const notice = vi.fn()
   const { result, rerender, unmount } = renderHook(({ snapshot, revision }) => usePikafishHint(snapshot, 'red', true, revision, notice), { initialProps: { snapshot: game, revision: 0 } })
   let first!: Promise<void>, second!: Promise<void>
   act(() => { first = result.current.request() })
   expect(result.current.thinking).toBe(true)
-  const signal = vi.mocked(pikafishApi.move).mock.calls[0][3]
+  const signal = vi.mocked(fairyStockfishApi.move).mock.calls[0][3]
   act(() => { second = result.current.request() })
   expect(signal.aborted).toBe(true)
   await act(async () => { pending[1](redMove); await second; pending[0]({ from: { row: 6, col: 2 }, to: { row: 5, col: 2 } }); await first })
@@ -68,7 +77,7 @@ it('replaces hints, cancels superseded requests, and ignores responses after res
   expect(result.current.hint).toBeNull()
   rerender({ snapshot: game, revision: 2 })
   act(() => { stale = result.current.request() })
-  const leavingSignal = vi.mocked(pikafishApi.move).mock.calls[3][3]
+  const leavingSignal = vi.mocked(fairyStockfishApi.move).mock.calls[3][3]
   unmount()
   expect(leavingSignal.aborted).toBe(true)
   await act(async () => { pending[3](redMove); await stale })
@@ -79,11 +88,11 @@ it('uses black human coordinates and blocks wrong-side, illegal, online/disabled
   const game: GameState = { ...playing(), currentTurn: 'black' }
   const blackMove = { from: { row: 3, col: 0 }, to: { row: 4, col: 0 } }
   const notice = vi.fn()
-  vi.mocked(pikafishApi.move).mockResolvedValue(blackMove)
+  vi.mocked(fairyStockfishApi.move).mockResolvedValue(blackMove)
   const { result, rerender } = renderHook(({ snapshot, enabled }) => usePikafishHint(snapshot, 'black', enabled, 0, notice), { initialProps: { snapshot: game, enabled: true } })
   await act(async () => { await result.current.request() })
   expect(result.current.hint).toEqual(blackMove)
-  vi.mocked(pikafishApi.move).mockResolvedValue(redMove)
+  vi.mocked(fairyStockfishApi.move).mockResolvedValue(redMove)
   await act(async () => { await result.current.request() })
   expect(result.current.hint).toBeNull()
   expect(notice).toHaveBeenCalled()
@@ -93,7 +102,7 @@ it('uses black human coordinates and blocks wrong-side, illegal, online/disabled
   await act(async () => { await result.current.request() })
   rerender({ snapshot: game, enabled: false })
   await act(async () => { await result.current.request() })
-  expect(pikafishApi.move).toHaveBeenCalledTimes(2)
+  expect(fairyStockfishApi.move).toHaveBeenCalledTimes(2)
 })
 
 it('draws one non-interactive arrow on the existing Board and flips it using the same coordinates', () => {

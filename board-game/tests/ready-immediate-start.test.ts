@@ -41,12 +41,16 @@ describe('Ready starts immediately', () => {
     expect(service.roomFor('a')!.game.phase).toBe('playing')
   })
 
-  it('one Ready does not start a game', () => {
+  it('one Ready without a queued viewer still auto-starts after a 1-second settle and 30-second countdown', () => {
     const { service, setTime } = setup()
     service.command('a', { type: 'ready' })
     setTime(1000)
     service.tick()
     expect(service.roomFor('a')!.game.phase).toBe('ready')
     expect(service.roomFor('a')!.readyCountdown).toBe(30)
+    setTime(31_000)
+    service.tick()
+    expect(service.roomFor('a')!.game.phase).toBe('playing')
+    expect(service.roomFor('a')!.readyCountdown).toBeNull()
   })
 })

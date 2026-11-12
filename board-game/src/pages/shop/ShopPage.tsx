@@ -27,6 +27,7 @@ import { homeResourceLayout } from '../../features/lobby/components/homeResource
 import { GameBackIcon } from '../../features/game/components/GameBackIcon'
 import { ResourceAddButton } from '../../features/lobby/components/ResourceAddButton'
 import { ResourceArtwork } from '../../features/lobby/components/ResourceArtwork'
+import { OuterSceneBackdrop } from '../../lib/OuterSceneBackdrop'
 import { useRef, useState } from 'react'
 import background from '../../assets/shop/background.png'
 import nameFrame from '../../assets/player/name-frame.webp'
@@ -84,9 +85,9 @@ export function ShopPage() {
   }, !layout.compact)
   const energyRef = useRef<HTMLDialogElement>(null)
   const back = () => useSessionStore.setState({ screen: 'home' })
-  return <main aria-label="Cửa Hàng" className="fixed inset-0 overflow-hidden bg-[#263a35] font-heading text-[#ffe6b0]">
-    <div data-shop-frame className="absolute top-1/2 left-1/2 isolate flex flex-col overflow-hidden border-[length:var(--ui-p-5,5px)] border-[#80582c] bg-[#1d0c05] shadow-[inset_0_0_0_2px_#efd397,0_0_0_1px_#e1c993,0_8px_30px_#101d18aa]" style={{ ...getCrispUiLayout(layout.scale, layout.width, layout.height), transform: 'translate(-50%, -50%)' }}>
-    <div aria-hidden="true" className="pointer-events-none absolute inset-[var(--ui-p-2,2px)] z-40 border border-[#e3bf78] shadow-[inset_0_0_0_2px_#63472055]" />
+  return <main aria-label="Cửa Hàng" className="fixed inset-0 isolate overflow-hidden bg-[#17251f] font-heading text-[#ffe6b0]">
+    <OuterSceneBackdrop />
+    <div data-shop-frame className="absolute top-1/2 left-1/2 isolate flex flex-col overflow-hidden border-[length:var(--ui-p-5,5px)] border-[#80582c] bg-[#1d0c05] shadow-[0_0_0_7px_#170c07,0_0_52px_18px_#000d,0_8px_30px_#101d18aa]" style={{ ...getCrispUiLayout(layout.scale, layout.width, layout.height), transform: 'translate(-50%, -50%)' }}>
     <CrispUiImage src={background} alt="" className="pointer-events-none absolute inset-0 -z-20 size-full object-cover object-center" />
     <header className="relative z-20 flex h-16 shrink-0 items-center gap-3 bg-transparent px-4 compact:h-[72px] compact:min-h-[72px] compact:flex-nowrap compact:items-start compact:gap-1 compact:px-2 compact:py-2">
       <button type="button" aria-label="Trở về Home" onClick={back} className={`${gameUtilityButton} shrink-0 compact:size-(--mobile-utility-size) compact:[&_svg]:size-(--mobile-utility-icon)`}><GameBackIcon /></button>

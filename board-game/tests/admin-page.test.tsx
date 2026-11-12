@@ -6,6 +6,26 @@ import { adminApi } from '../src/services/adminApi'
 import type { AdminUser } from '../src/types/admin'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
+it('grants and revokes Bỏ AI through the separate admin control', async () => {
+  vi.spyOn(adminApi, 'me').mockResolvedValue()
+  vi.spyOn(adminApi, 'catalog').mockResolvedValue([])
+  vi.spyOn(adminApi, 'analytics').mockRejectedValue(new Error('Not used in this test'))
+  vi.spyOn(adminApi, 'search').mockResolvedValue([{ publicId: '12345678', name: 'Test player' }])
+  const target = { profile: { id: '1', publicId: '12345678', displayName: 'Test player', gold: '1000', energy: 5, stats: [], aiControlsControl: false }, cosmetics: [], honors: [], audit: [] } as unknown as AdminUser
+  vi.spyOn(adminApi, 'user').mockResolvedValue(target)
+  const change = vi.spyOn(adminApi, 'change').mockImplementation(async (_id, command) => ({ ...target, profile: { ...target.profile, aiControlsControl: command.action === 'ai-controls' && command.enabled } }))
+  render(<AdminPage />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Tìm người chơi' }))
+  fireEvent.click(await screen.findByRole('button', { name: /Test player/ }))
+  const grant = await screen.findByRole('button', { name: 'Cấp quyền Bỏ AI' })
+  await waitFor(() => expect(grant.hasAttribute('disabled')).toBe(false))
+  fireEvent.click(grant)
+  await waitFor(() => expect(change).toHaveBeenCalledWith('12345678', expect.objectContaining({ action: 'ai-controls', enabled: true })))
+  const revoke = await screen.findByRole('button', { name: 'Thu hồi quyền Bỏ AI' })
+  await waitFor(() => expect(revoke.hasAttribute('disabled')).toBe(false))
+  fireEvent.click(revoke)
+  await waitFor(() => expect(change).toHaveBeenLastCalledWith('12345678', expect.objectContaining({ action: 'ai-controls', enabled: false })))
+})
 it('uses password login, selects a player and sends explicit resource edits with a reason', async () => {
   vi.spyOn(adminApi, 'me').mockRejectedValue(new Error('Unauthenticated'))
   vi.spyOn(adminApi, 'login').mockResolvedValue()
@@ -24,6 +44,7 @@ it('uses password login, selects a player and sends explicit resource edits with
   await waitFor(() => expect(screen.getByRole('button', { name: /Test player/ })).toBeTruthy())
   fireEvent.click(screen.getByRole('button', { name: /Test player/ }))
   await waitFor(() => expect(screen.getByLabelText('Vàng')).toBeTruthy())
+  fireEvent.change(screen.getByLabelText('Lý do chỉnh sửa'), { target: { value: '' } })
   expect(screen.getByRole('button', { name: 'Lưu tài nguyên và Elo' }).hasAttribute('disabled')).toBe(true)
   fireEvent.change(screen.getByLabelText('Lý do chỉnh sửa'), { target: { value: 'Kiểm thử tài nguyên' } })
   fireEvent.change(screen.getByLabelText('Vàng'), { target: { value: '5000' } })

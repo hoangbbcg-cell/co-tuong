@@ -2,3 +2,30 @@
 
 /.admin-access.txt
 /engines/fairy-stockfish/*.exe
+
+# HOVANG LOCAL SAFETY
+node_modules/
+dist/
+.ai-backups/
+backups/
+backup/
+*.backup
+*.backup-*
+*.log
+*.zip
+*.7z
+*.rar
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.p12
+*.pfx
+*.key
+*.sqlite
+*.sqlite3
+*.db
+credentials.json
+service-account*.json
+*.local

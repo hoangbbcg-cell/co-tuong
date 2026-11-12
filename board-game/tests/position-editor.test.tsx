@@ -24,7 +24,8 @@ describe('Trình chỉnh thế cờ', () => {
     act(() => result.current.setFirstSide('red'))
     await act(() => result.current.start())
     expect(useGameStore.getState().game.currentTurn).toBe('red')
-    expect(useSessionStore.getState().humanSide).toBe('black')
+    // The opening-side choice is deferred until the first piece is selected.
+    expect(useSessionStore.getState().humanSide).toBe('red')
   })
   it('tự ẩn thông báo sau 3 giây', () => {
     vi.useFakeTimers()
@@ -112,14 +113,14 @@ describe('Trình chỉnh thế cờ', () => {
     expect(screen.getByRole('button', { name: 'Đặt Tướng đỏ, đã hết quân' })).toHaveProperty('disabled', true)
     expect(screen.getByRole('button', { name: 'Đặt Tướng đen, đã hết quân' })).toHaveProperty('disabled', true)
   })
-  it('Đấu ngay giữ cấp đã chọn và đưa đúng FEN/bên Đen đi trước vào game', async () => {
+  it('Đấu ngay đưa đúng FEN/bên Đen đi trước vào game với Fairy cấp 10', async () => {
     const { result } = renderHook(usePositionEditor)
     act(() => result.current.changeSide('black'))
     act(() => result.current.setFirstSide('black'))
     await act(() => result.current.start())
     expect(useGameStore.getState().initialFen).toContain(' b - - 0 1')
     expect(useGameStore.getState().game.currentTurn).toBe('black')
-    expect(useSessionStore.getState()).toMatchObject({ screen: 'game', mode: 'computer', humanSide: 'black', computerEngine: 'fairy', computerLevel: 6 })
+    expect(useSessionStore.getState()).toMatchObject({ screen: 'game', mode: 'computer', humanSide: 'black', computerEngine: 'fairy', computerLevel: 10 })
   })
   it('kéo trực tiếp quân trên bàn, thả ngoài để xóa, kéo từ khay vẫn kiểm tra luật', () => {
     const { result } = renderHook(usePositionEditor)

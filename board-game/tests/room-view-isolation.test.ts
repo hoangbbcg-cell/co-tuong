@@ -36,7 +36,7 @@ it('vào/ra View và vào/thoát hàng không đổi game hoặc Ready của hai
   expect(JSON.stringify(room.players)).toBe(playingSeats)
 })
 
-it('người mới vào hàng sau kết quả không cắt hiệu ứng; chờ đủ xác nhận cộng2s, duplicate không kéo dài', () => {
+it('người vào hàng sau kết quả phải chờ ván tiếp theo, duplicate không đổi ghế', () => {
   const { service, id, room, tick, start } = setup()
   start()
   service.command('b', { type: 'resign' })
@@ -63,11 +63,11 @@ it('người mới vào hàng sau kết quả không cắt hiệu ứng; chờ �
   tick(26_999)
   expect(room.game).toBe(ended)
   tick(27_000)
-  expect(room.players.map(p => p.id)).toEqual(['a', 'c'])
-  expect(room.viewers?.find(p => p.id === 'b')?.queued).toBe(false)
-  service.command('b', { type: 'join-queue' })
+  expect(room.players.map(p => p.id)).toEqual(['a', 'b'])
+  expect(room.viewers?.find(p => p.id === 'c')?.queued).toBe(true)
+  expect(room.players.some(p => p.id === 'b')).toBe(true)
   service.command('a', { type: 'ready' })
-  tick(58_000)
+  tick(65_000)
   expect(room.game.phase).toBe('playing')
-  expect(room.players.map(p => p.id)).toEqual(['a', 'c'])
+  expect(room.players.map(p => p.id)).toEqual(['a', 'b'])
 })

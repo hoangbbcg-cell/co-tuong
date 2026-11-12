@@ -9,7 +9,7 @@ import { useGameStore } from '../src/store/gameStore'
 import { useSessionStore } from '../src/store/sessionStore'
 import { roomApi } from '../src/services/api'
 import { roomSocket } from '../src/services/socket'
-import { pikafishApi } from '../src/services/pikafish'
+import { fairyStockfishApi } from '../src/services/fairyStockfish'
 import * as moveSound from '../src/features/game/hooks/useMoveSound'
 import { createHiddenGame } from '../src/game/state/hidden'
 import { createGame } from '../src/game/state/initial'
@@ -30,6 +30,7 @@ beforeEach(() => {
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} })
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({ matches: query !== '(max-width: 800px)', addEventListener() {}, removeEventListener() {} }))
   HTMLDialogElement.prototype.showModal = function () { this.open = true }
+  HTMLDialogElement.prototype.show = function () { this.open = true }
   HTMLDialogElement.prototype.close = function () { this.open = false }
   useGameStore.getState().reset(performance.now())
   useSessionStore.setState({ ...useSessionStore.getInitialState(), screen: 'game', mode: 'local', computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, room: null, name: 'Picolozz', notice: '', messages: [] })
@@ -41,16 +42,27 @@ afterEach(() => {
   if (originalScrollTo) Object.defineProperty(HTMLElement.prototype, 'scrollTo', originalScrollTo)
   else Reflect.deleteProperty(HTMLElement.prototype, 'scrollTo')
 })
-function mount() {
+async function mount() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
   clients.add(client)
   render(<QueryClientProvider client={client}><App /></QueryClientProvider>)
+  await settleCurrentScreen()
   return client
+}
+async function settleCurrentScreen() {
+  const currentScreen = useSessionStore.getState().screen
+  await act(async () => {
+    if (currentScreen === 'game' || currentScreen === 'replay') await import('../src/pages/game/GamePage')
+    else if (currentScreen === 'rooms') await import('../src/pages/rooms/RoomSelectionPage')
+    else if (currentScreen === 'computer') await import('../src/pages/computer/ComputerPage')
+    else if (currentScreen === 'position') await import('../src/pages/computer/CustomPositionPage')
+    else if (currentScreen === 'shop') await import('../src/pages/shop/ShopPage')
+  })
 }
 // Scope board queries to the 90 playable cells instead of every closed dialog.
 const board = () => within(document.getElementById('board')!)
 describe('React regression', () => {
-  it.each(['xiangqi', 'jieqi'] as const)('hides saving and room UI for computer matches (%s)', variant => {
+  it.each(['xiangqi', 'jieqi'] as const)('hides saving and room UI for computer matches (%s)', async variant => {
     vi.useFakeTimers()
     Object.defineProperty(document, 'fonts', { configurable: true, value: { load: vi.fn().mockResolvedValue([]) } })
     vi.spyOn(moveSound, 'useMoveSound').mockReturnValue({ playMatchIntro: vi.fn(), stopMatchIntro: vi.fn(), checkmateAudioComplete: true })
@@ -58,7 +70,7 @@ describe('React regression', () => {
     vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
     useSessionStore.setState({ mode: 'computer', humanSide: 'black' })
     useGameStore.getState().reset(performance.now(), variant)
-    mount()
+    await mount()
 
     const redCard = document.getElementById('player-red')!
     expect(redCard).toHaveClass('flex-none')
@@ -72,9 +84,9 @@ describe('React regression', () => {
     expect(screen.queryByRole('button', { name: 'Người trong phòng' })).toBeNull()
     expect(screen.getByRole('button', { name: /âm thanh/ })).toBeInTheDocument()
   })
-  it('mở một danh sách người xem với ba thẻ tên dài ngắn khác nhau', () => {
+  it('mở một danh sách người xem với ba thẻ tên dài ngắn khác nhau', async () => {
     useSessionStore.setState({ mode: 'online', room: { id: 'viewers', name: 'Viewers', game: createGame(), players: [], viewers: [{ id: 'self', name: 'Picolozz', queued: false }, { id: 'waiting', name: 'An', queued: true }, { id: 'other', name: 'Nguyễn Hoàng Minh Khôi', queued: false }], messages: [], drawOffer: null } })
-    mount()
+    await mount()
     fireEvent.click(screen.getByRole('button', { name: 'Người trong phòng' }))
     const panel = screen.getByRole('region', { name: 'Danh sách người trong phòng' })
     expect(within(panel).getByText('Picolozz')).toBeInTheDocument()
@@ -83,11 +95,12 @@ describe('React regression', () => {
     expect(within(panel).getByLabelText('Thứ tự chờ 1').closest('li')).toHaveTextContent('An')
     expect(within(panel).getAllByRole('listitem')[0]).toHaveTextContent('An')
   })
-  it('mở Chơi với máy, chọn đen và bắt đầu ván Pikafish', async () => {
-    vi.spyOn(pikafishApi, 'ready').mockResolvedValue()
+  it('mở Chơi với máy, chọn đen và bắt đầu ván Fairy-Stockfish', async () => {
+    vi.spyOn(fairyStockfishApi, 'ready').mockResolvedValue()
     useSessionStore.setState({ screen: 'home' })
-    mount()
+    await mount()
     fireEvent.click(screen.getByRole('button', { name: 'Chơi Với Máy' }))
+    await settleCurrentScreen()
     expect(screen.getByRole('main', { name: 'Chơi với máy' })).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Ông Hoàng' })).toBeInTheDocument()
     expect(screen.queryByRole('combobox', { name: 'Máy bên đen' })).not.toBeInTheDocument()
@@ -95,23 +108,25 @@ describe('React regression', () => {
     expect(screen.getByRole('radio', { name: 'Đen' })).toBeChecked()
     fireEvent.click(screen.getByRole('button', { name: 'Đấu ngay' }))
     expect(await screen.findByRole('heading', { name: 'Ông Hoàng' })).toBeInTheDocument()
-    expect(useSessionStore.getState()).toMatchObject({ screen: 'game', mode: 'computer', humanSide: 'black', computerEngine: 'pikafish' })
+    expect(useSessionStore.getState()).toMatchObject({ screen: 'game', mode: 'computer', humanSide: 'black', computerEngine: 'fairy' })
     fireEvent.click(screen.getByRole('button', { name: 'Rời phòng' }))
+    fireEvent.click(within(screen.getByRole('alertdialog', { name: 'Xác nhận rời bàn' })).getByRole('button', { name: 'Rời bàn' }))
+    await screen.findByRole('main', { name: 'Màn hình chính' })
     expect(screen.getByRole('main', { name: 'Màn hình chính' })).toBeInTheDocument()
   })
-  it('báo lỗi kết nối Pikafish và giữ màn hình chọn máy', async () => {
-    vi.spyOn(pikafishApi, 'ready').mockRejectedValue(new Error('Pikafish chưa sẵn sàng'))
-    useSessionStore.setState({ screen: 'computer' })
-    mount()
+  it('báo lỗi kết nối Fairy-Stockfish và giữ màn hình chọn máy', async () => {
+    vi.spyOn(fairyStockfishApi, 'ready').mockRejectedValue(new Error('Fairy-Stockfish chưa sẵn sàng'))
+    useSessionStore.setState({ screen: 'computer', computerLevel: 10 })
+    await mount()
     fireEvent.click(screen.getByRole('button', { name: 'Đấu ngay' }))
-    expect(await screen.findByRole('dialog', { name: 'Thông báo' })).toHaveTextContent('Pikafish chưa sẵn sàng')
+    expect(await screen.findByRole('dialog', { name: 'Thông báo' })).toHaveTextContent('Ông Hoàng chưa thể xử lý yêu cầu. Vui lòng thử lại.')
     expect(useSessionStore.getState().screen).toBe('computer')
   })
-  it('Chơi với máy giữ Home phía sau đến khi rèm mở xong và chạy lại khi mở lại', () => {
+  it('Chơi với máy giữ Home phía sau đến khi rèm mở xong và chạy lại khi mở lại', async () => {
     vi.useFakeTimers()
     window.matchMedia = vi.fn().mockImplementation(() => ({ matches: false, addEventListener() {}, removeEventListener() {} }))
     useSessionStore.setState({ screen: 'home' })
-    mount()
+    await mount()
     fireEvent.click(screen.getByRole('button', { name: 'Chơi Với Máy' }))
     expect(screen.getByTestId('computer-entrance')).toHaveAttribute('data-entering', 'true')
     expect(screen.getByRole('main', { name: 'Màn hình chính', hidden: true }).parentElement).toHaveAttribute('inert')
@@ -128,22 +143,23 @@ describe('React regression', () => {
     vi.spyOn(roomSocket, 'join').mockResolvedValue({ id: 'hidden', name: 'Bàn Cờ Úp', players: [], game: createHiddenGame(0, Array(28).fill(0.3)), messages: [], drawOffer: null })
     vi.spyOn(roomSocket, 'leave').mockResolvedValue()
     useSessionStore.setState({ screen: 'home' })
-    mount()
+    await mount()
     fireEvent.click(screen.getByRole('button', { name: 'Cờ Úp' }))
     expect(await screen.findByRole('main', { name: 'Cờ Úp' })).toBeInTheDocument()
     expect(screen.getAllByTestId('covered-piece')).toHaveLength(30)
     expect(board().getAllByRole('button', { name: /Quân úp/ })).toHaveLength(30)
     expect(useSessionStore.getState().mode).toBe('online')
-    expect(roomApi.create).toHaveBeenCalledWith('Bàn Cờ Úp', 10, 60, 'Thành phố Hồ Chí Minh', undefined, 'jieqi')
+    expect(roomApi.create).toHaveBeenCalledWith('Bàn Cờ Úp', 10, 60, undefined, undefined, 'jieqi')
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Rời phòng' })) })
     fireEvent.click(screen.getByRole('button', { name: 'Chơi hai người cùng máy' }))
+    await settleCurrentScreen()
     expect(screen.queryAllByTestId('covered-piece')).toHaveLength(0)
     expect(screen.getByRole('main', { name: 'Cờ Tướng' })).toBeInTheDocument()
   })
-  it('local Cờ Úp vẫn lật đúng một quân mỗi nước hợp lệ', () => {
+  it('local Cờ Úp vẫn lật đúng một quân mỗi nước hợp lệ', async () => {
     vi.useFakeTimers()
     useGameStore.getState().reset(performance.now(), 'jieqi')
-    mount()
+    await mount()
     expect(screen.getAllByTestId('covered-piece')).toHaveLength(30)
     fireEvent.click(board().getByRole('button', { name: 'Sẵn sàng' }))
     act(() => vi.advanceTimersByTime(MATCH_INTRO_MS))
@@ -164,7 +180,7 @@ describe('React regression', () => {
       id: 'waiting', name: 'Chờ', players: [], game: useGameStore.getState().game, messages: [], drawOffer: null,
     })
     useSessionStore.setState({ screen: 'home' })
-    mount()
+    await mount()
     fireEvent.click(screen.getByRole('button', { name: 'Chơi Nhanh' }))
     await screen.findByRole('button', { name: 'Rời phòng' })
     expect(join).toHaveBeenCalledExactlyOnceWith('waiting', 'Picolozz')
@@ -176,18 +192,18 @@ describe('React regression', () => {
     const create = vi.spyOn(roomApi, 'create').mockResolvedValue({ id: 'new', name: 'Bàn cờ', players: 0, phase: 'ready' })
     const join = vi.spyOn(roomSocket, 'join').mockResolvedValue({ id: 'new', name: 'Bàn cờ', players: [{ id: 'self', name: 'Picolozz', side: 'red', ready: false }], game: createGame(), messages: [], drawOffer: null })
     useSessionStore.setState({ screen: 'home' })
-    mount()
+    await mount()
     fireEvent.click(screen.getByRole('button', { name: 'Chơi Nhanh' }))
     expect(await screen.findByRole('button', { name: 'Rời phòng' })).toBeInTheDocument()
-    expect(create).toHaveBeenCalledWith('Bàn cờ', 10, 60, 'Thành phố Hồ Chí Minh')
+    expect(create).toHaveBeenCalledWith('Bàn cờ', 10, 60, undefined)
     expect(join).toHaveBeenCalledExactlyOnceWith('new', 'Picolozz')
     expect(useSessionStore.getState().screen).toBe('game')
     expect(useSessionStore.getState().mode).toBe('online')
   })
-  it('máy cơ bản cầm đỏ, người chơi đen không điều khiển máy và rời bàn hủy lượt máy', () => {
+  it('máy cơ bản cầm đỏ, người chơi đen không điều khiển máy và rời bàn hủy lượt máy', async () => {
     vi.useFakeTimers()
     useSessionStore.setState({ screen: 'game', mode: 'computer' })
-    mount()
+    await mount()
     fireEvent.click(board().getByRole('button', { name: 'Sẵn sàng' }))
     act(() => vi.advanceTimersByTime(MATCH_INTRO_MS))
     expect(useSessionStore.getState().humanSide).toBe('black')
@@ -206,6 +222,7 @@ describe('React regression', () => {
     fireEvent.click(board().getByRole('button', { name: 'Hàng 4, cột 3, 卒' }))
     fireEvent.click(board().getByRole('button', { name: 'Hàng 5, cột 3' }))
     fireEvent.click(screen.getByRole('button', { name: 'Rời phòng' }))
+    fireEvent.click(within(screen.getByRole('alertdialog', { name: 'Xác nhận rời bàn' })).getByRole('button', { name: 'Rời bàn' }))
     act(() => vi.advanceTimersByTime(1000))
     expect(useGameStore.getState().game.phase).toBe('ready')
     expect(useGameStore.getState().game.lastMove).toBeNull()
@@ -216,13 +233,14 @@ describe('React regression', () => {
       { id: 'full', name: 'Bàn đủ', players: 2, phase: 'playing', province: 'Thành phố Hồ Chí Minh' },
     ])
     useSessionStore.setState({ screen: 'home' })
-    mount()
+    await mount()
     fireEvent.click(screen.getByRole('button', { name: 'Chọn Bàn' }))
+    await settleCurrentScreen()
     const dialog = screen.getByRole('main', { name: 'Chọn Bàn' })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.queryByRole('main', { name: 'Màn hình chính' })).not.toBeInTheDocument()
     fireEvent.click(within(dialog).getByRole('button', { name: 'Chọn thời gian Chơi nhanh' }))
-    expect(within(dialog).getAllByRole('option')).toHaveLength(5)
+    expect(within(dialog).getAllByRole('option').map(option => option.textContent)).toEqual(['1 phút', '2 phút', '3 phút', '5 phút', '10 phút', '15 phút', '30 phút'])
     fireEvent.click(within(dialog).getByRole('option', { name: '5 phút' }))
     expect(within(dialog).getByRole('button', { name: /^Chơi nhanh\s*5 phút$/ })).toBeInTheDocument()
     expect(await within(dialog).findByRole('button', { name: 'Vào phòng Bàn đủ, 2/2 ghế, 2 người trong phòng' })).toBeEnabled()
@@ -234,27 +252,30 @@ describe('React regression', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Hủy' }))
     expect(within(dialog).queryByRole('form', { name: 'Tạo bàn mới' })).not.toBeInTheDocument()
   })
-  it('Chọn Bàn mở rèm và chạy lại khi mở lần nữa', () => {
+  it('Chọn Bàn mở rèm và chạy lại khi mở lần nữa', async () => {
     vi.useFakeTimers()
     vi.spyOn(roomApi, 'list').mockResolvedValue([])
     window.matchMedia = vi.fn().mockImplementation(query => ({ matches: query !== '(max-width: 800px)' && !query.includes('prefers-reduced-motion'), addEventListener() {}, removeEventListener() {} }))
     useSessionStore.setState({ screen: 'home' })
-    mount()
+    await mount()
     fireEvent.click(screen.getByRole('button', { name: 'Chọn Bàn' }))
+    await settleCurrentScreen()
     expect(screen.getByTestId('lobby-entrance')).toHaveAttribute('data-entering', 'true')
     act(() => vi.advanceTimersByTime(600))
     expect(screen.getByTestId('lobby-entrance')).toHaveAttribute('data-entering', 'false')
     fireEvent.click(screen.getByRole('button', { name: 'Đóng' }))
     fireEvent.click(screen.getByRole('button', { name: 'Chọn Bàn' }))
+    await settleCurrentScreen()
     expect(screen.getByTestId('lobby-entrance')).toHaveAttribute('data-entering', 'true')
   })
-  it('giữ Home phía sau trong lúc mở phòng rồi gỡ sau khi rèm hoàn tất', () => {
+  it('giữ Home phía sau trong lúc mở phòng rồi gỡ sau khi rèm hoàn tất', async () => {
     vi.useFakeTimers()
     window.matchMedia = vi.fn().mockImplementation(query => ({ matches: query !== '(max-width: 800px)' && !query.includes('prefers-reduced-motion'), addEventListener() {}, removeEventListener() {} }))
     useSessionStore.setState({ screen: 'home' })
-    mount()
+    await mount()
     const home = screen.getByRole('main', { name: 'Màn hình chính' })
     fireEvent.click(screen.getByRole('button', { name: 'Chơi hai người cùng máy' }))
+    await settleCurrentScreen()
     expect(home).toBeInTheDocument()
     expect(home.parentElement).toHaveAttribute('inert')
     act(() => vi.advanceTimersByTime(599))
@@ -263,40 +284,42 @@ describe('React regression', () => {
     expect(home).not.toBeInTheDocument()
     expect(screen.getByTestId('room-entrance')).toHaveAttribute('data-entering', 'false')
   })
-  it('avatar mở hồ sơ, hiển thị hai quân cờ và đóng để trở lại home', () => {
+  it('avatar mở hồ sơ, hiển thị hai quân cờ và đóng để trở lại home', async () => {
     useSessionStore.setState({ screen: 'home' })
-    mount()
+    await mount()
     fireEvent.click(screen.getByRole('button', { name: 'Mở hồ sơ người chơi' }))
     const profile = screen.getByRole('dialog', { name: 'Thông tin' })
     expect(within(profile).getByRole('heading', { name: 'Picolozz' })).toBeInTheDocument()
     expect(within(profile).getByRole('img', { name: 'Quân Tướng đỏ' })).toBeInTheDocument()
     expect(within(profile).getByRole('img', { name: 'Quân cờ úp' })).toBeInTheDocument()
-    expect(within(profile).getByText('Lượt thích:', { exact: false })).toBeInTheDocument()
-    expect(within(profile).getByText('TP. Hồ Chí Minh')).toBeInTheDocument()
+    expect(within(profile).getAllByText(/Lượt thích/).at(0)).toBeInTheDocument()
+    expect(profile.textContent).toContain('Hồ Chí Minh')
     expect(useSessionStore.getState().lobbyOpen).toBe(false)
     fireEvent.click(within(profile).getByRole('button', { name: 'Liên kết tài khoản' }))
     expect(screen.getByRole('dialog', { name: 'Thông báo' })).toHaveTextContent('Liên kết tài khoản sắp ra mắt')
     fireEvent.click(screen.getByRole('button', { name: 'Đã hiểu' }))
     expect(within(profile).getByRole('button', { name: 'Đăng xuất' })).toBeInTheDocument()
     fireEvent.click(profile)
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: 'Thông tin' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Mở hồ sơ người chơi' }))
     expect(screen.getByRole('dialog', { name: 'Thông tin' })).toBeInTheDocument()
   })
-  it('màn hình chính mở phòng, đóng dialog và vào bàn local', () => {
+  it('màn hình chính mở phòng, đóng dialog và vào bàn local', async () => {
     useSessionStore.setState({ screen: 'home' })
-    mount()
+    await mount()
     expect(screen.getByRole('heading', { name: 'Giải đấu' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Chọn Bàn' }))
+    await settleCurrentScreen()
     expect(screen.getByRole('main', { name: 'Chọn Bàn' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Đóng' }))
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByRole('main', { name: 'Chọn Bàn' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Chơi hai người cùng máy' }))
+    await settleCurrentScreen()
     expect(screen.getAllByTestId(/^piece-/)).toHaveLength(32)
   })
-  it('hết khai cuộc đồng hồ đỏ tự chạy dù chưa chọn hay đi quân', () => {
+  it('hết khai cuộc đồng hồ đỏ tự chạy dù chưa chọn hay đi quân', async () => {
     vi.useFakeTimers()
-    mount()
+    await mount()
     fireEvent.click(board().getByRole('button', { name: 'Sẵn sàng' }))
     act(() => vi.advanceTimersByTime(MATCH_INTRO_MS))
     expect(screen.getByTestId('match-intro')).not.toBeVisible()
@@ -308,9 +331,9 @@ describe('React regression', () => {
     act(() => vi.advanceTimersByTime(1000))
     expect(screen.getByLabelText('Thời gian quân đỏ')).toHaveTextContent('09:58')
   })
-  it('sẵn sàng, chọn quân, đi và ăn quân cập nhật đúng bàn', () => {
+  it('sẵn sàng, chọn quân, đi và ăn quân cập nhật đúng bàn', async () => {
     vi.useFakeTimers()
-    mount()
+    await mount()
     expect(screen.getAllByTestId(/^piece-/)).toHaveLength(32)
     expect(screen.getAllByTestId('board-hit')).toHaveLength(90)
     fireEvent.click(board().getByRole('button', { name: 'Sẵn sàng' }))
@@ -327,7 +350,7 @@ describe('React regression', () => {
     expect(screen.getAllByTestId(/^piece-/)).toHaveLength(31)
     expect(useGameStore.getState().game.currentTurn).toBe('black')
   })
-  it('xin thua sau khi ăn quân, rời bàn và mở ván local mới sạch trạng thái', () => {
+  it('không có nút xin thua ở ván local sau khi ăn quân, rời bàn và mở ván local mới sạch trạng thái', async () => {
     vi.useFakeTimers()
     const now = performance.now()
     useGameStore.getState().start(now - MATCH_INTRO_MS)
@@ -335,43 +358,39 @@ describe('React regression', () => {
     for (const point of [{ row: 6, col: 0 }, { row: 5, col: 0 }, { row: 3, col: 0 }, { row: 4, col: 0 }, { row: 5, col: 0 }, { row: 4, col: 0 }]) {
       useGameStore.getState().select(point, now, false)
     }
-    mount()
+    await mount()
     expect(screen.getAllByTestId(/^piece-/)).toHaveLength(31)
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
-    fireEvent.click(screen.getByRole('button', { name: 'Xin thua' }))
-    expect(useGameStore.getState().game.result).toEqual({ winner: 'red', reason: 'resign' })
-    expect(screen.getByRole('dialog', { name: 'Chiến thắng' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Chơi lại' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Xin thua' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Đi lại/ })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Rời phòng' }))
+    fireEvent.click(within(screen.getByRole('alertdialog', { name: 'Xác nhận rời bàn' })).getByRole('button', { name: 'Rời bàn' }))
     fireEvent.click(screen.getByRole('button', { name: 'Chơi hai người cùng máy' }))
+    await settleCurrentScreen()
     expect(screen.getAllByTestId(/^piece-/)).toHaveLength(32)
     expect(board().getByRole('button', { name: 'Sẵn sàng' })).toBeInTheDocument()
   })
-  it('giữ nút hành động trong animation và chuyển viền báo lượt sang người chơi đen', () => {
+  it('giữ nút hành động trong animation và chuyển viền báo lượt sang người chơi đen', async () => {
     vi.useFakeTimers()
     window.matchMedia = vi.fn().mockImplementation(query => ({ matches: query !== '(max-width: 800px)' && !query.includes('prefers-reduced-motion'), addEventListener() {}, removeEventListener() {} }))
-    mount()
+    await mount()
     act(() => vi.advanceTimersByTime(1000))
     fireEvent.click(board().getByRole('button', { name: 'Sẵn sàng' }))
     act(() => vi.advanceTimersByTime(MATCH_INTRO_MS))
     expect(screen.queryByRole('button', { name: 'Cầu hòa' })).not.toBeInTheDocument()
-    const resign = screen.getByRole('button', { name: 'Xin thua' })
+    expect(screen.queryByRole('button', { name: 'Xin thua' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Đi lại/ })).not.toBeInTheDocument()
     expect(screen.getByTestId('avatar-red')).toHaveAttribute('data-active', 'true')
     fireEvent.click(board().getByRole('button', { name: 'Hàng 7, cột 1, 兵' }))
     fireEvent.click(board().getByRole('button', { name: 'Hàng 6, cột 1' }))
-    expect(resign).toBeVisible()
-    expect(resign).toBeDisabled()
-    expect(resign).toBeVisible()
     act(() => vi.advanceTimersByTime(400))
     expect(screen.queryByRole('button', { name: 'Cầu hòa' })).not.toBeInTheDocument()
-    expect(resign).toBeEnabled()
     expect(screen.getByTestId('avatar-red')).toHaveAttribute('data-active', 'false')
     expect(screen.getByTestId('avatar-black')).toHaveAttribute('data-active', 'true')
   })
-  it('khóa nước đi khi rèm đang mở, không tự bắt đầu ván sau khi mở xong', () => {
+  it('khóa nước đi khi rèm đang mở, không tự bắt đầu ván sau khi mở xong', async () => {
     vi.useFakeTimers()
     window.matchMedia = vi.fn().mockImplementation(query => ({ matches: query !== '(max-width: 800px)' && !query.includes('prefers-reduced-motion'), addEventListener() {}, removeEventListener() {} }))
-    mount()
+    await mount()
     expect(screen.getByTestId('room-entrance')).toHaveAttribute('data-entering', 'true')
     expect(board().getByRole('button', { name: 'Hàng 7, cột 1, 兵' })).toBeDisabled()
     act(() => vi.advanceTimersByTime(599))
@@ -384,9 +403,9 @@ describe('React regression', () => {
     expect(board().getByRole('button', { name: 'Sẵn sàng' })).toBeEnabled()
     expect(useGameStore.getState().game.phase).toBe('ready')
   })
-  it.each(['red', 'black'] as const)('hiển thị bên thắng khi %s hết giờ dù đang có thông báo khác', side => {
+  it.each(['red', 'black'] as const)('hiển thị bên thắng khi %s hết giờ dù đang có thông báo khác', async side => {
     vi.useFakeTimers()
-    mount()
+    await mount()
     act(() => useSessionStore.setState({ notice: 'Thông báo cũ' }))
     // Commit the playing render before timeout, as in a real match. Result faces
     // intentionally ignore a finished state without an observed live session.
@@ -406,8 +425,8 @@ describe('React regression', () => {
     act(() => vi.advanceTimersByTime(2000))
     expect(board().getByRole('button', { name: 'Sẵn sàng' })).toBeEnabled()
   })
-  it('chat escape HTML, emoji và tin nhanh', () => {
-    mount()
+  it('chat escape HTML, emoji và tin nhanh', async () => {
+    await mount()
     fireEvent.click(screen.getByLabelText('Thu gọn trò chuyện', { selector: 'button' }))
     fireEvent.click(screen.getByLabelText('Mở trò chuyện', { selector: 'button' }))
     fireEvent.change(screen.getByLabelText('Nội dung chat', { selector: 'input' }), { target: { value: '<img src=x> hello' } })
@@ -421,17 +440,19 @@ describe('React regression', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Nước đi hay!' }))
     expect(within(screen.getByRole('log')).getByText('Nước đi hay!')).toBeInTheDocument()
   })
-  it('vào/rời Chọn Bàn rồi mở ván hai người cục bộ', () => {
-    mount()
+  it('vào/rời Chọn Bàn rồi mở ván hai người cục bộ', async () => {
+    await mount()
     const leaveButton = within(screen.getByRole('banner')).getAllByRole('button', { name: 'Rời phòng', hidden: true }).find(button => button.id === 'backButton')
     expect(leaveButton).toBeDefined()
     fireEvent.click(leaveButton!)
     expect(screen.getByRole('main', { name: 'Màn hình chính' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Chọn Bàn' }))
+    await settleCurrentScreen()
     expect(screen.getByRole('main', { name: 'Chọn Bàn' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Đóng' }))
     expect(screen.getByRole('main', { name: 'Màn hình chính' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Chơi hai người cùng máy' }))
+    await settleCurrentScreen()
     expect(screen.getByRole('heading', { name: 'Picolozz' })).toBeInTheDocument()
   })
 })

@@ -4,6 +4,7 @@ import positionRemoveActionSound from '../assets/audio/position-remove.wav'
 import positionMoveActionSound from '../assets/audio/đi quân (2).wav'
 import customizationTabActionSound from '../assets/audio/customization-tab.mp4'
 import { useAudioSettingsStore } from '../store/audioSettingsStore'
+import { createAudioOutputKeepAlive } from './audioOutputKeepAlive'
 
 let context: AudioContext | null = null
 let buffer: AudioBuffer | null = null
@@ -21,12 +22,13 @@ let positionMoveSource: AudioBufferSourceNode | null = null
 let customizationTabBuffer: AudioBuffer | null = null
 let customizationTabLoading: Promise<void> | null = null
 let customizationTabSource: AudioBufferSourceNode | null = null
-let idleSource: AudioBufferSourceNode | null = null
+let idleSource: ConstantSourceNode | null = null
+let resuming: Promise<void> | null = null
 let pendingActionRequest = 0
 
-function wakeUiAudioContext() {
-  if (context?.state === 'suspended') {
-    void context.resume().catch(() => {})
+function wakeUiAudioContext(gesture?: Event) {
+  if (context && context.state !== 'running' && context.state !== 'closed' && (!resuming || gesture)) {
+    resuming = context.resume().catch(() => {}).finally(() => { resuming = null })
   }
 }
 
@@ -41,21 +43,24 @@ function updateAudioReadiness() {
   if (!context) return
   wakeUiAudioContext()
   if (idleSource) return
-  // Keep the render stream alive between clicks without adding audible sound.
-  idleSource = context.createBufferSource()
-  idleSource.buffer = context.createBuffer(1, context.sampleRate, context.sampleRate)
-  idleSource.loop = true
-  idleSource.connect(context.destination)
-  idleSource.start()
+  idleSource = createAudioOutputKeepAlive(context)
 }
 
 export function maintainConfirmationAudioReadiness() {
+  const onStateChange = () => {
+    if (!useAudioSettingsStore.getState().muted && document.visibilityState === 'visible') wakeUiAudioContext()
+  }
+  context?.addEventListener('statechange', onStateChange)
   document.addEventListener('visibilitychange', updateAudioReadiness)
+  window.addEventListener('focus', updateAudioReadiness)
   window.addEventListener('pointerdown', wakeUiAudioContext, true)
   window.addEventListener('keydown', wakeUiAudioContext, true)
   const unsubscribe = useAudioSettingsStore.subscribe(updateAudioReadiness)
+  updateAudioReadiness()
   return () => {
+    context?.removeEventListener('statechange', onStateChange)
     document.removeEventListener('visibilitychange', updateAudioReadiness)
+    window.removeEventListener('focus', updateAudioReadiness)
     window.removeEventListener('pointerdown', wakeUiAudioContext, true)
     window.removeEventListener('keydown', wakeUiAudioContext, true)
     unsubscribe()

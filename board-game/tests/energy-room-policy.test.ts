@@ -20,9 +20,9 @@ function setup(waiters = 1, locked = false) {
   service.command('a', { type: 'ready' })
   service.command('b', { type: 'ready' })
   now = 2000
-  return { service, room, id, exhausted, rotate: () => {
+  return { service, room, id, exhausted, rotate: (advance = 3000) => {
     if (room.game.phase === 'finished') for (const player of [...room.players]) service.command(player.id, { type: 'result-presentation-complete', matchId: room.lastCompletedMatch!.id })
-    now += 2001; service.tick()
+    now += advance; service.tick()
   } }
 }
 
@@ -52,7 +52,7 @@ it.each([false, true])('keeps exhausted players seated without a queue; locked=%
   service.join(id, 'c', 'PlayerC')
   exhausted.add('a'); exhausted.add('b')
   service.command('b', { type: 'resign' })
-  rotate()
+  rotate(2999)
   expect(room.players.map(player => player.id)).toEqual(['a', 'b'])
   expect(service.takeEnergyNotices(id)).toEqual([])
 })
@@ -171,7 +171,9 @@ it('permits an invitation into an existing room without creating another room fo
   const { room } = service.reply('b', { id: invite.id, accepted: true })
   expect(room?.id).toBe(id)
   expect(room?.viewers).toContainEqual({ id: 'b', name: 'PlayerB', queued: false })
-  expect(rooms.list()).toHaveLength(1)
+  // A zero-seat ordinary room is hidden from the lobby, but no second room is created.
+  expect(rooms.list()).toEqual([])
+  expect(rooms.roomsForPreparation().map(existing => existing.id)).toEqual([id])
 })
 
 it.each([false,true])('transfers the demoted owner to the winning opponent, not the queued newcomer; locked=%s', locked => {
@@ -195,7 +197,7 @@ it.each([false,true])('transfers the demoted owner to the winning opponent, not 
   }
 })
 
-it.each([false,true])('demotes depleted players after the game without a queue, except the locked owner; locked=%s',locked=>{
+it.each([false,true])('releases depleted players after the game; ordinary room closes, locked owner stays; locked=%s',locked=>{
   let now=0
   const exhausted=new Set<string>()
   const service=new RoomService(new RoomRepository(undefined,()=>true,id=>!exhausted.has(id)),()=>now,()=> 'red')
@@ -204,10 +206,10 @@ it.each([false,true])('demotes depleted players after the game without a queue, 
   service.command('a',{type:'ready'});service.command('b',{type:'ready'})
   exhausted.add('a');exhausted.add('b')
   now=2000;service.command('b',{type:'resign'})
-  now=6999;service.tick();expect(room.players).toHaveLength(2)
-  now=7000;service.tick()
+  now=4999;service.tick();expect(room.players).toHaveLength(2)
+  now=5000;service.tick()
   expect(room.players.map(player=>player.id)).toEqual(locked?['a']:[])
-  expect(room.viewers?.map(viewer=>viewer.id).sort()).toEqual(locked?['b']:['a','b'])
+  expect(room.viewers?.map(viewer=>viewer.id).sort()).toEqual(locked?['b']:[])
   expect(service.takeEnergyNotices(id).sort()).toEqual(locked?['b']:['a','b'])
   expect(room.readyCountdown).toBeNull()
 })

@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { renderWithQuery as render } from './helpers/renderWithQuery'
 import '@testing-library/jest-dom/vitest'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { RoomUsersPanel } from '../src/features/game/components/RoomUsersPanel'
+import { RoomStandUpButton, RoomUsersPanel } from '../src/features/game/components/RoomUsersPanel'
 
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals() })
 
@@ -69,4 +69,30 @@ it('keeps queue controls for viewers without exposing stand-up',()=>{
   render(<RoomUsersPanel users={[]} onToggleQueue={()=>{}}/>)
   expect(screen.queryByRole('button',{name:'Xuống bàn'})).not.toBeInTheDocument()
   expect(screen.getByRole('button',{name:'Xếp hàng chờ chơi'})).toBeInTheDocument()
+})
+
+it.each(['panel', 'footer'])('keeps the %s stand-up artwork opaque and mounted while a move acknowledgement is pending', placement => {
+  const style=document.createElement('style')
+  style.textContent='button[aria-label="Xuống bàn"]{opacity:1}.disabled\\:opacity-60:disabled{opacity:.6}.disabled\\:opacity-100:disabled{opacity:1}'
+  document.head.appendChild(style)
+  const stand=vi.fn()
+  const action=(pending:boolean)=>placement==='panel'
+    ? <RoomUsersPanel users={[]} onStandUp={stand} queueDisabled={pending}/>
+    : <RoomStandUpButton onStandUp={stand} disabled={pending}/>
+  try {
+    const view=render(action(false))
+    const button=screen.getByRole('button',{name:'Xuống bàn'})
+    const image=within(button).getByAltText('Xuống bàn')
+    expect(getComputedStyle(button).opacity).toBe('1')
+    view.rerender(action(true))
+    expect(screen.getByRole('button',{name:'Xuống bàn'})).toBe(button)
+    expect(within(button).getByAltText('Xuống bàn')).toBe(image)
+    expect(button).toBeDisabled()
+    expect(getComputedStyle(button).opacity).toBe('1')
+    fireEvent.click(button);expect(stand).not.toHaveBeenCalled()
+    view.rerender(action(false))
+    expect(button).not.toBeDisabled()
+    expect(getComputedStyle(button).opacity).toBe('1')
+    fireEvent.click(button);expect(stand).toHaveBeenCalledOnce()
+  } finally {style.remove()}
 })

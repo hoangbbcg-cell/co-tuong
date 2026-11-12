@@ -118,3 +118,8 @@ Ghi chú giao diện 2026-10-28: dòng địa chỉ trong thẻ hồ sơ tiếp 
 - 2026-10-28: Bốn tab tùy chỉnh Chọn avatar/Chọn viền/Skin/Hiệu ứng phát customization-tab.mp4 khi click (cả laptop/mobile); preload qua uiActionSound và tôn trọng Tắt tiếng. Không đổi state/geometry avatar hoặc bố cục.
 
 - 2026-10-29: Theo user cả laptop/mobile: bút sửa tên và chọn địa chỉ chỉ xuất hiện ở màn Thông tin chính theo quyền sẵn có; không render trong preview Tùy chỉnh avatar. ProfileDialog chặn nameEditControl/editControl khi avatarCustomizationOpen, gỡ wrapper hidden/compact:contents để không còn nút ẩn trong DOM/focus. Không đổi quyền đổi tên/địa chỉ hoặc avatar geometry.
+
+## Giới hạn chữ hoa khi đặt tên — 2026-11-04
+- Tên tự đặt/đổi tên có tối đa1 ký tự in hoa Unicode, gồm chữ Việt có dấu; cho phép0 chữ hoa. Chuẩn hóa NFC trước kiểm tra, không tự hạ chữ.
+- UI và backend dùng playerRenameError chung. Giữ giới hạn1–10ký tự, mẫu Guest dành riêng và quyền đổi tên một lần. Tên không hợp lệ bị chặn trước ghi DB nên không mất quyền đổi tên.
+- Không sửa tên hiện có hoặc chặn tham gia phòng/khôi phục vì tên cũ có nhiều chữ hoa.

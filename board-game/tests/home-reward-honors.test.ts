@@ -30,13 +30,13 @@ it('does not reopen confirmed receipts after reload or returning home', async ()
   expect(reloaded.pendingHomeRewards('confirmed')).toEqual([])
 })
 
-it('drops revoked honors and detects receiving the same honor again after a reset', async () => {
+it('does not replay an already owned honor after an absent snapshot or regrant', async () => {
   const rewards = await load()
   rewards.observeRewardHonors('reset', ['current'])
   rewards.observeRewardHonors('reset', [])
   expect(rewards.pendingHomeRewards('reset')).toEqual([])
   rewards.observeRewardHonors('reset', ['current'])
-  expect(rewards.pendingHomeRewards('reset').map(reward => reward.code)).toEqual(['current'])
+  expect(rewards.pendingHomeRewards('reset')).toEqual([])
 })
 
 it('keeps resource receipts and isolates accounts while syncing honors', async () => {
@@ -90,4 +90,25 @@ it('never exposes match gold or elo in home notifications', async () => {
   }))
   const rewards = await load()
   expect(rewards.pendingHomeRewards('match')).toEqual([])
+})
+it('a stale tab reads the receipt saved by another tab instead of resurrecting it', async () => {
+  const rewards = await load()
+  rewards.observeRewardHonors('tabs', [])
+  rewards.observeRewardHonors('tabs', ['new'])
+  const saved = JSON.parse(localStorage.getItem('cotuong-home-rewards-v1:tabs')!)
+  saved.pending = []
+  saved.acknowledgedItems = ['honor:new']
+  localStorage.setItem('cotuong-home-rewards-v1:tabs', JSON.stringify(saved))
+  rewards.observeRewardHonors('tabs', ['new'])
+  expect(rewards.pendingHomeRewards('tabs')).toEqual([])
+})
+
+it('waits for a complete inventory rather than announcing all old items after a partial profile', async () => {
+  const rewards = await load()
+  const partial = { id: 'partial', gold: '0', stats: [] } as any
+  rewards.observeRewardProfile(partial, false)
+  rewards.observeRewardProfile({ ...partial, cosmetics: [{ kind: 'avatar', code: 'avatar-16' }, { kind: 'frame', code: 'frame-4' }] }, false)
+  expect(rewards.pendingHomeRewards('partial')).toEqual([])
+  rewards.observeRewardProfile({ ...partial, cosmetics: [{ kind: 'avatar', code: 'avatar-16' }, { kind: 'frame', code: 'frame-4' }, { kind: 'frame', code: 'frame-5' }] }, false)
+  expect(rewards.pendingHomeRewards('partial').map(item => item.code)).toEqual(['frame-5'])
 })

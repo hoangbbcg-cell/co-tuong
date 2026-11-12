@@ -46,10 +46,10 @@ it.each([false,true])('promotes the earliest ordinary viewer only after both sea
   service.leave('a')
   expect(room.players.map(p=>p.id)).toEqual(['b'])
   service.leave('b')
-  expect(room.players).toEqual([expect.objectContaining({id:'early',userId:'account-early',ready:false})])
+  expect(room.players).toEqual(locked ? [] : [expect.objectContaining({id:'early',userId:'account-early',ready:false})])
   expect(room.ownerId).toBe('early')
   expect(service.list().find(r=>r.id===id)?.ownerName).toBe('Dau tien')
-  expect(room.viewers?.map(v=>v.id)).toEqual(['late'])
+  expect(room.viewers?.map(v=>v.id)).toEqual(locked ? ['early','late'] : ['late'])
 })
 it('keeps original viewing order after joining and leaving the queue',()=>{
   const service=new RoomService(new RoomRepository(),()=>0)

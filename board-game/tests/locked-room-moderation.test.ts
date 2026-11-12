@@ -52,14 +52,14 @@ it('bàn khóa đếm bắt đầu thay vì đẩy ghế chưa ready, sau ván c
   service.command('viewer', { type: 'join-queue' })
   advance(10_000)
   expect(room.game.phase).toBe('ready')
-  expect(room.readyCountdown).toBe(20)
+  expect(room.readyCountdown).toBe(21)
   service.command('owner', { type: 'ready' })
   advance(19_999)
   expect(room.players.map(p => p.id)).toEqual(['owner', 'player'])
   service.command('player', { type: 'ready' })
   service.command('player', { type: 'resign' })
   for (const player of room.players) service.command(player.id, { type: 'result-presentation-complete', matchId: room.lastCompletedMatch!.id })
-  advance(2000)
+  advance(3000)
   expect(room.players.map(p => p.id)).toEqual(['owner', 'viewer'])
   expect(room.viewers?.find(p => p.id === 'player')?.queued).toBe(false)
 })
@@ -114,11 +114,86 @@ it.each([false, true])('đưa người View thay đối thủ trên bàn kể c�
   expect(room.players.map(player => player.id)).toEqual(['owner', 'viewer'])
   expect(room.players.find(player => player.id === 'viewer')).toMatchObject({ side, ready: false })
   expect(room.players.every(player => !player.ready)).toBe(true)
-  expect(room.viewers).toContainEqual({ id: 'player', name: 'Người chơi', queued: false })
+  expect(room.viewers).toContainEqual({ id: 'player', name: 'Người chơi', queued: true })
   expect(room.viewers?.some(viewer => viewer.id === 'viewer')).toBe(false)
   expect(room.game.phase).toBe('ready')
 })
 
+// HOST QUEUE V3 REGRESSION
+
+it('owner promote puts displaced player at queue position one', () => {
+  const { service, room } = setup()
+  service.join(room.id, 'next', 'Minh')
+
+  service.command('viewer', { type: 'join-queue' })
+  service.command('next', { type: 'join-queue' })
+
+  service.command('owner', {
+    type: 'moderate',
+    targetId: 'viewer',
+    action: 'promote',
+  })
+
+  expect(room.players.map(p => p.id)).toEqual(['owner', 'viewer'])
+  expect(room.viewers?.filter(v => v.queued).map(v => v.id))
+    .toEqual(['player', 'next'])
+  expect(room.viewers?.find(v => v.id === 'player')?.queued)
+    .toBe(true)
+  expect(room.viewers?.some(v => v.id === 'viewer')).toBe(false)
+})
+
+it('owner repeated promote always prioritizes last displaced player', () => {
+  const { service, room } = setup()
+  service.join(room.id, 'next', 'Minh')
+
+  service.command('viewer', { type: 'join-queue' })
+  service.command('next', { type: 'join-queue' })
+
+  service.command('owner', {
+    type: 'moderate',
+    targetId: 'viewer',
+    action: 'promote',
+  })
+
+  service.command('owner', {
+    type: 'moderate',
+    targetId: 'next',
+    action: 'promote',
+  })
+
+  expect(room.players.map(p => p.id)).toEqual(['owner', 'next'])
+  expect(room.viewers?.filter(v => v.queued).map(v => v.id))
+    .toEqual(['viewer', 'player'])
+  expect(room.viewers?.some(v => v.id === 'next')).toBe(false)
+})
+
+it('owner demote sends player to view but never to queue', () => {
+  const { service, room } = setup()
+
+  service.command('owner', {
+    type: 'moderate',
+    targetId: 'player',
+    action: 'demote',
+  })
+
+  expect(room.players.map(p => p.id)).toEqual(['owner'])
+  expect(room.viewers?.find(v => v.id === 'player')?.queued)
+    .toBe(false)
+})
+
+it('non owner cannot promote a viewer', () => {
+  const { service, room } = setup()
+
+  expect(() => service.command('player', {
+    type: 'moderate',
+    targetId: 'viewer',
+    action: 'promote',
+  })).toThrow('Chỉ chủ')
+
+  expect(room.players.map(p => p.id)).toEqual(['owner', 'player'])
+  expect(room.viewers?.find(v => v.id === 'viewer')?.queued)
+    .toBe(false)
+})
 it('không thay người đang đấu dở bằng thao tác đưa lên bàn', () => {
   const { service, room } = setup()
   service.command('owner', { type: 'ready' })

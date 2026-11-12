@@ -15,6 +15,7 @@ import { RankingDialog } from '../../features/lobby/components/RankingDialog'
 import { ProfileDialog } from '../../features/lobby/components/ProfileDialog'
 import type { MessageConversationRequest } from '../../features/lobby/components/MessagesDialog'
 import { homeUtilityButton as utility } from '../../lib/uiClasses'
+import { OuterSceneBackdrop } from '../../lib/OuterSceneBackdrop'
 
 const LazyMessagesDialog = lazy(() =>
   import('../../features/lobby/components/MessagesDialog')
@@ -56,8 +57,8 @@ export function RoomSelectionPage({ onEntranceComplete }: { onEntranceComplete: 
     setHistoryPlayerName(playerName)
     if (!historyPlayerProfileRef.current?.open) historyPlayerProfileRef.current?.showModal()
   }
-  return <main aria-label="Chọn Bàn" className="flex h-dvh w-full items-center justify-center overflow-hidden bg-[#263a35] text-[#eee4ce]">
-    <div className="relative h-dvh w-full overflow-hidden desktop:h-[calc(100dvh-12px)] desktop:w-[calc(100%-240px)] desktop:border-[5px] desktop:border-[#80582c]">
+  return <main aria-label="Chọn Bàn" className="relative isolate flex h-dvh w-full items-center justify-center overflow-hidden bg-[#17251f] text-[#eee4ce]"><OuterSceneBackdrop />
+    <div className="relative h-dvh w-full overflow-hidden desktop:h-[calc(100dvh-12px)] desktop:w-[calc(100%-240px)] desktop:border-[5px] desktop:border-[#80582c] desktop:shadow-[0_0_0_7px_#170c07,0_0_52px_18px_#000d]">
     <RoomSelection lobby={lobby} music={music} onEntranceComplete={onEntranceComplete} onOpenFriends={home.openFriends} onOpenRanking={home.openRanking} onOpenProfile={() => { if (lobby.name.trim()) useSessionStore.getState().setName(lobby.name); home.openProfile() }} onFullscreen={() => void home.fullscreen()} onClose={() => { if (lobby.name.trim()) useSessionStore.getState().setName(lobby.name); useSessionStore.setState({ screen: 'home', lobbyOpen: false }) }}/>
     <dialog ref={home.messageRef} aria-label="Thông báo" className={`${oneChoiceNoticeDialog} backdrop:bg-black/60 backdrop:backdrop-blur-sm`} onCancel={() => home.setMessage('')}>
       <p className="leading-relaxed">{home.message}</p><button autoFocus className={oneChoiceNoticeButton} onClick={() => home.setMessage('')}>Đã hiểu</button>

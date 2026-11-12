@@ -2,7 +2,7 @@
 import { createRef } from 'react'
 import { act, cleanup, createEvent, fireEvent, screen, within } from '@testing-library/react'
 import { renderWithQuery as render } from './helpers/renderWithQuery'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { SavedMatchesList } from '../src/features/lobby/components/SavedMatchesList'
 import { HistoryDialog } from '../src/features/lobby/components/HistoryDialog'
 import { useSessionStore } from '../src/store/sessionStore'
@@ -10,16 +10,46 @@ import { usePlayedMatches } from '../src/store/playedMatchesStore'
 import { useSavedMatches } from '../src/store/savedMatchesStore'
 import { createGame } from '../src/game/state/initial'
 import { finishGame } from '../src/game/moves/actions'
+import type { ReactElement } from 'react'
 
-afterEach(cleanup)
-it.each(['red', 'black'] as const)('places the owner first when playing %s', side => {
+const originalAnimate = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'animate')
+const originalMatchMedia = Object.getOwnPropertyDescriptor(window, 'matchMedia')
+beforeEach(() => {
+  Object.defineProperty(window, 'matchMedia', { configurable: true, writable: true, value: vi.fn().mockReturnValue({ matches: false }) })
+  Object.defineProperty(HTMLElement.prototype, 'animate', { configurable: true, value: () => ({ cancel() {}, onfinish: null }) })
+})
+afterEach(() => {
+  cleanup()
+  if (originalAnimate) Object.defineProperty(HTMLElement.prototype, 'animate', originalAnimate)
+  else Reflect.deleteProperty(HTMLElement.prototype, 'animate')
+  if (originalMatchMedia) Object.defineProperty(window, 'matchMedia', originalMatchMedia)
+  else Reflect.deleteProperty(window, 'matchMedia')
+})
+const renderOpenHistory = async (ui: ReactElement) => {
+  const view = render(ui)
+  view.container.querySelector('dialog')?.setAttribute('open', '')
+  await act(async () => { await Promise.resolve() })
+  return view
+}
+const revealSaveAction = (row: HTMLElement, compact: boolean) => {
+  if (!compact) {
+    fireEvent.contextMenu(row, { clientX: 120, clientY: 180 })
+    return
+  }
+  const event = createEvent.pointerDown(row)
+  Object.defineProperties(event, { isPrimary: { value: true }, button: { value: 0 }, clientX: { value: 120 }, clientY: { value: 180 }, pointerId: { value: 1 } })
+  fireEvent(row, event)
+  act(() => vi.advanceTimersByTime(200))
+  fireEvent.pointerUp(row)
+}
+it.each(['red', 'black'] as const)('places the owner first when playing %s', async side => {
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} })
   const owner = 'Picolozz'
   useSavedMatches.setState({ entries: [{ id: 'one', owner, endedAt: 1,
     redName: side === 'red' ? owner : 'Opponent', blackName: side === 'black' ? owner : 'Opponent',
     states: [createGame(), finishGame(createGame(), side, 'resign')],
   }] })
-  render(<HistoryDialog dialogRef={createRef()} layout={{ width: 1120, height: 750, scale: 1, compact: false }} name={owner} onClose={() => {}} onReplay={() => {}} onOpenProfile={() => {}} />)
+  await renderOpenHistory(<HistoryDialog dialogRef={createRef()} layout={{ width: 1120, height: 750, scale: 1, compact: false }} name={owner} onClose={() => {}} onReplay={() => {}} onOpenProfile={() => {}} />)
   fireEvent.click(screen.getByRole('tab', { name: 'Đã lưu', hidden: true }))
   const row = screen.getByLabelText('Các ván đã lưu').querySelector('li')!
   const profileButtons = within(row).getAllByRole('button', { name: /^Mở hồ sơ của / })
@@ -39,11 +69,11 @@ it.each([false, true])('reveals the save time after holding a row, cancels scrol
     const onOpenProfile = vi.fn()
     const { container } = render(<SavedMatchesList owner="me" scale={1} compact={compact} onClose={() => {}} onOpenProfile={onOpenProfile} />)
     const row = container.querySelector('li')!
-    const player = within(row).getByText('me').closest('button')!
+    const player = row.querySelector<HTMLButtonElement>('button[data-ui-selection-sound]')!
     const press = () => {
-      const event = createEvent.pointerDown(player)
+      const event = createEvent.pointerDown(row)
       Object.defineProperties(event, { isPrimary: { value: true }, button: { value: 0 }, clientX: { value: 120 }, clientY: { value: 180 }, pointerId: { value: 1 } })
-      fireEvent(player, event)
+      fireEvent(row, event)
     }
     press()
     act(() => vi.advanceTimersByTime(199))
@@ -54,9 +84,9 @@ it.each([false, true])('reveals the save time after holding a row, cancels scrol
     press()
     act(() => vi.advanceTimersByTime(200))
     expect(screen.getByRole('status', { hidden: true }).querySelector('time')?.dateTime).toBe(new Date(savedAt).toISOString())
-    expect(screen.getByRole('status', { hidden: true }).style.top).toBe('170px')
+    expect(screen.getByRole('status', { hidden: true }).style.top).toBe(compact ? '130px' : '150px')
     expect(screen.getByRole('status', { hidden: true }).style.left).toBe('120px')
-    fireEvent.pointerUp(player)
+    fireEvent.pointerUp(row)
     expect(screen.queryByRole('status', { hidden: true })).toBeNull()
     fireEvent.contextMenu(player)
     expect(screen.queryByRole('status', { hidden: true })).toBeNull()
@@ -90,7 +120,7 @@ it.each([false, true])('asks before deleting a saved game and keeps confirmation
     fireEvent.click(screen.getByRole('button', { name: 'Xóa ván me với Opponent' }))
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Đồng ý' })) })
     expect(remove).toHaveBeenCalledWith('me', 'delete-one')
-    expect(screen.getByRole('alert').textContent).toContain('Không thể xóa')
+    expect(screen.getByRole('alert').textContent).toBe('offline')
     expect(screen.getByRole('alertdialog')).toBeTruthy()
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Đồng ý' })) })
     expect(remove).toHaveBeenCalledTimes(2)
@@ -105,7 +135,7 @@ it.each([false, true])('asks before deleting a saved game and keeps confirmation
   }
 })
 
-it.each([false, true])('shows the in-game save icon and label while holding a played row (compact=%s)', compact => {
+it.each([false, true])('shows the in-game save icon and label while using its reveal gesture (compact=%s)', async compact => {
   vi.useFakeTimers()
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} })
   try {
@@ -113,23 +143,17 @@ it.each([false, true])('shows the in-game save icon and label while holding a pl
       redName: 'me', blackName: 'Opponent', states: [finishGame(createGame(), 'red', 'resign')],
     }] })
     const onOpenProfile = vi.fn()
-    render(<HistoryDialog dialogRef={createRef()} layout={{ width: 1120, height: 750, scale: 1, compact }} name="me" onClose={() => {}} onReplay={() => {}} onOpenProfile={onOpenProfile} />)
+    await renderOpenHistory(<HistoryDialog dialogRef={createRef()} layout={{ width: 1120, height: 750, scale: 1, compact }} name="me" onClose={() => {}} onReplay={() => {}} onOpenProfile={onOpenProfile} />)
     const player = screen.getByRole('button', { name: 'Mở hồ sơ của me', hidden: true })
-    const press = () => {
-      const event = createEvent.pointerDown(player)
-      Object.defineProperties(event, { isPrimary: { value: true }, button: { value: 0 }, clientX: { value: 120 }, clientY: { value: 180 }, pointerId: { value: 1 } })
-      fireEvent(player, event)
-      act(() => vi.advanceTimersByTime(200))
-    }
-    press()
+    const row = player.closest('li')!
+    revealSaveAction(row, compact)
     const notice = screen.getByRole('status', { hidden: true })
     expect(notice.textContent).toBe('Lưu ván cờ')
     expect(notice.querySelector('svg')).not.toBeNull()
     expect(notice.style.top).toBe('170px')
     expect(notice.style.left).toBe('120px')
-    fireEvent.pointerUp(player)
     expect(screen.getByRole('status', { hidden: true })).toBe(notice)
-    fireEvent.click(player)
+    if (compact) fireEvent.click(player)
     expect(onOpenProfile).not.toHaveBeenCalled()
     fireEvent.pointerDown(notice)
     fireEvent.click(notice)
@@ -138,7 +162,7 @@ it.each([false, true])('shows the in-game save icon and label while holding a pl
     expect(screen.getByRole('status', { hidden: true })).toBe(notice)
     fireEvent.pointerDown(document.body)
     expect(screen.queryByRole('status', { hidden: true })).toBeNull()
-    press()
+    revealSaveAction(row, compact)
     fireEvent.click(screen.getByRole('tab', { name: 'Đã lưu', hidden: true }))
     expect(screen.queryByRole('status', { hidden: true })).toBeNull()
   } finally {
@@ -152,24 +176,18 @@ it.each([false, true])('shows saved feedback only after saving succeeds and supp
   vi.useFakeTimers()
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} })
   const originalAnimate = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'animate')
-  const originalMatchMedia = window.matchMedia
   Object.defineProperty(HTMLElement.prototype, 'animate', { configurable: true, value: () => ({ cancel() {}, onfinish: null }) })
-  window.matchMedia = vi.fn().mockReturnValue({ matches: false })
   let completeSave!: () => void
   const save = vi.spyOn(useSavedMatches.getState(), 'save').mockRejectedValueOnce(new Error('offline')).mockImplementation(() => new Promise<void>(resolve => { completeSave = resolve }))
   try {
     const record = { id: 'played-save', owner: 'me', isOnline: true as const, endedAt: Date.now(), redName: 'me', blackName: 'Opponent', states: [finishGame(createGame(), 'red', 'resign')] }
     usePlayedMatches.setState({ entries: [record] })
-    render(<HistoryDialog dialogRef={createRef()} layout={{ width: 1120, height: 750, scale: 1, compact }} name="me" onClose={() => {}} onReplay={() => {}} onOpenProfile={() => {}} />)
+    await renderOpenHistory(<HistoryDialog dialogRef={createRef()} layout={{ width: 1120, height: 750, scale: 1, compact }} name="me" onClose={() => {}} onReplay={() => {}} onOpenProfile={() => {}} />)
     const player = screen.getByRole('button', { name: 'Mở hồ sơ của me', hidden: true })
-    const event = createEvent.pointerDown(player)
-    Object.defineProperties(event, { isPrimary: { value: true }, button: { value: 0 }, clientX: { value: 120 }, clientY: { value: 180 }, pointerId: { value: 1 } })
-    fireEvent(player, event)
-    act(() => vi.advanceTimersByTime(200))
-    fireEvent.pointerUp(player)
+    revealSaveAction(player.closest('li')!, compact)
     const button = screen.getByRole('button', { name: 'Lưu ván cờ', hidden: true })
     await act(async () => { fireEvent.pointerDown(button); fireEvent.click(button) })
-    expect(save).toHaveBeenCalledWith('me', record)
+    expect(save).toHaveBeenCalledWith('me', record, false)
     expect(screen.getByText('Không thể lưu ván cờ. Hãy thử lại.')).toBeTruthy()
     expect(screen.queryByText('Đã lưu', { selector: 'p' })).toBeNull()
     fireEvent.click(button)
@@ -184,7 +202,6 @@ it.each([false, true])('shows saved feedback only after saving succeeds and supp
     cleanup()
     save.mockRestore()
     usePlayedMatches.setState({ entries: [] })
-    window.matchMedia = originalMatchMedia
     if (originalAnimate) Object.defineProperty(HTMLElement.prototype, 'animate', originalAnimate)
     else Reflect.deleteProperty(HTMLElement.prototype, 'animate')
     vi.useRealTimers()
@@ -195,9 +212,7 @@ it.each([false, true])('saves the selected played game with the real store and c
   vi.useFakeTimers()
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} })
   const originalAnimate = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'animate')
-  const originalMatchMedia = window.matchMedia
   Object.defineProperty(HTMLElement.prototype, 'animate', { configurable: true, value: () => ({ cancel() {}, onfinish: null }) })
-  window.matchMedia = vi.fn().mockReturnValue({ matches: false })
   const previousAccount = useSessionStore.getState().account
   const previousSaved = useSavedMatches.getState().entries
   const previousStorage = localStorage.getItem('xiangqi-saved-matches-v1')
@@ -208,13 +223,9 @@ it.each([false, true])('saves the selected played game with the real store and c
     const target = { id: 'selected-game', owner: 'me', isOnline: true as const, endedAt: Date.now(), redName: 'me', blackName: 'Chosen', savedTitle: 'Ván được chọn', startedAt: Date.now(), states }
     usePlayedMatches.setState({ entries: [{ ...target, id: 'other-game', blackName: 'Other' }, target] })
     const dialogRef = createRef<HTMLDialogElement>()
-    render(<HistoryDialog dialogRef={dialogRef} layout={{ width: 1120, height: 750, scale: 0.7, compact }} name="me" onClose={() => {}} onReplay={() => {}} onOpenProfile={() => {}} />)
+    await renderOpenHistory(<HistoryDialog dialogRef={dialogRef} layout={{ width: 1120, height: 750, scale: 0.7, compact }} name="me" onClose={() => {}} onReplay={() => {}} onOpenProfile={() => {}} />)
     const player = screen.getByRole('button', { name: 'Mở hồ sơ của Chosen', hidden: true })
-    const event = createEvent.pointerDown(player)
-    Object.defineProperties(event, { isPrimary: { value: true }, button: { value: 0 }, clientX: { value: 120 }, clientY: { value: 180 }, pointerId: { value: 1 } })
-    fireEvent(player, event)
-    act(() => vi.advanceTimersByTime(200))
-    fireEvent.pointerUp(player)
+    revealSaveAction(player.closest('li')!, compact)
     const saveButton = screen.getByRole('button', { name: 'Lưu ván cờ', hidden: true })
     expect(saveButton.closest('dialog')).toBe(dialogRef.current)
     await act(async () => { fireEvent.pointerDown(saveButton); fireEvent.click(saveButton) })
@@ -235,7 +246,6 @@ it.each([false, true])('saves the selected played game with the real store and c
     useSessionStore.setState({ account: previousAccount })
     if (previousStorage === null) localStorage.removeItem('xiangqi-saved-matches-v1')
     else localStorage.setItem('xiangqi-saved-matches-v1', previousStorage)
-    window.matchMedia = originalMatchMedia
     if (originalAnimate) Object.defineProperty(HTMLElement.prototype, 'animate', originalAnimate)
     else Reflect.deleteProperty(HTMLElement.prototype, 'animate')
     vi.useRealTimers()
@@ -253,7 +263,7 @@ it.each([false, true])('resets history tabs and discards unfinished edits on clo
       states: [finishGame(createGame(), 'red', 'resign')],
     }] })
     const dialogRef = createRef<HTMLDialogElement>()
-    render(<HistoryDialog dialogRef={dialogRef} layout={{ width: 1120, height: 750, scale: 1, compact }} name="me" onClose={() => {}} onReplay={() => {}} onOpenProfile={() => {}} />)
+    await renderOpenHistory(<HistoryDialog dialogRef={dialogRef} layout={{ width: 1120, height: 750, scale: 1, compact }} name="me" onClose={() => {}} onReplay={() => {}} onOpenProfile={() => {}} />)
     const savedTab = screen.getByRole('tab', { name: 'Đã lưu', hidden: true })
     fireEvent.click(savedTab)
     fireEvent.click(screen.getByRole('button', { name: 'Sửa tên ván đấu', hidden: true }))
@@ -281,14 +291,14 @@ it.each([false, true])('resets history tabs and discards unfinished edits on clo
 })
 
 
-it.each([false, true])('only shows decisive completed matches in played history (compact=%s)', compact => {
+it.each([false, true])('only shows decisive completed matches in played history (compact=%s)', async compact => {
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} })
   const base = { owner: 'me', isOnline: true as const, endedAt: Date.now(), redName: 'me', startedAt: Date.now() }
   const ongoing = { ...base, id: 'active', blackName: 'ActiveOpponent', states: [{ ...createGame(), phase: 'playing' as const }] }
   const finished = { ...base, id: 'done', blackName: 'FinishedOpponent', states: [finishGame(createGame(), 'red', 'resign')] }
   const drawn = { ...base, id: 'draw', blackName: 'DrawOpponent', states: [finishGame(createGame(), null, 'draw')] }
   usePlayedMatches.setState({ entries: [ongoing, finished, drawn] })
-  render(<HistoryDialog dialogRef={createRef()} layout={{ width: 1120, height: 750, scale: 1, compact }} name="me" onClose={() => {}} onReplay={() => {}} onOpenProfile={() => {}} />)
+  await renderOpenHistory(<HistoryDialog dialogRef={createRef()} layout={{ width: 1120, height: 750, scale: 1, compact }} name="me" onClose={() => {}} onReplay={() => {}} onOpenProfile={() => {}} />)
   expect(screen.queryByRole('button', { name: 'Mở hồ sơ của ActiveOpponent', hidden: true })).toBeNull()
   expect(screen.queryByRole('button', { name: 'Mở hồ sơ của DrawOpponent', hidden: true })).toBeNull()
   expect(screen.getByRole('button', { name: 'Mở hồ sơ của FinishedOpponent', hidden: true })).toBeTruthy()

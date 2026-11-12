@@ -1,3 +1,4 @@
+import { IncrementBadge } from './IncrementBadge'
 import { useAvatarTouchHold } from '../hooks/useAvatarTouchHold'
 import { createPortal } from 'react-dom'
 import { sendRoomReaction, useRoomReactions } from '../hooks/useRoomReactions'
@@ -15,6 +16,7 @@ import { AvatarPortrait } from '../../lobby/components/AvatarCustomization'
 import { getAvatarFrame } from '../../../lib/avatarFrames'
 import { AvatarFrameOverlay, AVATAR_FRAME_VISIBLE_SCALE } from './AvatarFrameOverlay'
 import { AvatarRankBadge } from './AvatarRankBadge'
+import { sharedRankEloFromStats } from '../../../lib/rankProgression'
 import likeIcon from '../../../assets/icons/like-white.png'
 import { useSessionStore } from '../../../store/sessionStore'
 import readyRibbon from '../../../assets/buttons/ready-avatar-ribbon.png'
@@ -23,7 +25,7 @@ import eloFrame from '../../../assets/player/elo-frame.png'
 import { XIANGQI_ELO_ICON as redGeneral } from '../../../lib/eloArtwork'
 import concealedPiece from '../../../assets/history/history-hidden-user.png'
 
-interface Props { recordedClock?: boolean; mobileHeader?: boolean; mobileEdge?: 'top' | 'bottom'; empty?: boolean; playerId?: string; entranceHidden?: boolean; fillHeight?: boolean; side: Side; variant?: GameVariant; name: string; started: boolean; active: boolean; timerExpired?: boolean; showClock?: boolean; ready?: boolean; remaining: number; turnElapsed: number; turnTimeLimitMs?: number; outcome?: 'win' | 'loss'; likeVisible?: boolean; likePosition?: 'left' | 'right'; likeMatchId: string; likeActorId: string; onAvatarClick?: () => void; onAvatarContextMenu?: () => void; onAvatarHold?: () => void; children?: ReactNode }
+interface Props { incrementSeconds?: number; recordedClock?: boolean; mobileHeader?: boolean; mobileEdge?: 'top' | 'bottom'; empty?: boolean; playerId?: string; entranceHidden?: boolean; fillHeight?: boolean; side: Side; variant?: GameVariant; name: string; started: boolean; active: boolean; timerExpired?: boolean; showClock?: boolean; ready?: boolean; remaining: number; turnElapsed: number; turnTimeLimitMs?: number; outcome?: 'win' | 'loss'; likeVisible?: boolean; likePosition?: 'left' | 'right'; likeMatchId: string; likeActorId: string; onAvatarClick?: () => void; onAvatarContextMenu?: () => void; onAvatarHold?: () => void; children?: ReactNode }
 const LIKE_BUBBLE_INTERVAL_MS = 100
 const LIKE_PICKER_HOVER_DELAY_MS = 400
 const LIKE_PICKER_REOPEN_DELAY_MS = 1000
@@ -158,7 +160,7 @@ function ResultFace({ outcome }: { outcome: 'win' | 'loss' }) {
     </svg>
   </div>
 }
-export function PlayerCard({ recordedClock = false, mobileHeader = false, mobileEdge, empty = false, playerId, entranceHidden = false, fillHeight = false, side, variant = 'xiangqi', name: originalName, started, active, timerExpired = false, showClock = true, ready = false, remaining, turnElapsed, turnTimeLimitMs = TURN_TIME_LIMIT_MS, outcome, likeVisible = false, likePosition = 'left', likeMatchId, likeActorId, onAvatarClick, onAvatarContextMenu, onAvatarHold, children }: Props) {
+export function PlayerCard({ incrementSeconds = 0, recordedClock = false, mobileHeader = false, mobileEdge, empty = false, playerId, entranceHidden = false, fillHeight = false, side, variant = 'xiangqi', name: originalName, started, active, timerExpired = false, showClock = true, ready = false, remaining, turnElapsed, turnTimeLimitMs = TURN_TIME_LIMIT_MS, outcome, likeVisible = false, likePosition = 'left', likeMatchId, likeActorId, onAvatarClick, onAvatarContextMenu, onAvatarHold, children }: Props) {
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pointerKind = useRef('mouse')
   const held = useRef(false)
@@ -166,11 +168,26 @@ export function PlayerCard({ recordedClock = false, mobileHeader = false, mobile
   const cancelHold = () => { if (holdTimer.current) clearTimeout(holdTimer.current); holdTimer.current = null }
   useEffect(() => { cancelHold(); held.current = false; return cancelHold }, [originalName, playerId, empty])
   const ownName=useSessionStore(s=>s.name)
-  const profile=useDatabaseProfile(empty?'':originalName,originalName===ownName,playerId)
-  const elo=profile?.stats.find(s=>s.variant===variant)?.elo??1000
+  const profile=useDatabaseProfile(empty?'':originalName,originalName===ownName,playerId,!mobileHeader&&!empty)
+  // Keep the last confirmed visual profile during a temporary online data gap.
+  // Clear it for empty seats and never share it between different players.
+  const profileIdentity = playerId ? `id:${playerId}` : `name:${originalName}`
+  const lastLoadedProfileRef = useRef<{ identity: string; value: NonNullable<typeof profile> } | null>(null)
+  if (empty) {
+    lastLoadedProfileRef.current = null
+  } else if (profile) {
+    lastLoadedProfileRef.current = { identity: profileIdentity, value: profile }
+  }
+  const displayProfile = empty ? null
+    : profile ?? (lastLoadedProfileRef.current?.identity === profileIdentity
+      ? lastLoadedProfileRef.current.value
+      : null)
+  const elo=displayProfile?.stats.find(s=>s.variant===variant)?.elo??1000
+  // Shared badge tier follows the higher Elo of the two variants; the displayed Elo stays variant-specific.
+  const rankElo=sharedRankEloFromStats(displayProfile?.stats)
   const machineAvatar = getComputerAvatar(originalName)
   const touchHold = useAvatarTouchHold(`${originalName}:${playerId ?? ''}:${empty}:${!!machineAvatar}`, machineAvatar || empty ? undefined : onAvatarHold)
-  const resolvedName = machineAvatar ? 'Ông Hoàng' : profile?.displayName ?? originalName
+  const resolvedName = machineAvatar ? 'Ông Hoàng' : displayProfile?.displayName ?? originalName
   const occupiedName = useRef(resolvedName)
   if (!empty) occupiedName.current = resolvedName
   // Preserve the hidden identity height when a seat becomes empty; mobile clocks anchor to its Elo row.
@@ -191,32 +208,33 @@ export function PlayerCard({ recordedClock = false, mobileHeader = false, mobile
         onPointerUp={event => { if (event.pointerType !== 'touch') cancelHold() }} onPointerCancel={event => { if (event.pointerType !== 'touch') cancelHold() }} onPointerLeave={event => { if (event.pointerType !== 'touch') cancelHold() }}
         onPointerMove={event => { if (event.pointerType === 'touch') return; if (Math.hypot(event.clientX - holdOrigin.current.x, event.clientY - holdOrigin.current.y) > 10) cancelHold() }}
         onClick={event => { if (touchHold.consumeHeldClick() || held.current) { held.current = false; event.preventDefault(); return } if (!machineAvatar) onAvatarClick?.() }} onContextMenu={event => { event.preventDefault(); if (pointerKind.current === 'touch') return; cancelHold(); if (!machineAvatar) onAvatarContextMenu?.() }} onDragStart={event => event.preventDefault()} className={`${buttonInteraction} relative block size-full touch-none select-none rounded-full border-0 bg-transparent p-0 [-webkit-touch-callout:none] [&_img]:[-webkit-user-drag:none] disabled:opacity-100`}>
-        {machineAvatar ? <img src={machineAvatar} alt="" className="block size-full object-contain" style={{ transform: `scale(${AVATAR_FRAME_VISIBLE_SCALE})` }} /> : <AvatarPortrait avatarIndex={Number(profile?.avatarCode.replace('avatar-',''))||0} className="size-full rounded-full" />}<span aria-hidden="true" className={`pointer-events-none absolute inset-0 z-2 rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: `conic-gradient(from 0deg, transparent 0deg ${turnAngle}deg, #187b1299 ${turnAngle}deg 360deg)` }} />
-        {!machineAvatar && <AvatarFrameOverlay src={getAvatarFrame(Number(profile?.avatarFrameCode.replace('frame-',''))||0).image} dimmed={timerVisible} />}
-        <svg aria-hidden="true" viewBox="0 0 100 100" className={`pointer-events-none absolute top-1/2 left-1/2 z-[11] size-[107%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full transition-opacity duration-100 ${timerVisible ? 'opacity-100' : 'opacity-0'}`}>
+        {machineAvatar ? <img src={machineAvatar} alt="" className="block size-full object-contain" style={{ transform: `scale(${AVATAR_FRAME_VISIBLE_SCALE})` }} /> : <AvatarPortrait avatarIndex={Number(displayProfile?.avatarCode.replace('avatar-',''))||0} className="size-full rounded-full" />}<span aria-hidden="true" className={`pointer-events-none absolute inset-0 z-[11] rounded-full transition-opacity duration-[120ms] ease-in-out ${timerVisible ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: `conic-gradient(from 0deg, transparent 0deg ${turnAngle}deg, #187b1299 ${turnAngle}deg 360deg)` }} />
+        {!machineAvatar && <AvatarFrameOverlay src={getAvatarFrame(Number(displayProfile?.avatarFrameCode.replace('frame-',''))||0).image} dimmed={false} />}
+        <svg aria-hidden="true" viewBox="0 0 100 100" className={`pointer-events-none absolute top-1/2 left-1/2 z-[12] size-[107%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full transition-opacity duration-[120ms] ease-in-out ${timerVisible ? 'opacity-100' : 'opacity-0'}`}>
           <path d={remainingArcPath(47, turnAngle)} fill="none" stroke="#48e600" strokeWidth="5.5" strokeLinecap="butt" />
           <path d={remainingArcPath(46.8, turnAngle)} fill="none" stroke="#d6d45a" strokeWidth="1.1" strokeLinecap="butt" />
-        </svg><AvatarRankBadge elo={elo} computer={!!machineAvatar} />
+        </svg><AvatarRankBadge elo={rankElo} computer={!!machineAvatar} />
 
       </button>
       <span ref={likeBubbleLayerRef} aria-hidden="true" className="pointer-events-none absolute inset-0 z-8 overflow-visible" />
       {!machineAvatar && ready && <img src={readyRibbon} alt="Sẵn sàng" className="pointer-events-none absolute top-1/2 left-1/2 z-[110] m-0 block h-auto w-[158px] -translate-x-1/2 -translate-y-1/2 border-0 p-0 drop-shadow-[0_2px_3px_#17200899] compact:w-[72px] short-desktop:w-[106px]" />}
       {!machineAvatar && outcome && <ResultFace outcome={outcome} />}
     </div>
-    <div data-player-identity style={mobileHeader ? { translate: 'none' } : undefined} className={`mt-[78px] w-full min-w-0 -translate-y-[28px] compact:mt-0 compact:translate-y-0 short-desktop:mt-[54px] ${mobileEdge === 'top' ? 'compact:col-start-2 compact:row-start-1 compact:self-center' : mobileEdge === 'bottom' ? 'compact:col-start-1 compact:row-start-1 compact:self-center' : ''}`}>
-      <h2 className={`relative mx-auto my-0 w-fit leading-none ${mobileHeader ? 'compact:mx-auto' : mobileEdge === 'top' ? 'compact:ml-[-3px] compact:mr-auto' : mobileEdge === 'bottom' ? 'compact:ml-auto compact:mr-[-3px]' : ''}`}><PlayerNameplate name={name} fullName={mobileHeader} className={`[--nameplate-width:170px] ${mobileHeader ? 'compact:[--nameplate-width:clamp(84px,26vw,108px)] compact:text-[length:calc(clamp(84px,26vw,108px)*28/180)]' : mobileEdge ? 'compact:[--nameplate-width:128px] compact:[&_.font-number]:text-[0.9em]' : 'compact:[--nameplate-width:120px]'}`} /></h2>
-      <p data-player-elo hidden={!mobileHeader && (started || !!machineAvatar)} className={`[&[hidden]]:hidden! relative mx-auto mt-2 mb-[9px] flex h-[37px] w-fit items-center justify-center gap-2 bg-[length:100%_100%] bg-center bg-no-repeat px-[14px] font-georgia leading-none text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008] compact:mx-0 compact:mt-1 compact:mb-0.5 compact:h-[28px] compact:gap-[3px] compact:px-[10px] ${mobileHeader ? 'compact:mx-auto' : ''}`} style={{ backgroundImage: `url(${eloFrame})`, ...(mobileHeader ? { height: 24, width: 60, paddingInline: 8 } : {}) }}>
+    <div data-player-identity style={mobileHeader ? { translate: 'none' } : undefined} className={`mt-[78px] w-full min-w-0 -translate-y-[28px] compact:mt-0 compact:translate-y-0 short-desktop:mt-[54px] ${mobileHeader ? 'compact:flex compact:flex-col compact:items-center' : ''} ${mobileEdge === 'top' ? 'compact:col-start-2 compact:row-start-1 compact:self-center' : mobileEdge === 'bottom' ? 'compact:col-start-1 compact:row-start-1 compact:self-center' : ''}`}>
+      <h2 className="relative my-0 flex w-full min-w-0 items-center justify-center leading-none"><PlayerNameplate name={name} fitContent fullName={mobileHeader} className={`[--nameplate-width:170px] ${mobileHeader ? 'compact:[--nameplate-width:clamp(79px,24.5vw,102px)] compact:text-[length:calc(clamp(79px,24.5vw,102px)*28/180)]' : mobileEdge ? 'compact:[--nameplate-width:128px] compact:[&_.font-number]:text-[0.9em]' : 'compact:[--nameplate-width:120px]'}`} /></h2>
+      <p data-player-elo hidden={!!machineAvatar && !mobileHeader} className={`[&[hidden]]:hidden! relative mx-auto mt-2 mb-[9px] flex h-[37px] w-fit items-center justify-center gap-2 bg-[length:100%_100%] bg-center bg-no-repeat px-[14px] font-georgia leading-none text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008] compact:mx-auto compact:mt-1 compact:mb-0.5 compact:h-[28px] compact:gap-[3px] compact:px-[10px] ${mobileHeader ? 'compact:!mx-auto' : ''}`} style={{ backgroundImage: `url(${eloFrame})`, ...(mobileHeader ? { height: 24, width: 60, paddingInline: 8 } : {}) }}>
         <span role="img" aria-label={variant === 'jieqi' ? 'ELO · Cờ Úp' : 'ELO · Cờ Tướng'} style={mobileHeader ? { width: 15, height: 15 } : undefined} className="grid size-[20px] shrink-0 place-items-center compact:size-[18px]"><CrispUiImage src={variant === 'jieqi' ? concealedPiece : redGeneral} alt="" className="block size-full object-contain" /></span><strong style={mobileHeader ? { fontSize: 13, width: '4ch', flexShrink: 0 } : undefined} className="grid h-[20px] place-items-center font-number text-[18px] font-normal leading-none text-[#ffe5a3] lining-nums tabular-nums compact:h-[18px] compact:text-[15px]">{elo}</strong>
       </p>
-      {recordedClock && <output aria-label={`Thời gian đã lưu quân ${side === 'red' ? 'đỏ' : 'đen'}`} className="mx-auto mt-1 flex h-[26px] w-[70px] items-center justify-center rounded border border-[#b99a61] bg-[#392719] px-1 font-number text-[14px] leading-none tabular-nums text-[#e8c479]">{formatClock(remaining)}</output>}
+      {!machineAvatar && showClock && <div className={`[&[hidden]]:hidden! relative visible mt-2 mb-0 hidden w-fit min-w-[70px] items-center justify-center rounded-[3px] border px-2 py-0.5 transition-[background-color,border-color,box-shadow] duration-[250ms] ease-in-out desktop:flex compact:translate-y-0 mx-auto self-center compact:col-span-full compact:mx-auto compact:mt-1.5 compact:justify-self-center compact:px-[5px] compact:text-center ${mobileEdge === 'bottom' ? 'compact:row-start-1 compact:mb-1.5 compact:mt-0 compact:hidden' : ''} ${active ? 'border-[#e8c479] bg-[#244b40] shadow-[0_0_0_1px_#e8c47933]' : 'border-[#c5ad6b] bg-[#503a23]'}`}>
+        <output className="block font-number text-lg/[1.1] text-[#e8b923] tabular-nums" id={`clock-${side}`} aria-label={`Thời gian quân ${side === 'red' ? 'đỏ' : 'đen'}`}>{formatClock(remaining)}</output>
+        <IncrementBadge seconds={incrementSeconds} className="absolute left-[calc(100%+8px)] top-1/2 -translate-y-1/2 compact:hidden" />
+      </div>}
+      {recordedClock && <div className="relative mx-auto w-fit"><output aria-label={`Thời gian đã lưu quân ${side === 'red' ? 'đỏ' : 'đen'}`} className="mx-auto mt-1 flex h-[26px] w-[70px] items-center justify-center rounded border border-[#b99a61] bg-[#392719] px-1 font-number text-[14px] leading-none tabular-nums text-[#e8c479]">{formatClock(remaining)}</output><IncrementBadge seconds={incrementSeconds} className="absolute left-[calc(100%+7px)] top-1/2 -translate-y-1/2 compact:hidden" /></div>}
       <div data-mobile-like={mobileHeader ? likePosition : undefined} className={`hidden compact:flex compact:items-center compact:gap-2 ${mobileHeader ? (likePosition === 'left' ? 'compact:fixed compact:top-[28px] compact:left-[calc(50%_-_103px)] compact:z-[250]' : 'compact:fixed compact:top-[28px] compact:left-[calc(50%_+_76px)] compact:z-[250]') : mobileEdge === 'bottom' ? 'compact:flex-row-reverse' : ''}`}>
-        <div data-testid={`mobile-clock-${side}`} hidden={mobileHeader || !started || !showClock || !!machineAvatar} className={`[&[hidden]]:hidden! relative mx-auto mt-2 mb-[9px] hidden h-[37px] w-fit min-w-[70px] items-center justify-center rounded-[3px] border border-[#c5ad6b] px-[14px] py-0 font-number text-lg/[1.1] tabular-nums text-[#e8b923] compact:mx-0 compact:mt-1 compact:mb-0.5 compact:flex compact:h-[28px] compact:min-w-0 compact:px-[10px] compact:text-[15px] desktop:hidden ${active ? 'border-[#e8c479] bg-[#244b40] shadow-[0_0_0_1px_#e8c47933]' : 'bg-[#503a23]'}`} aria-hidden="true"><span>{formatClock(remaining)}</span></div>
+        <div data-testid={`mobile-clock-${side}`} hidden={mobileHeader || !started || !showClock || !!machineAvatar} className={`[&[hidden]]:hidden! relative mx-auto mt-2 mb-[9px] hidden h-[37px] w-fit min-w-[70px] items-center justify-center rounded-[3px] border border-[#c5ad6b] px-[14px] py-0 font-number text-lg/[1.1] tabular-nums text-[#e8b923] compact:mx-0 compact:mt-1 compact:mb-0.5 compact:flex compact:h-[28px] compact:min-w-0 compact:px-[10px] compact:text-[15px] desktop:hidden transition-[background-color,border-color,box-shadow] duration-[250ms] ease-in-out ${active ? 'border-[#e8c479] bg-[#244b40] shadow-[0_0_0_1px_#e8c47933]' : 'bg-[#503a23]'}`} aria-hidden="true"><span>{formatClock(remaining)}</span></div>
         {likeVisible && !machineAvatar && <PlayerLikeButton name={name} position={likePosition} matchId={likeMatchId} actorId={likeActorId} targetSide={side} avatarBubbleLayerRef={likeBubbleLayerRef} />}
       </div>
     </div>
-    {!machineAvatar && showClock && <div className={`[&[hidden]]:hidden! visible mt-[5px] hidden w-fit min-w-[70px] items-center justify-center rounded-[3px] border px-2 py-0.5 transition-[background-color,border-color,box-shadow] duration-100 desktop:flex compact:translate-y-0 compact:col-span-full compact:mt-1.5 compact:justify-self-center compact:px-[5px] compact:text-center ${mobileEdge === 'bottom' ? 'compact:row-start-1 compact:mb-1.5 compact:mt-0 compact:hidden' : ''} ${active ? 'border-[#e8c479] bg-[#244b40] shadow-[0_0_0_1px_#e8c47933]' : 'border-[#c5ad6b] bg-[#503a23]'}`}>
-      <output className="block font-number text-lg/[1.1] text-[#e8b923] tabular-nums" id={`clock-${side}`} aria-label={`Thời gian quân ${side === 'red' ? 'đỏ' : 'đen'}`}>{formatClock(remaining)}</output>
-    </div>}
     {mobileHeader ? <div className="pointer-events-auto fixed bottom-[76px] left-1/2 z-[260] max-h-[160px] max-w-[95vw] -translate-x-1/2 overflow-y-auto">{children}</div> : children}
   </section>
 }

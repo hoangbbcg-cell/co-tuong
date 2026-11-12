@@ -1,5 +1,15 @@
 # Vị trí tùy chỉnh
 
+- 2026-11-08: Quy tắc Back theo người: chỉ chủ phòng giữ luồng Back về bàn trial/thế cờ (useLobby.join.onSuccess chỉ gọi `enterCustomRoom` khi `room.customFen && room.ownerId === socket.id`); người vào phòng custom qua mã phòng (byCode) hoặc mời So tài đi `enterOnline` như phòng thường → Back về Home.
+
+- 2026-11-08: Ván trong phòng thế cờ riêng trừ năng lượng như online, không cộng/trừ Elo và không thưởng vàng (rated=0, gold_reward_eligible=0 lúc start). Phòng thường không đổi.
+
+- 2026-11-08: Cập nhật luồng Back và Đổi bên cùng ngày: Back từ bàn đánh thử (positionTrial) giờ trả về màn xếp quân Vị trí tùy chỉnh (screen 'position') thay Chơi Với Máy; editor mount đọc customPositionSource (thế gốc chụp lúc bấm Đấu ngay trong usePositionEditor.start) để khôi phục đúng thế đã xếp ban đầu, KHÔNG phải thế cờ đang trên bàn đánh thử, rồi clear field. Nút Tạo bàn chụp customRoomReturnFen = positionFen(trial.game) ngay lúc bấm; Back từ phòng custom trả về đúng thế cờ lúc bấm Tạo bàn qua loadPosition trong leaveImmediately. Nút Đổi bên bàn cờ trong phòng custom là lệnh server custom-swap-sides: hai người dùng cùng bị lật, ai cầm màu dưới thì đi quân màu đó. Compact: hai nút Đổi bên/Đi trước dời xuống dưới bàn bên trái (row-start-3), footer nút vàng dời bottom-164→148px. Laptop: cụm Đổi bên/Đi trước nằm dưới người chơi bên trái và to hơn (nút đổi bên 44px, chữ 15px). Mọi bàn đấu điện thoại: Back, chat, Lưu, menu ba gạch và năng lượng hạ 8px (Cờ Tướng bottom 8px, Cờ Úp bottom 0).
+
+- 2026-11-08: Nút Tạo bàn trong bàn thử positionTrial (ReplayControls tạo bàn qua prop onCreateRoom, chỉ áp dụng khi positionTrial) mở dialog Tạo đời phòng online "Thế cờ riêng" từ thế cờ đang dựng: CreateRoomForm nhận sourceFen, ẩn tab variant, giữ đăng ký thời gian/bàn khóa/mật khẩu; submit roomApi.create với customFen=positionFen(trial.board, trial.currentTurn). Server tạo phòng có customFen/customFirstTurn, bắt đầu đúng thế nguồn không bốc thăm lại phe; phòng chỉ vào được qua mã phòng hoặc So tài (không hiện danh sách/Chơi nhanh). Nhập phòng custom qua join → snapshot có customFen → sessionStore.enterCustomRoom; Back trong phòng về đúng bàn đấu positionTrial (customRoomReturn), không về Home. Trong phòng, chủ phòng có hai nút Đổi bên bàn cờ (hiển thị per-client) và Chọn bên đi trước; ván bắt đầu thì disabled tới khi hết ván. Không ảnh hưởng máy/replay/đánh thế đã lưu (không có onCreateRoom cho replay-of-saved). Regression tests/custom-room-source.test.ts 5/5 PASS; typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-11-08: Trong ván đấu Vị trí tùy chỉnh, nút Lưu ván hoạt động và ván lưu tính từ lúc bấm Đấu ngay. GamePage chụp override RecordedMatch từ trial.revision/trial.step (states[0]=thế gốc lúc bắt đầu), startedAt chụp khi vào trial; useMatchSaving nhận override thay vì gameStore.history để lưu được cả khi bàn thử chưa kết thúc. Mỗi bước sinh id mới nên lưu lại được nhiều lần; ván máy thường/replay vẫn không lưu. Regression match-saving-ui4/4 PASS; chưa browser QA.
+
 - 2026-10-28: Theo user, khung ngoài LAPTOP giới hạn chiều ngang canvas trừ240px (lề120px mỗi bên), dùng max-width riêng để không bị CSS canvas ép width100% làm mất lề. Mobile giữ fullwidth; không đổi giới hạn số quân/luật xếp thế.
 
 - 2026-10-28: Theo user, nút Đấu ngay laptop tăng icon11→14cqw và chữ8→9cqw; padding/gap trong thu về7/3cqw để vừa nút. Chiều ngang/chiều cao và mobile giữ nguyên.
@@ -149,3 +159,11 @@ pm.cmd run build PASS, dist/assets/index-wzik3Hsg.js; no browser/audio QA.
 
 - 2026-10-29: Theo user, mọi nút Cài lại dùng tiếng đi quân. Hai nút Cài lại laptop/mobile của Vị trí tùy chỉnh gọi reset chung ở usePositionEditor, phát playPositionMoveActionSound một lần; dùng asset đi quân (2).wav đã preload, tuân thủ Tắt tiếng. Không đổi thao tác reset.
 - Kiểm chứng tiếng Cài lại: npm.cmd run build PASS (TypeScript/Vite); dist/assets/index-DoQC6Z7T.js cập nhật; chưa nghe thử browser.
+
+## 2026-11-10 — Tùy chọn Bỏ AI cho tài khoản được cấp quyền
+
+Theo xác nhận user, Bỏ AI là ẩn khung chọn bên máy/hai gạt/hai hình quân rồi thay bằng bộ tua phía dưới. Không phải ẩn danh hiệu hay đổi luật máy. Admin cấp quyền riêng; Cài đặt Home có Bỏ AI/iconAIgạchchéo dưới Bỏ logo. Tùy chọn chỉ áp dụng customPositionTrial (bàn đánh thử mở từ Vị trí tùy chỉnh/Đấu ngay), cả desktop/mobile; mobile đưa Navigation lên tools và bỏ bộ phía dưới, tránh trùng. ReplayControls vẫn giữ callback back/seek, số nước và các nút Tạo bàn/Reset/Đổi bên. Không đổi hook máy/tình trạng máy/shortcut/geometry avatar; Lịch sử và online không bị tùy chọn này thay bố cục.
+
+- 2026-11-11: Sửa Sẵn sàng sau khi kết thúc bàn Vị trí tùy chỉnh: Board gọi trial.reset thay match.start (useGame nhận replay nên start bỏ qua). Khôi phục đúng thế gốc bằng state trial riêng, không ghi gameStore/socket hoặc sửa UI/luật. Regression chiếu bí→reset, máy thường 3 engine qua 3 ván liên tiếp và replay isolation: 4 suite 22/22 PASS; TypeScript PASS. Chưa browser QA/build dist/VPS. Backup .checkpoints/computer-rematch-20261111.
+
+- 2026-11-11 đính chính theo user: Yêu cầu đấu máy là đổi bảng kết quả, không phải báo lỗi. Dùng artwork user gửi ĐỎ THẮNG/ĐEN THẮNG theo game.result.winner cho máy Cờ Tướng/Cờ Úp và positionTrial; không theo thắng/thua của người cầm quân. Online giữ victory/defeat cũ. Tái dùng vòng đời popup/đợi hiệu ứng và Xác nhận, vùng bấm phù hợp ảnh ngang; ảnh màu không có ô thưởng. 43/43 tests 4 suite + TypeScript/diff-check PASS. Đã xem ảnh đỏ sau cắt; chưa browser QA/build dist/deploy. Backup .checkpoints/computer-color-result-20261111.

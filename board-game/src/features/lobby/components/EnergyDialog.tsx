@@ -1,17 +1,17 @@
-import { rewardedAds } from '../../ads/rewardedAds'
 import { HovangLoadingOverlay } from '../../../components/HovangLoadingOverlay'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, RefObject } from 'react'
 import axios from 'axios'
 import panel from '../../../assets/energy-shop/panel-no-count.png'
 import close from '../../../assets/energy-shop/close.png'
 import { useProfileLayout } from '../hooks/useProfileLayout'
 import { buttonInteraction } from '../../../lib/uiClasses'
+import { oneChoiceNoticePanel, oneChoiceNoticeButton } from './OneChoiceNoticeStyles'
 import { ENERGY_PAYMENT_PRODUCTS } from '../../../lib/energyPaymentCatalog'
 import type { EnergyPaymentProductCode } from '../../../lib/energyPaymentCatalog'
 
 const offers = [
-  {label:'Xem video nhận năng lượng',left:'6.6%',title:'Xem video',description:'Nhận ngay 1 Năng lượng.',action:'XEM',iconX:170,iconHeight:268,surface:'bg-[linear-gradient(135deg,#613512,#281307)]'},
+  {label:'Xem quảng cáo',left:'6.6%',title:'Xem quảng cáo',description:'Quảng cáo chưa được tích hợp.',action:'XEM',iconX:170,iconHeight:268,surface:'bg-[linear-gradient(135deg,#613512,#281307)]'},
   {label:'Mua gói 100 năng lượng',left:'37.8%',title:'Gói 100 năng lượng',description:'Mua gói để nhận 100 Năng lượng. Dùng thoải mái cho các ván đấu.',action:'19.000đ',iconX:700,iconHeight:268,surface:'bg-[linear-gradient(135deg,#123c5b,#071c2d)]'},
   {label:'Mua năng lượng vô hạn',left:'68.8%',title:'Năng lượng vô hạn',description:'Chơi không giới hạn Năng lượng trong 30 ngày.',action:'39.000đ',iconX:1220,iconHeight:257,surface:'bg-[linear-gradient(135deg,#174827,#061f11)]'},
 ] as const
@@ -227,15 +227,55 @@ function PayosCheckoutPanel({
     </div>
   )
 }
-export function EnergyDialog({dialogRef,onUnavailable}:{dialogRef:RefObject<HTMLDialogElement|null>;onUnavailable:()=>void}) {
+function AdNotIntegratedNotice({onClose}: {onClose: () => void}) {
+  const noticeRef = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    const dialog = noticeRef.current
+    if (dialog && !dialog.open) dialog.showModal()
+    return () => {
+      if (dialog?.open) dialog.close()
+    }
+  }, [])
+
+  return (
+    <dialog
+      ref={noticeRef}
+      aria-label="Thông báo quảng cáo"
+      className="m-auto max-w-none border-0 bg-transparent p-0 backdrop:bg-black/60"
+      onCancel={event => {
+        event.preventDefault()
+        onClose()
+      }}
+    >
+      <section
+        role="alertdialog"
+        aria-modal="true"
+        aria-label="Thông báo"
+        className={oneChoiceNoticePanel}
+      >
+        <p role="status">Quảng cáo chưa được tích hợp</p>
+        <button
+          type="button"
+          autoFocus
+          className={oneChoiceNoticeButton}
+          onClick={onClose}
+        >
+          Đóng
+        </button>
+      </section>
+    </dialog>
+  )
+}
+export function EnergyDialog({dialogRef}:{dialogRef:RefObject<HTMLDialogElement|null>;onUnavailable:()=>void}) {
   const layout = useProfileLayout()
   const [selectedPayment, setSelectedPayment] = useState<EnergyPaymentProductCode | null>(null)
+  const [showAdNotice, setShowAdNotice] = useState(false)
 
   const chooseOffer = async (index: number) => {
     dialogRef.current?.close()
     if (index === 0) {
-      const result = await rewardedAds.show()
-      if (result.status === 'unavailable' || result.status === 'error') onUnavailable()
+      setShowAdNotice(true)
       return
     }
     setSelectedPayment(index === 1 ? 'energy_100' : 'energy_unlimited_30d')
@@ -263,6 +303,7 @@ export function EnergyDialog({dialogRef,onUnavailable}:{dialogRef:RefObject<HTML
       </div>
     </div>
   </dialog>
+    {showAdNotice && <AdNotIntegratedNotice onClose={() => setShowAdNotice(false)} />}
     {selectedPayment && (
       <PayosCheckoutPanel
         productCode={selectedPayment}

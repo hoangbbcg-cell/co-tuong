@@ -22,6 +22,7 @@ import type { useHomeMusic } from '../../features/lobby/hooks/useHomeMusic'
 import { useSessionStore } from '../../store/sessionStore'
 import { getAvatarFrame } from '../../lib/avatarFrames'
 import { CrispUiImage } from '../../lib/CrispUiImage'
+import { sharedRankEloFromStats } from '../../lib/rankProgression'
 import { buttonInteraction, homeUtilityButton } from '../../lib/uiClasses'
 import { NumberText } from '../../lib/NumberText'
 
@@ -30,6 +31,8 @@ const dockButton = `${homeUtilityButton} mx-auto h-[12.5cqw]! w-[12.5cqw]! max-h
 
 export function MobileHome({ unreadMessageCount = 0, home, music, onEnergy, onMessages }: Props) {
   const [page, setPage] = useState(0)
+  // In-app WebViews may report oversized bottom safe-area insets.
+  const inAppWebViewBottomFix = typeof navigator !== 'undefined' && /Zalo|FBAN|FBAV|FB_IAB|Instagram|TikTok|;\s*wv\b/i.test(navigator.userAgent)
   const [energyHovered, setEnergyHovered] = useState(false)
   const avatarIndex = useSessionStore(state => state.avatarIndex)
   const frameIndex = useSessionStore(state => state.avatarFrameIndex)
@@ -48,10 +51,10 @@ export function MobileHome({ unreadMessageCount = 0, home, music, onEnergy, onMe
           <AvatarPortrait avatarIndex={avatarIndex} className="block size-full rounded-full" />
           <AvatarFrameOverlay src={getAvatarFrame(frameIndex).image} />
         </button>
-        <AvatarRankBadge elo={elo} previewStars={account ? undefined : 3} />
+        <AvatarRankBadge elo={account ? sharedRankEloFromStats(account.stats) : elo} previewStars={account ? undefined : 3} />
       </div>
       <div className="absolute top-[4cqw] left-[19cqw] border-0 bg-transparent p-0">
-        <PlayerNameplate name={home.name} className="[--nameplate-width:37cqw] h-[27px]! bg-[length:100%_100%]! px-[17px]! text-[17px]!" />
+        <PlayerNameplate name={home.name} fixedWidth className="[--nameplate-width:37cqw] h-[27px]! bg-[length:100%_100%]! px-[17px]! text-[17px]!" />
       </div>
       <div aria-label="Elo người chơi" className="absolute top-[12cqw] left-[19cqw] grid w-[37cqw] grid-cols-2 gap-[1cqw]">
         {[{ label: 'Cờ Tướng', icon: redGeneral, value: elo }, { label: 'Cờ Úp', icon: concealedPiece, value: account?.stats.find(stat => stat.variant === 'jieqi')?.elo ?? 1000 }].map(item => <div key={item.label} aria-label={`Elo ${item.label}: ${item.value}`} className="relative flex h-[6cqw] min-w-0 items-center justify-center bg-[length:100%_100%] bg-center bg-no-repeat pl-[4.5cqw] pr-[1.2cqw] text-[#ffe7ae] [text-shadow:0_1px_2px_#2a1008]" style={{ backgroundImage: `url(${eloFrame})` }}>
@@ -90,7 +93,7 @@ export function MobileHome({ unreadMessageCount = 0, home, music, onEnergy, onMe
         <svg viewBox="0 0 16 24" className="h-[6cqw] w-[4cqw]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={direction < 0 ? 'm11 3-7 9 7 9' : 'm5 3 7 9-7 9'} /></svg>
       </button>)}
     </div>
-    <nav aria-label="Tiện ích điện thoại" className="absolute inset-x-[2%] bottom-[1%] z-40 grid grid-cols-6 gap-1 rounded-[3cqw] border-t border-[#b0833f] bg-[#1c120cdd] px-[1cqw] pt-[2cqw] pb-[max(2cqw,env(safe-area-inset-bottom))]">
+    <nav aria-label="Tiện ích điện thoại" style={inAppWebViewBottomFix ? { paddingBottom: '2cqw' } : undefined} className="absolute inset-x-[2%] bottom-[1%] z-40 grid grid-cols-6 gap-1 rounded-[3cqw] border-t border-[#b0833f] bg-[#1c120cdd] px-[1cqw] pt-[2cqw] pb-[max(2cqw,env(safe-area-inset-bottom))]">
       {([{ label: 'Xếp hạng', icon: 'trophy', run: home.openRanking }, { label: 'Lịch sử', icon: 'history', run: home.openHistory }, { label: 'Bạn bè', icon: 'friends', run: home.openFriends }, { label: 'Chat', icon: 'messages', run: onMessages }, { label: 'Cửa hàng', icon: 'shop', run: home.openShop }] as const).map(item => <div key={item.label} className="min-w-0 text-center">
         <button type="button" data-ui-selection-sound aria-label={item.icon === 'friends' && pendingFriendRequests > 0 ? `${item.label}, ${pendingFriendRequests} lời mời kết bạn` : item.icon === 'messages' && unreadMessageCount > 0 ? `${item.label}, ${unreadMessageCount} tin nhắn chưa đọc` : item.label} onClick={item.run} className={`${dockButton} relative`}><HomeIcon name={item.icon} />{((item.icon === 'friends' && pendingFriendRequests > 0) || (item.icon === 'messages' && unreadMessageCount > 0)) && <span aria-hidden="true" className="pointer-events-none absolute -top-[calc(2.2cqw+2px)] -right-[1.5cqw] grid size-[6cqw] min-h-5 min-w-5 place-items-center rounded-full border-2 border-[#ffe2a1] bg-[#d82323] font-number text-[3.5cqw] font-semibold leading-none text-white shadow-[0_1px_4px_#321407]">{(item.icon === 'messages' ? unreadMessageCount : pendingFriendRequests) > 99 ? '99+' : (item.icon === 'messages' ? unreadMessageCount : pendingFriendRequests)}</span>}</button>
         <span className="mt-[1cqw] block whitespace-nowrap font-heading text-[3.6cqw] leading-normal">{item.label}</span>

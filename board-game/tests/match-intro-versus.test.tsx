@@ -28,7 +28,7 @@ it.each(['xiangqi', 'jieqi'] as const)('orders players by the actual %s Elo and 
   expect(top.querySelector('[style*=background-image]')).toBeTruthy()
 })
 
-it('slides opposite ways, slows in the middle, fades over 50px and cleans up after the full introduction', () => {
+it('slides opposite ways, eases through the middle, fades at the configured keyframe and cleans up after the introduction', () => {
   vi.useFakeTimers()
   vi.stubGlobal('matchMedia', () => ({ matches: false }))
   const cancel = vi.fn()
@@ -46,9 +46,13 @@ it('slides opposite ways, slows in the middle, fades over 50px and cleans up aft
   const bottom = animate.mock.calls[1][0] as Keyframe[]
   expect(top[0].transform).toMatch(/translateX\(-/)
   expect(bottom[0].transform).not.toMatch(/translateX\(-/)
-  expect(top[2]).toMatchObject({ transform: 'translateX(16px)', opacity: 1 })
-  expect((Number(top[2].offset) - Number(top[1].offset)) * MATCH_INTRO_MS).toBe(1000)
-  expect(top[3]).toMatchObject({ transform: 'translateX(66px)', opacity: 0 })
+  expect(top[1].offset).toBe(0.2)
+  expect(top[2].offset).toBe(0.62)
+  expect(top[2].transform).toContain('translateX(')
+  expect(top[2].opacity).toBe(1)
+  expect((Number(top[2].offset) - Number(top[1].offset)) * MATCH_INTRO_MS).toBe(840)
+  expect(top[3].offset).toBe(0.8)
+  expect(top[3].opacity).toBe(0)
   const emblem = animate.mock.calls[2][0] as Keyframe[]
   expect(emblem[0].transform).toContain('translateZ(360px)')
   const sword = animate.mock.calls[3][0] as Keyframe[]

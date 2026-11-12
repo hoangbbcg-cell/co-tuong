@@ -8,11 +8,12 @@ import { ADMIN_AVATARS, ADMIN_FRAMES, DEFAULT_AVATARS } from '../../src/types/ad
 import { ShopService } from '../services/shopService'
 import { SHOP_PRODUCTS } from '../../src/lib/shopCatalog'
 import { TestBotService } from '../services/testBotService'
+import { ActivityService, successfulApiFeature } from '../services/activityService'
 
 export function cookieValue(header:string|undefined,name:string):string|undefined {
   return header?.split(';').map(s=>s.trim()).find(s=>s.startsWith(`${name}=`))?.slice(name.length+1)
 }
-export function accountRouter(account:AccountService,persistence=new PersistenceService(),online:()=>Set<string>=()=>new Set()) {
+export function accountRouter(account:AccountService,persistence=new PersistenceService(),online:()=>Set<string>=()=>new Set(),activity=new ActivityService()) {
   const router=Router()
   router.use((_req,res,next)=>{
     res.setHeader('Cache-Control','private, no-store')
@@ -48,6 +49,7 @@ export function accountRouter(account:AccountService,persistence=new Persistence
     res.clearCookie('ct_google_nonce',{path:'/api/account/google'})
     if(!challenge||challenge.expires<Date.now()||challenge.sessionHash!==hashCredential(cookieValue(req.headers.cookie,'ct_guest_session')??''))throw new AccountError('Phiên đăng nhập Google hết hạn. Vui lòng thử lại.',401)
     const {profile,session}=await account.google(req.body?.credential,nonce,cookieValue(req.headers.cookie,'ct_guest_session'),challenge.actor)
+    if(profile)activity.login(profile.id,'google')
     res.cookie('ct_guest_session',session,{httpOnly:true,sameSite:'strict',secure:req.secure||process.env.NODE_ENV==='production',maxAge:30*24*60*60*1000,path:'/'})
     // The repository revokes the linked user's device hash. Preserve the browser's
     // device cookie: it may belong to a different, signed-out Guest whose data must survive.
@@ -57,6 +59,7 @@ export function accountRouter(account:AccountService,persistence=new Persistence
   router.post(['/guest','/guest/restore'],async(req,res)=>{
     const {profile,device,session}=await account.guest(cookieValue(req.headers.cookie,'ct_guest_device'),req.path!=='/guest/restore')
     if(profile)await persistence.content.activity(profile.id)
+    if(profile)activity.login(profile.id,req.path==='/guest/restore'?'guest_restore':'guest')
     const options={httpOnly:true,sameSite:'strict' as const,secure:req.secure||process.env.NODE_ENV==='production',maxAge:365*24*60*60*1000}
     res.cookie('ct_guest_device',device,{...options,path:'/api/account/guest'})
     res.cookie('ct_guest_session',session,{...options,path:'/'})
@@ -66,10 +69,27 @@ export function accountRouter(account:AccountService,persistence=new Persistence
     const id=await account.authenticate(cookieValue(req.headers.cookie,'ct_guest_session'))
     if(!id)throw new AccountError('Bạn cần đăng nhập.',401)
     res.locals.userId=id
-    if(req.method!=='GET')await persistence.content.activity(id)
+    if(req.method!=='GET'&&req.path!=='/activity')await persistence.content.activity(id)
+    res.once('finish',()=>{
+      if(res.statusCode<200||res.statusCode>=300)return
+      const code=successfulApiFeature(req.method,req.route?.path)
+      if(code)activity.feature(id,code)
+    })
     next()
   })
   router.get('/me',async(_req,res)=>res.json(await account.repository.profile(String(res.locals.userId))))
+  const activityLimits = new Map<string,{at:number;count:number}>()
+  router.post('/activity',async(req,res)=>{
+    const id=String(res.locals.userId),now=Date.now()
+    const events=activity.validate(req.body?.events)
+    const previous=activityLimits.get(id)
+    const limit=previous&&now-previous.at<60000?previous:{at:now,count:0}
+    if(limit.count+events.length>120)throw new AccountError('Hoạt động quá nhanh.',429)
+    limit.count+=events.length;activityLimits.set(id,limit)
+    if(activityLimits.size>10000)for(const [key,value]of activityLimits)if(now-value.at>=60000)activityLimits.delete(key)
+    await activity.repository.record(id,events)
+    res.sendStatus(204)
+  })
   const shop = new ShopService()
   const testBot = new TestBotService()
   router.post('/test-bot', (req,res)=>res.json(testBot.start(String(res.locals.userId),req.body?.variant)))
@@ -80,6 +100,10 @@ export function accountRouter(account:AccountService,persistence=new Persistence
   router.post('/shop/purchase', async(req,res)=>res.json(await shop.purchase(String(res.locals.userId),req.body)))
   router.post('/logout',async(req,res)=>{await account.repository.session(String(res.locals.userId),null);res.clearCookie('ct_guest_session',{path:'/'});res.json({ok:true})})
   router.patch('/name',async(req,res)=>{await account.rename(String(res.locals.userId),req.body?.name);res.json({ok:true})})
+  router.post('/free-energy', async(_req,res)=>{
+    res.setHeader('Cache-Control','no-store')
+    res.json(await account.repository.claimFreeEnergy(String(res.locals.userId)))
+  })
   router.post('/demo-energy',async(req,res)=>{await account.repository.consumeDemoEnergy(String(res.locals.userId),uuid(req.body?.id));res.json({ok:true})})
   router.patch('/location',async(req,res)=>{await account.location(String(res.locals.userId),req.body??{});res.json({ok:true})})
   router.patch('/avatar',async(req,res)=>{

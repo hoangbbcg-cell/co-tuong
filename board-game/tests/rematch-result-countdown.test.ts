@@ -12,23 +12,23 @@ function setup(locked=false) {
   const ack=(id:string)=>service.command(id,{type:'result-presentation-complete',matchId:room.lastCompletedMatch!.id})
   return {service,room,ack,setTime:(time:number)=>{now=time;service.tick()}}
 }
-it.each([false,true])('counts down again after five seconds when the same pair remains; locked=%s',locked=>{
+it.each([false,true])('counts down from three seconds after match finish when the same pair remains; locked=%s',locked=>{
   const {service,room,ack,setTime}=setup(locked)
   ack('a');ack('b')
   setTime(6999);expect(room.game.phase).toBe('finished')
-  setTime(7000);expect(room.game.phase).toBe('finished');expect(room.readyCountdown).toBe(30)
+  setTime(7000);expect(room.game.phase).toBe('finished');expect(room.readyCountdown).toBe(28)
   expect(room.players.map(p=>p.id)).toEqual(['a','b'])
-  expect(readyCountdownForPlayer(room,'a')).toBe(30)
-  expect(readyCountdownForPlayer(room,'b')).toBe(30)
+  expect(readyCountdownForPlayer(room,'a')).toBe(28)
+  expect(readyCountdownForPlayer(room,'b')).toBe(28)
   expect(readyCountdownForPlayer(room,'viewer')).toBeNull()
-  setTime(8000);expect(room.readyCountdown).toBe(29)
+  setTime(8000);expect(room.readyCountdown).toBe(27)
   setTime(37000);expect(room.game.phase).toBe('playing')
   expect(service.roomFor('a')!.lastCompletedMatch).toBeUndefined()
 })
 it('waits for actual presentation completion instead of cutting off audio at five seconds',()=>{
   const {room,ack,setTime}=setup()
   ack('a');setTime(10000);expect(room.game.phase).toBe('finished')
-  expect(room.readyCountdown).toBe(27)
+  expect(room.readyCountdown).toBe(25)
   setTime(37000);expect(room.game.phase).toBe('finished');expect(room.readyCountdown).toBe(0)
   ack('b');setTime(37001);expect(room.game.phase).toBe('playing')
 })
@@ -37,11 +37,12 @@ it('does not restart after a participant leaves',()=>{
   ack('a');ack('b');service.leave('b');setTime(10000)
   expect(room.readyCountdown).toBeNull();expect(room.players).toHaveLength(1)
 })
-it('queue replacement keeps priority over rematching the same pair',()=>{
+it('late queue entry waits for the next completed match',()=>{
   const {service,room,ack,setTime}=setup()
   service.join(room.id,'c','Cho');service.command('c',{type:'join-queue'})
   ack('a');ack('b');setTime(7000)
-  expect(room.players.map(p=>p.id)).toEqual(['c','b'])
+  expect(room.players.map(p=>p.id)).toEqual(['a','b'])
+  expect(room.viewers?.find(v=>v.id==='c')?.queued).toBe(true)
 })
 
 it('keeps the countdown keyed to the durable match ID assigned by persistence',()=>{
@@ -54,7 +55,7 @@ it('keeps the countdown keyed to the durable match ID assigned by persistence',(
   now=2000;service.command('a',{type:'resign'})
   expect(room.lastCompletedMatch!.id).toBe('durable-match-id')
   now=7000;service.tick()
-  expect(room.readyCountdown).toBe(30)
+  expect(room.readyCountdown).toBe(28)
   service.command('a',{type:'result-presentation-complete',matchId:'durable-match-id'})
   service.command('b',{type:'result-presentation-complete',matchId:'durable-match-id'})
   now=37000;service.tick();expect(room.game.phase).toBe('playing')

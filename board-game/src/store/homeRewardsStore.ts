@@ -3,12 +3,11 @@ import { createClientId } from '../lib/clientId'
 import type { AccountProfile } from '../types/account'
 
 export type HomeReward = { id: string; kind: 'avatar' | 'frame' | 'honor' | 'gold' | 'elo'; code: string; amount?: string }
-type Seen = { cosmetics?: string[]; honors?: string[]; honorReceiptsInitialized?: boolean; rewardNoticeVersion?: number; gold?: string; stats?: AccountProfile['stats']; pending: HomeReward[] }
+type Seen = { acknowledgedItems?: string[]; cosmetics?: string[]; honors?: string[]; honorReceiptsInitialized?: boolean; rewardNoticeVersion?: number; gold?: string; stats?: AccountProfile['stats']; pending: HomeReward[] }
 const cache = new Map<string, Seen>()
 const storageKey = (id: string) => `cotuong-home-rewards-v1:${id}`
 function read(id: string): Seen {
-  if (cache.has(id)) return cache.get(id)!
-  let state: Seen = { pending: [], rewardNoticeVersion: 2 }
+  let state: Seen = cache.get(id) ?? { pending: [], rewardNoticeVersion: 2 }
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey(id)) || 'null') as Seen | null
     if (parsed && Array.isArray(parsed.pending)) {
@@ -37,16 +36,19 @@ export const useHomeRewards = create<{ revision: number }>(() => ({ revision: 0 
 /** Observe server-owned values; this never grants items, Elo or currency. */
 export function observeRewardProfile(profile: AccountProfile, inGame: boolean) {
   const state = read(profile.id)
-  const cosmetics = (profile.cosmetics || []).filter(c => c.kind === 'avatar' || c.kind === 'frame').map(c => `${c.kind}:${c.code}`)
-  if (state.cosmetics) {
-    for (const code of cosmetics.filter(code => !state.cosmetics!.includes(code))) {
-      const [kind, value] = code.split(':')
-      state.pending.push(item(kind as 'avatar' | 'frame', value))
+  // A partial profile is not an empty inventory. Wait for real ownership data.
+  if (Array.isArray(profile.cosmetics)) {
+    const cosmetics = profile.cosmetics.filter(c => c.kind === 'avatar' || c.kind === 'frame').map(c => `${c.kind}:${c.code}`)
+    if (state.cosmetics) {
+      for (const code of cosmetics.filter(code => !state.cosmetics!.includes(code) && !state.acknowledgedItems?.includes(code))) {
+        const [kind, value] = code.split(':')
+        state.pending.push(item(kind as 'avatar' | 'frame', value))
+      }
     }
+    state.cosmetics = [...new Set([...(state.cosmetics || []), ...cosmetics])]
   }
   // Balance changes alone do not prove a reward grant.
   void inGame
-  state.cosmetics = [...new Set([...(state.cosmetics || []), ...cosmetics])]
   state.gold = profile.gold
   state.stats = profile.stats
   persist(profile.id, state)
@@ -72,12 +74,12 @@ export function observeRewardHonors(id: string, codes: string[]) {
   const queued = new Set(state.pending.filter(reward => reward.kind === 'honor').map(reward => reward.code))
 
   for (const code of owned) {
-    if (!previous.has(code) && !queued.has(code)) {
+    if (!previous.has(code) && !queued.has(code) && !state.acknowledgedItems?.includes(`honor:${code}`)) {
       state.pending.push(item('honor', code))
     }
   }
 
-  state.honors = [...owned]
+  state.honors = [...new Set([...(state.honors ?? []), ...owned])]
   persist(id, state)
 }
 export const pendingHomeRewards = (id: string) =>
@@ -88,6 +90,7 @@ export const pendingHomeRewards = (id: string) =>
   )
 export function acknowledgeHomeRewards(id: string, ids: string[]) {
   const state = read(id)
+  state.acknowledgedItems = [...new Set([...(state.acknowledgedItems ?? []), ...state.pending.filter(reward => ids.includes(reward.id)).map(reward => `${reward.kind}:${reward.code}`)])]
   state.pending = state.pending.filter(reward => !ids.includes(reward.id))
   persist(id, state)
 }

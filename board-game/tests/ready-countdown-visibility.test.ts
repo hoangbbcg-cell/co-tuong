@@ -3,7 +3,7 @@ import { readyCountdownForPlayer } from '../src/lib/roomReadiness'
 import { RoomService } from '../server/services/roomService'
 import { RoomRepository } from '../server/repositories/roomRepository'
 
-it.each([false, true])('31s từ khi đủ 2 ghế, ẩn1s rồi hiện30s cho cả hai ghế, kể cả đã Ready; locked=%s', locked => {
+it.each([false, true])('đủ hai ghế: hiện30→1 cho cả hai, kể cả đã Ready; locked=%s', locked => {
   let now = 0
   const service = new RoomService(new RoomRepository(), () => now)
   const id = service.create('Bàn', 10, 60, undefined, locked ? '' : undefined).id
@@ -18,17 +18,20 @@ it.each([false, true])('31s từ khi đủ 2 ghế, ẩn1s rồi hiện30s cho c
   expect(readyCountdownForPlayer(room, 'b')).toBeNull()
   now = 1000; service.tick()
   expect(readyCountdownForPlayer(room, 'b')).toBe(30)
-  expect(readyCountdownForPlayer(room, 'a')).toBe(30)
+  now = 5999; service.tick()
+  expect(readyCountdownForPlayer(room, 'b')).toBe(26)
+  now = 6000; service.tick()
+  expect(readyCountdownForPlayer(room, 'b')).toBe(25)
+  expect(readyCountdownForPlayer(room, 'a')).toBe(25)
   expect(readyCountdownForPlayer(room, 'viewer')).toBeNull()
   expect(readyCountdownForPlayer(room)).toBeNull()
-  now = 10_000; service.command('a', { type: 'ready' })
-  expect(readyCountdownForPlayer(room, 'b')).toBe(21)
+  now = 11_000; service.command('a', { type: 'ready' })
+  expect(readyCountdownForPlayer(room, 'b')).toBe(20)
   now = 30_999; service.tick()
   expect(readyCountdownForPlayer(room, 'b')).toBe(1)
   expect(room.game.phase).toBe('ready')
-  // Khi countdown ket thuc, ca hai nguoi choi phai Ready de vao van.
+  // Người thứ hai Ready trước deadline thì ván bắt đầu ngay.
   service.command('b', { type: 'ready' })
-  now = 31_000; service.tick()
   expect(room.game.phase).toBe('playing')
   expect(room.players.map(p => p.id)).toEqual(['a', 'b'])
   expect(readyCountdownForPlayer(room, 'b')).toBeNull()

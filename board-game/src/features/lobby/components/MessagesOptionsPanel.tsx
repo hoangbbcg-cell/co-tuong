@@ -28,6 +28,7 @@ import { CrispUiImage } from '../../../lib/CrispUiImage'
 import { buttonInteraction, messageScrollbarClass } from '../../../lib/uiClasses'
 import { AvatarPortrait } from './AvatarCustomization'
 import { AvatarRankBadge } from '../../game/components/AvatarRankBadge'
+import { sharedRankEloFromStats } from '../../../lib/rankProgression'
 import { AvatarFrameOverlay } from '../../game/components/AvatarFrameOverlay'
 import { MessagesGroupAvatar } from './MessagesGroupAvatar'
 import { getAvatarFrame } from '../../../lib/avatarFrames'
@@ -95,7 +96,8 @@ export function MessagesOptionsPanel({ width, height, uiScale, image, name, acco
   const profileName = accountName ?? name
   const ownProfile = profileName === ownName
   const profile = useDatabaseProfile(isGroup ? '' : profileName, ownProfile)
-  const elo = profile?.stats.find(stat => stat.variant === 'xiangqi')?.elo ?? (ownProfile ? ownElo : 1000)
+  // The chat badge tier is shared across variants and follows the higher Elo; own chats without the DB profile keep the live session Elo.
+  const elo = profile ? sharedRankEloFromStats(profile.stats) : (ownProfile ? ownElo : 1000)
   const [editingGroupName,setEditingGroupName]=useState(false)
   const [groupNamePending,setGroupNamePending]=useState(false)
   const [editingNickname, setEditingNickname] = useState(false)

@@ -4,6 +4,7 @@ import { createGame } from '../src/game/state/initial'
 import { applyMove, finishGame, startGame } from '../src/game/moves/actions'
 import { toUci } from '../src/game/moves/uci'
 import { positionFen } from '../src/game/state/customPosition'
+import { isMoveLegal } from '../src/game/rules'
 import { fairyLevel } from '../server/services/fairyStockfishLevels'
 
 describe('Fairy-Stockfish adapter', () => {
@@ -21,13 +22,9 @@ describe('Fairy-Stockfish adapter', () => {
       await expect(service.move({ moves: [], remainingMs: 600000, level: 1 }, abort.signal)).rejects.toThrow('hủy')
     } finally { random.mockRestore(); service.close() }
   })
-  it('reduces mistakes through levels 1–6 and removes all handicaps at 7–10', () => {
-    for (let level = 1; level < 6; level++) {
-      expect(fairyLevel(level).randomMoveChance).toBeGreaterThan(fairyLevel(level + 1).randomMoveChance)
-      expect(fairyLevel(level).skill).toBeLessThan(fairyLevel(level + 1).skill)
-      expect(fairyLevel(level).depth).toBeLessThan(fairyLevel(level + 1).depth!)
-    }
-    for (let level = 7; level <= 10; level++) expect(fairyLevel(level)).toEqual({ depth: null, skill: 20, randomMoveChance: 0 })
+  it('reserves native Fairy profiles for levels 7–10', () => {
+    for (let level=1;level<=6;level++) expect(()=>fairyLevel(level)).toThrow('7–10')
+    for (let level=7;level<=10;level++) expect(fairyLevel(level)).toEqual({depth:null,skill:20,randomMoveChance:0})
   })
   it('converts game ranks 0–9 to Fairy ranks 1–10 and back', () => {
     expect(gameMoveToFairy('a0a1')).toBe('a1a2')
@@ -40,6 +37,15 @@ describe('Fairy-Stockfish adapter', () => {
     const service = new FairyStockfishService()
     try {
       await service.ready()
+      for (const level of [1, 6, 7, 10]) {
+        const position = startGame(createGame(0), 0)
+        const move = await service.move({ moves: [], remainingMs: 600_000, level })
+        expect(isMoveLegal(move.from.row, move.from.col, move.to.row, move.to.col, position.board)).toBe(true)
+      }
+      const abortController = new AbortController()
+      const abortedMove = service.move({ moves: [], remainingMs: 600_000, level: 10 }, abortController.signal)
+      setTimeout(() => abortController.abort(), 50)
+      await expect(abortedMove).rejects.toMatchObject({ status: 499 })
       let game = startGame(createGame(0), 0)
       let moves: string[] = []
       for (let ply = 0; ply < 240 && game.phase === 'playing'; ply++) {

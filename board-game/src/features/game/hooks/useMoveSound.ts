@@ -87,11 +87,17 @@ export function useMoveSound(move: Move | null, board: Board, moveCount: number,
       return
     }
     if (phase === 'playing' && before.phase !== 'playing') {
+      // Automatic rematches can go directly from finished to playing.
+      // No ready snapshot is guaranteed to reset the previous intro flags.
+      if (preserveResultOnReady && before.phase === 'finished') {
+        introRequested.current = false
+        introHandledForGame.current = false
+      }
       checkmatePlayedFor.current = null
       setCompletedMate(null)
     }
     if (before.phase !== 'playing' && phase === 'playing') playMatchIntro()
-    const isTakeback = moveCount < before.moveCount
+    const isTakeback = phase === 'playing' && before.phase === 'playing' && moveCount < before.moveCount
     if (isTakeback) {
       stopMatchIntro()
       soundsRef.current?.stopAll()

@@ -4,14 +4,15 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { PlayerCard } from '../src/features/game/components/PlayerCard'
 import { getAvatarFrame } from '../src/lib/avatarFrames'
 
-vi.mock('../src/features/lobby/hooks/useDatabaseProfile',()=>({useDatabaseProfile:()=>({displayName:'Người thật',avatarCode:'avatar-3',avatarFrameCode:'frame-2',stats:[{variant:'xiangqi',elo:1500}]})}))
+vi.mock('../src/features/lobby/hooks/useDatabaseProfile',()=>({useDatabaseProfile:(name:string)=>name?({displayName:'Người thật',avatarCode:'avatar-3',avatarFrameCode:'frame-2',stats:[{variant:'xiangqi',elo:1500}]}):null}))
 vi.mock('../src/features/lobby/components/AvatarCustomization',()=>({AvatarPortrait:({avatarIndex}:{avatarIndex:number})=><span data-testid="portrait" data-avatar={avatarIndex} />}))
 afterEach(cleanup)
 const props={side:'black' as const,name:'Tên cũ',started:false,active:false,remaining:600000,turnElapsed:0,likeMatchId:'',likeActorId:''}
-it('renders no identity at all for an empty seat',()=>{
+it('keeps the empty seat identity anchor so its clock remains in the same position',()=>{
   const view=render(<PlayerCard {...props} empty />)
-  expect(view.container.querySelector('[data-player-identity]')).toBeNull()
-  expect(screen.queryByTestId('portrait')).toBeNull()
+  expect(view.container.querySelector('[data-player-identity]')).toBeTruthy()
+  expect(screen.getByTestId('portrait')).toBeTruthy()
+  expect(view.container.querySelector('section')?.style.visibility).toBe('hidden')
   expect(screen.getByLabelText('Thời gian quân đen').textContent).toBe('10:00')
 })
 it('uses the occupied player profile for portrait, frame, name and Elo',()=>{
@@ -26,7 +27,7 @@ it.each(['top','bottom'] as const)('keeps the %s player clock with the name besi
   const clock=view.container.querySelector('[data-testid="mobile-clock-black"]')
   expect(clock?.textContent).toBe('02:05')
   expect(view.container.querySelector('[data-player-identity]')?.contains(clock)).toBe(true)
-  expect(view.container.querySelector('[data-player-identity] p')?.hasAttribute('hidden')).toBe(true)
+  expect(view.container.querySelector('[data-player-identity] [data-player-elo]')?.hasAttribute('hidden')).toBe(false)
 })
 
 it('shows the recorded clock even at the initial replay position and updates when seeking', () => {

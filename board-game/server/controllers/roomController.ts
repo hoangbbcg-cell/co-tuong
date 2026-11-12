@@ -10,8 +10,11 @@ import { allowSocketEvent } from '../services/socketRateLimiter'
 export function roomRouter(service: RoomService) {
   const router = Router()
   router.get('/', (_req, res) => res.json(service.list()))
+  router.get('/by-code/:code', (req, res, next) => {
+    try { res.json(service.byCode(req.params.code)) } catch (error) { next(error) }
+  })
   router.post('/', (req, res, next) => {
-    try { res.status(201).json(service.create(req.body?.name, req.body?.minutes, req.body?.turnSeconds, req.body?.province, req.body?.password, req.body?.variant, res.locals.roomCreatorId)) } catch (error) { next(error) }
+    try { res.status(201).json(service.create(req.body?.name, req.body?.minutes, req.body?.turnSeconds, req.body?.province, req.body?.password, req.body?.variant, res.locals.roomCreatorId, req.body?.customFen, req.body?.incrementSeconds)) } catch (error) { next(error) }
   })
   return router
 }
@@ -31,10 +34,35 @@ export function registerRoomSockets(io: Server<ClientEvents, ServerEvents>, serv
   }
   if(persistence)persistence.waitForCommands=()=>serialized
   const previousPublishedSeats = new Map<string, Set<string>>()
+  const lobbyPresenceSignatures = new Map<string, string>()
   const publish = (room: RoomSnapshot) => {
     for(const player of room.players){const identity=persistence?.identities.get(player.id);if(identity)player.userId=identity.id}
-    io.to(room.id).emit('room:state', publicRoom(room))
+    // HOVANG_ROOM_REALTIME_V632
+    // Compare connected identities; do not broadcast on clock-only ticks.
+    const lobbyConnectedIds = new Set([
+      ...room.players
+        .filter(player => player.connected !== false)
+        .map(player => player.userId ?? player.id),
+      ...(room.viewers ?? [])
+        .map(viewer => viewer.userId ?? viewer.id),
+    ])
+    const lobbySignature = JSON.stringify([
+      [...lobbyConnectedIds].sort(),
+      room.players.length,
+      room.viewers?.length ?? 0,
+    ])
+    if (lobbyPresenceSignatures.get(room.id) !== lobbySignature) {
+      lobbyPresenceSignatures.set(room.id, lobbySignature)
+      io.emit('rooms:changed')
+    }
+    for (const member of [...room.players, ...(room.viewers ?? [])]) {
+      io.to(member.id).emit('room:state', publicRoom(room, member.id))
+    }
     previousPublishedSeats.set(room.id, new Set(room.players.map(member => member.id)))
+    for (const id of service.takeEnergyRemovals(room.id)) {
+      io.to(id).emit('room:removed', room.id, 'energy')
+      void io.sockets.sockets.get(id)?.leave(room.id)
+    }
     for (const id of service.takeEnergyNotices(room.id)) io.to(id).emit('room:notice', 'Không đủ năng lượng.')
   }
   io.on('connection', socket => {
@@ -62,7 +90,7 @@ export function registerRoomSockets(io: Server<ClientEvents, ServerEvents>, serv
       void socket.join(room.id)
       publish(room)
       if (!wasSeated && room.players.some(member => member.id === socket.id)) socket.to(room.id).emit('room:sound', { kind: 'seat', roomId: room.id, actorId: socket.id })
-      return publicRoom(room)
+      return publicRoom(room , socket.id)
     },persistence?async()=>{
       const identity=persistence.identities.get(socket.id)
       if(!identity)throw new AccountError('Cần đăng nhập.',401)
@@ -89,7 +117,7 @@ export function registerRoomSockets(io: Server<ClientEvents, ServerEvents>, serv
         void io.sockets.sockets.get(resumed.previousSocketId)?.leave(resumed.room.id)
       }
       publish(resumed.room)
-      return publicRoom(resumed.room)
+      return publicRoom(resumed.room , socket.id)
     },persistence?async()=>{await persistence.authorize(socket.id)}:undefined))
     socket.on('game:command', (command, ack) => run(ack, async () => {
       if(command?.commandId!==undefined&&(!/^[\w-]{8,80}$/.test(command.commandId)))throw new RoomError('ID lệnh không hợp lệ.')
@@ -99,12 +127,12 @@ export function registerRoomSockets(io: Server<ClientEvents, ServerEvents>, serv
       if(previous){
         if(previous.expiresAt>Date.now()){
           const current=service.roomFor(socket.id)
-          if(current?.id===previous.roomId)return publicRoom(current)
+          if(current?.id===previous.roomId)return publicRoom(current , socket.id)
         }
         commandResults.delete(cacheKey!)
       }
       const alreadyProcessed=!!command?.commandId&&service.isCommandProcessed(accountId,command.commandId)
-      if(alreadyProcessed){const existing=service.roomFor(socket.id)??service.roomForAccount(accountId);if(existing)return publicRoom(existing)}
+      if(alreadyProcessed){const existing=service.roomFor(socket.id)??service.roomForAccount(accountId);if(existing)return publicRoom(existing , socket.id)}
       const before = service.roomFor(socket.id)
       const previousMembers = before ? [...before.players, ...(before.viewers ?? [])] : []
       const previousQueued = before?.viewers?.filter(member => member.queued).map(member => member.id) ?? []
@@ -113,7 +141,7 @@ export function registerRoomSockets(io: Server<ClientEvents, ServerEvents>, serv
       // Durable checkpoint and deduplication record must commit before broadcasting or ACK.
       await persistence?.flush()
       const members = new Set([...room.players, ...(room.viewers ?? [])].map(member => member.id))
-      for (const member of previousMembers) if (!members.has(member.id)) {
+      for (const member of previousMembers) if (!members.has(member.id) && !service.isEnergyRemoval(room.id, member.id)) {
         io.to(member.id).emit('room:removed', room.id)
         void io.sockets.sockets.get(member.id)?.leave(room.id)
       }
@@ -123,7 +151,7 @@ export function registerRoomSockets(io: Server<ClientEvents, ServerEvents>, serv
         io.to(room.id).except(seated.id).emit('room:sound', { kind: 'seat', roomId: room.id, actorId: seated.id })
       }
       if(cacheKey){commandResults.set(cacheKey,{roomId:room.id,expiresAt:Date.now()+15*60_000});if(commandResults.size>10_000)commandResults.delete(commandResults.keys().next().value!)}
-      return publicRoom(room)
+      return publicRoom(room , socket.id)
     },persistence?async()=>{
       const room=service.roomFor(socket.id)
       if (command?.type === 'ready' || command?.type === 'join-queue') await persistence.canPlay(socket.id,room??undefined)
@@ -138,7 +166,7 @@ export function registerRoomSockets(io: Server<ClientEvents, ServerEvents>, serv
     socket.on('chat:send', (text, ack) => run(ack, () => {
       const room = service.chat(socket.id, text)
       publish(room)
-      return publicRoom(room)
+      return publicRoom(room , socket.id)
     }))
     socket.on('disconnect', () => {
       const leave=async()=>{const room = service.disconnect(socket.id);persistence?.identities.delete(socket.id);await persistence?.flush();if (room) publish(room)}

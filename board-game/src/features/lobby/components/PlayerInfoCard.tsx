@@ -52,7 +52,7 @@ export function PlayerInfoCard({ data, className, editControl, nameEditControl, 
     if (statsMeasureRef.current) observer?.observe(statsMeasureRef.current)
     window.addEventListener('resize', measure)
     let mounted = true
-    void document.fonts?.ready.then(() => { if (mounted) measure() })
+    void document.fonts?.ready?.then(() => { if (mounted) measure() })
     return () => { mounted = false; observer?.disconnect(); window.removeEventListener('resize', measure) }
   }, [data.friends, data.followers, data.likes])
   const renderStats = (labels: boolean) => [
@@ -72,12 +72,12 @@ export function PlayerInfoCard({ data, className, editControl, nameEditControl, 
     observer?.observe(element)
     window.addEventListener('resize', measure)
     let mounted = true
-    void document.fonts?.ready.then(() => { if (mounted) measure() })
+    void document.fonts?.ready?.then(() => { if (mounted) measure() })
     return () => { mounted = false; observer?.disconnect(); window.removeEventListener('resize', measure) }
   }, [address])
   return <div className={`${playerInfoPanelClass} flex ${className} min-w-0 flex-col justify-between gap-y-2 px-[6px] py-2 text-[#f8dea6] compact:px-[9px] compact:pb-[calc(var(--spacing)*2+3px)] ${mobileExpanded ? 'compact:gap-y-2 compact:pt-2' : ''}`}>
     <div className="relative -top-[var(--ui-p-3,3px)] flex min-w-0 items-center gap-2">
-      <h3 className={`min-w-0 flex-1 truncate font-cormorant text-[length:var(--ui-p-34,34px)] leading-tight font-semibold compact:text-[length:var(--ui-p-38,38px)]`}><NumberText text={data.name} compact weight="medium" soften={false} /></h3>
+      <h3 className={`min-w-0 w-fit max-w-full truncate font-cormorant text-[length:var(--ui-p-34,34px)] leading-tight font-semibold compact:text-[length:var(--ui-p-38,38px)]`}><NumberText text={data.name} compact weight="medium" soften={false} /></h3>
       {nameEditControl}
     </div>
     <div className="grid grid-cols-2 gap-3" aria-label="Chỉ số minh họa">

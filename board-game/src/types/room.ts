@@ -5,9 +5,13 @@ import type { ChallengeProfile, ChallengeInvite, ChallengeResult, ChallengeAccep
 export interface ChatMessage { id: string; name: string; text: string; system: boolean }
 export interface RoomPlayer { userId?: string; id: string; name: string; side: Side; ready: boolean; connected?: boolean; leaseGeneration?: number; disconnectedAtEpochMs?: number }
 export interface RoomViewer { id: string; name: string; queued: boolean; userId?: string }
-export const ROOM_MINUTES = [3, 5, 10, 15, 30] as const
+export const ROOM_MINUTES = [1, 2, 3, 5, 10, 15, 30] as const
 export const ROOM_TURN_SECONDS = [30, 60, 90, 120] as const
-export interface RoomSummary { ownerName?: string; code?: string; variant?: GameState['variant']; locked?: boolean; passwordRequired?: boolean; id: string; name: string; players: number; viewerCount?: number; playerNames?: string[]; phase: GameState['phase']; minutes?: number; province?: string }
+export const ROOM_INCREMENT_SECONDS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const
+export function roomTurnSecondsFor(minutes: number) {
+  return ROOM_TURN_SECONDS.filter(seconds => seconds <= minutes * 60)
+}
+export interface RoomSummary { ownerName?: string; code?: string; variant?: GameState['variant']; locked?: boolean; passwordRequired?: boolean; id: string; name: string; players: number; viewerCount?: number; onlineCount?: number; playerNames?: string[]; phase: GameState['phase']; minutes?: number; province?: string }
 export interface RoomSnapshot {
   /** Server-verified pair entitled to play without energy. */
   friendEnergyExemptPair?: [string, string]
@@ -18,6 +22,10 @@ export interface RoomSnapshot {
   passwordRequired?: boolean
   ownerId?: string
   queueBlocked?: boolean
+  keepOwnerSeat?: boolean
+  /** Custom rooms start every match from this position FEN; reachable only by code or invite. */
+  customFen?: string
+  customFirstTurn?: Side
   chatBlocked?: boolean
   mutedMemberIds?: string[]
   readyCountdown?: number | null
@@ -25,6 +33,7 @@ export interface RoomSnapshot {
   activeMatchId?: string
   province?: string
   turnSeconds?: number
+  incrementSeconds?: number
   minutes?: number
   id: string; name: string; players: RoomPlayer[]; viewers?: RoomViewer[]; game: GameState
   messages: ChatMessage[]; drawOffer: Side | null
@@ -43,10 +52,12 @@ export interface RoomSnapshot {
 }
 export type RoomCommand = (
   | { type: 'result-presentation-complete'; matchId: string }
-  | { type: 'room-settings'; queueBlocked: boolean; chatBlocked: boolean }
+  | { type: 'room-settings'; queueBlocked: boolean; chatBlocked: boolean; keepOwnerSeat?: boolean }
   | { type: 'moderate'; targetId: string; action: 'demote' | 'promote' | 'mute' | 'unmute' | 'kick' }
   | { type: 'ready' }
   | { type: 'stand-up' }
+  | { type: 'custom-first-turn'; side: Side }
+  | { type: 'custom-swap-sides' }
   | { type: 'join-queue' }
   | { type: 'leave-queue' }
   | { type: 'move'; move: Move }
@@ -66,12 +77,13 @@ export interface RoomReaction extends RoomReactionInput { roomId: string; actorI
 export interface ServerEvents {
   'room:control-replaced': (roomId: string) => void
   'room:notice': (message: string) => void
-  'room:removed': (roomId: string) => void
+  'room:removed': (roomId: string, reason?: 'energy') => void
   'room:reaction': (reaction: RoomReaction) => void
   'lobby:count': (count: number) => void
   'lobby:province-counts': (counts: Record<string, number>) => void
   'room:sound': (event: { kind: 'seat' | 'leave'; roomId: string; actorId: string }) => void // HOVANG_ROOM_SOUND_V1
   'room:state': (room: RoomSnapshot) => void
+  'rooms:changed': () => void
   'challenge:invite': (invite: ChallengeInvite) => void
   'challenge:result': (result: ChallengeResult) => void
   'challenge:accepted': (result: ChallengeAccepted) => void

@@ -2,12 +2,12 @@ import { beforeEach, expect, it, vi } from 'vitest'
 import { createGame } from '../src/game/state/initial'
 import type { RoomSnapshot } from '../src/types/room'
 
-const db = vi.hoisted(() => ({ friends: false, eligible: 1, finished: false, energy: 5, change: vi.fn(), ledger: vi.fn() }))
+const db = vi.hoisted(() => ({ friends: false, rated: 1, eligible: 1, finished: false, energy: 5, change: vi.fn(), ledger: vi.fn() }))
 vi.mock('../server/repositories/accountRepository', () => ({
   transaction: async (run: (connection: unknown) => Promise<unknown>) => run({}),
   rows: async (sql: string) => {
     if (sql.includes('FROM friendships')) return db.friends ? [{ present: 1 }] : []
-    if (sql.startsWith('SELECT status,variant')) return [{ status: db.finished ? 'finished' : 'playing', variant: 'xiangqi', gold_reward_eligible: db.eligible }]
+    if (sql.startsWith('SELECT status,variant')) return [{ status: db.finished ? 'finished' : 'playing', variant: 'xiangqi', rated: db.rated, gold_reward_eligible: db.eligible }]
     if (sql.includes('FROM match_players')) return [{ side: 'red', userId: '2', elo_before: 1000 }, { side: 'black', userId: '10', elo_before: 1000 }]
     if (sql.startsWith('SELECT display_name')) return [{ display_name: 'Player' }]
     if (sql.startsWith('SELECT elo')) return [{ elo: 1000 }]
@@ -17,7 +17,7 @@ vi.mock('../server/repositories/accountRepository', () => ({
   },
   change: async (sql: string, params: unknown[]) => {
     db.change(sql, params)
-    if (sql.startsWith('INSERT INTO matches')) db.eligible = Number(params.at(-1))
+    if (sql.startsWith('INSERT INTO matches')) { db.rated = Number(params[2]); db.eligible = Number(params.at(-1)) }
     if (sql.startsWith('UPDATE matches SET')) db.finished = true
   },
   AccountRepository: class {
@@ -28,7 +28,7 @@ vi.mock('../server/repositories/accountRepository', () => ({
 }))
 import { MatchRepository } from '../server/repositories/matchRepository'
 
-beforeEach(() => { vi.clearAllMocks(); db.friends = false; db.eligible = 1; db.finished = false; db.energy = 5 })
+beforeEach(() => { vi.clearAllMocks(); db.friends = false; db.rated = 1; db.eligible = 1; db.finished = false; db.energy = 5 })
 const room = (): RoomSnapshot => ({ id: 'room', name: 'Room', game: createGame(), players: [
   { id: 'a', name: 'Red', side: 'red', ready: true }, { id: 'b', name: 'Black', side: 'black', ready: true },
 ], messages: [], drawOffer: null })
@@ -51,7 +51,7 @@ it('friends at start cannot regain gold by unfriending before the result', async
   expect(db.eligible).toBe(0)
   expect(goldWrites()).toHaveLength(0)
   expect(db.ledger.mock.calls.some(call => call[2] === 'gold')).toBe(false)
-  expect(db.change.mock.calls.some(([sql]) => sql.startsWith('UPDATE user_game_stats'))).toBe(true)
+  expect(db.change.mock.calls.some(([sql]) => sql.startsWith('UPDATE user_game_stats'))).toBe(false)
   await repo.start('next-match', snapshot, { red: '2', black: '10' })
   expect(db.eligible).toBe(1)
 })
@@ -106,6 +106,23 @@ it('normal opponents still spend one energy each',async()=>{
   await new MatchRepository().start('normal',room(),{red:'2',black:'10'})
   expect(db.change.mock.calls.filter(([sql])=>sql.startsWith('UPDATE user_resources SET energy='))).toHaveLength(2)
   expect(db.ledger.mock.calls.filter(call=>call[2]==='energy'&&call[3]===-1)).toHaveLength(2)
+})
+it('custom-position rooms still spend energy but award no gold, Elo, or stats',async()=>{
+  const snapshot=room()
+  snapshot.customFen='custom-source-fen'
+  const repo=new MatchRepository()
+  await repo.start('custom',snapshot,{red:'2',black:'10'})
+  expect(db.rated).toBe(0)
+  expect(db.eligible).toBe(0)
+  expect(db.change.mock.calls.filter(([sql])=>sql.startsWith('UPDATE user_resources SET energy='))).toHaveLength(2)
+  expect(db.ledger.mock.calls.filter(call=>call[2]==='energy'&&call[3]===-1)).toHaveLength(2)
+  db.change.mockClear()
+  db.ledger.mockClear()
+  await finish(repo,snapshot)
+  expect(goldWrites()).toHaveLength(0)
+  expect(db.ledger.mock.calls.some(call=>call[2]==='gold')).toBe(false)
+  expect(db.change.mock.calls.some(([sql])=>sql.startsWith('UPDATE user_game_stats'))).toBe(false)
+  expect(db.change.mock.calls.filter(([sql,params])=>sql.startsWith('UPDATE match_players SET elo_delta=')&&Number((params as number[])[0])!==0)).toHaveLength(0)
 })
 it('a play invitation alone does not grant the friendship energy exception',async()=>{
   const snapshot=room();snapshot.goldRewardExcludedPairs=[['a','b']]

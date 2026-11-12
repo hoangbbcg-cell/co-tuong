@@ -1,3 +1,4 @@
+import { choosePracticeMove, PracticeAiAborted } from './practiceAi'
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { availableParallelism } from 'node:os'
@@ -8,7 +9,7 @@ import { gameFromPositionFen, positionFen } from '../../src/game/state/customPos
 import { applyMove, startGame } from '../../src/game/moves/actions'
 import { fromUci, toUci } from '../../src/game/moves/uci'
 import { candidateRepetition } from '../../src/game/rules/repetition'
-import { getLegalMoves, isMoveLegal } from '../../src/game/rules'
+import { isMoveLegal } from '../../src/game/rules'
 import { fairyLevel } from './fairyStockfishLevels'
 import type { Move } from '../../src/types/game'
 
@@ -42,16 +43,17 @@ function fairyHashMb(level: number): number {
 }
 export class FairyStockfishService {
   private readonly children = new Set<ChildProcessWithoutNullStreams>()
+  private readonly practiceRequests = new Set<AbortController>()
   private readonly binary: string
   private readonly evalFile?: string
   constructor(binary = process.env.FAIRY_STOCKFISH_PATH || resolve(engineRoot, process.platform === 'win32' ? 'fairy-stockfish_x86-64-modern.exe' : 'fairy-stockfish'), evalFile = process.env.FAIRY_STOCKFISH_EVAL_FILE) {
     this.binary = resolve(binary)
     this.evalFile = evalFile ? resolve(evalFile) : undefined
   }
-  close() { for (const child of this.children) child.kill() }
+  close() { for (const child of this.children) child.kill(); for (const request of this.practiceRequests) request.abort() }
 
   async ready(signal?: AbortSignal) {
-    const result = await this.run('startpos', [], 1, 10_000, signal)
+    const result = await this.run('startpos', [], 7, 50, signal)
     if (!result) throw new FairyStockfishError('Fairy-Stockfish chưa sẵn sàng.')
   }
 
@@ -77,16 +79,20 @@ export class FairyStockfishService {
     })
     if (game.phase !== 'playing') throw new FairyStockfishError('Ván đấu đã kết thúc.', 400)
     if (signal?.aborted) throw new FairyStockfishError('Đã hủy lượt máy.', 499)
-    if (Math.random() < fairyLevel(level).randomMoveChance) {
-      const candidates: Move[] = []
-      game.board.forEach((rank, row) => rank.forEach((piece, col) => {
-        if (piece?.side !== game.currentTurn) return
-        for (const to of getLegalMoves(row, col, game.board)) {
-          const move = { from: { row, col }, to }
-          if (!candidateRepetition(game, move).forbidden) candidates.push(move)
-        }
-      }))
-      if (candidates.length) return candidates[Math.floor(Math.random() * candidates.length)]
+    if (level <= 6) {
+      if (this.practiceRequests.size >= 2) throw new FairyStockfishError('Máy đang bận. Vui lòng thử lại.', 429)
+      const controller = new AbortController()
+      const abort = () => controller.abort()
+      signal?.addEventListener('abort', abort, { once: true })
+      this.practiceRequests.add(controller)
+      try {
+        const move = await choosePracticeMove(game, level, controller.signal)
+        if (!move) throw new FairyStockfishError('Máy không tìm được nước đi hợp lệ.')
+        return move
+      } catch (error) {
+        if (error instanceof PracticeAiAborted) throw new FairyStockfishError('Đã hủy lượt máy.', 499)
+        throw error
+      } finally { signal?.removeEventListener('abort', abort); this.practiceRequests.delete(controller) }
     }
     const maxTime = Math.max(50, Math.min(800, Math.floor(input.remainingMs / 30)))
     const result = await this.run(fen ? `fen ${fen}` : 'startpos', history, level, maxTime, signal)

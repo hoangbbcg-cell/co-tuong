@@ -9,6 +9,15 @@ import { createServer } from 'node:http'
 import { AccountError } from '../server/errors'
 
 afterEach(() => vi.restoreAllMocks())
+it('validates a separate boolean permission for hiding AI controls', async () => {
+  const repository = new AdminRepository(), service = new AdminService(repository)
+  const save = vi.spyOn(repository, 'change').mockResolvedValue({} as never)
+  const command = { action: 'ai-controls', enabled: true, reason: 'Cấp quyền thử', requestId: '12345678-1234-4123-8123-123456789012' }
+  expect(() => service.change('12345678', { ...command, enabled: 'true' })).toThrow('Bỏ AI')
+  expect(save).not.toHaveBeenCalled()
+  await service.change('12345678', command)
+  expect(save).toHaveBeenCalledWith('12345678', command)
+})
 it('requires configuration, expires sessions and revokes on logout or password change', async () => {
   let config = '', now = 1000
   const auth = new AdminAuth(() => config, () => now)

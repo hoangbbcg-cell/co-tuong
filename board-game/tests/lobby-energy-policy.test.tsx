@@ -24,7 +24,7 @@ const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider 
 const snapshot: RoomSnapshot = { id: 'room', code: '123456', name: 'Bàn', players: [], viewers: [{ id: 'zero', name: 'PlayerZero', queued: false }], game: createGame(), messages: [], drawOffer: null }
 
 it('allows entering a ready room by number with zero energy', async () => {
-  vi.spyOn(roomApi, 'list').mockResolvedValue([{ id: 'room', code: '123456', name: 'Bàn', players: 0, phase: 'ready' }])
+  vi.spyOn(roomApi, 'byCode').mockResolvedValue({ id: 'room', code: '123456', name: 'Bàn', players: 0, phase: 'ready' })
   const join = vi.spyOn(roomSocket, 'join').mockResolvedValue(snapshot)
   const hook = renderHook(useLobby, { wrapper })
   act(() => hook.result.current.joinByCode('123456'))

@@ -16,14 +16,17 @@ it('validates config and rejects root, missing password and invalid ports', () =
 it('uses the dedicated on-host migrator file only when explicitly configured', () => {
   const directory = mkdtempSync(join(tmpdir(), 'cotuong-migrator-'))
   const file = join(directory, 'mysql-migrator.json')
+  const originalArgv = process.argv
   try {
     writeFileSync(file, JSON.stringify({ user: 'cotuong_migrator', password: 'fixture-only-password' }), { mode: 0o600 })
+    expect(mysqlOptions({ ...config, DB_MIGRATOR_CREDENTIALS_FILE: file })).toMatchObject({ user: config.DB_USER, password: config.DB_PASSWORD })
+    process.argv = [...originalArgv, 'scripts/database.ts', 'migrate']
     expect(mysqlOptions({ ...config, DB_MIGRATOR_CREDENTIALS_FILE: file })).toMatchObject({
       user: 'cotuong_migrator', password: 'fixture-only-password', database: 'cotuong',
     })
     writeFileSync(file, JSON.stringify({ user: 'root', password: 'fixture-only-password' }))
     expect(() => mysqlOptions({ ...config, DB_MIGRATOR_CREDENTIALS_FILE: file })).toThrow('Invalid dedicated')
-  } finally { rmSync(directory, { recursive: true, force: true }) }
+  } finally { process.argv = originalArgv; rmSync(directory, { recursive: true, force: true }) }
 })
 it('reuses a lazy pool, checks SELECT 1 and closes it', async () => {
   for (const [key, value] of Object.entries(config)) vi.stubEnv(key, value)

@@ -25,7 +25,7 @@ export class AdminRepository {
   async change(publicId: string, command: AdminChange) {
     await transaction(async c => {
       // Serialize all admin changes for this target, including duplicate requests.
-      const users = await rows("SELECT CAST(id AS CHAR) id,avatar_code avatar,avatar_frame_code frame FROM users WHERE public_id=? AND status='active' FOR UPDATE", [publicId], c)
+      const users = await rows("SELECT CAST(id AS CHAR) id,avatar_code avatar,avatar_frame_code frame,hovang_watermark_control,ai_controls_control FROM users WHERE public_id=? AND status='active' FOR UPDATE", [publicId], c)
       if (!users.length) throw new AccountError('Không tìm thấy người chơi.', 404)
       const id = String(users[0].id)
       const hash = createHash('sha256').update(JSON.stringify({ publicId, command })).digest('hex')
@@ -35,7 +35,15 @@ export class AdminRepository {
         return
       }
       let before: unknown, after: unknown
-      if (command.action === 'resources') {
+      if (command.action === 'ai-controls') {
+        before = { enabled: Number(users[0].ai_controls_control) === 1 }
+        await change('UPDATE users SET ai_controls_control=? WHERE id=?', [command.enabled ? 1 : 0, id], c)
+        after = { enabled: command.enabled }
+      } else if (command.action === 'hovang-watermark') {
+        before = { enabled: Number(users[0].hovang_watermark_control) === 1 }
+        await change('UPDATE users SET hovang_watermark_control=? WHERE id=?', [command.enabled ? 1 : 0, id], c)
+        after = { enabled: command.enabled }
+      } else if (command.action === 'resources') {
         const resource = await this.accounts.resources(id, c)
         const stats = await rows('SELECT variant,elo FROM user_game_stats WHERE user_id=? ORDER BY variant FOR UPDATE', [id], c)
         before = { gold: resource.gold, energy: resource.energy, stats }

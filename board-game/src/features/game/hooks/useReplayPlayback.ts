@@ -3,17 +3,17 @@ import type { RecordedMatch } from '../../../types/recordedMatch'
 import type { Move } from '../../../types/game'
 import { PIECE_MOVE_DURATION_MS } from '../moveAnimation'
 
-export function useReplayPlayback(recording?: RecordedMatch, enabled = true) {
-  const [step, setStep] = useState(0)
-  const [playing, setPlaying] = useState(true)
+export function useReplayPlayback(recording?: RecordedMatch, enabled = true, initialStep = 0) {
+  const [step, setStep] = useState(() => Math.max(0, Math.min((recording?.states.length ?? 1) - 1, initialStep)))
+  const [playing, setPlaying] = useState(initialStep === 0)
   const [animation, setAnimation] = useState<Move | null>(null)
   const recordingRef = useRef(recording)
   recordingRef.current = recording
   const recordingId = recording?.id
   useEffect(() => {
-    setStep(0)
+    setStep(Math.max(0, Math.min((recording?.states.length ?? 1) - 1, initialStep)))
     setAnimation(null)
-    setPlaying(true)
+    setPlaying(initialStep === 0)
   }, [recordingId])
   const total = (recording?.states.length ?? 1) - 1
   useEffect(() => {
