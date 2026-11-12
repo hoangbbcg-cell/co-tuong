@@ -1,69 +1,16 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useState } from "react";
+import {
+  DESKTOP_CANVAS_HEIGHT,
+  DESKTOP_CANVAS_WIDTH,
+  computeMetrics,
+  sameMetrics,
+  type CanvasMetrics,
+} from "./desktopCanvasMetrics";
 
-export const DESKTOP_CANVAS_WIDTH = 1493;
-export const DESKTOP_CANVAS_HEIGHT = 731;
-
-/** At or below this layout width the app renders natively (no fixed canvas). */
-export const COMPACT_MAX_WIDTH = 800;
-
-type CanvasMetrics = {
-  compact: boolean;
-  /** Uniform "contain" scale: the whole desktop canvas always fits on screen. */
-  scale: number;
-};
-
-/**
- * Layout viewport size. We deliberately use innerWidth/innerHeight for the
- * desktop canvas instead of visualViewport: visualViewport shrinks when the
- * mobile keyboard opens (and changes on pinch-zoom), which previously made the
- * canvas rescale and jump off-center. The layout viewport is stable.
- */
-function getLayoutViewport() {
-  return { width: window.innerWidth, height: window.innerHeight };
-}
-
-/** Visual viewport size, used only for the compact (native) layout. */
-function getVisualViewport() {
-  return {
-    width: window.visualViewport?.width ?? window.innerWidth,
-    height: window.visualViewport?.height ?? window.innerHeight,
-  };
-}
-
-function computeMetrics(): CanvasMetrics {
-  const { width, height } = getLayoutViewport();
-  if (width <= COMPACT_MAX_WIDTH) return { compact: true, scale: 1 };
-  const scale = Math.min(
-    width / DESKTOP_CANVAS_WIDTH,
-    height / DESKTOP_CANVAS_HEIGHT,
-  );
-  return {
-    compact: false,
-    scale: Number.isFinite(scale) && scale > 0 ? scale : 1,
-  };
-}
-
-export function getAppViewportSize() {
-  const { compact } = computeMetrics();
-  if (compact) {
-    const { width, height } = getVisualViewport();
-    return { width, height, compact: true };
-  }
-  return {
-    width: DESKTOP_CANVAS_WIDTH,
-    height: DESKTOP_CANVAS_HEIGHT,
-    compact: false,
-  };
-}
-
-export function getDesktopCanvasScale() {
-  return computeMetrics().scale;
-}
-
-function sameMetrics(a: CanvasMetrics, b: CanvasMetrics) {
-  return a.compact === b.compact && Math.abs(a.scale - b.scale) < 0.0005;
-}
+// NOTE: this file must export only React components, otherwise Vite's React
+// Fast Refresh falls back to a full reload. Constants and helpers live in
+// ./desktopCanvasMetrics.
 
 export function DesktopCanvas({ children }: { children: ReactNode }) {
   const [canvas, setCanvas] = useState<CanvasMetrics>(computeMetrics);
