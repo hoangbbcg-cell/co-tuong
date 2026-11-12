@@ -1,0 +1,1 @@
+Ảnh nút Xuống bàn do user cung cấp ngày2026-11-03: codex-clipboard-db912308-9ac1-486b-9775-bf96ead75a39.png. Sao chép PNG2048×686 có alpha nguyên bản, không cắt/vẽ lại. Chỉ ghế đang ngồi thấy; người xem giữ Xếp hàng/Thoát hàng.

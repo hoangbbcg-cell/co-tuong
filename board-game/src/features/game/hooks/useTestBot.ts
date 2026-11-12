@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '../../../lib/generateUUID'
 import { useCallback, useRef, useState } from 'react'
 import { getLegalMoves } from '../../../game/rules'
 import { applyMoveWithResult } from '../../../game/moves/actions'
@@ -39,7 +40,7 @@ export function useTestBot() {
     const from = local.selected
     if (!from || !getLegalMoves(from.row, from.col, local.game.board).some(to => to.row === point.row && to.col === point.col)) return
     const move = { from, to: point }
-    if (!retry.current || retry.current.id !== id || JSON.stringify(retry.current.move) !== JSON.stringify(move)) retry.current = { id, move, requestId: crypto.randomUUID() }
+    if (!retry.current || retry.current.id !== id || JSON.stringify(retry.current.move) !== JSON.stringify(move)) retry.current = { id, move, requestId: generateUUID() }
     busy.current = true; setPending(true); setError('')
     try {
       const snapshot = await accountApi.testBotMove(id, move, retry.current.requestId)
@@ -62,3 +63,4 @@ export function useTestBot() {
   }, [])
   return { start, select, pending, error }
 }
+

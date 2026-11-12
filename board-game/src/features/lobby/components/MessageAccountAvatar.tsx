@@ -16,7 +16,7 @@ export function MessageAccountAvatar({ name, className = 'size-full' }: { name: 
     staleTime: 30_000,
   })
   const profile = own ?? data
-  return <span className={`relative block shrink-0 ${className}`}>
+  return <span className={`relative block shrink-0 compact:[&_img]:![image-rendering:-webkit-optimize-contrast] compact:[&_span]:[image-rendering:-webkit-optimize-contrast] desktop:[&_img]:![image-rendering:auto] desktop:[&_span]:[image-rendering:auto] ${className}`}>
     {machine ? <img src={machine} alt="" className="block size-full object-contain" /> : <AccountAvatar avatarCode={profile?.avatarCode} avatarFrameCode={profile?.avatarFrameCode} />}
   </span>
 }

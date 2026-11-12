@@ -1,3 +1,4 @@
+import { MATCH_INTRO_MS } from '../src/game/moves/actions'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createGame } from '../src/game/state/initial'
 import { createHiddenGame } from '../src/game/state/hidden'
@@ -108,7 +109,7 @@ describe('Coordinated repetition', () => {
     const service = new RoomService(new RoomRepository(), () => now, () => 'red')
     const id = service.create('Coordinated repetition test').id
     service.join(id, 'r', 'Red'); service.join(id, 'b', 'Black')
-    service.command('r', { type: 'ready' }); service.command('b', { type: 'ready' }); now = 1300
+    service.command('r', { type: 'ready' }); service.command('b', { type: 'ready' }); now = MATCH_INTRO_MS
     for (let i = 0; i < 4; i++) {
       for (const [side, move] of [['r', redOut], ['b', blackOut], ['r', redBack], ['b', blackBack]] as const) service.command(side, { type: 'move', move })
       if (i === 2) {

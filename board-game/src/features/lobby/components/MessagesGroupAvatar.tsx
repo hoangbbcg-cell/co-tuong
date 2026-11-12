@@ -8,9 +8,9 @@ export function MessagesGroupAvatar({ src, alt, className, style }: {
   className?: string
   style?: CSSProperties
 }) {
-  return <span className={`relative block aspect-square overflow-hidden rounded-full ${className ?? ''}`} style={style}>
+  return <span className={`relative block aspect-square overflow-hidden rounded-full desktop:[&_img]:![image-rendering:auto] ${className ?? ''}`} style={style}>
     {src === defaultGroupAvatar
-      ? <CrispUiImage src={defaultGroupAvatar} alt={alt} className="block size-full object-contain" />
-      : <CrispUiImage src={src} alt={alt} className="block size-full rounded-full object-cover" />}
+      ? <CrispUiImage src={defaultGroupAvatar} alt={alt} style={{ imageRendering: '-webkit-optimize-contrast' }} className="block size-full object-contain" />
+      : <CrispUiImage src={src} alt={alt} style={{ imageRendering: '-webkit-optimize-contrast' }} className="block size-full rounded-full object-cover" />}
   </span>
 }

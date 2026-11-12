@@ -1,7 +1,9 @@
 import axios from 'axios'
 import type { AdminChange, AdminUser } from '../types/admin'
+import type { AnalyticsReport } from '../types/activity'
 const api = axios.create({ baseURL: '/api/admin', timeout: 15000 })
 export const adminApi = {
+  analytics: async (params: Record<string, string | number>, signal?: AbortSignal) => (await api.get<AnalyticsReport>('/analytics', { params, signal })).data,
   me: async () => { await api.get('/me') },
   login: async (password: string) => { await api.post('/login', { password }) },
   logout: async () => { await api.post('/logout') },

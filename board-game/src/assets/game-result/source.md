@@ -6,3 +6,5 @@ User-provided PNGs from Downloads, 2026-10-19:
 - defeat.png: ff38225e-a7c3-4f17-97dd-14a883c0cef9.png (second image, loser).
 
 Original copies: src/assets/references/uploads/{UUID}.png. Both 1122×1402 RGBA. Full nonzero-alpha bounding box is (0,0)–(1121,1401), so no additional transparent margin can be trimmed. Artwork preserved without redesign or recoloring. Runtime uses native img at original aspect ratio; transparent button overlays the baked “Xác nhận” area at left25%, top77.5%, width50%, height10%. Reward panel is intentionally blank; this task does not add or simulate rewards.
+
+2026-11-11: red-wins.png and black-wins.png are exact left/right 1086x724 PNG crops of user attachment codex-clipboard-2a29b9b3-6155-497d-a5d1-ef51a8b7b61d.png (2172x724 RGBA). No redraw/recolor. Computer/trial use actual winning side. Confirm overlay red left30% / black left25%, top73%, width50%, height15%; online artwork remains unchanged.

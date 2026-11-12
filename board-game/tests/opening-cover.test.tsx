@@ -50,3 +50,28 @@ it('both Web Animations panels use 600ms; last panel finishes and cleanup cancel
     expect(animation.cancel).toHaveBeenCalledOnce()
   }
 })
+
+it('mobile waits for piece decoding before the full600ms reveal; unmount cancels pending work', async () => {
+  Reflect.deleteProperty(Element.prototype, 'animate')
+  let ready!: () => void
+  const complete = vi.fn()
+  const view = render(<div><img data-cached-piece-face="true" alt="" ref={image => {
+    if (image) image.decode = () => new Promise<void>(resolve => { ready = resolve })
+  }} /><OpeningCover onComplete={complete} waitForPieceImages /></div>)
+  act(() => vi.advanceTimersByTime(5000))
+  expect(complete).not.toHaveBeenCalled()
+  await act(async () => { ready(); await Promise.resolve() })
+  act(() => vi.advanceTimersByTime(40))
+  expect(complete).not.toHaveBeenCalled()
+  act(() => vi.advanceTimersByTime(600))
+  expect(complete).toHaveBeenCalledOnce()
+  view.unmount()
+  complete.mockClear()
+  const abandoned = render(<div><img data-cached-piece-face="true" alt="" ref={image => {
+    if (image) image.decode = () => new Promise<void>(resolve => { ready = resolve })
+  }} /><OpeningCover onComplete={complete} waitForPieceImages /></div>)
+  abandoned.unmount()
+  await act(async () => { ready(); await Promise.resolve() })
+  act(() => vi.advanceTimersByTime(1000))
+  expect(complete).not.toHaveBeenCalled()
+})

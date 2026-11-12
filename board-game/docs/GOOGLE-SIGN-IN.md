@@ -88,3 +88,19 @@ Nguồn: https://developers.google.com/identity/protocols/oauth2/javascript-impl
 GoogleSignInButton hiển thị lý do trên origin không hỗ trợ, không tải SDK hoặc tạo nonce lặp ở đó. localhost/127.0.0.1/HTTPS tên miền tiếp tục flow GIS hiện có.
 
 Guest được giữ bằng cookie trên cùng trình duyệt/host. Restart npm dev không chủ động xóa credential trong MySQL. IP/host khác hoặc vùng dữ liệu trình duyệt khác không cùng Guest. EntryGate phân biệt lỗi tải/mạng với 401: non401 hiện Thử lại, không đẩy người chơi sang tạo Guest. Chưa tái hiện trực tiếp mất cookie trên điện thoại của user.
+
+## VPS build — 2026-11-04
+- Service đọc /etc/cotuong/cotuong.env; chạy vite build trực tiếp trong release không tự kế thừa EnvironmentFile của systemd.
+- Khi build phải nạp env file bằng Node --env-file, đồng bộ VITE_GOOGLE_CLIENT_ID với GOOGLE_CLIENT_ID trong tiến trình build, chặn mismatch/thiếu và kiểm bundle có Client ID công khai. Không cần Client Secret, không in env.
+- Hotfix google-build-fix-20261104.sh đã chuẩn bị, chưa kích hoạt; giữ gameplay/source tên và không restart backend.
+
+- Đính chính VPS hiện tại: property EnvironmentFiles hiệu lực là /etc/cotuong/cotuong-qa.env do drop-in qa-database.conf ghi đè cotuong.env. Dùng systemctl show -p EnvironmentFiles --value để đối chiếu trước build; không dựa dòng unit gốc.
+
+## 2026-11-10 — Google blank sign-in window
+- Enabled GIS `use_fedcm_for_button:true` and `button_auto_select:false` for both login and linking. This opts supported Chrome browsers into browser-mediated sign-in, avoiding the legacy popup/opener dependency under cross-origin isolation. Kept COOP/COEP unchanged because the Cờ Úp browser worker requires crossOriginIsolated.
+- Known Zalo/Facebook/Instagram/LINE/Android WebView user agents do not initialize GIS or request a nonce. Clicking Google explains that the game must be opened in a full browser. Linking shows a separate warning to preserve the existing Guest account; no browser-to-browser Guest transfer is implemented or promised.
+- Nonce/SDK initialization failures show a visible retry label. Server verification, nonce binding, cookies and database logic remain unchanged.
+- Automated checks: six targeted suites / 32 tests PASS (button flow, embedded-browser guards, retry, stale callbacks, origin rules, token verification, Cờ Úp regressions); TypeScript PASS; Vite PASS. Packaging follow-up recorded in AI_CHANGELOG.md.
+- Limits: no real Google account / phone QA, no Google Cloud configuration inspection, no production header inspection or deployment. FedCM support and app UA detection vary; legacy non-FedCM popup behavior under isolation is not guaranteed by this patch.
+- Sources: https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid ; https://developers.google.com/identity/gsi/web/reference/js-reference ; https://developers.google.com/identity/protocols/oauth2/policies
+- Backup: .ai-backups/google-login-20261110/manifest.txt. Restore only listed source files from the matching backup to roll back; new files are src/lib/googleBrowser.ts and tests/google-browser.test.ts (remove only if they have no subsequent edits).

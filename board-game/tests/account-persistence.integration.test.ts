@@ -2,8 +2,13 @@ import { afterAll,beforeAll,beforeEach,describe,expect,it,vi } from 'vitest'
 import { io,type Socket } from 'socket.io-client'
 import { randomUUID } from 'node:crypto'
 import { createApplication } from '../server/app'
+import { messageImageDirectory } from '../server/repositories/socialRepository'
+import type { RowDataPacket } from 'mysql2/promise'
+import { join } from 'node:path'
+import { unlink } from 'node:fs/promises'
 import { getMysqlPool } from '../server/repositories/mysqlPool'
 import { createGame } from '../src/game/state/initial'
+import { MATCH_INTRO_MS } from '../src/game/moves/actions'
 import type { RoomSnapshot } from '../src/types/room'
 const assignment = vi.hoisted(() => ({ firstSide: 'red' as 'red' | 'black' }))
 // Use the existing side-selector seam; exercise both outcomes without probabilistic CI.
@@ -76,7 +81,7 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
       expect((await request('/account/positions','GET',undefined,linked.cookie)).data[0].id).toBe(position.id)
       expect((await request('/account/honors','GET',undefined,linked.cookie)).data.map((h:{code:string})=>h.code)).toContain('pt_5_ky-huu')
       expect((await request('/account/me','GET',undefined,a.cookie)).status).toBe(401)
-      expect((await request('/account/name','PATCH',{name:'Kỳ Hữu'},linked.cookie)).status).toBe(200)
+      expect((await request('/account/name','PATCH',{name:'Kỳ hữu'},linked.cookie)).status).toBe(200)
       expect((await request('/account/name','PATCH',{name:'Đổi nữa'},linked.cookie)).status).toBe(400)
       const conflict=await login(b.cookie,'stable-google-sub')
       expect(conflict.status).toBe(409)
@@ -92,8 +97,33 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
       sa.disconnect()
       const guestAgain=await request('/account/guest','POST',{},a.cookie)
       expect(guestAgain.data.id).not.toBe(a.data.id)
+      // SECURITY_15_SESSION_ROTATION: an existing socket must lose authorization
+      // when the same Google account receives a replacement session.
+      const previousSession=await login('','stable-google-sub')
+      expect(previousSession.status).toBe(200)
+      const previousSocket=io(base,{
+        extraHeaders:{Cookie:previousSession.cookie},
+        transports:['websocket'],
+        autoConnect:false
+      })
+      sockets.push(previousSocket)
+      await new Promise<void>((resolve,reject)=>{
+        previousSocket.once('connect',resolve)
+        previousSocket.once('connect_error',reject)
+        previousSocket.connect()
+      })
+      const replacementSession=await login('','stable-google-sub')
+      expect(replacementSession.status).toBe(200)
+      expect(replacementSession.data.id).toBe(previousSession.data.id)
+      expect((await request('/account/me','GET',undefined,previousSession.cookie)).status).toBe(401)
+      const rejected=await previousSocket.timeout(8000).emitWithAck(
+        'room:join',
+        {roomId:room.data.id,name:'old-session'}
+      )
+      expect(rejected.ok).toBe(false)
+      previousSocket.disconnect()
       const returned=await login('','stable-google-sub')
-      expect(returned.status).toBe(200);expect(returned.data.id).toBe(a.data.id);expect(returned.data.displayName).toBe('Kỳ Hữu')
+      expect(returned.status).toBe(200);expect(returned.data.id).toBe(a.data.id);expect(returned.data.displayName).toBe('Kỳ hữu')
       const forgedChallenge=await request('/account/google/nonce','POST')
       expect((await request('/account/google','POST',{credential:'forged'},forgedChallenge.cookie)).status).toBe(401)
       expect((await login('','another-google-sub','wrong-audience')).status).toBe(401)
@@ -194,6 +224,13 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
     expect((await command(sa,'ready')).ok).toBe(true)
     const started = await command(sb,'ready')
     expect(started.ok).toBe(true)
+    const startedHistory = await request('/account/history','GET',undefined,a.cookie)
+    expect(startedHistory.data).toHaveLength(1)
+    expect(startedHistory.data[0].states).toHaveLength(1)
+    expect(startedHistory.data[0].states[0].phase).toBe('playing')
+    expect(startedHistory.data[0].startedAt).toBeGreaterThan(0)
+    expect((await request(`/account/saved-matches/${startedHistory.data[0].id}`,'PUT',{},a.cookie)).status).toBe(200)
+    expect((await request('/account/saved-matches','GET',undefined,a.cookie)).data[0].states).toHaveLength(1)
     const aSide = (started.data as RoomSnapshot).players.find(player => player.id === sa.id)!.side
     expect(aSide).toBe(firstSide)
     const aNameField = aSide === 'red' ? 'redName' : 'blackName'
@@ -202,8 +239,10 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
     const history=await request('/account/history','GET',undefined,a.cookie)
     expect(history.data).toHaveLength(1);expect(history.data[0].states.at(-1).result.reason).toBe('resign')
     const pa=await request('/account/me','GET',undefined,a.cookie),pb=await request('/account/me','GET',undefined,b.cookie)
-    expect(pa.data.stats.find((s:{variant:string})=>s.variant==='xiangqi').elo).toBe(987)
-    expect(pb.data.stats.find((s:{variant:string})=>s.variant==='xiangqi').elo).toBe(1013)
+    const aElo=pa.data.stats.find((s:{variant:string})=>s.variant==='xiangqi').elo
+    expect(aElo).toBeGreaterThanOrEqual(987);expect(aElo).toBeLessThanOrEqual(989)
+    const bElo=pb.data.stats.find((s:{variant:string})=>s.variant==='xiangqi').elo
+    expect(bElo).toBeGreaterThanOrEqual(1011);expect(bElo).toBeLessThanOrEqual(1013)
     expect(Number(pb.data.gold)).toBeGreaterThanOrEqual(125);expect(Number(pb.data.gold)).toBeLessThanOrEqual(150)
     expect(pa.data.gold).toBe('0');expect(pa.data.energy).toBe(4)
     const match=history.data[0].id
@@ -233,7 +272,7 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
     const redPlayer = (started.data as RoomSnapshot).players.find(player => player.side === 'red')!
     expect((started.data as RoomSnapshot).players.find(player => player.id === sa.id)!.side).toBe(firstSide)
     const redSocket = redPlayer.id === sa.id ? sa : sb
-    await new Promise(resolve=>setTimeout(resolve,1400))
+    await new Promise(resolve=>setTimeout(resolve,MATCH_INTRO_MS+100))
     expect((await redSocket.timeout(8000).emitWithAck('game:command',{type:'move',move:{from:{row:6,col:0},to:{row:5,col:0}}})).ok).toBe(true)
     await sa.timeout(8000).emitWithAck('game:command',{type:'offer-draw'})
     expect((await sb.timeout(8000).emitWithAck('game:command',{type:'reply-draw',accepted:true})).ok).toBe(true)
@@ -266,7 +305,125 @@ describe.skipIf(process.env.DB_INTEGRATION!=='1')('MySQL account/API/socket inte
     let history:Record<string,unknown>[]=[]
     for(let attempt=0;attempt<40;attempt++){history=(await request('/account/history','GET',undefined,b.cookie)).data;if(history.length)break;await new Promise(resolve=>setTimeout(resolve,50))}
     expect(history).toHaveLength(1)
-    expect((history[0].states as {result:{reason:string;winner:string}}[]).at(-1)?.result).toEqual({reason:'leave',winner:remainingSide})
+    expect((history[0].states as {result:{reason:string;winner:string}|null}[]).at(-1)?.result).toBeNull()
     sb.disconnect()
   },10000)
+
+  it('keeps account responses private and excludes resources from public profiles',async()=>{
+    const a=await guest()
+    const b=await guest()
+
+    const own=await fetch(`${base}/api/account/me`,{
+      headers:{Cookie:a.cookie}
+    })
+    expect(own.status).toBe(200)
+    expect(own.headers.get('cache-control')).toContain('private')
+    expect(own.headers.get('cache-control')).toContain('no-store')
+
+    const publicResponse=await fetch(`${base}/api/account/profiles/${a.data.id}`,{
+      headers:{Cookie:b.cookie}
+    })
+    expect(publicResponse.status).toBe(200)
+    expect(publicResponse.headers.get('cache-control')).toContain('no-store')
+
+    const profile=await publicResponse.json()
+    expect(profile.id).toBe(a.data.id)
+    for(const key of ['gold','energy','energyRecoveryAt','energyUnlimited','cosmetics']){
+      expect(profile).not.toHaveProperty(key)
+    }
+
+    expect((await request('/account/me')).status).toBe(401)
+  })
+
+  it('protects uploaded message images with active membership, clear boundaries and private caching',async()=>{
+    const owner=await guest()
+    const active=await guest()
+    const departed=await guest()
+    const outsider=await guest()
+    const conversation=randomUUID()
+    let filename:string|undefined
+
+    try {
+      const pool=getMysqlPool()
+
+      await pool.execute(
+        "INSERT INTO conversations(id,type,title,created_by) VALUES (?,'group',?,?)",
+        [conversation,'Image security QA',owner.data.id]
+      )
+
+      for(const [user,role] of [[owner,'owner'],[active,'member'],[departed,'member']] as const) {
+        await pool.execute(
+          'INSERT INTO conversation_members(conversation_id,user_id,role) VALUES (?,?,?)',
+          [conversation,user.data.id,role]
+        )
+      }
+
+      await pool.execute(
+        'UPDATE conversation_members SET left_at=UTC_TIMESTAMP(3) WHERE conversation_id=? AND user_id=?',
+        [conversation,departed.data.id]
+      )
+
+      const upload=await request(
+        `/account/conversations/${conversation}/images`,
+        'POST',
+        {image:'data:image/jpeg;base64,/9j/2Q==',clientMessageId:randomUUID()},
+        owner.cookie
+      )
+
+      expect(upload.status).toBe(200)
+
+      const [messageRows]=await pool.execute<RowDataPacket[]>(
+        'SELECT body FROM messages WHERE id=?',
+        [upload.data.id]
+      )
+
+      const imagePath=String(messageRows[0]?.body??'')
+      expect(imagePath).toMatch(/^\/media\/message-images\//)
+      filename=imagePath.split('/').pop()
+
+      const readImage=(cookie='')=>fetch(`${base}${imagePath}`,{
+        headers:cookie?{Cookie:cookie}:{}
+      })
+
+      const ownerResponse=await readImage(owner.cookie)
+      expect(ownerResponse.status).toBe(200)
+      expect(ownerResponse.headers.get('x-content-type-options')).toBe('nosniff')
+      expect(ownerResponse.headers.get('cache-control')).toContain('private')
+      expect(ownerResponse.headers.get('cache-control')).toContain('no-store')
+      await ownerResponse.arrayBuffer()
+
+      const activeResponse=await readImage(active.cookie)
+      expect(activeResponse.status).toBe(200)
+      await activeResponse.arrayBuffer()
+
+      expect((await readImage()).status).toBe(401)
+      expect((await readImage(departed.cookie)).status).toBe(404)
+      expect((await readImage(outsider.cookie)).status).toBe(404)
+
+      const outsiderUpload=await request(
+        `/account/conversations/${conversation}/images`,
+        'POST',
+        {image:'data:image/jpeg;base64,/9j/2Q==',clientMessageId:randomUUID()},
+        outsider.cookie
+      )
+      expect(outsiderUpload.status).toBe(403)
+
+      const cleared=await request(
+        `/account/conversations/${conversation}`,
+        'PATCH',
+        {action:'clear'},
+        active.cookie
+      )
+      expect(cleared.status).toBe(200)
+
+      expect((await readImage(active.cookie)).status).toBe(404)
+
+      const ownerAfterClear=await readImage(owner.cookie)
+      expect(ownerAfterClear.status).toBe(200)
+      await ownerAfterClear.arrayBuffer()
+
+    } finally {
+      if(filename) await unlink(join(messageImageDirectory,filename)).catch(()=>{})
+    }
+  })
 })

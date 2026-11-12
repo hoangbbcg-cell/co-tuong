@@ -1,8 +1,9 @@
+import { shareRoomSnapshot } from '../lib/roomSnapshot'
 import { playerNameError } from '../lib/playerName'
 import { readGuestEntry } from '../lib/guestIdentity'
 import { create } from 'zustand'
 import type { ChatMessage, RoomSnapshot } from '../types/room'
-import type { Side } from '../types/game'
+import type { Side, GameState } from '../types/game'
 import { ENERGY_RECOVERY_MS, MAX_ENERGY, recoverEnergy } from '../lib/energy'
 import { DEFAULT_PLAYER_ELO } from '../lib/rankProgression'
 import { createClientId } from '../lib/clientId'
@@ -10,7 +11,7 @@ import { COUNTRY_CODES, readProfileLocation, saveProfileLocation } from '../lib/
 import type { AccountProfile } from '../types/account'
 import { accountApi } from '../services/accountApi'
 
-export type ComputerEngine = 'basic' | 'pikafish'
+export type ComputerEngine = 'basic' | 'pikafish' | 'fairy' | 'pikaJieqi'
 export interface MatchLikeRecord { matchId: string; actorId: string; targetSide: Side }
 
 interface SessionStore {
@@ -51,7 +52,7 @@ interface SessionStore {
   computerDemoQueued: boolean
   customPositionTrial: boolean
   computerEngine: ComputerEngine
-  selectedComputerEngine: 'pikafish'
+  selectedComputerEngine: 'fairy'
   computerLevel: number
   humanSide: Side
   name: string
@@ -66,6 +67,17 @@ interface SessionStore {
   setName: (name: string) => void
   joinLocal: () => void
   enterOnline: (room: RoomSnapshot) => void
+  enterCustomRoom: (room: RoomSnapshot) => void
+  customRoomReturn: boolean
+  /** FEN of the composed position at "Đấu ngay"; the editor restores it when Back returns from the trial. */
+  customPositionSource: string | null
+  /** FEN of the trial board at the moment "Tạo bàn" was pressed; Back from the custom room restores it. */
+  customRoomReturnFen: string | null
+  customReplayReturn: {
+    recordingId: string
+    step: number
+    trialGame: GameState | null
+  } | null
   receiveRoom: (room: RoomSnapshot, playerId?: string) => void
   leave: (notice?: string) => void
   append: (text: string, system?: boolean) => void
@@ -106,7 +118,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     const recovered = recoverEnergy(state.energy, state.energyRecoveryAt, now)
     return { energy: Math.max(0, recovered.energy - 1), energyRecoveryAt: recovered.energyRecoveryAt ?? now + ENERGY_RECOVERY_MS }
   }),
-  screen: 'home', mode: 'local', computerDemo: false, computerDemoQueued: false, customPositionTrial: false, computerEngine: 'basic', selectedComputerEngine: 'pikafish', computerLevel: 2, humanSide: 'red', name: readGuestEntry()?.name ?? 'Picolozz', lobbyOpen: false, room: null, friendshipOverrides: {}, pendingFriendRequests: {}, friendRemovalConfirmationMutedUntil: null, matchLikeRecords: [],
+  screen: 'home', mode: 'local', computerDemo: false, computerDemoQueued: false, customPositionTrial: false, customRoomReturn: false, customPositionSource: null, customRoomReturnFen: null, customReplayReturn: null, computerEngine: 'basic', selectedComputerEngine: 'fairy', computerLevel: 2, humanSide: 'red', name: readGuestEntry()?.name ?? 'Picolozz', lobbyOpen: false, room: null, friendshipOverrides: {}, pendingFriendRequests: {}, friendRemovalConfirmationMutedUntil: null, matchLikeRecords: [],
   messages: [{ id: 'welcome', name: '', text: 'Picolozz đã vào phòng.', system: true }], notice: '',
   setName: name => { if (!playerNameError(name)) set({ name: name.trim().normalize('NFC') }) },
   setFriendship: (name, isFriend) => set(state => ({ friendshipOverrides: { ...state.friendshipOverrides, [name]: isFriend }, pendingFriendRequests: isFriend ? { ...state.pendingFriendRequests, [name]: false } : state.pendingFriendRequests })),
@@ -121,18 +133,20 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
   avatarIndex: 0,
   setAvatarIndex: avatarIndex => set({ avatarIndex }),
   joinLocal: () => {
-    set({ screen: 'game', mode: 'local', testBotId: undefined, testBotGold: undefined, computerDemo: false, computerDemoQueued: false, customPositionTrial: false, computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, room: null, notice: '' })
+    set({ screen: 'game', mode: 'local', testBotId: undefined, testBotGold: undefined, computerDemo: false, computerDemoQueued: false, customPositionTrial: false, customRoomReturn: false, customRoomReturnFen: null, customReplayReturn: null, computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, room: null, notice: '' })
     get().append(`${get().name} đã vào phòng.`, true)
   },
-  enterOnline: room => set({ screen: 'game', room, mode: 'online', testBotId: undefined, testBotGold: undefined, computerDemo: false, computerDemoQueued: false, customPositionTrial: false, lobbyOpen: false, notice: '' }),
+  enterOnline: room => set({ screen: 'game', room, mode: 'online', testBotId: undefined, testBotGold: undefined, computerDemo: false, computerDemoQueued: false, customPositionTrial: false, customRoomReturn: false, customPositionSource: null, customRoomReturnFen: null, customReplayReturn: null, lobbyOpen: false, notice: '' }),
+  enterCustomRoom: room => set({ screen: 'game', room, mode: 'online', testBotId: undefined, testBotGold: undefined, computerDemo: false, computerDemoQueued: false, customPositionTrial: false, customRoomReturn: !!room.customFen, lobbyOpen: false, notice: '' }),
   receiveRoom: (room, playerId) => {
     const state = get()
     if (state.mode !== 'online' || state.room?.id !== room.id) return
     const started = state.room.game.phase !== 'playing' && room.game.phase === 'playing' && room.players.some(player => player.id === playerId)
-    set({ room })
+    const next = shareRoomSnapshot(state.room, room)
+    if (next !== state.room) set({ room: next })
     if (started && !get().account) get().consumeEnergy()
   },
-  leave: (notice = '') => set({ screen: 'home', room: null, mode: 'local', testBotId: undefined, testBotGold: undefined, computerDemo: false, computerDemoQueued: false, customPositionTrial: false, computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, notice }),
+  leave: (notice = '') => set({ screen: 'home', room: null, mode: 'local', testBotId: undefined, testBotGold: undefined, computerDemo: false, computerDemoQueued: false, customPositionTrial: false, customRoomReturn: false, customReplayReturn: null, customRoomReturnFen: null, computerEngine: 'basic', humanSide: 'red', lobbyOpen: false, notice }),
   append: (text, system = false) => set(state => ({ messages: [...state.messages, {
     id: createClientId(), name: system ? '' : state.name, text: text.trim().slice(0, 300), system,
   }].slice(-100) })),

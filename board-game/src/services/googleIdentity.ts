@@ -1,5 +1,5 @@
 interface GoogleIdentity {
-  initialize(options:{client_id:string;nonce:string;auto_select:boolean;ux_mode:'popup';callback:(response:{credential:string})=>void}):void
+  initialize(options:{client_id:string;nonce:string;auto_select:boolean;use_fedcm_for_button:boolean;button_auto_select:boolean;ux_mode:'popup';callback:(response:{credential:string})=>void}):void
   renderButton(container:HTMLElement,options:{type:'standard';theme:'outline';size:'large';text:'signin_with';width:number;locale:string}):void
   disableAutoSelect():void
 }

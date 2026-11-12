@@ -4,7 +4,7 @@ import { getShopAvatarArtwork } from '../../../lib/shopCosmeticArtwork'
 import { AVATAR_COUNT } from '../../../lib/shopCosmetics'
 import { useSessionStore } from '../../../store/sessionStore'
 import type { ReactNode } from 'react'
-import avatarSelectionSprite from '../../../assets/profile/avatar-selection-sprite.png'
+import avatarSelectionSprite from '../../../assets/profile/avatar-selection-sprite.webp'
 import { AVATAR_FRAMES, getAvatarFrame } from '../../../lib/avatarFrames'
 import { AvatarRankBadge } from '../../game/components/AvatarRankBadge'
 import { AvatarFrameOverlay } from '../../game/components/AvatarFrameOverlay'
@@ -12,14 +12,15 @@ import tabFrameIcon from '../../../assets/profile/customization-tab-frame.png'
 import tabAvatarIcon from '../../../assets/profile/customization-tab-avatar.png'
 import tabEffectIcon from '../../../assets/profile/customization-tab-effect.png'
 import tabSkinIcon from '../../../assets/icons/2ddf00c5-60e9-4f2f-a241-07fb7a91a980.png'
-import { buttonInteraction, selectionPalette } from '../../../lib/uiClasses'
+import { buttonInteraction, selectionPalette, customizationListPanel } from '../../../lib/uiClasses'
+import { confirmationCancelButton, confirmationAcceptButton } from '../../../lib/confirmationButtonStyles'
+import { confirmationDialogActions } from '../../../lib/confirmationDialogStyles'
+import { playConfirmationActionSound } from '../../../lib/uiActionSound'
 
 const AVATAR_SPRITE_COLUMN_POSITIONS = [2.78, 26.41, 49.96, 73.55, 97.22]
 const AVATAR_SPRITE_ROW_POSITIONS = [4.2, 48.83, 93.15]
 const AVATAR_DISPLAY_ORDER = [0, 1, 3, 4, 7]
 
-const actionButton = `${buttonInteraction} h-[var(--ui-p-46,46px)] min-w-[var(--ui-p-178,178px)] rounded-[var(--ui-p-10,10px)] border-2 border-[#d29a43] bg-[linear-gradient(135deg,#3f1c0b,#1b0d06)] px-6 text-lg font-bold text-[#ffe4a3] shadow-[inset_0_0_0_2px_#5c2c11,0_2px_4px_#100602] hover:brightness-110`
-const selectedButton = `${buttonInteraction} h-[var(--ui-p-46,46px)] min-w-[var(--ui-p-208,208px)] rounded-[var(--ui-p-10,10px)] border-2 border-[#ffe08b] bg-[linear-gradient(180deg,#ffeaa7,#f1ae43)] px-6 text-lg font-bold text-[#492007] shadow-[inset_0_0_0_2px_#fff6c7,inset_0_-3px_0_#d38325,0_0_10px_#f9b34299] hover:brightness-105`
 const selectedTabSurface = 'bg-[linear-gradient(145deg,#6c170b,#2b0b05)]'
 
 function LockIcon() {
@@ -65,7 +66,7 @@ export function AvatarCustomization({ elo = 1000, onCancel, onUse, previewPanel,
   const selectionApplied = appliedSelection?.avatarIndex === draftAvatarIndex && appliedSelection.frameIndex === draftFrameIndex
 
   return <div className="flex min-h-0 flex-1 flex-col gap-2 text-[#f8dea6]">
-    <section aria-label="Xem trước avatar" className="relative isolate grid h-[var(--ui-p-190,190px)] shrink-0 grid-cols-[0.82fr_1fr] gap-3 rounded-[var(--ui-p-10,10px)] compact:h-[var(--ui-p-270,270px)] compact:grid-cols-[var(--ui-p-180,180px)_minmax(0,1fr)]">
+    <section aria-label="Xem trước avatar" className="relative isolate grid min-h-[var(--ui-p-190,190px)] desktop:-mb-[12px] shrink-0 grid-cols-[0.82fr_1fr] gap-3 rounded-[var(--ui-p-10,10px)] compact:h-[var(--ui-p-270,270px)] compact:grid-cols-[var(--ui-p-180,180px)_minmax(0,1fr)]">
       <div className="relative flex h-[var(--ui-p-188,188px)] min-h-0 shrink-0 self-center -translate-y-[var(--ui-p-18,18px)] flex-col items-center justify-center compact:h-full compact:self-stretch compact:translate-y-0 compact:justify-start compact:pt-1">
         <div className="relative h-[var(--ui-p-183,183px)] w-[var(--ui-p-136,136px)] shrink-0 compact:h-[var(--ui-p-240,240px)] compact:w-[calc(var(--ui-p-128,128px)*1.25)]">
           <span className="absolute top-0 left-0 grid size-[var(--ui-p-136,136px)] place-items-center compact:size-[calc(var(--ui-p-128,128px)*1.25)]">
@@ -83,6 +84,7 @@ export function AvatarCustomization({ elo = 1000, onCancel, onUse, previewPanel,
         { label: 'Skin', icon: 'skin' as const },
         { label: 'Hiệu ứng', icon: 'effect' as const },
       ].map(tab => <button key={tab.icon} type="button" onClick={() => {
+        playConfirmationActionSound()
         if (activeTab !== tab.icon) {
           if (tab.icon === 'avatar') setDraftAvatarIndex(selectedAvatarIndex)
           if (tab.icon === 'frame') setDraftFrameIndex(selectedFrameIndex)
@@ -93,31 +95,31 @@ export function AvatarCustomization({ elo = 1000, onCancel, onUse, previewPanel,
       </button>)}
     </nav>
 
-    {activeTab === 'avatar' ? <div aria-label="Chọn avatar đã sở hữu" className="grid min-h-0 flex-1 grid-cols-5 grid-rows-[repeat(3,calc((100%-16px)/3))] auto-rows-[calc((100%-16px)/3)] gap-2 overflow-y-auto rounded-[var(--ui-p-10,10px)] border border-[#9f6025] bg-[#1c0d07aa] p-2 shadow-[inset_0_0_12px_#0d0503] compact:grid-cols-4 compact:grid-rows-[repeat(3,max-content)] compact:auto-rows-max compact:content-start compact:gap-3 compact:p-3">
-      {availableAvatars.map(avatarIndex => <button key={`avatar-${avatarIndex}`} type="button" aria-label={`Chọn avatar nhân vật ${avatarIndex + 1}`} aria-pressed={draftAvatarIndex === avatarIndex} onClick={() => setDraftAvatarIndex(avatarIndex)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] compact:aspect-square border-2 ${draftAvatarIndex === avatarIndex ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
+    {activeTab === 'avatar' ? <div aria-label="Chọn avatar đã sở hữu" className={`grid min-h-0 flex-1 grid-cols-5 grid-rows-[repeat(3,calc((100%_-_16px)/3))] auto-rows-[calc((100%_-_16px)/3)] gap-2 overflow-y-auto ${customizationListPanel} p-2 compact:grid-cols-4 compact:grid-rows-[repeat(3,max-content)] compact:auto-rows-max compact:content-start compact:gap-3 compact:p-3`}>
+      {availableAvatars.map(avatarIndex => <button key={`avatar-${avatarIndex}`} data-ui-tab-sound type="button" aria-label={`Chọn avatar nhân vật ${avatarIndex + 1}`} aria-pressed={draftAvatarIndex === avatarIndex} onClick={() => setDraftAvatarIndex(avatarIndex)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] compact:aspect-square border-2 ${draftAvatarIndex === avatarIndex ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
         <span className="block h-[calc(100%-var(--ui-p-8,8px))] max-w-full aspect-square overflow-hidden rounded-full compact:h-auto compact:w-[calc(100%-var(--ui-p-8,8px))]">
           <AvatarPortrait avatarIndex={avatarIndex} className={`size-full rounded-full ${avatarIndex < 15 ? 'scale-[1.12]' : ''}`} />
         </span>
         {draftAvatarIndex === avatarIndex && <SelectionCornerGlints />}
         {selectedAvatarIndex === avatarIndex && <span aria-hidden="true" className="absolute right-1 bottom-1 grid size-6 place-items-center rounded-full border-2 border-[#d4f387] bg-[#285a24] text-base font-bold leading-none text-[#eaffb5] shadow-[0_1px_3px_#170c04]">✓</span>}
       </button>)}
-    </div> : activeTab === 'frame' ? <div aria-label="Chọn khung avatar" className="grid min-h-0 flex-1 grid-cols-4 grid-rows-[repeat(4,calc((100%_-_var(--ui-p-24,24px))/4))] auto-rows-[calc((100%_-_var(--ui-p-24,24px))/4)] gap-2 overflow-y-auto rounded-[var(--ui-p-10,10px)] border border-[#9f6025] bg-[#1c0d07aa] p-2 shadow-[inset_0_0_12px_#0d0503] compact:grid-cols-4 compact:grid-rows-[repeat(4,calc((100%_-_var(--ui-p-36,36px))/4))] compact:auto-rows-[calc((100%_-_var(--ui-p-36,36px))/4)] compact:gap-3 compact:overflow-y-auto compact:p-3">
-      {AVATAR_FRAMES.map((frame, index) => ({ frame, index })).filter(({ index }) => index < 4 || (cosmetics ?? []).some(item => item.kind === 'frame' && item.code === `frame-${index}`)).map(({ index }) => <button key={`frame-${index}`} type="button" aria-label={AVATAR_FRAMES[index].label} aria-pressed={draftFrameIndex === index} onClick={() => setDraftFrameIndex(index)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] border-2 ${draftFrameIndex === index ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
+    </div> : activeTab === 'frame' ? <div aria-label="Chọn khung avatar" className={`grid min-h-0 flex-1 grid-cols-5 grid-rows-[repeat(3,calc((100%_-_16px)/3))] auto-rows-[calc((100%_-_16px)/3)] gap-2 overflow-y-auto ${customizationListPanel} p-2 compact:grid-cols-4 compact:grid-rows-[repeat(3,max-content)] compact:auto-rows-max compact:content-start compact:gap-3 compact:overflow-y-auto compact:p-3`}>
+      {AVATAR_FRAMES.map((frame, index) => ({ frame, index })).filter(({ index }) => index < 4 || (cosmetics ?? []).some(item => item.kind === 'frame' && item.code === `frame-${index}`)).map(({ index }) => <button key={`frame-${index}`} data-ui-tab-sound type="button" aria-label={AVATAR_FRAMES[index].label} aria-pressed={draftFrameIndex === index} onClick={() => setDraftFrameIndex(index)} className={`${buttonInteraction} relative grid min-h-0 min-w-0 place-items-center overflow-hidden rounded-[var(--ui-p-9,9px)] compact:aspect-square border-2 ${draftFrameIndex === index ? `${selectionPalette.selected.border} ${selectionPalette.selected.surface} ${selectionPalette.selected.glow}` : `${selectionPalette.unselected.border} ${selectionPalette.unselected.surface}`}`}>
           <span className="absolute inset-0 grid place-items-center [container-type:size]"><span className="relative aspect-square w-[min(77.1cqw,77.1cqh)]"><AvatarFrameOverlay src={AVATAR_FRAMES[index].image} /></span></span>
           {draftFrameIndex === index && <SelectionCornerGlints />}
           {selectedFrameIndex === index && <span aria-hidden="true" className="absolute right-1 bottom-1 grid size-6 place-items-center rounded-full border-2 border-[#d4f387] bg-[#285a24] text-base font-bold leading-none text-[#eaffb5] shadow-[0_1px_3px_#170c04]">✓</span>}
         </button> )}
-    </div> : <div className="grid min-h-0 flex-1 place-items-center compact:rounded-[var(--ui-p-10,10px)] compact:border compact:border-[#9f6025] compact:bg-[#1c0d07aa] compact:p-3">
-      <p className="hidden text-center font-cormorant text-[length:var(--ui-p-30,30px)] text-[#dcb777] compact:block">{activeTab === 'skin' ? 'Chưa có skin' : 'Chưa có hiệu ứng'}</p>
+    </div> : <div className="grid min-h-0 flex-1 place-items-center rounded-[var(--ui-p-10,10px)] border border-[#9f6025] bg-[#1c0d07aa] p-3">
+      <p className="text-center font-cormorant text-[length:var(--ui-p-30,30px)] text-[#dcb777]">{activeTab === 'skin' ? 'Chưa có skin' : 'Chưa có hiệu ứng'}</p>
     </div>}
 
-    <footer className="flex h-[var(--ui-p-50,50px)] shrink-0 items-center justify-center gap-4 compact:h-[var(--ui-p-76,76px)] compact:gap-3">
-      <button type="button" onClick={onCancel} className={`${actionButton} compact:h-[var(--ui-p-56,56px)] compact:min-w-[var(--ui-p-150,150px)] compact:px-4 compact:text-xl`}>Hủy</button>
+    <footer className={`${confirmationDialogActions} mx-auto mt-0! max-w-[360px] shrink-0 gap-[12px]! [&_button]:h-[44px]! [&_button]:py-[8px]! [&_button]:text-[18px]! [&_button]:leading-[24px]! compact:max-w-[280px] compact:gap-[10px]! compact:[&_button]:h-[36px]! compact:[&_button]:py-[6px]! compact:[&_button]:text-[16px]! compact:[&_button]:leading-[20px]!`}>
+      <button type="button" onClick={onCancel} className={confirmationCancelButton}>Hủy</button>
       <button type="button" aria-disabled={selectionApplied} onClick={() => {
         if (selectionApplied) return
         onUse(draftAvatarIndex, draftFrameIndex)
         setAppliedSelection({ avatarIndex: draftAvatarIndex, frameIndex: draftFrameIndex })
-      }} className={`${selectedButton} compact:h-[var(--ui-p-56,56px)] compact:min-w-[var(--ui-p-170,170px)] compact:px-4 compact:text-xl`} style={{ filter: selectionApplied ? 'brightness(0.65)' : undefined }}>Sử dụng</button>
+      }} className={confirmationAcceptButton} style={{ filter: selectionApplied ? 'brightness(0.65)' : undefined }}>Sử dụng</button>
     </footer>
   </div>
 }

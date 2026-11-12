@@ -11,6 +11,9 @@ Mỗi ý tưởng có một file Markdown trong nhóm phù hợp: `gameplay/`, `
 ## Làm sau
 
 - [Nhiệm vụ và Hòm thư trên Home](ui/home-nhiem-vu-hom-thu.md) — bổ sung hai mục bên phải Home; ghi nhận 2026-10-24, chưa triển khai.
+- [Theo dõi người chơi và thông báo Luyện cờ](social/theo-doi-nguoi-choi-va-thong-bao-luyen-co.md) — theo dõi trong Bạn bè và nhận thông báo hoạt động trong Luyện cờ; ghi nhận 2026-10-28, chưa triển khai.
+- [Bộ sưu tập đủ bộ và dấu ấn](social/bo-suu-tap-bo-do-va-dau-an.md) — sưu tập đủ bộ avatar/khung/hiệu ứng/skin để nhận dấu ấn hồ sơ; ghi nhận 2026-10-28, chưa triển khai.
+- [Mở rộng phần Thông tin hồ sơ](ui/thong-tin-ho-so-mo-rong.md) — hiển thị skin, ghi chú cá nhân và liên kết mạng xã hội; ghi nhận 2026-10-28, chưa triển khai.
 
 ## Ý tưởng tương lai
 

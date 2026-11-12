@@ -1,4 +1,5 @@
-﻿import { expect, it } from 'vitest'
+import { MATCH_INTRO_MS } from '../src/game/moves/actions'
+import { expect, it } from 'vitest'
 import { RoomRepository } from '../server/repositories/roomRepository'
 import { RoomService } from '../server/services/roomService'
 it('archives for late spectators and retains players through queue rotation', () => {
@@ -7,7 +8,7 @@ it('archives for late spectators and retains players through queue rotation', ()
   const { id } = service.create('Saved')
   service.join(id, 'red', 'Red'); service.join(id, 'black', 'Black')
   service.command('red', { type: 'ready' }); service.command('black', { type: 'ready' })
-  now = 1300
+  now = MATCH_INTRO_MS
   service.command('red', { type: 'move', move: { from: { row: 6, col: 0 }, to: { row: 5, col: 0 } } })
   service.join(id, 'viewer', 'Viewer')
   service.command('viewer', { type: 'join-queue' })
@@ -17,7 +18,10 @@ it('archives for late spectators and retains players through queue rotation', ()
   expect(recording.states[0].board[6][0]?.side).toBe('red')
   expect(recording.states[1].board[5][0]?.side).toBe('red')
   expect(recording.states[1].phase).toBe('finished')
-  now += 3000; service.tick()
+  service.command('red', { type: 'result-presentation-complete', matchId: recording.id })
+  service.command('black', { type: 'result-presentation-complete', matchId: recording.id })
+  now += 5000; service.tick()
+  now += 2000; service.tick()
   expect(room.game.phase).toBe('ready')
   expect(room.lastCompletedMatch?.blackName).toBe('Black')
   expect(room.lastCompletedMatch?.id).toBe(recording.id)
@@ -31,11 +35,11 @@ it('keeps the real clock balances at recorded move boundaries', () => {
   const room = service.create('Recorded clocks')
   service.join(room.id, 'red', 'Red'); service.join(room.id, 'black', 'Black')
   service.command('red', { type: 'ready' }); service.command('black', { type: 'ready' })
-  now = 2300
+  now = MATCH_INTRO_MS + 1000
   service.command('red', { type: 'move', move: { from: { row: 6, col: 0 }, to: { row: 5, col: 0 } } })
-  now = 4300
+  now = MATCH_INTRO_MS + 3000
   service.command('black', { type: 'move', move: { from: { row: 3, col: 0 }, to: { row: 4, col: 0 } } })
-  now = 5300
+  now = MATCH_INTRO_MS + 4000
   const finished = service.command('red', { type: 'resign' })
   const states = finished.lastCompletedMatch!.states
   expect(states[0].remainingTime).toEqual({ red: 600000, black: 600000 })

@@ -31,6 +31,7 @@ export class PikafishService {
   }
 
   async move(input: unknown, signal?: AbortSignal): Promise<Move> {
+    const requestedAt = performance.now()
     if (!input || typeof input !== 'object' || !('moves' in input) || !Array.isArray(input.moves) || input.moves.length > 500 || !('remainingMs' in input) || typeof input.remainingMs !== 'number' || !Number.isFinite(input.remainingMs) || input.remainingMs <= 0 || input.remainingMs > 1800000) {
       throw new PikafishError('Dữ liệu ván đấu không hợp lệ (tối đa 500 nước).', 400)
     }
@@ -62,6 +63,13 @@ export class PikafishService {
       if (level !== 10 || typeof input.thinkMs !== 'number' || !Number.isInteger(input.thinkMs) || input.thinkMs < 100 || input.thinkMs > 2500) throw new PikafishError('Thời gian tính không hợp lệ.', 400)
       profile = { ...baseProfile, search: { type: 'movetime', value: input.thinkMs }, maxMoveTime: input.thinkMs }
     }
+    let responseDeadline: number | undefined
+    if ('responseBudgetMs' in input) {
+      if (!('thinkMs' in input) || typeof input.responseBudgetMs !== 'number' || !Number.isInteger(input.responseBudgetMs) || input.responseBudgetMs < 100 || input.responseBudgetMs > 2500) throw new PikafishError('Thời gian phản hồi không hợp lệ.', 400)
+      responseDeadline = requestedAt + input.responseBudgetMs
+      // Short hints avoid the large playing-engine hash/thread initialization cost.
+      profile = { ...profile, threads: 1, hash: 16 }
+    }
     const allowed: string[] = []
     let hasForbidden = false
     game.board.forEach((rank, row) => rank.forEach((piece, col) => {
@@ -73,7 +81,7 @@ export class PikafishService {
     }))
     if (hasForbidden && !allowed.length) throw new PikafishError('Không còn nước đi được phép theo luật chống lặp.')
     const weights = PIKAFISH_MOVE_WEIGHTS[level]
-    const result = await this.run(history, profile, input.remainingMs, signal, hasForbidden ? allowed : undefined, Math.min(weights.length, allowed.length), initialFen)
+    const result = await this.run(history, profile, input.remainingMs, signal, hasForbidden ? allowed : undefined, Math.min(weights.length, allowed.length), initialFen, responseDeadline)
     let selected = result.bestmove
     if (level < 10) {
       const candidates = legalCandidates(game, result.candidates)
@@ -88,7 +96,7 @@ export class PikafishService {
     return move
   }
 
-  private run(moves: string[], profile: PikafishLevelProfile, remainingMs: number, signal?: AbortSignal, searchMoves?: string[], candidateCount = 1, initialFen?: string): Promise<SearchResult> {
+  private run(moves: string[], profile: PikafishLevelProfile, remainingMs: number, signal?: AbortSignal, searchMoves?: string[], candidateCount = 1, initialFen?: string, responseDeadline?: number): Promise<SearchResult> {
     if (signal?.aborted) return Promise.reject(new PikafishError('Đã hủy lượt máy.', 499))
     if (!existsSync(this.binary) || !existsSync(this.evalFile)) return Promise.reject(new PikafishError('Chưa cài engine Ông Hoàng/NNUE trên máy chủ. Xem engines/pikafish/README.md.'))
     if (this.children.size >= 2) return Promise.reject(new PikafishError('Ông Hoàng đang bận. Vui lòng thử lại.', 429))
@@ -140,7 +148,11 @@ export class PikafishService {
             child.stdin.write([...commands, 'ucinewgame', 'isready', ''].join('\n'))
           } else if (stage === 'ready' && line === 'readyok') {
             stage = 'search'
-            const search = profileSearch(profile, remainingMs)
+            // Hint budgets include reconstruction, UCI startup and NNUE loading.
+            // Always allow a minimal search to obtain a real, validated bestmove.
+            const budget = responseDeadline === undefined ? undefined : Math.max(1, Math.floor(responseDeadline - performance.now() - 250))
+            const searchProfile: PikafishLevelProfile = budget === undefined ? profile : { ...profile, search: { type: 'movetime', value: budget }, maxMoveTime: budget }
+            const search = profileSearch(searchProfile, remainingMs)
             child.stdin.write(`position ${initialFen ? `fen ${initialFen}` : 'startpos'}${moves.length ? ` moves ${moves.join(' ')}` : ''}\n${search.command}${searchMoves ? ` searchmoves ${searchMoves.join(' ')}` : ''}\n`)
             searchDeadline = setTimeout(() => { if (!settled) child.stdin.write('stop\n') }, search.stopAfterMs)
           } else if (stage === 'search') {

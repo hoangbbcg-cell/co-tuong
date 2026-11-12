@@ -19,14 +19,17 @@ const initial = { game: live, seats: 'red-one,black-one' }
 
 it('shows faces for five seconds without restarting for repeated snapshots', () => {
   vi.useFakeTimers()
-  const hook = renderHook(({ game, seats }) => useResultFaces(game, 'room', seats), { initialProps: initial })
+  const complete = vi.fn()
+  const hook = renderHook(({ game, seats }) => useResultFaces(game, 'room', seats, complete), { initialProps: initial })
   hook.rerender({ ...initial, game: finished })
   expect(hook.result.current('red')).toBe('win')
   expect(hook.result.current('black')).toBe('loss')
   act(() => vi.advanceTimersByTime(4999))
   hook.rerender({ ...initial, game: { ...finished, result: { ...finished.result! } } })
   expect(hook.result.current('red')).toBe('win')
+  expect(complete).not.toHaveBeenCalled()
   act(() => vi.advanceTimersByTime(1))
+  expect(complete).toHaveBeenCalledTimes(1)
   expect(hook.result.current('red')).toBeUndefined()
   expect(hook.result.current('black')).toBeUndefined()
 })

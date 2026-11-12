@@ -65,6 +65,29 @@ export class AccountRepository {
       return id
     })
   }
+  async claimFreeEnergy(id: string): Promise<{ energy: number; granted: boolean }> {
+    return transaction(async c => {
+      const resource = await this.resources(id, c)
+      if (resource.energy >= 5) {
+        return { energy: resource.energy, granted: false }
+      }
+
+      const energy = resource.energy + 1
+      const result = await change(
+        'UPDATE user_resources SET energy=?,energy_recovery_at=IF(?<5,COALESCE(energy_recovery_at,DATE_ADD(UTC_TIMESTAMP(3),INTERVAL 7 MINUTE)),NULL),version=version+1 WHERE user_id=? AND energy<5',
+        [energy, energy, id], c,
+      )
+      if (result.affectedRows !== 1) {
+        throw new Error('Energy balance changed')
+      }
+
+      await this.ledger(
+        c, id, 'energy', 1, 'free_energy_no_ads',
+        `free-energy:${id}:${randomUUID()}`,
+      )
+      return { energy, granted: true }
+    })
+  }
   async consumeDemoEnergy(id:string,key:string) {
     await transaction(async c=>{
       if(await this.hasUnlimitedEnergy(id,c))return
@@ -79,7 +102,7 @@ export class AccountRepository {
   async profile(id: string): Promise<AccountProfile | null> {
     return transaction(async c => {
       const r = await rows(`SELECT CAST(id AS CHAR) id,CAST(public_id AS CHAR) publicId,display_name displayName,
-        linked_at IS NOT NULL linked,name_changed_at IS NOT NULL renamed,avatar_code avatarCode,avatar_frame_code avatarFrameCode,
+        linked_at IS NOT NULL linked,name_changed_at IS NOT NULL renamed,avatar_code avatarCode,avatar_frame_code avatarFrameCode,hovang_watermark_control hovangWatermarkControl,ai_controls_control aiControlsControl,
         country_code countryCode,province_code provinceCode,province_name provinceName,ward_code wardCode,ward_name wardName,
         location_set_at IS NOT NULL locationSet FROM users WHERE id=? AND status='active'`, [id], c)
       if (!r[0]) return null
@@ -90,12 +113,27 @@ export class AccountRepository {
         (SELECT COUNT(*) FROM match_likes l JOIN match_players p ON p.match_id=l.match_id AND p.side=l.target_side WHERE p.user_id=?) likes`,[id,id,id,id],c)
       const cosmetics = await rows('SELECT kind,code FROM user_cosmetics WHERE user_id=?', [id], c)
       const publicId=String(r[0].publicId)
-      return { ...r[0], cosmetics, id:String(r[0].id), publicId, energyUnlimited:hasUnlimitedEnergyPublicId(publicId), linked:Number(r[0].linked)===1,renamed:Number(r[0].renamed)===1,locationSet:Number(r[0].locationSet)===1,...resource, stats,friends:Number(counts[0].friends),followers:Number(counts[0].followers),likes:Number(counts[0].likes) } as AccountProfile
+      return { ...r[0], hovangWatermarkControl:Number(r[0].hovangWatermarkControl)===1, aiControlsControl:Number(r[0].aiControlsControl)===1, cosmetics, id:String(r[0].id), publicId, energyUnlimited:await this.hasUnlimitedEnergy(id,c), linked:Number(r[0].linked)===1,renamed:Number(r[0].renamed)===1,locationSet:Number(r[0].locationSet)===1,...resource, stats,friends:Number(counts[0].friends),followers:Number(counts[0].followers),likes:Number(counts[0].likes) } as AccountProfile
     })
   }
   async hasUnlimitedEnergy(id:string,c?:PoolConnection):Promise<boolean> {
-    const result=await rows('SELECT CAST(public_id AS CHAR) publicId FROM users WHERE id=?',[id],c)
-    return !!result[0]&&hasUnlimitedEnergyPublicId(String(result[0].publicId))
+    const result=await rows(
+      `SELECT CAST(u.public_id AS CHAR) publicId,
+              EXISTS(
+                SELECT 1 FROM energy_subscriptions s
+                WHERE s.user_id=u.id
+                  AND s.unlimited_until>UTC_TIMESTAMP(3)
+              ) AS paidUnlimited
+       FROM users u
+       WHERE u.id=? AND u.status='active'`,
+      [id],
+      c,
+    )
+
+    return !!result[0] && (
+      hasUnlimitedEnergyPublicId(String(result[0].publicId)) ||
+      Number(result[0].paidUnlimited)===1
+    )
   }
   async resources(id: string, c: PoolConnection) {
     const r=await rows('SELECT CAST(gold AS CHAR) gold,energy,energy_recovery_at recovery FROM user_resources WHERE user_id=? FOR UPDATE',[id],c)

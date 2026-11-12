@@ -1,3 +1,5 @@
+import { HovangLoadingOverlay } from '../../components/HovangLoadingOverlay'
+import { ShopScrollPanel } from './ShopScrollPanel'
 import { ShopFilterTab } from './ShopFilterTab'
 import { ShopPurchaseDialog } from './ShopPurchaseDialog'
 import { ShopAvatarPreview } from './ShopAvatarPreview'
@@ -5,8 +7,10 @@ import { ownsCosmetic } from '../../lib/shopCatalog'
 import { getShopAvatarArtwork } from '../../lib/shopCosmeticArtwork'
 import { getAvatarFrame } from '../../lib/avatarFrames'
 import { useDailyShop } from '../../features/lobby/hooks/useDailyShop'
+import { useWeeklyShop } from '../../features/lobby/hooks/useWeeklyShop'
 import purchasedStamp from '../../assets/shop/purchased.png'
 import { useShopPurchase } from '../../features/lobby/hooks/useShopPurchase'
+import { useInviteSentNotice } from '../../features/lobby/components/InviteSentNotice'
 import strategistAvatar from '../../assets/shop/avatars/small/lao-quan-su-128.png'
 import generalAvatar from '../../assets/shop/avatars/small/nam-tuong-quan-128.png'
 import redShopFrame from '../../assets/shop/frames/vien_03_do.png'
@@ -23,10 +27,11 @@ import { homeResourceLayout } from '../../features/lobby/components/homeResource
 import { GameBackIcon } from '../../features/game/components/GameBackIcon'
 import { ResourceAddButton } from '../../features/lobby/components/ResourceAddButton'
 import { ResourceArtwork } from '../../features/lobby/components/ResourceArtwork'
-import { useEffect, useRef, useState } from 'react'
+import { OuterSceneBackdrop } from '../../lib/OuterSceneBackdrop'
+import { useRef, useState } from 'react'
 import background from '../../assets/shop/background.png'
-import nameFrame from '../../assets/player/name-frame.png'
-import resourceFrame from '../../assets/player/name-frame.png'
+import nameFrame from '../../assets/player/name-frame.webp'
+import resourceFrame from '../../assets/player/name-frame.webp'
 import energyIcon from '../../assets/home-actions/energy-icon-v2.png'
 import goldIcon from '../../assets/home-actions/gold-icon-v2.png'
 import wood from '../../assets/backgrounds/wood.svg'
@@ -35,7 +40,7 @@ import { EnergyDialog } from '../../features/lobby/components/EnergyDialog'
 import { useHome } from '../../features/lobby/hooks/useHome'
 import { useSessionStore } from '../../store/sessionStore'
 import { CrispUiImage } from '../../lib/CrispUiImage'
-import { buttonInteraction, gameUtilityButton, shopMobileDialogFrameClass } from '../../lib/uiClasses'
+import { buttonInteraction, gameUtilityButton } from '../../lib/uiClasses'
 import { useHomeLayout } from '../../features/lobby/hooks/useHomeLayout'
 import { getCrispUiLayout } from '../../lib/crispUiRendering'
 
@@ -50,6 +55,7 @@ const shopArtwork: Record<string, string | null> = {
   'frame-6': purpleShopFrame,
 }
 
+
 export function ShopPage() {
   const account = useSessionStore(state => state.account)
   const home = useHome()
@@ -57,32 +63,35 @@ export function ShopPage() {
   const resources = layout.compact ? { resourceWidth: 116, resourceHeight: 56, resourceFrameWidth: 116, resourceFrameHeight: 26, resourceIconHeight: 18 } : homeResourceLayout(layout.scale, false)
   const [tab, setTab] = useState('Tất cả')
   const daily = useDailyShop()
-  const [previewAvatar, setPreviewAvatar] = useState<{ name: string; image: string; kind: 'avatar' | 'frame' } | null>(null)
-  const products = (daily.data?.products ?? []).filter(item => tab === 'Tất cả' || item.kind === (tab === 'Avatar' ? 'avatar' : 'frame')).map(product => ({
+  const weekly = useWeeklyShop()
+  const [market, setMarket] = useState(0)
+  const [previewAvatar, setPreviewAvatar] = useState<{ name: string; image: string; kind: 'avatar' | 'frame'; frameImage?: string } | null>(null)
+  const currentSale = market === 1 ? weekly : daily
+  const products = (currentSale.data?.products ?? []).filter(item => (tab === 'Tất cả' || item.kind === (tab === 'Avatar' ? 'avatar' : 'frame'))).map(product => ({
     ...product,
     image: product.kind === 'frame' ? getAvatarFrame(Number(product.code.replace('frame-', ''))).image : getShopAvatarArtwork(Number(product.code.replace('avatar-', ''))) ?? shopArtwork[product.id],
     avatarIndex: Number(product.code.replace('avatar-', '')),
+    frameImage: undefined,
   }))
-  const [market, setMarket] = useState(0)
   const dailyCountdown = useShopDailyCountdown(market === 0 || market === 1, market === 1 ? 'weekly' : 'daily')
   const marketNames = ['Phiên Chợ Hàng Ngày', 'Cửa Hàng Cao Cấp', 'Sự Kiện']
   const [message, setMessage] = useState('')
-  const insufficientFunds = layout.compact && message === 'Bạn không đủ vàng để mua sản phẩm này.'
-  useEffect(() => {
-    if (!insufficientFunds) return
-    const timer = window.setTimeout(() => setMessage(''), 2000)
-    return () => window.clearTimeout(timer)
-  }, [message, insufficientFunds])
-  const shop = useShopPurchase(setMessage, !layout.compact)
+  const insufficientFundsNotice = useInviteSentNotice()
+  const shop = useShopPurchase(nextMessage => {
+    if (nextMessage === 'Bạn không đủ vàng để mua sản phẩm này.') {
+      setMessage('')
+      insufficientFundsNotice.show('Không đủ tiền')
+    } else setMessage(nextMessage)
+  }, !layout.compact)
   const energyRef = useRef<HTMLDialogElement>(null)
   const back = () => useSessionStore.setState({ screen: 'home' })
-  return <main aria-label="Cửa Hàng" className="fixed inset-0 overflow-hidden bg-[#263a35] font-heading text-[#ffe6b0]">
-    <div data-shop-frame className="absolute top-1/2 left-1/2 isolate flex flex-col overflow-hidden border-[length:var(--ui-p-5,5px)] border-[#80582c] bg-[#1d0c05] shadow-[inset_0_0_0_2px_#efd397,0_0_0_1px_#e1c993,0_8px_30px_#101d18aa]" style={{ ...getCrispUiLayout(layout.scale, layout.width, layout.height), transform: 'translate(-50%, -50%)' }}>
-    <div aria-hidden="true" className="pointer-events-none absolute inset-[var(--ui-p-2,2px)] z-40 border border-[#e3bf78] shadow-[inset_0_0_0_2px_#63472055]" />
+  return <main aria-label="Cửa Hàng" className="fixed inset-0 isolate overflow-hidden bg-[#17251f] font-heading text-[#ffe6b0]">
+    <OuterSceneBackdrop />
+    <div data-shop-frame className="absolute top-1/2 left-1/2 isolate flex flex-col overflow-hidden border-[length:var(--ui-p-5,5px)] border-[#80582c] bg-[#1d0c05] shadow-[0_0_0_7px_#170c07,0_0_52px_18px_#000d,0_8px_30px_#101d18aa]" style={{ ...getCrispUiLayout(layout.scale, layout.width, layout.height), transform: 'translate(-50%, -50%)' }}>
     <CrispUiImage src={background} alt="" className="pointer-events-none absolute inset-0 -z-20 size-full object-cover object-center" />
     <header className="relative z-20 flex h-16 shrink-0 items-center gap-3 bg-transparent px-4 compact:h-[72px] compact:min-h-[72px] compact:flex-nowrap compact:items-start compact:gap-1 compact:px-2 compact:py-2">
       <button type="button" aria-label="Trở về Home" onClick={back} className={`${gameUtilityButton} shrink-0 compact:size-(--mobile-utility-size) compact:[&_svg]:size-(--mobile-utility-icon)`}><GameBackIcon /></button>
-      <h1 className="grid h-12 w-[var(--ui-p-220,220px)] shrink-0 place-items-center bg-[length:100%_100%] bg-center bg-no-repeat px-6 text-2xl font-bold text-[#fff0ce] [text-shadow:0_2px_2px_#120600] compact:h-9 compact:w-[110px] compact:px-2 compact:text-lg" style={{ backgroundImage: `url(${nameFrame})` }}>Cửa Hàng</h1>
+      <h1 className="grid h-12 w-[var(--ui-p-180,180px)] shrink-0 place-items-center bg-[length:100%_100%] bg-center bg-no-repeat px-6 text-2xl font-bold text-[#fff0ce] [text-shadow:0_2px_2px_#120600] compact:h-9 compact:w-[110px] compact:px-2 compact:text-lg" style={{ backgroundImage: `url(${nameFrame})` }}>Cửa Hàng</h1>
       <div className="relative ml-auto shrink-0" style={{ width: resources.resourceWidth, height: resources.resourceHeight }}>
         {[{ name: 'Năng lượng', value: `${home.energy}/5`, icon: energyIcon, run: () => energyRef.current?.showModal() }, { name: 'Vàng', value: String(home.gold), icon: goldIcon, run: () => setMessage('Tính năng bổ sung vàng chưa được hỗ trợ.') }].map((item, index) => <div key={item.name} className="absolute" style={{ width: resources.resourceFrameWidth, height: resources.resourceFrameHeight, left: layout.compact ? 0 : index === 0 ? 0 : resources.resourceWidth - resources.resourceFrameWidth, top: layout.compact ? index * 30 : Math.round((resources.resourceHeight - resources.resourceFrameHeight) / 2) }}>
           <ResourceArtwork src={resourceFrame} alt="" className="pointer-events-none absolute inset-0 size-full" />
@@ -94,7 +103,7 @@ export function ShopPage() {
     </header>
     <div className="relative flex min-h-0 flex-1 compact:flex-col compact:px-2 compact:pb-2">
       <aside aria-label="Khu chợ" className="relative z-10 flex w-[20%] min-w-[220px] shrink-0 flex-col gap-5 border-x-[5px] border-b-[5px] border-[#6e3d1b] bg-[#1d0d08ed] px-4 pt-[7dvh] shadow-[inset_0_0_0_2px_#bc8545,5px_0_12px_#0008] compact:order-2 compact:w-full compact:min-w-0 compact:flex-row compact:gap-2 compact:border-0 compact:bg-[#1d0d08dd] compact:px-0 compact:pt-0 compact:pb-0 compact:shadow-none" style={{ backgroundImage: `linear-gradient(#180a06bb,#180a06dd),url(${wood})` }}>
-        {[{ label: 'Phiên Chợ Hàng Ngày', lines: ['Phiên Chợ', 'Hàng Ngày'] }, { label: 'Cửa Hàng Cao Cấp', lines: ['Cửa Hàng', 'Cao Cấp'] }, { label: 'Sự Kiện', lines: ['Sự Kiện'] }].map((item, index) => <button key={item.label} type="button" aria-label={item.label} onClick={() => { setMarket(index); setTab('Tất cả'); setMessage('') }} aria-pressed={market === index} className="group relative isolate grid h-[102px] min-h-[102px] max-h-[102px] shrink-0 cursor-pointer grid-cols-[36px_minmax(0,1fr)_12px] items-center gap-[8px] border-0 bg-transparent px-[12px] py-2 text-center font-heading text-[clamp(16px,1.5vw,24px)] leading-tight text-[#fff0c4] aria-[pressed=false]:text-[#c89a65] transition-[filter,transform] duration-150 hover:brightness-110 active:translate-y-px active:scale-[0.98] active:brightness-90 disabled:cursor-default disabled:text-[#c89a65] disabled:hover:brightness-100 disabled:active:translate-y-0 disabled:active:scale-100 disabled:active:brightness-100 motion-reduce:transition-none compact:h-16 compact:min-h-16 compact:max-h-none compact:min-w-0 compact:flex-1 compact:grid-cols-[24px_minmax(0,1fr)] compact:gap-1 compact:px-2 compact:text-[14px] compact:leading-[1.15]">
+        {[{ label: 'Phiên Chợ Hàng Ngày', lines: ['Phiên Chợ', 'Hàng Ngày'] }, { label: 'Cửa Hàng Cao Cấp', lines: ['Cửa Hàng', 'Cao Cấp'] }, { label: 'Sự Kiện', lines: ['Sự Kiện'] }].map((item, index) => <button key={item.label} data-ui-selection-sound type="button" aria-label={item.label} onClick={() => { setMarket(index); setTab('Tất cả'); setMessage('') }} aria-pressed={market === index} className="group relative isolate grid h-[102px] min-h-[102px] max-h-[102px] shrink-0 cursor-pointer grid-cols-[36px_minmax(0,1fr)_12px] items-center gap-[8px] border-0 bg-transparent px-[12px] py-2 text-center font-heading text-[clamp(16px,1.5vw,24px)] leading-tight text-[#fff0c4] aria-[pressed=false]:text-[#c89a65] transition-[filter,transform] duration-150 hover:brightness-110 active:translate-y-px active:scale-[0.98] active:brightness-90 disabled:cursor-default disabled:text-[#c89a65] disabled:hover:brightness-100 disabled:active:translate-y-0 disabled:active:scale-100 disabled:active:brightness-100 motion-reduce:transition-none compact:h-16 compact:min-h-16 compact:max-h-none compact:min-w-0 compact:flex-1 compact:grid-cols-[24px_minmax(0,1fr)] compact:gap-1 compact:px-2 compact:text-[14px] compact:leading-[1.15]">
           <CrispUiImage src={market === index ? activeMarketTab : idleMarketTab} alt="" className="pointer-events-none absolute inset-0 -z-10 block size-full" />
           <CrispUiImage src={index === 2 ? giftIcon : market === index ? marketGold : marketBronze} alt="" className="pointer-events-none block size-[36px] object-contain object-center compact:size-6" />
           <span className="flex min-w-0 flex-col items-center justify-center text-center">{item.lines.map(line => <span key={line} className="block whitespace-nowrap">{line}</span>)}</span>
@@ -108,28 +117,29 @@ export function ShopPage() {
         <div role="tablist" aria-label="Loại sản phẩm" className={`${ornatePanel} relative z-10 mx-auto grid h-[var(--ui-p-44,44px)] w-[calc(92%-120px)] shrink-0 grid-cols-3 gap-[20px] rounded-lg p-1 compact:order-3 compact:h-[42px] compact:w-full compact:gap-[6px] compact:rounded-xl compact:p-[5px]`}>
           {['Tất cả', 'Avatar', 'Khung Viền'].map(label => <ShopFilterTab key={label} label={label} selected={tab === label} onClick={() => setTab(label)} />)}
         </div>
-        <div role="tabpanel" aria-label={tab} className="mt-0 flex min-h-0 flex-1 flex-col compact:order-4 overflow-y-auto rounded-lg border border-[#825224] bg-[#1a0c06dc] p-[10px] compact:p-1">
-          {market === 0 && daily.isError ? <div role="alert" className="m-auto text-center text-lg"><p>Không tải được phiên chợ.</p><button type="button" className={`${buttonInteraction} mt-3 rounded border border-[#c99044] px-4 py-2`} onClick={() => void daily.refetch()}>Thử lại</button></div> : market === 0 && (daily.isPending || !daily.data || daily.data.refreshAt <= Date.now()) ? <p role="status" className="m-auto text-lg">Đang cập nhật phiên chợ...</p> : market === 0 ? <div className="grid h-full min-h-0 shrink-0 grid-cols-4 grid-rows-[repeat(2,calc((100%-10px)/2))] auto-rows-[calc((100%-10px)/2)] gap-[10px] compact:grid-cols-3 compact:grid-rows-[repeat(3,calc((100%-8px)/3))] compact:auto-rows-[calc((100%-8px)/3)] compact:gap-1">
+        <ShopScrollPanel label={tab}>
+          {(market === 0 || market === 1) && currentSale.isError ? <div role="alert" className="m-auto text-center text-lg"><p>Không tải được {market === 1 ? 'cửa hàng tuần' : 'phiên chợ'}.</p><button type="button" className={`${buttonInteraction} mt-3 rounded border border-[#c99044] px-4 py-2`} onClick={() => void currentSale.refetch()}>Thử lại</button></div> : (market === 0 || market === 1) && (currentSale.isPending || !currentSale.data || currentSale.data.refreshAt <= Date.now()) ? <div className="relative min-h-32 flex-1"><HovangLoadingOverlay label="Đang cập nhật cửa hàng" /></div> : (market === 0 || market === 1) && products.length === 0 ? <div role="alert" className="m-auto text-center text-lg"><p>Chưa có sản phẩm trong mục này.</p><button type="button" className={`${buttonInteraction} mt-3 rounded border border-[#c99044] px-4 py-2`} onClick={() => void currentSale.refetch()}>Tải lại</button></div> : (market === 0 || market === 1) ? <div className="grid h-full min-h-0 shrink-0 grid-cols-4 grid-rows-[repeat(2,calc((100%-10px)/2))] auto-rows-[calc((100%-10px)/2)] gap-[10px] compact:grid-cols-3 compact:grid-rows-[repeat(3,calc((100%-8px)/3))] compact:auto-rows-[calc((100%-8px)/3)] compact:gap-1">
             {products.map(avatar => <article key={avatar.id} aria-label={avatar.name} className={`${ornatePanel} relative flex min-h-0 flex-col overflow-hidden rounded-lg`}>
               {ownsCosmetic(account, avatar) && <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/60">
                 <CrispUiImage src={purchasedStamp} alt="Đã mua" className="absolute top-1/2 left-1/2 m-0 block h-auto w-[60%] -translate-x-1/2 -translate-y-1/2 border-0 p-0 object-contain" />
               </div>}
-              <button type="button" aria-label={`Xem rõ ${avatar.name}`} onClick={() => avatar.image && setPreviewAvatar({ name: avatar.name, image: avatar.image, kind: avatar.kind })} className="relative flex min-h-0 flex-1 cursor-pointer items-center justify-center border-0 bg-[radial-gradient(ellipse_at_center,#753518,#241006_75%)] p-1 compact:p-1">
-                <div role={avatar.kind === 'avatar' ? 'img' : undefined} aria-label={avatar.kind === 'avatar' ? avatar.name : undefined} className={avatar.kind === 'frame' ? 'aspect-square h-full max-w-full' : 'aspect-square h-full max-w-full overflow-hidden rounded-full'}>{avatar.kind === 'frame' ? <CrispUiImage src={avatar.image ?? ''} alt={avatar.name} className="block size-full object-contain" /> : <AvatarPortrait avatarIndex={avatar.avatarIndex} className={`size-full rounded-full ${avatar.image ? '' : 'scale-[1.12]'}`} />}</div>
+              <button data-ui-selection-sound type="button" aria-label={`Xem rõ ${avatar.name}`} onClick={() => avatar.image && setPreviewAvatar({ name: avatar.name, image: avatar.image, kind: avatar.kind, frameImage: avatar.frameImage })} className="relative flex min-h-0 flex-1 cursor-pointer items-center justify-center border-0 bg-[radial-gradient(ellipse_at_center,#753518,#241006_75%)] p-1 compact:p-1">
+                <div role={avatar.kind === 'avatar' ? 'img' : undefined} aria-label={avatar.kind === 'avatar' ? avatar.name : undefined} className={avatar.kind === 'frame' ? 'aspect-square h-full max-w-full' : 'relative aspect-square h-full max-w-full overflow-hidden rounded-full'}>{avatar.kind === 'frame' ? <CrispUiImage src={avatar.image ?? ''} alt={avatar.name} className="block size-full object-contain" /> : <><AvatarPortrait avatarIndex={avatar.avatarIndex} className={`size-full rounded-full ${avatar.image ? '' : 'scale-[1.12]'} ${market === 1 ? '[&_img]:[image-rendering:-webkit-optimize-contrast]' : ''}`} />{avatar.frameImage && <CrispUiImage src={avatar.frameImage} alt="" className="pointer-events-none absolute inset-0 size-full object-contain" />}</>}</div>
               </button>
               <div className="flex h-10 shrink-0 items-center gap-2 border-t border-[#805021] bg-[#130a04] px-3 py-1 text-xl compact:h-8 compact:gap-1 compact:px-1 compact:text-xs">
                 <ResourceArtwork smooth src={goldIcon} alt="Vàng" className="h-7 w-auto compact:h-3.5" /><span className="font-number tabular-nums">{avatar.price.toLocaleString('vi-VN')}</span>
-                <button type="button" aria-label={avatar.kind === 'frame' ? `Mua ${avatar.name}` : `Mua avatar ${avatar.name}`} onClick={() => shop.open(avatar)} className={`${buttonInteraction} ml-auto rounded border border-[#f4cc74] bg-[linear-gradient(#ffe6a0,#d99a31)] px-3 py-1 font-heading text-base font-bold leading-none text-[#3d1d06] hover:brightness-110 compact:px-1 compact:text-xs`}>Mua</button>
+                <button data-ui-tab-sound type="button" aria-label={avatar.kind === 'frame' ? `Mua ${avatar.name}` : `Mua avatar ${avatar.name}`} onClick={() => shop.open(avatar, market === 1 ? 'weekly' : 'daily')} className={`${buttonInteraction} ml-auto rounded border border-[#f4cc74] bg-[linear-gradient(#ffe6a0,#d99a31)] px-3 py-1 font-heading text-base font-bold leading-none text-[#3d1d06] hover:brightness-110 compact:px-1 compact:text-xs`}>Mua</button>
               </div>
             </article>)}
           </div> : <p className="grid h-full min-h-28 place-items-center text-xl text-[#eac78d]">Chưa có sản phẩm.</p>}
-        </div>
+        </ShopScrollPanel>
       </section>
     </div>
     {shop.selected && <ShopPurchaseDialog name={shop.selected.name} price={shop.selected.price} buying={shop.buying} onCancel={shop.cancel} onConfirm={() => void shop.confirm()} />}
-    {previewAvatar && <ShopAvatarPreview name={previewAvatar.name} image={previewAvatar.image} kind={previewAvatar.kind} onClose={() => setPreviewAvatar(null)} />}
+    {previewAvatar && <ShopAvatarPreview name={previewAvatar.name} image={previewAvatar.image} kind={previewAvatar.kind} frameImage={previewAvatar.frameImage} onClose={() => setPreviewAvatar(null)} />}
     <EnergyDialog dialogRef={energyRef} onUnavailable={() => setMessage('Video và thanh toán chưa được tích hợp.')} />
-    {message && <div role="alert" className={`${insufficientFunds ? 'fixed left-1/2 top-1/2 min-h-[96px] w-[min(320px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 px-5 py-6' + ' ' + shopMobileDialogFrameClass : 'absolute inset-x-4 bottom-5 mx-auto max-w-lg rounded-lg border border-[#bc8545] bg-[#231107] p-4'} z-50 flex items-center gap-4 text-lg`}><span className={insufficientFunds ? 'flex-1 px-4 text-center font-body text-xl font-semibold text-[#ffe5ac] [text-shadow:0_1px_2px_#150904]' : undefined}>{insufficientFunds ? 'Không đủ tiền' : message}</span><button type="button" aria-label="Đóng thông báo" className={`${insufficientFunds ? 'absolute right-1 top-1 text-[#f2ce8d] hover:text-[#fff0ca]' : 'ml-auto'} px-2 text-2xl compact:grid compact:size-11 compact:shrink-0 compact:place-items-center compact:p-0 compact:text-[36px] compact:leading-none`} onClick={() => setMessage('')}>×</button></div>}
+    {message && <div role="alert" className="absolute inset-x-4 bottom-5 z-50 mx-auto flex max-w-lg items-center gap-4 rounded-lg border border-[#bc8545] bg-[#231107] p-4 text-lg"><span>{message}</span><button type="button" aria-label="Đóng thông báo" className="ml-auto px-2 text-2xl compact:grid compact:size-11 compact:shrink-0 compact:place-items-center compact:p-0 compact:text-[36px] compact:leading-none" onClick={() => setMessage('')}>×</button></div>}
+    {insufficientFundsNotice.notice}
     </div>
   </main>
 }

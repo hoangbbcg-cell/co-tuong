@@ -4,7 +4,11 @@ import type { RoomSnapshot } from '../src/types/room'
 
 const db = vi.hoisted(() => ({ status: 'playing', change: vi.fn(), start: vi.fn() }))
 vi.mock('../server/repositories/accountRepository', () => ({
-  AccountRepository: class {},
+  AccountRepository: class {
+    profile = async () => ({ energy: 5, energyRecoveryAt: null, gold: '0' })
+    resources = async () => ({ energy: 5, energyRecoveryAt: null, gold: '0' })
+    hasUnlimitedEnergy = async () => false
+  },
   rows: async (sql: string) => db.status && sql.includes(`'${db.status}'`) ? [{ id: 'match' }] : [],
   change: async (...args: unknown[]) => db.change(...args),
   transaction: vi.fn(),

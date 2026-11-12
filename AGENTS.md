@@ -1,5 +1,21 @@
 # Hướng dẫn làm việc
 
+- 2026-11-10: Đường dẫn công khai máy Cờ Úp /co-up-ong-hoang; alias cũ /jieqi-ai đổi URL hiển thị sang tên mới. Lỗi máy/kết nối hiển thị Ông Hoàng hoặc Cờ Úp Ông Hoàng, không lộ tên phần mềm máy/đường dẫn/mô hình/cấu hình từ lỗi thô. Dùng computerErrorMessage chung cho setup/ván/trial/gợi ý và phản hồi lỗi API máy. Giữ định danh, engine, luật và giấy phép nội bộ.
+
+- 2026-11-10: Khi chủ bật Chặn xếp hàng (queueBlocked), người mới vào luôn là View queued=false dù có 0/1/2 người ngồi, kể cả lời mời từ chủ. Chủ vẫn đưa người lên bằng quản lý; tắt chặn khôi phục vào ghế trống theo luật hiện hành.
+
+- 2026-11-10: Bàn có quyền quản lý (locked hoặc customFen, kể cả Thế cờ riêng không bật khóa) giữ chủ khi chủ xuống View/đổi ghế/hết năng lượng; chỉ chuyển chủ khi thực sự rời phòng. Cho người cuối cùng xuống View và giữ phòng khi cả hai đều View. Không ép viewer không xếp hàng lên khi hết người ngồi. Xếp hàng tự nguyện vẫn FIFO/đủ năng lượng; hết toàn bộ thành viên vẫn xóa. Bàn thường giữ luật cũ. Thay phần tương ứng của quy tắc2026-11-03 bên dưới.
+
+- 2026-11-03: Nút Xuống bàn dùng ảnh user cung cấp tại assets/room-users/stand-up.png, hiển thị đúng vị trí điều khiển hàng chờ cho ghế online cả laptop/mobile; chỉ hiện khi đủ hai ghế đang có người ngồi và chỉ người đang ngồi thấy. Nếu chỉ còn một người, người đó không thể xuống bàn; server từ chối lệnh tương ứng. View giữ Xếp hàng/Thoát hàng. Bấm xuống View queued=false nhưng không rời phòng/socket. Đang playing thì xử thua theo luật rời ghế (result leave), ghi kết quả server trước đổi ghế; sau ván không tạo kết quả lần nữa. Ghế trống ưu tiên queued đủ năng lượng, chủ cũ xuống View chuyển quyền cho người còn trên bàn trước người mới lên. Replay/máy/demo không có nút.
+
+- 2026-11-02: Người đã Sẵn sàng vẫn nhìn thấy số đếm giữa bàn như ghế chưa Sẵn sàng; viewer tiếp tục không nhận số đếm. Cả2Ready vẫn bắt đầu ngay theo server. Dùng ReadyCountdownBadge chung cho Board và popup kết quả: khung nâu gradient/viền vàng, iconđồnghồ+nhãn, số tabular;5giâycuối cam, co theo scale laptop/mobile. Giữ vị trí neo phía trên nút Ready, không đổi deadline/gameplay/audio.
+
+- 2026-11-02: Hai tài khoản có quan hệ bạn bè accepted lúc bắt đầu ván được miễn trừ năng lượng cho cả hai. Backend kiểm tra friendship trong transaction bắt đầu; không ghi debit/ledger năng lượng, không cấp thêm số dư. Chỉ quan hệ accepted, không miễn riêng vì có lời mời. Elo/stat/kết quả và chính sách không thưởng vàng khi đấu bạn bè giữ nguyên. Cặp ngồi đúng bàn được server xác nhận có thể Sẵn sàng ở0năng lượng; người lạ và thao tác chưa xác định đối thủ giữ kiểm tra năng lượng hiện hành.
+
+- 2026-11-02: Sau ván, người ngồi hết năng lượng phải xuống View queued=false kể cả không có hàng chờ; chủ bàn khóa là ngoại lệ luôn giữ ghế khi hết năng lượng, cả khi có người xếp hàng. Người thay vẫn theo FIFO/đủ năng lượng; không đẩy xuống giữa ván. Quy tắc này thay ngoại lệ chủ bàn khóa hết năng lượng phải nhường và giữ người hết năng lượng khi không có hàng trước đó.
+
+- 2026-11-02: User đổi quy tắc presentation online: người khác ra/vào phòng, đổi ghế hoặc lên bàn không ngắt bảng thắng/thua và âm thanh kết quả của người đã đấu. Chỉ chính người đó bấm Sẵn sàng mới dọn kết quả/âm thanh; ván mới hoặc tự rời phòng vẫn dọn vòng đời. Thay phần reset kết quả/audio theo cặp ghế của quy tắc2026-10-22; không đổi luật server/thưởng. Tiếng đếm Sẵn sàng dùng kênh riêng, không bị thao tác/stop tích tắc tự động ngắt.
+
 - 2026-10-23: Bạn bè laptop giữ nguyên giao diện trước lượt đồng bộ Xếp hạng, đã khôi phục riêng qua FriendsDialogFrame nhánh desktop. User khóa laptop; các chỉnh Bạn bè tiếp theo mặc định chỉ mobile nếu không mở laptop rõ.
 
 - 2026-10-22: Nút đóng Xếp hạng/Bạn bè/Lịch sử dùng chung DialogCloseButton. Trên compact vùng bấm72px, dấu56px theo scale dialog; desktop56/42 theo scale; mobile bo góc12px cố định như Xếp hạng và cùng buttonInteraction.
@@ -423,3 +439,5 @@ design system hiện tại đã có giá trị tương ứng.
 
 
 - 2026-10-24: User chốt HOVANG mới thêm chỉ giữ LOCAL, không đưa GitHub; bản GitHub chỉ giữ Pikafish. .gitignore bỏ toàn bộ engines/hovang-*, adapter client/server, tests và tài liệu/build HOVANG. Tích hợp HOVANG trong tracked files (app/session/hooks/UI) vẫn là thay đổi local, phải loại từng hunk khi chuẩn bị commit và kiểm tra staged diff/build snapshot Pikafish-only; không commit các file đó nguyên trạng. Không push task này. Giữ toàn bộ file local, không xóa máy.
+
+- 2026-11-10: Mất kết nối giữa trận giữ ghế 3 phút; đồng hồ thi đấu tiếp tục. Resume thành công phải xóa deadline/mốc disconnect cũ, giữ account-auth/fencing socket; foreground/online thử nối lại và lấy snapshot. Rời chủ động theo luật cũ. Thay mô tả mất kết nối rời ngay hoặc grace60s trước đây.

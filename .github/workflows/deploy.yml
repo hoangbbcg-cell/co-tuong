@@ -1,97 +1,88 @@
-name: Deploy production (manual)
+name: HOVANG production - prepare VPS release
+
 on:
   workflow_dispatch:
     inputs:
       commit:
-        description: Full 40-character master commit SHA with successful push CI
+        description: Full 40-character master SHA with successful CI
         required: true
         type: string
-      rollback_compatible:
-        description: Reviewed this release's data writes as compatible with the previous backend (enable automatic code rollback)
-        type: boolean
-        default: false
+
 permissions:
   contents: read
   actions: read
+
 concurrency:
   group: cotuong-production
   cancel-in-progress: false
+
 jobs:
-  deploy:
+  prepare:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-24.04
     timeout-minutes: 100
     environment: production
+
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout master history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: master
           fetch-depth: 0
           persist-credentials: false
-      - name: Require successful push CI for exact master commit
+
+      - name: Verify requested commit and successful CI
         env:
           GH_TOKEN: ${{ github.token }}
           TARGET: ${{ inputs.commit }}
         run: |
-          set -euo pipefail
-          [[ "$TARGET" =~ ^[a-f0-9]{40}$ ]]
-          git merge-base --is-ancestor "$TARGET" origin/master
-          gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs" \
-            -f head_sha="$TARGET" -f branch=master -f event=push -f status=completed \
-            --jq '.workflow_runs | any(.conclusion == "success")' | grep -qx true
-          if git ls-tree -r --name-only "$TARGET" board-game | grep -E '(^|/)(\.env($|\.)|\.admin-access)' | grep -vE '/\.env\.example$'; then
-            echo 'Refusing release with tracked environment/admin credential files.' >&2
-            exit 1
-          fi
-          git archive --format=tar.gz --output=release.tar.gz "$TARGET" board-game
-          cp board-game/scripts/deploy-vps.sh deploy-vps.sh
-          cp board-game/scripts/deploy-detached.sh deploy-detached.sh
-      - name: Transfer and deploy over verified SSH
-        env:
-          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
-          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_PORT: ${{ secrets.VPS_PORT }}
-          TARGET: ${{ inputs.commit }}
-          ROLLBACK_COMPATIBLE: ${{ inputs.rollback_compatible }}
-        run: |
-          set -euo pipefail
-          [[ "$VPS_HOST" =~ ^[a-zA-Z0-9.-]+$ && "$VPS_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
-          [[ "$VPS_USER" == cotuong_deploy ]] || { echo 'VPS_USER must be cotuong_deploy, not an administrator.' >&2; exit 1; }
-          VPS_PORT="${VPS_PORT:-22}"
-          [[ "$VPS_PORT" =~ ^[0-9]+$ ]]
-          [[ ${#VPS_PORT} -le 5 ]] && (( 10#$VPS_PORT >= 1 && 10#$VPS_PORT <= 65535 ))
-          umask 077
-          mkdir -p ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
-          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-          trap 'rm -f ~/.ssh/deploy_key' EXIT
-          ssh_opts=(-i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15)
-          remote="/home/cotuong_deploy/.cotuong-incoming/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "test \"\$(id -un)\" = cotuong_deploy && test \"\$HOME\" = /home/cotuong_deploy && test ! -L /home/cotuong_deploy/.cotuong-incoming && umask 077 && mkdir -p '$remote'"
-          scp "${ssh_opts[@]}" -P "$VPS_PORT" release.tar.gz deploy-vps.sh deploy-detached.sh "$VPS_USER@$VPS_HOST:$remote/"
-          # Server lock is retained even if this runner disconnects. No automatic cancellation.
-          [[ "$ROLLBACK_COMPATIBLE" == true || "$ROLLBACK_COMPATIBLE" == false ]]
-          # Launch deployment independently of the SSH connection.
-          ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "XDG_RUNTIME_DIR=/run/user/\$(id -u) systemd-run --user --unit=cotuong-deploy-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT} --collect --property=WorkingDirectory=$remote /usr/bin/bash '$remote/deploy-detached.sh' '$remote' '$TARGET' '$ROLLBACK_COMPATIBLE'"
+          set -Eeuo pipefail
 
-          # Poll using short SSH sessions instead of keeping one open.
-          deadline=$((SECONDS + 5400))
-          while true; do
-            if (( SECONDS >= deadline )); then
-              echo "Timed out waiting for deployment. Check VPS before retrying." >&2
-              exit 1
-            fi
-            if result=$(ssh "${ssh_opts[@]}" -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "if test -f '$remote/deploy.exit'; then cat '$remote/deploy.exit'; elif XDG_RUNTIME_DIR=/run/user/\$(id -u) systemctl --user is-active --quiet cotuong-deploy-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.service; then echo RUNNING; else echo STOPPED; fi"); then
-              if [[ "$result" == RUNNING ]]; then
-                sleep 20
-                continue
-              fi
-              [[ "$result" == STOPPED ]] && { echo "Deployment stopped without result." >&2; exit 1; }
-              [[ "$result" =~ ^[0-9]+$ ]] || { echo "Invalid deployment result: $result" >&2; exit 1; }
-              ssh "${ssh_opts[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "tail -n 40 '$remote/deploy-output.log'"
-              exit "$result"
-            fi
-            echo "SSH polling failed; deployment may still be running on VPS."
-            sleep 20
-          done
+          [[ "$TARGET" =~ ^[a-f0-9]{40}$ ]]
+          git cat-file -e "${TARGET}^{commit}"
+          git merge-base --is-ancestor "$TARGET" origin/master
+
+          runs_json="$(gh api \
+            "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${TARGET}&branch=master&event=push&status=completed&per_page=100")"
+
+          jq -e --arg sha "$TARGET" '
+            [.workflow_runs[] | select(
+              .head_sha == $sha and
+              .head_branch == "master" and
+              .event == "push" and
+              .conclusion == "success"
+            )] | length > 0
+          ' <<< "$runs_json" >/dev/null
+
+          git checkout --detach "$TARGET"
+          test "$(git rev-parse HEAD)" = "$TARGET"
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: board-game/package-lock.json
+
+      - name: Build and test immutable VPS release
+        working-directory: board-game
+        env:
+          RELEASE_SHA: ${{ inputs.commit }}
+        run: |
+          set -Eeuo pipefail
+          bash ./ops/vps-new/build-test-release.sh "$RELEASE_SHA"
+
+      - name: Save release artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: hovang-vps-release-${{ inputs.commit }}
+          path: board-game/${{ inputs.commit }}.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
+      # IMPORTANT:
+      # Preparation only. There is deliberately no SSH, SCP,
+      # MySQL migration, systemctl restart or release activation.
+      # Production activation must be added after the backup
+      # and database compatibility gates have been verified
+      # for VPS 103.153.254.184.

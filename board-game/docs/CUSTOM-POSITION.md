@@ -1,5 +1,31 @@
 # Vị trí tùy chỉnh
 
+- 2026-11-08: Quy tắc Back theo người: chỉ chủ phòng giữ luồng Back về bàn trial/thế cờ (useLobby.join.onSuccess chỉ gọi `enterCustomRoom` khi `room.customFen && room.ownerId === socket.id`); người vào phòng custom qua mã phòng (byCode) hoặc mời So tài đi `enterOnline` như phòng thường → Back về Home.
+
+- 2026-11-08: Ván trong phòng thế cờ riêng trừ năng lượng như online, không cộng/trừ Elo và không thưởng vàng (rated=0, gold_reward_eligible=0 lúc start). Phòng thường không đổi.
+
+- 2026-11-08: Cập nhật luồng Back và Đổi bên cùng ngày: Back từ bàn đánh thử (positionTrial) giờ trả về màn xếp quân Vị trí tùy chỉnh (screen 'position') thay Chơi Với Máy; editor mount đọc customPositionSource (thế gốc chụp lúc bấm Đấu ngay trong usePositionEditor.start) để khôi phục đúng thế đã xếp ban đầu, KHÔNG phải thế cờ đang trên bàn đánh thử, rồi clear field. Nút Tạo bàn chụp customRoomReturnFen = positionFen(trial.game) ngay lúc bấm; Back từ phòng custom trả về đúng thế cờ lúc bấm Tạo bàn qua loadPosition trong leaveImmediately. Nút Đổi bên bàn cờ trong phòng custom là lệnh server custom-swap-sides: hai người dùng cùng bị lật, ai cầm màu dưới thì đi quân màu đó. Compact: hai nút Đổi bên/Đi trước dời xuống dưới bàn bên trái (row-start-3), footer nút vàng dời bottom-164→148px. Laptop: cụm Đổi bên/Đi trước nằm dưới người chơi bên trái và to hơn (nút đổi bên 44px, chữ 15px). Mọi bàn đấu điện thoại: Back, chat, Lưu, menu ba gạch và năng lượng hạ 8px (Cờ Tướng bottom 8px, Cờ Úp bottom 0).
+
+- 2026-11-08: Nút Tạo bàn trong bàn thử positionTrial (ReplayControls tạo bàn qua prop onCreateRoom, chỉ áp dụng khi positionTrial) mở dialog Tạo đời phòng online "Thế cờ riêng" từ thế cờ đang dựng: CreateRoomForm nhận sourceFen, ẩn tab variant, giữ đăng ký thời gian/bàn khóa/mật khẩu; submit roomApi.create với customFen=positionFen(trial.board, trial.currentTurn). Server tạo phòng có customFen/customFirstTurn, bắt đầu đúng thế nguồn không bốc thăm lại phe; phòng chỉ vào được qua mã phòng hoặc So tài (không hiện danh sách/Chơi nhanh). Nhập phòng custom qua join → snapshot có customFen → sessionStore.enterCustomRoom; Back trong phòng về đúng bàn đấu positionTrial (customRoomReturn), không về Home. Trong phòng, chủ phòng có hai nút Đổi bên bàn cờ (hiển thị per-client) và Chọn bên đi trước; ván bắt đầu thì disabled tới khi hết ván. Không ảnh hưởng máy/replay/đánh thế đã lưu (không có onCreateRoom cho replay-of-saved). Regression tests/custom-room-source.test.ts 5/5 PASS; typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-11-08: Trong ván đấu Vị trí tùy chỉnh, nút Lưu ván hoạt động và ván lưu tính từ lúc bấm Đấu ngay. GamePage chụp override RecordedMatch từ trial.revision/trial.step (states[0]=thế gốc lúc bắt đầu), startedAt chụp khi vào trial; useMatchSaving nhận override thay vì gameStore.history để lưu được cả khi bàn thử chưa kết thúc. Mỗi bước sinh id mới nên lưu lại được nhiều lần; ván máy thường/replay vẫn không lưu. Regression match-saving-ui4/4 PASS; chưa browser QA.
+
+- 2026-10-28: Theo user, khung ngoài LAPTOP giới hạn chiều ngang canvas trừ240px (lề120px mỗi bên), dùng max-width riêng để không bị CSS canvas ép width100% làm mất lề. Mobile giữ fullwidth; không đổi giới hạn số quân/luật xếp thế.
+
+- 2026-10-28: Theo user, nút Đấu ngay laptop tăng icon11→14cqw và chữ8→9cqw; padding/gap trong thu về7/3cqw để vừa nút. Chiều ngang/chiều cao và mobile giữ nguyên.
+
+- 2026-10-28: User tăng chiều cao riêng nút Đấu ngay laptop thêm khoảng22% (tỷ lệ 440/82→440/100), giữ rộng80%/chữ8cqw; điện thoại không đổi.
+
+- 2026-10-28: Theo user, riêng nút Đấu ngay laptop trong Vị trí tùy chỉnh thu còn80% bề rộng khay, căn giữa; nhãn tăng5.5→8cqw. Điện thoại giữ nguyên.
+
+- 2026-10-28: Theo ảnh user, laptop thay nút Đấu ngay ảnh rồng bằng ComputerActionButton màu đỏ giống nút Đấu ngay ở thiết lập máy; đặt dưới khay như cũ, giữ hành vi bắt đầu/disabled. Điện thoại không đổi.
+
+- 2026-10-28: Theo user, tất cả chế độ dùng Board đều phát âm thanh khai cuộc khi bắt đầu bàn local, tiếng đi/ăn/chiếu theo nước cờ và chiếu bí theo kết quả; áp dụng Chơi với máy, replay và bàn thử. Tua tiến/lùi cũng phát cue phù hợp. Không phát cảnh báo clock khi chế độ không chạy clock. Tôn trọng công tắc Tắt tiếng chung.
+
+- 2026-10-27: Theo user, máy trong Vị trí tùy chỉnh và Đánh thử luôn Fairy mạnh nhất: usePositionEditor chốt computerEngine=fairy/computerLevel10 khi vào, useReplayTrial gọi fairyStockfishApi.move level10 với FEN gốc+history nhánh riêng thay Pikafish/700ms. Cấp Đấu với máy thường giữ lựa chọn1–10; máy trong trial vẫn mặc định tắt, không tự đi khi vào. Giữ cancel/reset/replay/socket cô lập và Gợi ý hiện tại. Replay-trial3/3 PASS xác nhận Fairy10/history/cancel; typecheck/build PASS, dist cập nhật; chưa browser QA.
+
+- 2026-10-26: Theo user, Gợi ý ván máy/từ Vị trí tùy chỉnh dùng thinkMs800/responseBudgetMs800: server trừ validation/UCI startup khỏi ngân sách, dự phòng250ms trả kết quả, riêng hint dùng1thread/hash16MB để giảm khởi tạo; vẫn Pikafishlevel10/bestmove/validatelegal/cancel, không đổi cấu hình máy10cấp. Board arrow z2 dưới piecesz4 (trướcz10), xanh lá#76ad59 theo ảnh, thân22→34/head60→88logical. Đo engine thật ngoài sandbox965/994ms; cold trong sandbox có lần4085ms, chưa đạt bảo đảm tổng0.8s do khởi động/NNUE. Không timeout giả hay nước dự phòng. Hint5/5+Pikafish8/8+inputbudget1/1 PASS; typecheck/build PASS, dist index-h_bvtec1.js xác nhận. Chưa browser QA; backend cần nạp code mới.
+
 - 2026-10-25: Theo user, Back từ trận Vị trí tùy chỉnh chạy session.leave cleanup rồi screen computer thay home; màn xếp thế usePositionEditor.back vốn về computer giữ nguyên. Cả mobile/desktop về Chơi Với Máy, không ảnh hưởng Back online/replay thường. Build/typecheck PASS; dist cập nhật; chưa browser QA.
 
 - 2026-10-25: User đính chính xác nhận reset CHỈ áp dụng nút reset vàng trong bảng ReplayControls đánh thử (ảnh). Hoàn tác xác nhận ở Cài lại màn xếp thế; ReplayControls mở alertdialog portal body giữa viewport tránh scale parent, Hủy giữ trạng thái/Đồng ý practice.reset. Keyboard reset giữ hiện hành. Build/typecheck PASS; dist cập nhật; chưa browser QA.
@@ -62,7 +88,7 @@
 - Khay quân bên phải desktop, cách bàn và mép trong khung ngoài 10px. Quân trong khay không có drop-shadow, quân trên bàn giữ nguyên. Hiện đủ 7 loại mỗi màu theo 5+2 ô, không cuộn riêng khay. Compact xếp theo chiều dọc, cuộn trang khi cần.
 - Chỉ có Xóa quân (thùng rác, xóa tất cả quân trừ Tướng) và Cài lại (mũi tên khôi phục, trở về khai cuộc). Chọn quân trong khay rồi bấm giao điểm để đặt; bấm lại quân đã chọn để về di chuyển, chọn quân trên bàn rồi chọn đích. Chuột phải cũng xóa quân.
 - Khi chỉnh thế, mỗi bên tối đa1 Tướng,2 Sĩ,2 Tượng,2 Mã,2 Xe,2 Pháo,5 Tốt. Quân hết số lượng bị làm mờ và khóa chọn trong khay; sau khi đặt quân cuối cùng, lựa chọn quân tự tắt. Đặt/di chuyển chỉ nhận vị trí có thể tới theo luật: Tướng trong cung; Sĩ đúng5 điểm cung; Tượng ở đúng7 giao điểm có thể tới bên phần sân mình; Tốt không lùi qua hàng xuất phát và chỉ đi ngang sau sông. Cho phép hai Tướng đối mặt khi xếp thế; chỉ báo lỗi và chặn khi Đấu ngay. Xóa quân vẫn cho phép tạo thế dang dở; Đấu ngay tiếp tục kiểm tra đủ Tướng, vị trí, chiếu và nước đi.
-- Đổi bên Đỏ/Đen thay vị trí mã phòng; chọn cả phe người chơi/bên đi trước và hướng bàn. Header: Lưu (đĩa mềm), Tạo từ ảnh (ảnh), Âm thanh, Toàn màn hình. Không có Camera/Bạn bè.
+- Đổi bên Đỏ/Đen thay vị trí mã phòng; chọn cả phe người chơi/bên đi trước và hướng bàn. Header hiện có Âm thanh và Toàn màn hình trên laptop; Tạo bàn cờ từ ảnh đang ẩn trên laptop và điện thoại. Không có Camera/Bạn bè.
 - Nút Đấu ngay dùng ảnh đỏ/kiếm/hai rồng dưới khay quân, cách10px; căn giữa cả cụm khay+nút theo chiều dọc vùng dưới tiện ích. Không hiện nút trên bàn trong trình chỉnh thế.
 - Lưu tải tệp FEN. Chức năng nhận diện ảnh hiện tạm ngưng trên UI; mã xử lý cục bộ được giữ để phát triển tiếp: người dùng chọn giao điểm trên trái/dưới phải, xác định Đỏ ở trên nếu bàn đảo; so khớp chữ/màu với bộ quân hiện tại. Chỉ hỗ trợ ảnh rõ cùng bộ quân/kiểu bàn, không nhận diện tổng quát mọi ảnh chụp cờ. Luôn trả về trình chỉnh sửa, không tự đấu. Giới hạn15MB/32MP, nhường event loop mỗi hàng.
 - Đấu ngay kiểm tra giới hạn số quân, vị trí Tướng/Sĩ/Tượng/Tốt, hai Tướng đối mặt, chiếu bên chưa tới lượt và nước hợp lệ. Quy tắc đặt tại chỗ cũng được dùng ở server khi đọc FEN. Sau đó kiểm tra Pikafish và khởi tạo ván local từ FEN; cấp độ giữ từ màn máy. Không tạo phòng online.
@@ -110,3 +136,34 @@
 
 - 2026-10-16: Đổi bên căn giữa dọc hàng Đỏ/Đen, bỏ offset lên2px; SVG hai mũi tên đối xứng thay glyph để tâm icon trùng tâm vòng.
 - 2026-10-16: Theo yêu cầu bỏ Space trong Vị trí tùy chỉnh (Chơi với máy): chặn Space kích hoạt nút đang focus tại CustomPositionPage và GamePage positionTrial. Không chặn nhập dấu cách trong input/textarea/select/contenteditable; phím khác và Space chuyển chế độ replay giữ nguyên.
+- 2026-10-28: Sau khi engine sẵn sàng và trước khi chuyển vào ván từ Đấu ngay, phát cue `board-entry.mp4`; lỗi/huỷ chuẩn bị engine không phát.
+- 2026-10-28: Âm thanh position-place.mp4 user cung cấp phát khi đặt quân từ khay hoặc chuyển quân tới ô hợp lệ bằng click/kéo thả. Không phát lúc chọn quân, đặt sai vị trí, xóa quân hoặc thả lại ô cũ; tôn trọng Tắt tiếng.
+- 2026-10-28: Tiếng đặt quân chuyển runtime từ MP4 sang WAV PCM cùng track nguồn, cắt113ms im lặng đầu. Editor preload lại khi mở và play handler retry prepare nếu lần tải trước lỗi; không xếp hàng tiếng cũ phát trễ.
+- 2026-10-28: Đính chính theo user: clip mới dùng để bỏ quân khỏi bàn (kéo ra ngoài, chuột phải xóa hoặc Xóa quân); asset runtime đổi tên position-remove.wav. Đặt/chuyển quân dùng tiếng đi quân chuẩn đi quân (2).wav; không phát với thao tác không hợp lệ/chỉ chọn quân/thả lại ô cũ. Xóa nhiều quân phát một lần nếu thực sự có quân bị bỏ.
+
+- 2026-10-28: Theo user, ở Vị trí tùy chỉnh nút Đổi bên Đỏ/Đen phát âm thanh X ui-action-confirmation; công tắc Đi tiên laptop/mobile phát customization-tab.mp4. Cả hai dùng helper chung, tôn trọng muted, không đổi hành vi chọn.
+- Build bị chặn ban đầu do res.locals tham chiếu sai trong Socket.IO middleware; bỏ đúng dòng không hợp lệ (middleware HTTP riêng gán roomCreatorId), sau đó npm.cmd run build PASS, dist/assets/index-CyaaqtrX.js cập nhật. Chưa browser/audio QA.
+
+- 2026-10-28: User báo không nghe âm thanh nút Đổi bên/Đi tiên. Nguyên nhân helper bỏ click khi buffer chưa tải/giải mã; uiActionSound nay chuẩn bị buffer theo yêu cầu và phát sau khi sẵn sàng, hủy request cũ khi có thao tác mới/tắt tiếng, giữ guard nguồn đang phát. Build PASS; dist/assets/index-CwOHFXPE.js cập nhật; chưa browser/audio QA.
+
+- 2026-10-28: User changed global selection/tab audio: every UI location that previously played customization-tab.mp4 now plays ui-action-confirmation.mp4, including tab markers, direct AvatarCustomization tab calls and Đi tiên switch. Existing mute handling/readiness retained; position move/remove/board sounds unaffected. 
+pm.cmd run build PASS, dist/assets/index-wzik3Hsg.js; no browser/audio QA.
+
+- 2026-10-28: Theo user, khôi phục customization-tab.mp4 có chọn lọc cho: mở/sửa Thông tin và Danh hiệu, chọn avatar/viền/skin/hiệu ứng, bút chỉnh trong Đã lưu, tab/tìm/thao tác Bạn bè, danh sách/emoji/đổi tên/ảnh nhóm/nút tích Tin nhắn, tab và nút Mua Cửa hàng, mọi role=switch và nút âm thanh, chọn thời gian bàn/nhanh, cấp và phe Chơi với máy. Marker data-ui-tab-sound, tôn trọng muted và phát sau preload; các vùng khác tiếp tục âm thanh X. Không đổi UI/nghiệp vụ. npm.cmd run build PASS; dist index-BWqCwhvL.js có cả hai asset; chưa browser/audio QA.
+
+- 2026-10-29: Theo user, Đổi bên và công tắc Đi tiên trong Vị trí tùy chỉnh dùng tiếng X (data-ui-selection-sound), trên desktop/compact; marker selection được xét trước role=switch để không phát trùng hoặc bị đổi thành tiếng tab.
+
+- Kiểm chứng thay đổi âm thanh theo yêu cầu 2026-10-29: npm.cmd run build PASS (TypeScript/Vite), dist/assets/index-BLC7QUjs.js cập nhật; chưa browser/audio QA.
+- 2026-10-29: Thiết lập Chơi với máy: hai nút Vị trí tùy chỉnh/Đấu ngay dùng tiếng X. Khi Đấu ngay vào bàn máy Fairy/Pikafish, phát board-entry.wav và tắt intro audio mở trận qua matchIntroEnabled của useMoveSound; tiếng đi quân/ăn/chiếu/chiếu bí giữ nguyên. Vị trí tùy chỉnh vẫn dùng board-entry khi bắt đầu bàn thử như trước.
+- 2026-10-29: Banner Luyện cờ trong thiết lập Chơi với máy cũng dùng tiếng X, cùng hai nút Vị trí tùy chỉnh/Đấu ngay; desktop/mobile đồng bộ.
+
+- 2026-10-29: Theo user, mọi nút Cài lại dùng tiếng đi quân. Hai nút Cài lại laptop/mobile của Vị trí tùy chỉnh gọi reset chung ở usePositionEditor, phát playPositionMoveActionSound một lần; dùng asset đi quân (2).wav đã preload, tuân thủ Tắt tiếng. Không đổi thao tác reset.
+- Kiểm chứng tiếng Cài lại: npm.cmd run build PASS (TypeScript/Vite); dist/assets/index-DoQC6Z7T.js cập nhật; chưa nghe thử browser.
+
+## 2026-11-10 — Tùy chọn Bỏ AI cho tài khoản được cấp quyền
+
+Theo xác nhận user, Bỏ AI là ẩn khung chọn bên máy/hai gạt/hai hình quân rồi thay bằng bộ tua phía dưới. Không phải ẩn danh hiệu hay đổi luật máy. Admin cấp quyền riêng; Cài đặt Home có Bỏ AI/iconAIgạchchéo dưới Bỏ logo. Tùy chọn chỉ áp dụng customPositionTrial (bàn đánh thử mở từ Vị trí tùy chỉnh/Đấu ngay), cả desktop/mobile; mobile đưa Navigation lên tools và bỏ bộ phía dưới, tránh trùng. ReplayControls vẫn giữ callback back/seek, số nước và các nút Tạo bàn/Reset/Đổi bên. Không đổi hook máy/tình trạng máy/shortcut/geometry avatar; Lịch sử và online không bị tùy chọn này thay bố cục.
+
+- 2026-11-11: Sửa Sẵn sàng sau khi kết thúc bàn Vị trí tùy chỉnh: Board gọi trial.reset thay match.start (useGame nhận replay nên start bỏ qua). Khôi phục đúng thế gốc bằng state trial riêng, không ghi gameStore/socket hoặc sửa UI/luật. Regression chiếu bí→reset, máy thường 3 engine qua 3 ván liên tiếp và replay isolation: 4 suite 22/22 PASS; TypeScript PASS. Chưa browser QA/build dist/VPS. Backup .checkpoints/computer-rematch-20261111.
+
+- 2026-11-11 đính chính theo user: Yêu cầu đấu máy là đổi bảng kết quả, không phải báo lỗi. Dùng artwork user gửi ĐỎ THẮNG/ĐEN THẮNG theo game.result.winner cho máy Cờ Tướng/Cờ Úp và positionTrial; không theo thắng/thua của người cầm quân. Online giữ victory/defeat cũ. Tái dùng vòng đời popup/đợi hiệu ứng và Xác nhận, vùng bấm phù hợp ảnh ngang; ảnh màu không có ô thưởng. 43/43 tests 4 suite + TypeScript/diff-check PASS. Đã xem ảnh đỏ sau cắt; chưa browser QA/build dist/deploy. Backup .checkpoints/computer-color-result-20261111.

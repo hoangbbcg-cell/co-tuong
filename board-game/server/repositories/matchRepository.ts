@@ -8,6 +8,11 @@ import { AccountError } from '../errors'
 export interface MatchIdentity { red:string; black:string }
 export class MatchRepository {
   private account=new AccountRepository()
+  async areFriends(first: string, second: string): Promise<boolean> {
+    if (first === second) return false
+    const ids = [first, second].sort((a,b)=>BigInt(a)<BigInt(b)?-1:1)
+    return (await rows("SELECT 1 FROM friendships WHERE user_low_id=? AND user_high_id=? AND status='accepted'", ids)).length > 0
+  }
   async start(id:string,room:RoomSnapshot,users:MatchIdentity) {
     await transaction(async c=>{
       const existing=await rows('SELECT id FROM matches WHERE id=?',[id],c)
@@ -17,18 +22,19 @@ export class MatchRepository {
       const unlimited=new Set<string>()
       for(const user of ids)resources.set(user,await this.account.resources(user,c))
       for(const user of ids)if(await this.account.hasUnlimitedEnergy(user,c))unlimited.add(user)
-      for(const user of ids)if(!unlimited.has(user)&&resources.get(user)!.energy<1)throw new AccountError('Không đủ năng lượng để bắt đầu ván.')
       const friends=await rows("SELECT 1 FROM friendships WHERE user_low_id=? AND user_high_id=? AND status='accepted'",ids,c)
+      for(const user of ids)if(!friends.length&&!unlimited.has(user)&&resources.get(user)!.energy<1)throw new AccountError('Không đủ năng lượng để bắt đầu ván.')
       const invited=(room.goldRewardExcludedPairs??[]).some(pair=>room.players.length===2&&room.players.every(player=>pair.includes(player.id)))
-      const goldEligible=!friends.length&&!invited
+      const customRoom=Boolean(room.customFen)
+      const goldEligible=!customRoom&&!friends.length&&!invited
       await change(`INSERT INTO matches(id,source,variant,status,rated,room_ref,room_name_snapshot,province_snapshot,initial_time_ms,turn_limit_ms,initial_state,gold_reward_eligible,rules_version,rating_rules_version,started_at)
-        VALUES (?,'server_online',?,'playing',1,?,?,?,?,?,?,?,'game-v1','stars-v2',UTC_TIMESTAMP(3))`,[id,room.game.variant??'xiangqi',room.id,room.name,room.province??null,(room.minutes??10)*60000,(room.turnSeconds??60)*1000,JSON.stringify(room.game),Number(goldEligible)],c)
+        VALUES (?,'server_online',?,'playing',?,?,?,?,?,?,?,?,'game-v1','stars-v2',UTC_TIMESTAMP(3))`,[id,room.game.variant??'xiangqi',Number(!customRoom&&friends.length===0),room.id,room.name,room.province??null,(room.minutes??10)*60000,(room.turnSeconds??60)*1000,JSON.stringify(room.game),Number(goldEligible)],c)
       for(const side of ['red','black'] as const) {
-        const user=users[side],profile=await rows('SELECT display_name FROM users WHERE id=?',[user],c)
+        const user=users[side],profile=await rows('SELECT display_name,avatar_code,avatar_frame_code FROM users WHERE id=?',[user],c)
         const stats=await rows('SELECT elo FROM user_game_stats WHERE user_id=? AND variant=? FOR UPDATE',[user,room.game.variant??'xiangqi'],c)
         const elo=Number(stats[0].elo)
-        await change('INSERT INTO match_players(match_id,side,user_id,name_snapshot,elo_before,elo_delta,elo_after) VALUES (?,?,?,?,?,0,?)',[id,side,user,String(profile[0].display_name),elo,elo],c)
-        if(!unlimited.has(user)) {
+        await change('INSERT INTO match_players(match_id,side,user_id,name_snapshot,avatar_code_snapshot,avatar_frame_code_snapshot,elo_before,elo_delta,elo_after) VALUES (?,?,?,?,?,?,?,0,?)',[id,side,user,String(profile[0].display_name),profile[0].avatar_code,profile[0].avatar_frame_code,elo,elo],c)
+        if(!friends.length&&!unlimited.has(user)) {
           const energy=resources.get(user)!.energy-1
           await change('UPDATE user_resources SET energy=?,energy_recovery_at=IF(?<5,COALESCE(energy_recovery_at,DATE_ADD(UTC_TIMESTAMP(3),INTERVAL 7 MINUTE)),NULL),version=version+1 WHERE user_id=?',[energy,energy,user],c)
           await this.account.ledger(c,user,'energy',-1,'online_match_start',`start:${id}:${user}`,id)
@@ -38,7 +44,7 @@ export class MatchRepository {
   }
   async complete(id:string,room:RoomSnapshot,states:GameState[]) {
     await transaction(async c=>{
-      const m=await rows('SELECT status,variant,gold_reward_eligible FROM matches WHERE id=? FOR UPDATE',[id],c)
+      const m=await rows('SELECT status,variant,rated,gold_reward_eligible FROM matches WHERE id=? FOR UPDATE',[id],c)
       if(!m.length||m[0].status!=='playing')return
       const final=states.at(-1)!,result=final.result
       if(!result||final.phase!=='finished')throw new Error('Missing authoritative result')
@@ -48,13 +54,15 @@ export class MatchRepository {
       const userIds=players.map(player=>String(player.userId)).sort((a,b)=>BigInt(a)<BigInt(b)?-1:1)
       const friends=await rows("SELECT 1 FROM friendships WHERE user_low_id=? AND user_high_id=? AND status='accepted'",userIds,c)
       const goldEligible=Number(m[0].gold_reward_eligible)===1&&!friends.length
+       const countsForStats=Number(m[0].rated)===1&&!friends.length
+      const sameRankDelta=randomInt(11,14)
       for(const p of players) {
         const side=p.side as Side,won=result.winner===side,draw=result.winner===null
         const opponent=players.find(x=>x.side!==side)!
         // The persisted policy also freezes Elo for friends/invited pairs, including unfriend mid-game.
-        const delta=goldEligible?ratingDelta(Number(p.elo_before),Number(opponent.elo_before),draw?'draw':won?'win':'loss'):0
+        const delta=goldEligible?ratingDelta(Number(p.elo_before),Number(opponent.elo_before),draw?'draw':won?'win':'loss',sameRankDelta):0
         await change('UPDATE match_players SET elo_delta=?,elo_after=elo_before+? WHERE match_id=? AND side=?',[delta,delta,id,side],c)
-        if(!isDraw) {
+        if(!isDraw&&countsForStats) {
           const stats=await rows('SELECT current_win_streak FROM user_game_stats WHERE user_id=? AND variant=? FOR UPDATE',[String(p.userId),variant],c)
           const streak=won?Number(stats[0].current_win_streak)+1:0
           await change('UPDATE user_game_stats SET elo=elo+?,played_count=played_count+1,win_count=win_count+?,draw_count=draw_count+?,loss_count=loss_count+?,current_win_streak=?,best_win_streak=GREATEST(best_win_streak,?) WHERE user_id=? AND variant=?',[delta,won?1:0,draw?1:0,!draw&&!won?1:0,streak,streak,String(p.userId),variant],c)
@@ -64,7 +72,7 @@ export class MatchRepository {
           await change('UPDATE user_resources SET gold=gold+?,version=version+1 WHERE user_id=?',[gold,String(p.userId)],c)
           await this.account.ledger(c,String(p.userId),'gold',gold,'online_match_win',`win:${id}:${p.userId}`,id)
         }
-        if(!isDraw) {
+        if(!isDraw&&countsForStats) {
           const totals=await rows('SELECT SUM(played_count) played,MAX(best_win_streak) streak FROM user_game_stats WHERE user_id=?',[String(p.userId)],c)
           const honors=await rows("SELECT code,category,criteria FROM honors WHERE category IN ('games','streak') AND active=1",[],c)
           for(const h of honors)if(Number(totals[0][h.category==='games'?'played':'streak'])>=Number(h.criteria.threshold))await change('INSERT INTO user_honors(user_id,honor_code,source_match_id) VALUES (?,?,?) ON DUPLICATE KEY UPDATE user_id=user_honors.user_id',[String(p.userId),String(h.code),id],c)

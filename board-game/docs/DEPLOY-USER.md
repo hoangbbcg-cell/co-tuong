@@ -134,9 +134,39 @@ scp -i "$HOME\.ssh\cotuong_github_deploy" -o IdentitiesOnly=yes scripts/deploy-v
 ssh -i "$HOME\.ssh\cotuong_github_deploy" -o IdentitiesOnly=yes cotuong_deploy@103.9.78.75 'bash /home/cotuong_deploy/.cotuong-incoming/deploy-vps-check.sh --check'
 ```
 
-`--check` xác minh user/HOME, Node22/PATH, quyền đọc/ghi/traverse code/WEB, private state/incoming0700, runtime non-root, adapter root-owned và sudoers từng command. Nó chỉ kiểm service active và gọi `verify-existing`; không chạy stop/start, build, `create-and-verify`, rsync live hay migration. Không in `.env`. Kiểm tra ACL kế thừa ở bước3 vẫn cần vì deploy user không được sudo giả danh runtime/Nginx.
+`--check` xác minh user/HOME, Node22/PATH, quyền đọc/ghi/traverse code/WEB, private state/incoming0700, credential migrator local mode0600, runtime non-root, adapter root-owned và sudoers từng command. Nó chỉ kiểm service active và gọi `verify-existing`; không chạy stop/start, build, `create-and-verify`, rsync live hay migration. Không in `.env`. Kiểm tra ACL kế thừa ở bước3 vẫn cần vì deploy user không được sudo giả danh runtime/Nginx.
 
-## 6. Chuyển GitHub Environment production
+## 6. Xác minh MySQL migrator và lưu credential trên VPS
+
+Không đưa mật khẩu MySQL vào GitHub, workflow, lệnh SSH/SCP hoặc log. Trên VPS, quản trị viên dùng MySQL admin để kiểm tra trạng thái cả hai tài khoản và grants:
+
+```sql
+SELECT user, host, account_locked, password_expired
+FROM mysql.user WHERE user IN ('cotuong_app','cotuong_migrator') ORDER BY user,host;
+SHOW GRANTS FOR 'cotuong_app'@'<host thực tế>';
+SHOW GRANTS FOR 'cotuong_migrator'@'<host thực tế>';
+```
+
+Đảm bảo `cotuong_app` chỉ có `SELECT, INSERT, UPDATE, DELETE`; `cotuong_migrator` cần `SELECT, INSERT, UPDATE, CREATE, ALTER, INDEX, REFERENCES` trên `cotuong.*`. Không cấp global grants, `DROP`, quyền admin hoặc thay host theo phỏng đoán. Không in hoặc chia sẻ password. Nếu account host/grants/password chưa đúng, quản trị viên xử lý bằng quy trình MySQL hiện hành trước khi tiếp tục.
+
+Sau khi state directory private mode0700 đã được tạo ở bước2, đăng nhập bằng `cotuong_deploy` và nhập password tại prompt không echo. Lệnh dùng Node có sẵn trên VPS để ghi JSON đúng format, mode0600 và không ghi đè credential đã tồn tại:
+
+```bash
+sudo -iu cotuong_deploy
+read -r -s -p 'MySQL cotuong_migrator password: ' DB_MIGRATOR_PASSWORD; printf '\n'
+export DB_MIGRATOR_PASSWORD
+node --input-type=module -e '
+import { writeFileSync } from "node:fs";
+const path = "/home/cotuong_deploy/.cotuong-deploy/mysql-migrator.json";
+if (process.env.DB_MIGRATOR_PASSWORD === undefined || !process.env.DB_MIGRATOR_PASSWORD) process.exit(2);
+writeFileSync(path, JSON.stringify({user:"cotuong_migrator",password:process.env.DB_MIGRATOR_PASSWORD}), {flag:"wx",mode:0o600});
+'
+unset DB_MIGRATOR_PASSWORD
+```
+
+Từ `/home/nhat_hoang/co-tuong/board-game`, kiểm tra đăng nhập migrator không in secret: `DB_MIGRATOR_CREDENTIALS_FILE=/home/cotuong_deploy/.cotuong-deploy/mysql-migrator.json npm run db:check`. Đây là SELECT preflight; quyền DDL phải được xác minh qua `SHOW GRANTS`. Chạy `deploy-vps.sh --check` lại để xác nhận file/owner/mode và toàn bộ preflight. Nếu cần xoay mật khẩu, thay MySQL account và file local trong cùng maintenance; không chép credential vào incoming/release.
+
+## 7. Chuyển GitHub Environment production
 
 Giữ các cổng CI/backup/schema/approval đang có. Cập nhật secrets trong **Environment production**:
 

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
+import { getAppViewportSize } from '../../../lib/desktopCanvas'
 
 function measure() {
-  const compact = window.innerWidth <= 800
+  const viewport = getAppViewportSize()
+  const compact = viewport.compact
   const baseWidth = compact ? 480 : 1100
   const baseHeight = compact ? 850 : 720
-  const availableWidth = compact ? window.innerWidth - 12 : window.innerWidth - 240
-  const availableHeight = window.innerHeight - 12
+  const availableWidth = compact ? viewport.width - 12 : viewport.width - 240
+  const availableHeight = compact ? viewport.height - 12 : viewport.height
   const scale = compact ? 1 : Math.min(availableWidth / baseWidth, availableHeight / baseHeight)
   // Expand the logical frame after fitting content so its outside margins stay exact.
   return { width: availableWidth / scale, height: availableHeight / scale, scale, compact }

@@ -26,7 +26,7 @@ export function useShopDailyCountdown(enabled: boolean, cadence: 'daily' | 'week
   const [now, setNow] = useState(Date.now)
   useEffect(() => {
     if (!enabled) return
-    const update = () => setNow(Date.now())
+    const update = () => { if (document.visibilityState === 'visible') setNow(Date.now()) }
     update()
     const timer = window.setInterval(update, 1000)
     document.addEventListener('visibilitychange', update)

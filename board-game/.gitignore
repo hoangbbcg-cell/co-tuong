@@ -1,16 +1,31 @@
 ﻿/uploads/
 
 /.admin-access.txt
-engines/hovang-v0.3/hovang-engine
-engines/hovang-v0.3/hovang-engine.exe
-engines/hovang-v0.3/hovang-tests
-engines/hovang-v0.3/hovang-tests.exe
+/engines/fairy-stockfish/*.exe
 
-# HOVANG is local-only; never publish its source, binaries or adapters.
-/engines/hovang-*/
-/docs/HOVANG-*.md
-/hovang-*
-/server/controllers/hovangController.ts
-/server/services/hovangService.ts
-/src/services/hovang.ts
-/tests/hovang-*.test.ts
+# HOVANG LOCAL SAFETY
+node_modules/
+dist/
+.ai-backups/
+backups/
+backup/
+*.backup
+*.backup-*
+*.log
+*.zip
+*.7z
+*.rar
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.p12
+*.pfx
+*.key
+*.sqlite
+*.sqlite3
+*.db
+credentials.json
+service-account*.json
+*.local

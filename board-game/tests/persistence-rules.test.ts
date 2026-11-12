@@ -1,6 +1,7 @@
 import { expect,it } from 'vitest'
 import { ratingDelta } from '../server/services/rating'
 import { recoverEnergy,ENERGY_RECOVERY_MS } from '../src/lib/energy'
+import { getRankProgress } from '../src/lib/rankProgression'
 it('uses the approved asymmetric Elo rules across rank boundaries, caps and draws',()=>{
   expect(ratingDelta(1200,1300,'win')).toBe(16)
   expect(ratingDelta(1200,1400,'win')).toBe(17)
@@ -10,7 +11,13 @@ it('uses the approved asymmetric Elo rules across rank boundaries, caps and draw
   expect(ratingDelta(2000,1000,'win')).toBe(20)
   expect(ratingDelta(1200,1300,'loss')).toBe(-10)
   expect(ratingDelta(1300,1200,'loss')).toBe(-13)
-  expect(ratingDelta(1000,1000,'win')).toBe(13)
+  const sameRankElo=1100, sameRankOpponent=1150
+  expect(getRankProgress(sameRankElo)).toMatchObject({level:1,stars:2})
+  expect(getRankProgress(sameRankOpponent)).toMatchObject({level:1,stars:2})
+  for(let randomDelta=11;randomDelta<=13;randomDelta++) {
+    expect(ratingDelta(sameRankElo,sameRankOpponent,'win',randomDelta)).toBe(randomDelta)
+    expect(ratingDelta(sameRankOpponent,sameRankElo,'loss',randomDelta)).toBe(-randomDelta)
+  }
   expect(ratingDelta(4000,5000,'win')).toBe(13)
   expect(ratingDelta(1000,5000,'draw')).toBe(0)
 })

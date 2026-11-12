@@ -1,6 +1,8 @@
 export interface AccountProfile {
   id: string; publicId: string; displayName: string; linked: boolean; renamed: boolean
   avatarCode: string; avatarFrameCode: string
+  hovangWatermarkControl?: boolean
+  aiControlsControl?: boolean
   cosmetics?: { kind: string; code: string }[]
   countryCode: string | null; provinceCode: string | null; provinceName: string | null
   wardCode: string | null; wardName: string | null; locationSet: boolean

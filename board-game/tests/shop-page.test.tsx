@@ -7,6 +7,7 @@ import { useSessionStore } from '../src/store/sessionStore'
 import { accountApi } from '../src/services/accountApi'
 import type { AccountProfile } from '../src/types/account'
 import { SHOP_PRODUCTS } from '../src/lib/shopCatalog'
+import { getAppViewportSize } from '../src/lib/desktopCanvas'
 
 const originalShowModal = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')
 afterEach(() => {
@@ -32,8 +33,9 @@ it('confirms real purchases, updates owned items/balance and blocks duplicate pu
   expect(screen.queryByAltText('Đã mua')).toBeNull()
   expect(screen.getByRole('main').className).toContain('fixed inset-0')
   const frame = view.container.querySelector<HTMLElement>('[data-shop-frame]')!
-  expect(frame.style.width).toBe(`${window.innerWidth - 240}px`)
-  expect(frame.style.height).toBe(`${window.innerHeight - 12}px`)
+  const viewport = getAppViewportSize()
+  expect(frame.style.width).toBe(`${viewport.width - 240}px`)
+  expect(frame.style.height).toBe(`${viewport.height}px`)
   expect(screen.queryByText('Sản phẩm xem thử')).toBeNull()
   expect(screen.queryByRole('button', { name: 'Mua avatar Quan Vũ' })).toBeNull()
   expect(screen.queryByRole('button', { name: 'Mua avatar Nữ kiếm khách' })).toBeNull()
@@ -42,7 +44,7 @@ it('confirms real purchases, updates owned items/balance and blocks duplicate pu
   fireEvent.click(within(confirmation).getByRole('button', { name: 'Xác nhận' }))
   await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Xác nhận mua' })).toBeNull())
   expect(screen.getByRole('alert').textContent).toContain('Đã mua avatar Lão quân sư')
-  expect(purchase).toHaveBeenCalledWith('avatar-16', expect.any(String))
+  expect(purchase).toHaveBeenCalledWith('avatar-16', expect.any(String), 'daily')
   expect(useSessionStore.getState().gold).toBe(7000)
   expect(useSessionStore.getState().account?.cosmetics).toContainEqual({ kind: 'avatar', code: 'avatar-16' })
   expect(within(screen.getByRole('article', { name: 'Lão quân sư' })).getByAltText('Đã mua')).toBeTruthy()

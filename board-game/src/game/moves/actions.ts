@@ -1,5 +1,5 @@
 import type { GameState, Move, Side } from '../../types/game'
-import { opposite, TURN_TIME_LIMIT_MS } from '../state/initial'
+import { opposite, TURN_TIME_LIMIT_MS, INITIAL_TIME } from '../state/initial'
 import { hasAnyLegalMove, isInCheck, isMoveLegal } from '../rules'
 import { candidateRepetition, commitRepetition, simulateMoveBoard } from '../rules/repetition'
 
@@ -27,7 +27,7 @@ export function takebackSnapshot(game: GameState): GameState {
     turnElapsed: 0,
   }
 }
-export const MATCH_INTRO_MS = 1300
+export const MATCH_INTRO_MS = 2000
 export function startGame(game: GameState, now: number, delay = 0): GameState {
   return game.phase === 'ready' ? { ...game, phase: 'playing', lastClockUpdate: now + delay } : game
 }
@@ -47,7 +47,10 @@ export function applyMoveWithResult(
   const board = simulateMoveBoard(current.board, move)
   const repetition = candidateRepetition(current, move)
   if (repetition.forbidden) return { game, rejection: 'repetition' }
-  const next: GameState = { ...current, board, repetition: commitRepetition(current, repetition), lastMove: move, currentTurn: opposite(actor), turnElapsed: 0 }
+  const next: GameState = { ...current, board, repetition: commitRepetition(current, repetition), lastMove: move, currentTurn: opposite(actor), turnElapsed: 0,
+    ...(current.incrementMs ? { remainingTime: { ...current.remainingTime, [actor]: Math.min(current.initialTimeMs ?? INITIAL_TIME, current.remainingTime[actor] + current.incrementMs) } } : {}),
+    ...(current.variant === 'jieqi' && captured ? { captures: [...(current.captures ?? []), { id: captured.id, by: actor, side: captured.side, concealed: !!captured.concealed, type: captured.concealed?.type ?? captured.type, name: captured.concealed?.name ?? captured.name }] } : {}),
+  }
 
   if (captured?.type === 'general') return { game: finishGame(next, actor, 'capture') }
   if (!options.skipEndgameMoveScan && !hasAnyLegalMove(next.currentTurn, board)) {

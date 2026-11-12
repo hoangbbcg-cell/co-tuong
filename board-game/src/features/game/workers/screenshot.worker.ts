@@ -217,7 +217,6 @@ function drawBoard(ctx: OffscreenCanvasRenderingContext2D, snapshot: ScreenshotS
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.font = 'bold italic 48px Georgia, serif'
-  ctx.fillText('HOANGBBCG', boardWidth / 2, boardY + 641.5)
 
   if (snapshot.lastMove && !snapshot.selected) {
     const origin = boardPoint(snapshot.lastMove.from.row, snapshot.lastMove.from.col, flipped)

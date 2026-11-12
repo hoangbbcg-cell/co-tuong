@@ -24,6 +24,8 @@ class FakeContext extends EventTarget {
   allowResume = true
   sources: FakeSource[] = []
   gains: FakeGain[] = []
+  keepAlive = { offset: { setValueAtTime: vi.fn() }, connect: vi.fn(), disconnect: vi.fn(), start: vi.fn(), stop: vi.fn() }
+  createConstantSource() { return this.keepAlive }
   constructor() { super(); FakeContext.instances.push(this) }
   resume = vi.fn(async () => {
     if (this.allowResume) { this.state = 'running'; this.dispatchEvent(new Event('statechange')) }
@@ -155,4 +157,56 @@ it('disposes pending playback and removes gesture listeners when leaving the boa
   expect(context.resume).toHaveBeenCalledTimes(resumeCalls)
   expect(context.sources).toHaveLength(0)
   expect(context.close).toHaveBeenCalledTimes(1)
+})
+
+it('keeps ready countdown audible when automatic ticking and other effects stop', async () => {
+  sounds.dispose()
+  sounds = new GameSounds({ ...sources, clockTick: '/tick' })
+  context = FakeContext.instances.at(-1)!
+  sounds.playReadyCountdownTick()
+  await vi.waitFor(() => expect(context.sources).toHaveLength(1))
+  const tick = context.sources[0]
+  sounds.stopClockTick()
+  sounds.stopAll()
+  expect(tick.stop).not.toHaveBeenCalled()
+  sounds.dispose()
+  expect(tick.stop).toHaveBeenCalledOnce()
+})
+
+it('keeps a nonzero DC render stream between moves and starts a cached cue synchronously after idle', async () => {
+  expect(context.keepAlive.start).toHaveBeenCalledOnce()
+  expect(context.keepAlive.offset.setValueAtTime).toHaveBeenCalledWith(1 / 32768, 2)
+  expect(context.gains[1].gain.setValueAtTime).toHaveBeenCalledWith(1, 2)
+  sounds.play('move')
+  await vi.waitFor(() => expect(context.sources).toHaveLength(1))
+  context.sources[0].onended?.()
+  context.currentTime += 180
+  sounds.stopAll()
+  expect(context.keepAlive.stop).not.toHaveBeenCalled()
+  sounds.play('move')
+  expect(context.sources).toHaveLength(2)
+  expect(context.sources[1].start).toHaveBeenCalledWith(182, 0)
+  sounds.dispose()
+  expect(context.keepAlive.stop).toHaveBeenCalledOnce()
+  expect(context.keepAlive.disconnect).toHaveBeenCalledOnce()
+  expect(context.gains[1].disconnect).toHaveBeenCalledOnce()
+})
+
+it('requests resume synchronously when a move arrives after interruption', () => {
+  context.state = 'suspended'
+  sounds.play('move')
+  expect(context.resume).toHaveBeenCalled()
+})
+
+it('tries to restore an interrupted visible board before the next gesture', () => {
+  context.state = 'interrupted'
+  context.dispatchEvent(new Event('statechange'))
+  expect(context.resume).toHaveBeenCalledOnce()
+})
+
+it('gates the output warm-up branch along with mute', () => {
+  useAudioSettingsStore.setState({ muted: true })
+  expect(context.gains[1].gain.setValueAtTime).toHaveBeenLastCalledWith(0, 2)
+  useAudioSettingsStore.setState({ muted: false })
+  expect(context.gains[1].gain.setValueAtTime).toHaveBeenLastCalledWith(1, 2)
 })

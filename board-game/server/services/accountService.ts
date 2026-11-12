@@ -1,3 +1,4 @@
+import { playerRenameError } from '../../src/lib/playerName'
 import { createHash, randomBytes, randomInt } from 'node:crypto'
 import { AccountRepository } from '../repositories/accountRepository'
 import { UserService } from './userService'
@@ -42,6 +43,8 @@ export class AccountService {
   }
   async rename(id:string,name:unknown) {
     if(typeof name!=='string') throw new AccountError('Tên không hợp lệ.')
+    const error = playerRenameError(name)
+    if(error) throw new AccountError(error)
     try { await new UserService(new UserRepository()).rename(id,name) } catch { throw new AccountError('Chỉ tài khoản đã liên kết và chưa đổi tên được đổi tên.') }
   }
   async location(id:string,input:Record<string,unknown>) {

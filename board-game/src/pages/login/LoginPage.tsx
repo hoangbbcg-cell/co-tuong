@@ -1,7 +1,8 @@
-﻿import { GoogleSignInButton } from '../../features/lobby/components/GoogleSignInButton'
+import { HovangLoadingOverlay } from '../../components/HovangLoadingOverlay'
+import { GoogleSignInButton } from '../../features/lobby/components/GoogleSignInButton'
 import { useState } from 'react'
 import background from '../../assets/backgrounds/home.png'
-import panel from '../../assets/login/login-panel-google.png'
+import panel from '../../assets/login/login-panel-google.webp'
 import { useEntryStore } from '../../store/entryStore'
 import { errorMessage } from '../../services/api'
 
@@ -18,6 +19,7 @@ export function LoginPage() {
     finally{setPending(false)}
   }
   return <main aria-label="Đăng nhập Cờ Tướng" className="fixed inset-0 isolate flex items-center justify-center overflow-hidden bg-[#241007]">
+    {pending && <HovangLoadingOverlay label="Đang đăng nhập" />}
     <img src={background} alt="" draggable={false} className="pointer-events-none absolute inset-0 -z-10 size-full object-cover object-center" />
     <section aria-label="Chọn cách vào game" className="relative shrink-0 [container-type:inline-size]" style={{ width: 'min(710px, calc(88svh * 1202 / 1307), calc(100vw - 12px))', aspectRatio: '1202 / 1307' }}>
       <h1 className="sr-only">Cờ Tướng</h1>
@@ -31,6 +33,13 @@ export function LoginPage() {
       <p className="absolute left-[16%] top-[82.8%] m-0 w-[68%] text-center font-arial text-[2.6cqw] leading-[1.5] text-[#ffe5a6]">❕ Chơi như khách có thể mất dữ liệu<br />nếu xóa game hoặc đổi thiết bị</p>
     </section>
     {(notice || error) && <p role={error ? 'alert' : 'status'} className="absolute inset-x-3 bottom-2 m-0 mx-auto w-fit max-w-[min(580px,calc(100vw-24px))] rounded-lg border border-[#ffe08b] bg-[#241007]/95 px-4 py-3 text-center text-sm text-[#ffe5a6]">{error || notice}</p>}
+    <nav aria-label="Thông tin HOVANG" className="absolute bottom-1 left-1/2 z-20 flex max-w-[96vw] -translate-x-1/2 flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-md bg-[#241007]/80 px-3 py-1 text-[10px] text-[#ffe5a6]">
+      <a href="/about.html" target="_blank" rel="noopener noreferrer">Giới thiệu</a>
+      <a href="/guide.html" target="_blank" rel="noopener noreferrer">Hướng dẫn</a>
+      <a href="/privacy.html" target="_blank" rel="noopener noreferrer">Quyền riêng tư</a>
+      <a href="/terms.html" target="_blank" rel="noopener noreferrer">Điều khoản</a>
+      <a href="/contact.html" target="_blank" rel="noopener noreferrer">Liên hệ</a>
+    </nav>
   </main>
 }
 

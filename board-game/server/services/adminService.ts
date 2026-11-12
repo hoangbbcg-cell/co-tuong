@@ -23,6 +23,9 @@ export class AdminService {
         if (typeof body[key] !== 'number' || !Number.isSafeInteger(body[key]) || Number(body[key]) < 0 || Number(body[key]) > max) throw new AccountError(`${key}: cần số nguyên từ 0 đến ${max}.`)
       }
       command = { ...base, action: 'resources', gold: Number(body.gold), energy: Number(body.energy), xiangqi: Number(body.xiangqi), jieqi: Number(body.jieqi) }
+    } else if (body.action === 'hovang-watermark' || body.action === 'ai-controls') {
+      if (typeof body.enabled !== 'boolean') throw new AccountError(body.action === 'ai-controls' ? 'Trạng thái quyền Bỏ AI không hợp lệ.' : 'Trạng thái quyền HOVANG không hợp lệ.')
+      command = { ...base, action: body.action, enabled: body.enabled }
     } else if (body.action === 'avatar' || body.action === 'frame' || body.action === 'honor') {
       if (typeof body.code !== 'string' || body.code.length > 64 || typeof body.equip !== 'boolean') throw new AccountError('Vật phẩm không hợp lệ.')
       if (body.action === 'avatar' && !ADMIN_AVATARS.some(item => item.code === body.code) || body.action === 'frame' && !ADMIN_FRAMES.some(item => item.code === body.code)) throw new AccountError('Vật phẩm không tồn tại.')

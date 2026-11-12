@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 
-export function useBoardLayout(fullMobileWidth = false) {
+export function useBoardLayout(fullMobileWidth = false, layoutKey = '') {
   const arenaRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(588)
   const [backgroundMask, setBackgroundMask] = useState<string>()
@@ -11,7 +11,8 @@ export function useBoardLayout(fullMobileWidth = false) {
       const compact = window.matchMedia('(max-width: 800px)').matches
       const availableHeight = arena.clientHeight - (compact ? 308 : 0) - 4
       const availableWidth = compact ? arena.clientWidth - 8 : arena.clientWidth - 340
-      setWidth(Math.max(0, compact && fullMobileWidth ? arena.clientWidth : Math.min(availableWidth, availableHeight * 1134 / 1296)))
+      const nextWidth = Math.max(0, compact && fullMobileWidth ? arena.clientWidth : Math.min(availableWidth, availableHeight * 1134 / 1296))
+      setWidth(previous => previous === nextWidth ? previous : nextWidth)
     }
     const observer = new ResizeObserver(fit)
     observer.observe(arena)
@@ -28,7 +29,7 @@ export function useBoardLayout(fullMobileWidth = false) {
     const bottomIdentity = arena.querySelector('[data-mobile-edge="bottom"] [data-player-identity]')
     const main = scene.parentElement
     const actions = main?.querySelector<HTMLElement>('#matchActions')
-    const mobileCode = arena.querySelector<HTMLElement>('[data-mobile-room-code]')
+    const mobileCode = arena.querySelector<HTMLElement>('[data-mobile-room-code-frame]') ?? arena.querySelector<HTMLElement>('[data-mobile-room-code]')
     const mobileCards = arena.querySelectorAll<HTMLElement>('[data-mobile-header="true"]')
     const measure = () => {
       if (mobileCode && window.matchMedia('(max-width: 800px)').matches) {
@@ -41,7 +42,7 @@ export function useBoardLayout(fullMobileWidth = false) {
           const gapCenter = like.dataset.mobileLike === 'left'
             ? (avatarRect.right + codeRect.left) / 2
             : (codeRect.right + avatarRect.left) / 2
-          like.style.left = `${gapCenter - like.offsetWidth / 2}px`
+          like.style.left = `${gapCenter - like.getBoundingClientRect().width / 2}px`
           like.style.top = `${avatarRect.top + (avatarRect.height - like.offsetHeight) / 2}px`
         })
       }
@@ -60,17 +61,46 @@ export function useBoardLayout(fullMobileWidth = false) {
       }
       const outer = scene.getBoundingClientRect()
       const inner = board.getBoundingClientRect()
+      if (window.matchMedia('(max-width: 800px)').matches) {
+        const frame = board.closest('[data-testid="board-frame"]') ?? board
+        arena.style.setProperty('--mobile-replay-controls-top', `${frame.getBoundingClientRect().bottom - arena.getBoundingClientRect().top + 5}px`)
+      }
       scene.style.setProperty('--mobile-viewers-top', `${inner.bottom - outer.top + 5}px`)
-      if (main) main.style.setProperty('--mobile-view-button-top', `${inner.bottom - main.getBoundingClientRect().top + 5}px`)
-      if (main) main.style.setProperty('--mobile-match-actions-top', `${inner.bottom - main.getBoundingClientRect().top + 39}px`)
+      if (main) {
+        main.style.setProperty('--mobile-view-button-top', `${inner.bottom - main.getBoundingClientRect().top + 5}px`)
+        if (window.matchMedia('(max-width: 800px)').matches && mobileElo && mobileElo.getClientRects().length > 0) {
+          const eloRect = mobileElo.getBoundingClientRect()
+          const viewButton = main.querySelector<HTMLElement>('#viewersButton')
+          const viewHeight = viewButton?.getBoundingClientRect().height || 26
+          main.style.setProperty('--mobile-view-elo-top', `${eloRect.top + eloRect.height / 2 - viewHeight / 2}px`)
+        }
+      }
+      if (main) {
+        const mainRect = main.getBoundingClientRect()
+        const actionHeight = actions?.getBoundingClientRect().height || 36
+        // Center the button row in the free space from the board to the screen bottom.
+        const centeredTop = (inner.bottom + mainRect.bottom - actionHeight) / 2 - mainRect.top
+        const actionTop = Math.max(0, Math.min(mainRect.height - actionHeight, centeredTop))
+        main.style.setProperty('--mobile-match-actions-top', `${actionTop}px`)
+      }
       const left = Math.max(0, inner.left - outer.left)
       const right = Math.max(left, inner.right - outer.left)
       const top = Math.max(0, inner.top - outer.top)
       const bottom = Math.max(top, inner.bottom - outer.top)
-      setBackgroundMask(`linear-gradient(to right, black 0px, transparent ${left}px, transparent ${right}px, black 100%), linear-gradient(to bottom, black 0px, transparent ${top}px, transparent ${bottom}px, black 100%)`)
+      const nextMask = `linear-gradient(to right, black 0px, transparent ${left}px, transparent ${right}px, black 100%), linear-gradient(to bottom, black 0px, transparent ${top}px, transparent ${bottom}px, black 100%)`
+      setBackgroundMask(previous => previous === nextMask ? previous : nextMask)
+    }
+    let frame = 0
+    const scheduleMeasure = () => {
+      if (frame) return
+      frame = window.requestAnimationFrame(() => {
+        frame = 0
+        measure()
+      })
     }
     measure()
-    const observer = new ResizeObserver(measure)
+    window.addEventListener('resize', scheduleMeasure)
+    const observer = new ResizeObserver(scheduleMeasure)
     observer.observe(scene)
     observer.observe(arena)
     observer.observe(board)
@@ -84,7 +114,7 @@ export function useBoardLayout(fullMobileWidth = false) {
     if (identity) observer.observe(identity)
     if (bottomIdentity) observer.observe(bottomIdentity)
     if (actions) observer.observe(actions)
-    return () => observer.disconnect()
-  }, [width])
+    return () => { observer.disconnect(); window.removeEventListener('resize', scheduleMeasure); window.cancelAnimationFrame(frame) }
+  }, [width, layoutKey])
   return { arenaRef, backgroundMask, frameWidth: width, scale: width / 1134, frameHeight: width * 1296 / 1134 }
 }

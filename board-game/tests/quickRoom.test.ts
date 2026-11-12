@@ -3,6 +3,22 @@ import { randomAvailableRoom } from '../src/lib/quickRoom'
 import type { RoomSummary } from '../src/types/room'
 
 describe('randomAvailableRoom', () => {
+  it('Chọn Bàn ưu tiên tỉnh đang chọn, cho bàn khóa không mật khẩu và luôn bỏ bàn có mật khẩu', () => {
+    const rooms: RoomSummary[] = [
+      { id: 'other', name: '', players: 1, phase: 'ready', province: 'Hà Nội' },
+      { id: 'protected', name: '', players: 1, phase: 'ready', province: 'Thành phố Hồ Chí Minh', locked: true, passwordRequired: true },
+      { id: 'legacy-locked', name: '', players: 1, phase: 'ready', province: 'Thành phố Hồ Chí Minh', locked: true },
+      { id: 'local-open', name: '', players: 1, phase: 'ready', province: 'Thành phố Hồ Chí Minh' },
+      { id: 'local-locked-free', name: '', players: 1, phase: 'ready', province: 'TP. Hồ Chí Minh', locked: true, passwordRequired: false },
+    ]
+    const options = { province: 'Thành phố Hồ Chí Minh', allowPasswordlessLocked: true }
+    expect(randomAvailableRoom(rooms, () => 0, 'xiangqi', false, options)?.id).toBe('local-open')
+    expect(randomAvailableRoom(rooms, () => 0.99, 'xiangqi', false, options)?.id).toBe('local-locked-free')
+    expect(randomAvailableRoom(rooms.slice(0, 3), () => 0, 'xiangqi', false, options)?.id).toBe('other')
+    expect(randomAvailableRoom(rooms.slice(1, 3), () => 0, 'xiangqi', false, options)).toBeUndefined()
+    expect(randomAvailableRoom(rooms.slice(4))).toBeUndefined()
+  })
+
   it('only selects available rooms matching the chosen duration, or returns no room', () => {
     const rooms: RoomSummary[] = [
       { id: 'other-time', name: '', players: 1, phase: 'ready', minutes: 5 },

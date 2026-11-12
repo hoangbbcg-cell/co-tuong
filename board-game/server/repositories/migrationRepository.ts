@@ -4,7 +4,7 @@ import type { PoolConnection, RowDataPacket } from 'mysql2/promise'
 import { getMysqlConnection } from './mysqlPool'
 
 export const FOUNDATION_TABLES = ['users', 'user_game_stats', 'user_resources', 'matches', 'match_players', 'match_moves', 'resource_events', 'saved_matches', 'saved_positions', 'friendships', 'user_follows', 'user_blocks', 'conversations', 'conversation_members', 'messages', 'honors', 'user_honors', 'honor_endorsements', 'match_likes'] as const
-export const migrationFiles = ['001_foundation.sql', '002_accounts_and_resources.sql', '003_honor_catalog.sql', '004_google_identity.sql', '005_admin_tools.sql', '006_match_gold_reward.sql', '007_saved_match_details.sql', '008_daily_shop.sql', '009_group_membership.sql', '010_group_moderation.sql'] as const
+export const migrationFiles = ['001_foundation.sql', '002_accounts_and_resources.sql', '003_honor_catalog.sql', '004_google_identity.sql', '005_admin_tools.sql', '006_match_gold_reward.sql', '007_saved_match_details.sql', '008_daily_shop.sql', '009_group_membership.sql', '010_group_moderation.sql', '011_group_chat_controls.sql', '012_group_invitations.sql', '013_disconnect_timeout_reason.sql', '014_active_match_snapshots.sql', '015_energy_payments.sql', '016_payment_fulfillment.sql', '017_payos_checkout_links.sql', '018_match_player_appearance.sql', '019_notifications.sql', '020_native_fcm.sql', '021_hovang_watermark_control.sql', '022_user_activity.sql', '023_ai_controls_control.sql'] as const
 export interface MigrationStep { version: string; checksum: string; sql: string }
 
 /** Deliberately small format: no procedures, quoted semicolons or custom delimiters. */
@@ -117,6 +117,7 @@ export async function verifySchema(): Promise<void> {
     }
     if(!columns.some(c=>c.name==='user_resources'&&c.columnName==='energy'&&c.type==='int unsigned'))throw new Error('Energy must support balances above natural recovery cap.')
     if(!columns.some(c=>c.name==='matches'&&c.columnName==='gold_reward_eligible'))throw new Error('Missing match gold reward policy column.')
+    if(!tables.some(t=>t.name==='active_match_snapshots'&&t.engine==='InnoDB'))throw new Error('Missing durable active match snapshots.')
     for(const name of ['title','note'])if(!columns.some(c=>c.name==='saved_matches'&&c.columnName===name))throw new Error('Missing saved match metadata column: '+name)
     if(constraints.some(c=>c.name==='user_resources'&&c.constraintName==='ck_resources_energy'))throw new Error('Obsolete energy cap CHECK remains.')
     for(const name of ['country_code','province_name','ward_name','location_set_at','guest_device_hash','guest_session_hash','activity_days','last_activity_date','google_sub','session_expires_at'])if(!columns.some(c=>c.name==='users'&&c.columnName===name))throw new Error(`Missing account column: ${name}`)

@@ -1,3 +1,4 @@
+import { playerRenameError } from '../../../lib/playerName'
 import { useEffect, useRef, useState } from 'react'
 import { buttonInteraction } from '../../../lib/uiClasses'
 
@@ -10,8 +11,9 @@ export function ProfileRenameDialog({name,onSave,onClose}:{name:string;onSave:(n
   const save = async () => {
     if(pending)return
     const next = draft.trim().normalize('NFC')
-    if(!next || Array.from(next).length>10 || /^(?:Guest\d{5}|Kỳ\s*Thủ\s*\d{5,6})$/iu.test(next)) {
-      setError('Tên cần từ 1 đến 10 ký tự và không dùng mẫu tên khách.')
+    const validationError = playerRenameError(next)
+    if(validationError) {
+      setError(validationError)
       return
     }
     setPending(true)

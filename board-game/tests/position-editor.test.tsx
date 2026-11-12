@@ -4,12 +4,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { usePositionEditor } from '../src/features/game/hooks/usePositionEditor'
 import { useSessionStore } from '../src/store/sessionStore'
 import { useGameStore } from '../src/store/gameStore'
-import { pikafishApi } from '../src/services/pikafish'
+import { fairyStockfishApi } from '../src/services/fairyStockfish'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { PositionPalette } from '../src/features/game/components/PositionPalette'
 import { createInitialBoard } from '../src/game/state/initial'
 import { emptyPosition } from '../src/game/state/customPosition'
-vi.mock('../src/services/pikafish', () => ({ pikafishApi: { ready: vi.fn().mockResolvedValue(undefined) } }))
+vi.mock('../src/services/fairyStockfish', () => ({ fairyStockfishApi: { ready: vi.fn().mockResolvedValue(undefined) } }))
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -24,7 +24,8 @@ describe('Trình chỉnh thế cờ', () => {
     act(() => result.current.setFirstSide('red'))
     await act(() => result.current.start())
     expect(useGameStore.getState().game.currentTurn).toBe('red')
-    expect(useSessionStore.getState().humanSide).toBe('black')
+    // The opening-side choice is deferred until the first piece is selected.
+    expect(useSessionStore.getState().humanSide).toBe('red')
   })
   it('tự ẩn thông báo sau 3 giây', () => {
     vi.useFakeTimers()
@@ -67,7 +68,7 @@ describe('Trình chỉnh thế cờ', () => {
     expect(result.current.notice).toBe('')
     await act(() => result.current.start())
     expect(result.current.notice).toContain('đối mặt')
-    expect(pikafishApi.ready).not.toHaveBeenCalled()
+    expect(fairyStockfishApi.ready).not.toHaveBeenCalled()
     expect(useSessionStore.getState().screen).toBe('position')
   })
   it('đặt rồi chuyển quân bằng click; xóa hết trừ Tướng và cài lại đủ32 quân', () => {
@@ -97,7 +98,7 @@ describe('Trình chỉnh thế cờ', () => {
     act(() => result.current.remove({ row: 0, col: 4 }))
     await act(() => result.current.start())
     expect(result.current.notice).toContain('Tướng')
-    expect(pikafishApi.ready).not.toHaveBeenCalled()
+    expect(fairyStockfishApi.ready).not.toHaveBeenCalled()
     expect(useSessionStore.getState().screen).toBe('position')
   })
   it('chặn đặt sai ô và làm mờ quân đã đạt giới hạn', () => {
@@ -112,14 +113,14 @@ describe('Trình chỉnh thế cờ', () => {
     expect(screen.getByRole('button', { name: 'Đặt Tướng đỏ, đã hết quân' })).toHaveProperty('disabled', true)
     expect(screen.getByRole('button', { name: 'Đặt Tướng đen, đã hết quân' })).toHaveProperty('disabled', true)
   })
-  it('Đấu ngay giữ cấp đã chọn và đưa đúng FEN/bên Đen đi trước vào game', async () => {
+  it('Đấu ngay đưa đúng FEN/bên Đen đi trước vào game với Fairy cấp 10', async () => {
     const { result } = renderHook(usePositionEditor)
     act(() => result.current.changeSide('black'))
     act(() => result.current.setFirstSide('black'))
     await act(() => result.current.start())
     expect(useGameStore.getState().initialFen).toContain(' b - - 0 1')
     expect(useGameStore.getState().game.currentTurn).toBe('black')
-    expect(useSessionStore.getState()).toMatchObject({ screen: 'game', mode: 'computer', humanSide: 'black', computerEngine: 'pikafish', computerLevel: 6 })
+    expect(useSessionStore.getState()).toMatchObject({ screen: 'game', mode: 'computer', humanSide: 'black', computerEngine: 'fairy', computerLevel: 10 })
   })
   it('kéo trực tiếp quân trên bàn, thả ngoài để xóa, kéo từ khay vẫn kiểm tra luật', () => {
     const { result } = renderHook(usePositionEditor)

@@ -51,6 +51,26 @@ it('local save only exists after finish, survives reset and is idempotent', asyn
   await act(async () => {await result.current.save()})
   expect(useSavedMatches.getState().entries).toHaveLength(1)
 })
+it('custom-position override saves the branch from "Đấu ngay" even before finish', async () => {
+  useSavedMatches.setState({ entries: [] })
+  const initial = createGame()
+  const mid: GameState = { ...initial, phase: 'playing' }
+  const first: RecordedMatch = { id: 'custom-a', startedAt: 5, endedAt: 10, redName: 'Owner', blackName: 'Ông Hoàng', states: [initial, mid] }
+  const { result, rerender } = renderHook(({ game, override }: { game: GameState; override?: RecordedMatch | null }) => useMatchSaving(game, undefined, false, 'Owner', 'Owner', 'Pikafish', true, override), { initialProps: { game: mid, override: null as RecordedMatch | null } })
+  expect(result.current.recording).toBeNull()
+  rerender({ game: mid, override: first })
+  expect(result.current.recording?.states[0]).toBe(initial)
+  expect(result.current.saved).toBe(false)
+  await act(async () => { await result.current.save() })
+  expect(useSavedMatches.getState().entries.at(-1)?.id).toBe('custom-a')
+  expect(result.current.saved).toBe(true)
+  const later: RecordedMatch = { ...first, id: 'custom-b', endedAt: 20 }
+  rerender({ game: mid, override: later })
+  expect(result.current.saved).toBe(false)
+  await act(async () => { await result.current.save() })
+  expect(useSavedMatches.getState().entries.at(-1)?.id).toBe('custom-b')
+  expect(useSavedMatches.getState().entries.at(-1)?.states[0]).toStrictEqual(initial)
+})
 it('playback supplies initial state, auto advances, seeks without mutations and resumes', () => {
   vi.useFakeTimers()
   const initial = createGame()

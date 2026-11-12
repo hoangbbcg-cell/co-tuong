@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { createInitialBoard } from '../src/game/state/initial'
 import { emptyPosition, gameFromPositionFen, positionError, positionFen, positionPiece, positionPlacementError } from '../src/game/state/customPosition'
 import { useGameStore } from '../src/store/gameStore'
-import { PikafishService } from '../server/services/pikafishService'
+import { FairyStockfishService } from '../server/services/fairyStockfishService'
 import { isMoveLegal } from '../src/game/rules'
 import { applyMove, startGame } from '../src/game/moves/actions'
 import { toUci } from '../src/game/moves/uci'
@@ -71,14 +71,14 @@ describe('Vị trí tùy chỉnh', () => {
     expect(useGameStore.getState().initialFen).toBeNull()
   })
   it('API từ chối FEN chèn lệnh và FEN sai luật trước khi chạy process', async () => {
-    const service = new PikafishService('missing', 'missing')
+    const service = new FairyStockfishService('missing', 'missing')
     for (const initialFen of [positionFen(sparsePosition(), 'red') + '\nquit', '9/9/9/9/9/9/9/9/9/9 w - - 0 1', '9/9 w - - 0 1']) {
       await expect(service.move({ moves: [], remainingMs: 15000, initialFen })).rejects.toMatchObject({ status: 400 })
     }
   })
-  const installed = process.platform === 'win32' && existsSync(fileURLToPath(new URL('../engines/pikafish/Pikafish-Windows-x86-64-universal.exe', import.meta.url)))
-  it.skipIf(!installed)('Pikafish đánh đúng thế tùy chỉnh Đen đi trước và lịch sử nối tiếp', async () => {
-    const service = new PikafishService()
+  const installed = process.platform === 'win32' && existsSync(fileURLToPath(new URL('../engines/fairy-stockfish/fairy-stockfish_x86-64-modern.exe', import.meta.url)))
+  it.skipIf(!installed)('Fairy-Stockfish đánh đúng thế tùy chỉnh Đen đi trước và lịch sử nối tiếp', async () => {
+    const service = new FairyStockfishService()
     try {
       const initialFen = positionFen(sparsePosition(), 'black')
       let game = startGame(gameFromPositionFen(initialFen), 0)

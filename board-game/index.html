@@ -1,14 +1,25 @@
 <!doctype html>
-<html lang="vi" class="h-full overflow-hidden overscroll-none supports-[selector(::-webkit-scrollbar)]:[scrollbar-width:auto] supports-[selector(::-webkit-scrollbar)]:[&_*]:[scrollbar-width:auto] [&_.overflow-x-auto]:[scrollbar-width:none] [&_.overflow-x-scroll]:[scrollbar-width:none] [scrollbar-width:thin] [scrollbar-color:#ffffff_transparent] [&_*]:[scrollbar-width:thin] [&_*]:[scrollbar-color:#ffffff_transparent] [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar]:h-0 [&_*::-webkit-scrollbar]:w-[6px] [&_*::-webkit-scrollbar]:h-0 [&::-webkit-scrollbar-track]:bg-transparent [&_*::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&_*::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white [&_*::-webkit-scrollbar-thumb]:bg-white [&::-webkit-scrollbar-thumb:hover]:bg-white [&_*::-webkit-scrollbar-thumb:hover]:bg-white [&::-webkit-scrollbar-corner]:bg-transparent [&_*::-webkit-scrollbar-corner]:bg-transparent [&::-webkit-scrollbar-button]:hidden [&_*::-webkit-scrollbar-button]:hidden">
+<html lang="vi" class="desktop:[&_dialog_*]:[scrollbar-color:var(--desktop-scroll-thumb,transparent)_transparent] desktop:[&_dialog_*::-webkit-scrollbar-thumb]:bg-[var(--desktop-scroll-thumb,transparent)] desktop:[&_dialog_*::-webkit-scrollbar-thumb:hover]:bg-[var(--desktop-scroll-thumb,transparent)] h-full w-full overflow-hidden overscroll-none [&_.overflow-y-auto]:overscroll-y-contain [&_.overflow-y-scroll]:overscroll-y-contain supports-[selector(::-webkit-scrollbar)]:[scrollbar-width:auto] supports-[selector(::-webkit-scrollbar)]:[&_*]:[scrollbar-width:auto] [&_.overflow-x-auto]:[scrollbar-width:none] [&_.overflow-x-scroll]:[scrollbar-width:none] [scrollbar-width:thin] [scrollbar-color:#ffffff_transparent] [&_*]:[scrollbar-width:thin] [&_*]:[scrollbar-color:#ffffff_transparent] [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar]:h-0 [&_*::-webkit-scrollbar]:w-[6px] [&_*::-webkit-scrollbar]:h-0 [&::-webkit-scrollbar-track]:bg-transparent [&_*::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&_*::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white [&_*::-webkit-scrollbar-thumb]:bg-white [&::-webkit-scrollbar-thumb:hover]:bg-white [&_*::-webkit-scrollbar-thumb:hover]:bg-white [&::-webkit-scrollbar-corner]:bg-transparent [&_*::-webkit-scrollbar-corner]:bg-transparent [&::-webkit-scrollbar-button]:hidden [&_*::-webkit-scrollbar-button]:hidden">
   <head>
+    <script src="/hovang-resizeobserver-fallback.js"></script>
+    <script src="/hovang-shortcut-choice-once.js"></script>
+    <meta name="google-adsense-account" content="ca-pub-9272190698840010" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
     <meta name="theme-color" content="#193932" />
-    <title>Cờ Tướng</title>
-  </head>
-  <body class="m-0 grid h-full min-h-0 place-items-center overflow-hidden overscroll-none bg-[#285e62] bg-[image:linear-gradient(to_right,rgba(0,0,0,0.82)_0%,rgba(0,0,0,0.58)_18%,rgba(0,0,0,0.30)_40%,rgba(0,0,0,0.30)_60%,rgba(0,0,0,0.58)_82%,rgba(0,0,0,0.82)_100%),url('/src/assets/backgrounds/landscape-background.png')] bg-cover bg-center bg-no-repeat font-body text-[#f6e2b5] [&_*:focus]:outline-none! [&_*:focus]:ring-0! [&_img]:select-none [&_svg]:select-none [&_img]:[-webkit-user-drag:none]">
-    <div id="root" class="grid w-full place-items-center"></div>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <script src="/hovang-pwa-platform.js"></script>
+    <title>HOVANG - Cờ Tướng Online</title>
+    <meta name="description" content="HOVANG - Chơi cờ tướng trực tuyến, chọn bàn đấu, luyện cờ với máy và tham gia các ván cờ cùng bạn bè.">
+  
+</head>
+  <body class="fixed inset-0 m-0 grid h-full w-full min-h-0 place-items-center overflow-hidden overscroll-none bg-[#285e62] bg-[image:linear-gradient(to_right,rgba(0,0,0,0.82)_0%,rgba(0,0,0,0.58)_18%,rgba(0,0,0,0.30)_40%,rgba(0,0,0,0.30)_60%,rgba(0,0,0,0.58)_82%,rgba(0,0,0,0.82)_100%),url('/src/assets/backgrounds/landscape-background.png')] bg-cover bg-center bg-no-repeat font-body text-[#f6e2b5] [&_*:focus]:outline-none! [&_*:focus]:ring-0! [&_img]:select-none [&_svg]:select-none [&_img]:[-webkit-user-drag:none]">
+    <div id="root" class="grid h-full min-h-0 w-full grid-rows-[minmax(0,1fr)] place-items-center overflow-hidden overscroll-none"></div>
+    <script src="/hovang-startup.js"></script>
+    <noscript><p style="position:fixed;inset:0;display:grid;place-items:center;background:#193932;color:#fff;padding:24px">Hãy bật JavaScript trong trình duyệt để mở game HOVANG.</p></noscript>
     <script type="module" src="/src/main.tsx"></script>
-  </body>
+    
+</body>
 </html>
   

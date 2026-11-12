@@ -1,3 +1,4 @@
+import { HovangLoadingOverlay } from '../../../components/HovangLoadingOverlay'
 import { RoomPasswordDialog } from './RoomPasswordDialog'
 import { PlayerNameValidationDialog } from './PlayerNameValidationDialog'
 import { CreateRoomForm } from './CreateRoomForm'
@@ -5,7 +6,8 @@ import type { useLobby } from '../hooks/useLobby'
 import { buttonInteraction, lobbyButton } from '../../../lib/uiClasses'
 
 export function LobbyDialog({ lobby, onClose }: { lobby: ReturnType<typeof useLobby>; onClose?: () => void }) {
-  return <><dialog ref={lobby.dialogRef} id="lobbyDialog" className="m-auto max-h-[90dvh] w-[min(340px,90%)] overflow-y-auto rounded-md border border-[#b59754] bg-[#193932] p-5 text-[#ffe3a0] backdrop:bg-[#061917dd]" aria-labelledby="lobbyTitle" onCancel={event => event.preventDefault()}>
+  return <><dialog ref={lobby.dialogRef} id="lobbyDialog" className="relative m-auto max-h-[90dvh] w-[min(340px,90%)] overflow-y-auto rounded-md border border-[#b59754] bg-[#193932] p-5 text-[#ffe3a0] backdrop:bg-[#061917dd]" aria-labelledby="lobbyTitle" onCancel={event => event.preventDefault()}>
+    {(lobby.loading || lobby.pending) && <HovangLoadingOverlay label="Đang tải phòng" />}
     <form id="joinForm" className="grid gap-3.5" onSubmit={event => { event.preventDefault(); lobby.joinLocal() }}>
       {onClose && <button type="button" className={`${lobbyButton} justify-self-end`} onClick={onClose}>Đóng</button>}
       <h2 id="lobbyTitle" className="m-0 text-[22px]">Vào phòng cờ</h2>

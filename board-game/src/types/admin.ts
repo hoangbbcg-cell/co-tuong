@@ -16,4 +16,6 @@ export interface AdminUser {
 export type AdminChange = { requestId: string; reason: string } & (
   { action: 'resources'; gold: number; energy: number; xiangqi: number; jieqi: number } |
   { action: 'avatar' | 'frame' | 'honor'; code: string; equip: boolean }
+  | { action: 'hovang-watermark'; enabled: boolean }
+  | { action: 'ai-controls'; enabled: boolean }
 )

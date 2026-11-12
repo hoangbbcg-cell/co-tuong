@@ -16,6 +16,13 @@ const sameOriginProxy: ProxyOptions = {
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    headers: {
+      // Always revalidate the HTML/module graph so a normal F5 picks up the
+      // latest local source without requiring an incognito window or cache clear.
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
     host: '0.0.0.0',
     proxy: {
       // Preserve the browser host so the backend's same-origin check also works in dev.
@@ -25,6 +32,11 @@ export default defineConfig({
       '/socket.io': { target: 'http://127.0.0.1:3001', ws: true },
     },
   },
+  preview: {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+    },
+  },
   // Large full-app jsdom suites must not compete for CPU; keep normal deadlines.
-  test: { environment: 'node', include: ['tests/**/*.test.{ts,tsx}'], maxWorkers: 1 },
+  test: { environment: 'node', include: ['tests/**/*.test.{ts,tsx}'], setupFiles: ['tests/setup.ts'], maxWorkers: 1 },
 })

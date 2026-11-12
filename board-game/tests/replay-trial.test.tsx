@@ -4,9 +4,21 @@ import { expect, it, vi } from 'vitest'
 import { createGame } from '../src/game/state/initial'
 import { useReplayTrial } from '../src/features/game/hooks/useReplayTrial'
 import { PIECE_MOVE_DURATION_MS } from '../src/features/game/moveAnimation'
-import { pikafishApi } from '../src/services/pikafish'
+import { fairyStockfishApi } from '../src/services/fairyStockfish'
 import * as rules from '../src/game/rules'
-vi.mock('../src/services/pikafish', () => ({ pikafishApi: { move: vi.fn(async () => ({ from: { row: 3, col: 0 }, to: { row: 4, col: 0 } })) } }))
+vi.mock('../src/services/fairyStockfish', () => ({ fairyStockfishApi: { move: vi.fn(async () => ({ from: { row: 3, col: 0 }, to: { row: 4, col: 0 } })) } }))
+
+it('uses the trial clock cap after branching from a short increment game without changing its source', () => {
+  const source={...createGame(),initialTimeMs:60000,incrementMs:5000,remainingTime:{red:58000,black:60000}}
+  const {result,unmount}=renderHook(()=>useReplayTrial(source,'red','capped-increment-trial',true))
+  expect(result.current.game?.initialTimeMs).toBe(600000)
+  act(()=>result.current.select({row:6,col:0}))
+  act(()=>result.current.select({row:5,col:0}))
+  expect(result.current.game?.remainingTime.red).toBe(600000)
+  expect(source.initialTimeMs).toBe(60000)
+  expect(source.remainingTime.red).toBe(58000)
+  unmount()
+})
 
 it('does not recalculate legal moves when unrelated UI rerenders the same trial position', () => {
   const spy = vi.spyOn(rules, 'getLegalMoves')
@@ -53,7 +65,7 @@ it('branches without modifying the recording and resets to the exact starting bo
   act(() => result.current.toggle())
   expect(result.current.active).toBe(false)
 })
-it('uses Pikafish level 10 with the trial root and history, and cancels pending work', async () => {
+it('uses full-strength Fairy level 10 with the trial root and history, and cancels pending work', async () => {
   vi.useFakeTimers()
   const source = createGame()
   const { result, unmount } = renderHook(() => useReplayTrial(source, 'red', 'two'))
@@ -64,7 +76,7 @@ it('uses Pikafish level 10 with the trial root and history, and cancels pending 
   expect(result.current.animation?.from).toEqual({ row: 6, col: 0 })
   act(() => vi.advanceTimersByTime(PIECE_MOVE_DURATION_MS))
   await act(async () => { await vi.advanceTimersByTimeAsync(550) })
-  expect(pikafishApi.move).toHaveBeenCalledWith(['a3a4'], 600_000, 10, expect.any(AbortSignal), expect.stringContaining(' w - - 0 1'), 700)
+  expect(fairyStockfishApi.move).toHaveBeenCalledWith(['a3a4'], 600_000, 10, expect.any(AbortSignal), expect.stringContaining(' w - - 0 1'))
   expect(result.current.step).toBe(2)
   expect(result.current.animation).not.toBeNull()
   expect(result.current.game?.currentTurn).toBe('red')
@@ -89,4 +101,32 @@ it('uses Pikafish level 10 with the trial root and history, and cancels pending 
   expect(result.current.step).toBe(0)
   unmount()
   vi.useRealTimers()
+})
+
+it('restarts a finished custom-position trial from its initial board', () => {
+  const source = createGame()
+  const redKing = source.board[9][4]
+  const blackKing = source.board[0][4]
+  const rook = source.board[9][0]
+  const originalHorse = source.board[9][1]
+  const otherHorse = source.board[9][7]
+  source.board = source.board.map(row => row.map(() => null))
+  source.board[9][3] = redKing
+  source.board[0][4] = blackKing
+  source.board[3][0] = rook
+  source.board[2][2] = originalHorse
+  source.board[2][6] = otherHorse
+  const original = structuredClone(source)
+  const { result, unmount } = renderHook(() => useReplayTrial(source, 'red', 'custom-position-trial', true, false, true))
+  act(() => result.current.select({ row: 3, col: 0 }))
+  act(() => result.current.select({ row: 3, col: 4 }))
+  expect(result.current.game?.phase).toBe('finished')
+  act(() => result.current.reset())
+  expect(result.current.game?.phase).toBe('playing')
+  expect(result.current.game?.result).toBeNull()
+  expect(result.current.game?.board).toEqual(original.board)
+  expect(result.current.animation).toBeNull()
+  expect(result.current.step).toBe(0)
+  expect(source).toEqual(original)
+  unmount()
 })

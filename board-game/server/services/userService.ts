@@ -1,3 +1,4 @@
+import { playerRenameError } from '../../src/lib/playerName'
 import { randomInt } from 'node:crypto'
 import type { UserPersistence } from '../repositories/userRepository'
 
@@ -18,7 +19,8 @@ export class UserService {
   async rename(id: string, input: string): Promise<void> {
     if (!/^[1-9]\d*$/.test(id)) throw new Error('User ID không hợp lệ.')
     const name = input.trim().normalize('NFC')
-    if (!name || Array.from(name).length > 10 || /^(?:Guest\d{5}|Kỳ\s*Thủ\s*\d{5,6})$/iu.test(name)) throw new Error('Tên không hợp lệ hoặc thuộc vùng tên khách dành riêng.')
+    const error = playerRenameError(name)
+    if (error) throw new Error(error)
     if (!await this.users.renameLinkedUser(id, name)) throw new Error('Chỉ tài khoản đã liên kết, đang hoạt động và chưa đổi tên mới được đổi tên.')
   }
 }

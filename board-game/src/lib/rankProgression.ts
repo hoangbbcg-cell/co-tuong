@@ -21,3 +21,16 @@ export function getRankProgress(elo: number) {
   const nextTier = rankTiers.find(rank => rank.level === tier.level + 1)
   return { ...tier, elo: normalizedElo, starElo, stars, promotionElo: nextTier?.minElo ?? null }
 }
+
+export type VariantRating = { variant: 'xiangqi' | 'jieqi'; elo: number }
+
+/** Badge tiers and stars are shared across variants: the badge follows the higher Elo of the two played modes, never a sum. */
+export function sharedRankElo(xiangqiElo?: number | null, jieqiElo?: number | null, fallback = DEFAULT_PLAYER_ELO): number {
+  const xi = typeof xiangqiElo === 'number' && Number.isFinite(xiangqiElo) ? xiangqiElo : fallback
+  const ji = typeof jieqiElo === 'number' && Number.isFinite(jieqiElo) ? jieqiElo : fallback
+  return Math.max(xi, ji)
+}
+
+export function sharedRankEloFromStats(stats: readonly VariantRating[] | null | undefined, fallback = DEFAULT_PLAYER_ELO): number {
+  return sharedRankElo(stats?.find(stat => stat.variant === 'xiangqi')?.elo, stats?.find(stat => stat.variant === 'jieqi')?.elo, fallback)
+}

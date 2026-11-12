@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { sendChallenge } from '../../../services/challenge'
 import { errorMessage } from '../../../services/api'
-import { CHALLENGE_BLOCKED_MESSAGE } from '../../../types/challenge'
+import { CHALLENGE_BLOCKED_MESSAGE, CHALLENGE_TABLE_FULL_MESSAGE } from '../../../types/challenge'
 import { useChallengeCooldownStore } from '../../../store/challengeCooldownStore'
 
 export function useProfileChallenge(name: string, targetId: string | undefined, onFeedback: (message: string) => void, onSent?: (message?: string) => void) {
@@ -24,7 +24,7 @@ export function useProfileChallenge(name: string, targetId: string | undefined, 
     } catch (error) {
       if (version === requestVersion.current) {
         const message = errorMessage(error)
-        if (message === CHALLENGE_BLOCKED_MESSAGE && onSent) onSent(message)
+        if ((message === CHALLENGE_BLOCKED_MESSAGE || message === CHALLENGE_TABLE_FULL_MESSAGE) && onSent) onSent(message)
         else onFeedback(message)
       }
     } finally {
